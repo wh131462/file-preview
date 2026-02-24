@@ -134,44 +134,44 @@ function App() {
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
       {/* 导航栏 */}
       <nav className="bg-black/20 backdrop-blur-xl border-b border-white/10 sticky top-0 z-40">
-        <div className="container mx-auto px-4 py-4">
+        <div className="container mx-auto px-3 py-3 sm:px-4 sm:py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <img src="/icon.svg" alt="logo" className="w-10 h-10 rounded-xl" />
-              <div className="flex flex-col items-start">
-                <h1 className="text-xl font-bold text-white">React File Preview</h1>
-                <p className="text-xs text-gray-400">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+              <img src="/icon.svg" alt="logo" className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex-shrink-0" />
+              <div className="flex flex-col items-start min-w-0">
+                <h1 className="text-base sm:text-xl font-bold text-white truncate">React File Preview</h1>
+                <p className="text-[10px] sm:text-xs text-gray-400 truncate max-w-[160px] sm:max-w-none">
                   @eternalheart/react-file-preview@{VERSION}
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-1.5 sm:gap-4 flex-shrink-0">
               <a
                 href="https://github.com/wh131462/react-file-preview"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-white transition-all hover:scale-105"
+                className="flex items-center gap-2 px-2.5 py-2 sm:px-4 sm:py-2 rounded-lg bg-white/5 hover:bg-white/10 active:bg-white/15 text-white transition-all hover:scale-105"
               >
-                <Code className="w-5 h-5" />
+                <Code className="w-4 h-4 sm:w-5 sm:h-5" />
                 <span className="hidden sm:inline">GitHub</span>
               </a>
               <a
                 href="https://www.npmjs.com/package/@eternalheart/react-file-preview"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-white transition-all hover:scale-105"
+                className="flex items-center gap-2 px-2.5 py-2 sm:px-4 sm:py-2 rounded-lg bg-white/5 hover:bg-white/10 active:bg-white/15 text-white transition-all hover:scale-105"
               >
-                <Package className="w-5 h-5" />
+                <Package className="w-4 h-4 sm:w-5 sm:h-5" />
                 <span className="hidden sm:inline">npm</span>
               </a>
               <a
                 href={DOCS_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-blue-500 to-purple-600 text-white transition-all hover:scale-105 hover:shadow-lg"
+                className="flex items-center gap-2 px-2.5 py-2 sm:px-4 sm:py-2 rounded-lg bg-gradient-to-r from-blue-500 to-purple-600 text-white transition-all hover:scale-105 hover:shadow-lg active:scale-95"
               >
-                <BookOpen className="w-5 h-5" />
+                <BookOpen className="w-4 h-4 sm:w-5 sm:h-5" />
                 <span className="hidden sm:inline">API Docs</span>
               </a>
             </div>
@@ -179,24 +179,24 @@ function App() {
         </div>
       </nav>
 
-      <div className="container mx-auto px-4 py-16">
-        <div className="text-center mb-12">
-          <h2 className="text-4xl font-bold text-white mb-4">
+      <div className="container mx-auto px-3 sm:px-4 py-8 sm:py-16">
+        <div className="text-center mb-8 sm:mb-12">
+          <h2 className="text-2xl sm:text-4xl font-bold text-white mb-2 sm:mb-4">
             文件预览演示
           </h2>
-          <p className="text-gray-400 text-lg">
+          <p className="text-gray-400 text-sm sm:text-lg px-4">
             支持 20+ 种文件格式的现代化预览组件
           </p>
         </div>
 
         {/* 文件上传区域 */}
-        <div className="max-w-6xl mx-auto mb-12">
+        <div className="max-w-6xl mx-auto mb-8 sm:mb-12">
           <div
             onDragEnter={handleDragEnter}
             onDragLeave={handleDragLeave}
             onDragOver={handleDragOver}
             onDrop={handleDrop}
-            className={`bg-white/5 backdrop-blur-sm rounded-2xl p-8 border-2 border-dashed transition-all ${isDragging
+            className={`bg-white/5 backdrop-blur-sm rounded-xl sm:rounded-2xl p-5 sm:p-8 border-2 border-dashed transition-all ${isDragging
               ? 'border-blue-500 bg-blue-500/10 scale-105'
               : 'border-white/20 hover:border-white/40'
               }`}
@@ -208,24 +208,24 @@ function App() {
               onChange={handleFileUpload}
               className="hidden"
               id="file-upload"
-              accept="image/*,video/*,audio/*,.pdf,.docx,.xlsx,.pptx,.ppt,.msg,.md,.txt,.js,.jsx,.ts,.tsx,.json,.py,.java,.cpp,.c,.cs,.php,.rb,.go,.rs,.html,.css,.xml,.yaml,.yml,.mp4,.webm,.ogg,.ogv,.mov,.avi,.mkv,.m4v,.3gp,.flv"
+              accept="*/*"
             />
             <label
               htmlFor="file-upload"
               className="flex flex-col items-center justify-center cursor-pointer"
             >
-              <div className={`w-20 h-20 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center mb-4 transition-transform ${isDragging ? 'scale-110' : ''
+              <div className={`w-14 h-14 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center mb-3 sm:mb-4 transition-transform ${isDragging ? 'scale-110' : ''
                 }`}>
-                <Upload className="w-10 h-10 text-white" />
+                <Upload className="w-7 h-7 sm:w-10 sm:h-10 text-white" />
               </div>
-              <h3 className="text-white text-xl font-medium mb-2">
+              <h3 className="text-white text-base sm:text-xl font-medium mb-1.5 sm:mb-2">
                 {isDragging ? '松开以上传文件' : '上传本地文件预览'}
               </h3>
-              <p className="text-gray-400 text-sm mb-4">
+              <p className="text-gray-400 text-xs sm:text-sm mb-3 sm:mb-4 px-2">
                 {isDragging ? '将文件拖放到此处' : '支持图片、PDF、Word、Excel、视频、音频等格式'}
               </p>
               {!isDragging && (
-                <div className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg text-white font-medium hover:shadow-lg hover:scale-105 transition-all">
+                <div className="px-5 py-2.5 sm:px-6 sm:py-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg text-white text-sm sm:text-base font-medium hover:shadow-lg hover:scale-105 active:scale-95 transition-all">
                   选择文件或拖拽到此处
                 </div>
               )}
@@ -235,28 +235,28 @@ function App() {
 
         {/* 已上传的文件列表 */}
         {uploadedFiles.length > 0 && (
-          <div className="max-w-6xl mx-auto mb-12">
-            <h2 className="text-2xl font-bold text-white mb-6">已上传的文件</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="max-w-6xl mx-auto mb-8 sm:mb-12">
+            <h2 className="text-xl sm:text-2xl font-bold text-white mb-4 sm:mb-6">已上传的文件</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
               {uploadedFiles.map((file, index) => {
                 return (
                   <div
                     key={file.id}
-                    className="group relative bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10 hover:border-white/30 transition-all duration-300"
+                    className="group relative bg-white/5 backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-white/10 hover:border-white/30 active:bg-white/10 transition-all duration-300"
                   >
                     <button
                       onClick={() => handleFileClick(index)}
                       className="w-full text-left"
                     >
-                      <div className="flex items-start gap-4">
-                        <div className="p-4 rounded-xl bg-gradient-to-br from-green-500 to-teal-600 text-white group-hover:scale-110 transition-transform">
+                      <div className="flex items-start gap-3 sm:gap-4">
+                        <div className="p-3 sm:p-4 rounded-xl bg-gradient-to-br from-green-500 to-teal-600 text-white group-hover:scale-110 transition-transform flex-shrink-0">
                           {getFileIcon(file.type)}
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <h3 className="text-white font-medium text-lg mb-2 truncate">
+                        <div className="flex-1 min-w-0 pr-6 sm:pr-0">
+                          <h3 className="text-white font-medium text-base sm:text-lg mb-1 sm:mb-2 truncate">
                             {file.name}
                           </h3>
-                          <p className="text-gray-400 text-sm truncate">
+                          <p className="text-gray-400 text-xs sm:text-sm truncate">
                             {file.type.split('/')[1]?.toUpperCase() || 'FILE'}
                           </p>
                           {file.size && (
@@ -266,7 +266,7 @@ function App() {
                           )}
                         </div>
                       </div>
-                      <div className="mt-4 text-green-400 text-sm font-medium group-hover:text-green-300">
+                      <div className="mt-3 sm:mt-4 text-green-400 text-xs sm:text-sm font-medium group-hover:text-green-300">
                         点击预览 →
                       </div>
                     </button>
@@ -277,10 +277,10 @@ function App() {
                         e.stopPropagation();
                         handleRemoveFile(file.id);
                       }}
-                      className="absolute top-4 right-4 w-8 h-8 rounded-full bg-red-500/80 hover:bg-red-500 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-all"
+                      className="absolute top-3 right-3 sm:top-4 sm:right-4 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-red-500/80 hover:bg-red-500 flex items-center justify-center text-white opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all"
                       title="删除文件"
                     >
-                      <X className="w-4 h-4" />
+                      <X className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                     </button>
                   </div>
                 );
@@ -291,8 +291,8 @@ function App() {
       </div>
 
       {/* 页脚 */}
-      <footer className="max-w-6xl mx-auto mt-12 mb-8 text-center">
-        <div className="text-gray-400 text-sm">
+      <footer className="max-w-6xl mx-auto mt-8 sm:mt-12 mb-6 sm:mb-8 px-3 sm:px-4 text-center pb-[env(safe-area-inset-bottom)]">
+        <div className="text-gray-400 text-xs sm:text-sm">
           <p className="mb-2">
             Made with ❤️ by{' '}
             <a
@@ -304,7 +304,7 @@ function App() {
               EternalHeart
             </a>
           </p>
-          <p>
+          <p className="flex flex-wrap items-center justify-center gap-1">
             <a
               href="https://github.com/wh131462/react-file-preview/blob/main/LICENSE"
               target="_blank"
@@ -313,7 +313,7 @@ function App() {
             >
               MIT License
             </a>
-            {' '} · {' '}
+            <span>{' '} · {' '}</span>
             <a
               href="https://github.com/wh131462/react-file-preview"
               target="_blank"
@@ -322,7 +322,7 @@ function App() {
             >
               GitHub
             </a>
-            {' '} · {' '}
+            <span>{' '} · {' '}</span>
             <a
               href="https://www.npmjs.com/package/@eternalheart/react-file-preview"
               target="_blank"

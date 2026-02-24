@@ -23,11 +23,25 @@ body {
   place-items: center;
   min-width: 320px;
   min-height: 100vh;
+  /* 移动端安全区域适配 */
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left);
+  /* 防止移动端 overscroll 弹跳 */
+  overscroll-behavior: none;
+  /* 优化触摸滚动 */
+  -webkit-overflow-scrolling: touch;
 }
 
 #root {
   width: 100%;
   margin: 0 auto;
   text-align: center;
+}
+
+/* 移动端触摸优化 */
+@media (hover: none) and (pointer: coarse) {
+  /* 禁用移动端点击高亮 */
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
 }
 

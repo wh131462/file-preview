@@ -3,7 +3,7 @@ import { FilePreviewModal, VERSION } from '@eternalheart/react-file-preview';
 import type { PreviewFile, PreviewFileInput, CustomRenderer } from '@eternalheart/react-file-preview';
 import '@eternalheart/react-file-preview/style.css';
 import { FileText, Image, FileSpreadsheet, Video, Music, Upload, X, Package, BookOpen, Code } from 'lucide-react';
-import iconSvg from '/icon.svg';
+import iconSvg from '../public/icon.svg';
 
 // 环境检测：开发环境和生产环境的 URL
 const isDev = import.meta.env.DEV;

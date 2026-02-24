@@ -269,6 +269,7 @@
 
 .rfp-root .xlsx-spreadsheet-container .x-spreadsheet-sheet {
   overflow: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* 隐藏底部栏的添加 Sheet 按钮（添加按钮是 li:first-child 的直接子 .x-spreadsheet-icon，更多按钮在 span 内不受影响） */
@@ -285,6 +286,8 @@
 .rfp-root .xlsx-spreadsheet-container .x-spreadsheet-bottombar .x-spreadsheet-menu {
   display: flex;
   width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .rfp-root .xlsx-spreadsheet-container .x-spreadsheet-bottombar .x-spreadsheet-menu > li:first-child {
@@ -292,7 +295,7 @@
   margin-left: auto;
 }
 
-/* 去掉底部栏的 padding */
+/* 底部栏 sheet tabs 样式 */
 .rfp-root .xlsx-spreadsheet-container .x-spreadsheet-bottombar {
   padding: 0 8px;
   overflow: visible;
@@ -309,4 +312,19 @@
 /* 隐藏底部栏的右键菜单（删除 Sheet） */
 .rfp-root .xlsx-spreadsheet-container .x-spreadsheet-bottombar .x-spreadsheet-contextmenu {
   display: none !important;
+}
+
+/* 移动端优化 */
+@media (max-width: 640px) {
+  .rfp-root .xlsx-spreadsheet-container .x-spreadsheet-bottombar {
+    padding: 0 4px;
+    font-size: 12px;
+  }
+
+  .rfp-root .xlsx-spreadsheet-container .x-spreadsheet-bottombar .x-spreadsheet-menu > li {
+    padding: 0 6px;
+    font-size: 12px;
+    min-width: 0;
+    white-space: nowrap;
+  }
 }

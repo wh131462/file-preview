@@ -35,6 +35,7 @@ export const XlsxRenderer: React.FC<XlsxRendererProps> = ({ url }) => {
     spreadsheetRef.current = null;
 
     const { width, height } = calculateDimensions();
+    const isMobile = width < 640;
 
     const s = new Spreadsheet(containerRef.current, {
       mode: 'read',
@@ -47,9 +48,9 @@ export const XlsxRenderer: React.FC<XlsxRendererProps> = ({ url }) => {
       },
       col: {
         len: 26,
-        width: 100,
-        indexWidth: 60,
-        minWidth: 60,
+        width: isMobile ? 80 : 100,
+        indexWidth: isMobile ? 40 : 60,
+        minWidth: isMobile ? 40 : 60,
       },
       view: {
         height: () => height,
@@ -188,7 +189,7 @@ export const XlsxRenderer: React.FC<XlsxRendererProps> = ({ url }) => {
   }, [url, mountSpreadsheet]);
 
   return (
-    <div className="rfp-relative rfp-flex rfp-flex-col rfp-items-center rfp-w-full rfp-h-full rfp-pt-4 rfp-px-2 md:rfp-pt-6 md:rfp-px-4">
+    <div className="rfp-relative rfp-flex rfp-flex-col rfp-items-center rfp-w-full rfp-h-full md:rfp-px-4">
       {/* 加载状态 */}
       {loading && (
         <div className="rfp-absolute rfp-inset-0 rfp-flex rfp-items-center rfp-justify-center rfp-bg-black/50 rfp-backdrop-blur-sm rfp-z-10 rfp-rounded-xl md:rfp-rounded-2xl">

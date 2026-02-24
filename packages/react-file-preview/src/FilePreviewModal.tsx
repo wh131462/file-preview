@@ -115,10 +115,24 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
   const [contentNaturalHeight, setContentNaturalHeight] = useState(0); // 内容原始高度
   const contentRef = useRef<HTMLDivElement>(null);
 
-  // 滑动手势状态
-  const [touchStart, setTouchStart] = useState<number | null>(null);
-  const [touchEnd, setTouchEnd] = useState<number | null>(null);
-  const minSwipeDistance = 50;
+  // 导航箭头自动隐藏
+  const [navVisible, setNavVisible] = useState(true);
+  const navHideTimerRef = useRef<number | null>(null);
+  const NAV_HIDE_DELAY = 2000;
+
+  const resetNavTimer = useCallback(() => {
+    setNavVisible(true);
+    if (navHideTimerRef.current) {
+      clearTimeout(navHideTimerRef.current);
+    }
+    navHideTimerRef.current = window.setTimeout(() => {
+      setNavVisible(false);
+    }, NAV_HIDE_DELAY);
+  }, []);
+
+  const handleMouseMove = useCallback(() => {
+    resetNavTimer();
+  }, [resetNavTimer]);
 
   // 标准化文件输入
   const normalizedFiles = useMemo(() => normalizeFiles(files), [files]);
@@ -141,7 +155,23 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
     setTotalPages(1);
     setContentNaturalWidth(0);
     setContentNaturalHeight(0);
+    setNavVisible(true);
+    if (navHideTimerRef.current) {
+      clearTimeout(navHideTimerRef.current);
+    }
   }, [currentIndex]);
+
+  // 导航箭头自动隐藏计时器启动 & 清理
+  useEffect(() => {
+    if (isOpen && normalizedFiles.length > 1) {
+      resetNavTimer();
+    }
+    return () => {
+      if (navHideTimerRef.current) {
+        clearTimeout(navHideTimerRef.current);
+      }
+    };
+  }, [isOpen, normalizedFiles.length, resetNavTimer]);
 
   // 键盘导航
   // 锁定 body 滚动
@@ -236,30 +266,6 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
     link.click();
   }, [currentFile]);
 
-  // 滑动手势处理
-  const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    setTouchEnd(null);
-    setTouchStart(e.targetTouches[0].clientX);
-  }, []);
-
-  const handleTouchMove = useCallback((e: React.TouchEvent) => {
-    setTouchEnd(e.targetTouches[0].clientX);
-  }, []);
-
-  const handleTouchEnd = useCallback(() => {
-    if (!touchStart || !touchEnd) return;
-    const distance = touchStart - touchEnd;
-    const isLeftSwipe = distance > minSwipeDistance;
-    const isRightSwipe = distance < -minSwipeDistance;
-
-    if (isLeftSwipe && currentIndex < normalizedFiles.length - 1) {
-      onNavigate?.(currentIndex + 1);
-    }
-    if (isRightSwipe && currentIndex > 0) {
-      onNavigate?.(currentIndex - 1);
-    }
-  }, [touchStart, touchEnd, minSwipeDistance, currentIndex, normalizedFiles.length, onNavigate]);
-
   if (!isOpen || !currentFile) return null;
 
   const showZoomControls = fileType === 'image' || fileType === 'pdf';
@@ -282,67 +288,73 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
               className="rfp-relative rfp-w-full rfp-h-full rfp-flex rfp-flex-col rfp-overflow-hidden"
               onClick={(e) => e.stopPropagation()}
             >
-              {/* 顶部工具栏 */}
+              {/* 顶部工具栏 - 全屏融合式 */}
               <motion.div
-                initial={{ y: -100 }}
-                animate={{ y: 0 }}
-                exit={{ y: -100 }}
-                className="rfp-absolute rfp-top-0 rfp-left-0 rfp-right-0 rfp-z-10 rfp-p-4"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="rfp-flex-shrink-0 rfp-z-10 rfp-bg-black/50 rfp-backdrop-blur-md rfp-border-b rfp-border-white/10"
+                style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
               >
-                <div className="rfp-max-w-7xl rfp-mx-auto rfp-flex rfp-flex-col md:rfp-flex-row md:rfp-items-center md:rfp-justify-between rfp-bg-black/40 rfp-backdrop-blur-xl rfp-rounded-2xl rfp-px-3 md:rfp-px-6 rfp-py-3 md:rfp-py-4 rfp-shadow-2xl rfp-border rfp-border-white/10 rfp-gap-2 md:rfp-gap-0">
-                  {/* 第一行：文件名 + 关闭按钮（移动端） */}
-                  <div className="rfp-flex rfp-items-center rfp-justify-between md:rfp-flex-1 md:rfp-min-w-0 md:rfp-mr-4">
-                    <div className="rfp-flex-1 rfp-min-w-0">
-                      <h2 className="rfp-text-white rfp-font-medium rfp-text-sm md:rfp-text-lg rfp-truncate">
-                        {currentFile.name}
-                      </h2>
-                      <p className="rfp-text-white/60 rfp-text-xs md:rfp-text-sm">
-                        {currentIndex + 1} / {normalizedFiles.length}
-                      </p>
-                    </div>
-                    {/* 移动端关闭按钮 */}
-                    <div className="md:rfp-hidden rfp-ml-2">
-                      <ToolbarButton
-                        icon={<X className="rfp-w-5 rfp-h-5" />}
-                        label="关闭"
-                        onClick={onClose}
-                      />
-                    </div>
+                {/* 第一行：文件名 + 分页 + 关闭/下载（移动端右侧）/ 全部按钮（桌面端） */}
+                <div className="rfp-flex rfp-items-center rfp-justify-between rfp-px-3 md:rfp-px-5 rfp-py-1.5 md:rfp-py-2.5">
+                  {/* 左侧：文件名 + 分页 */}
+                  <div className="rfp-flex rfp-items-center rfp-flex-1 rfp-min-w-0 rfp-mr-2 md:rfp-mr-3">
+                    <h2 className="rfp-text-white/90 rfp-font-medium rfp-text-xs md:rfp-text-sm rfp-truncate">
+                      {currentFile.name}
+                    </h2>
+                    <span className="rfp-text-white/40 rfp-text-xs rfp-ml-2 rfp-flex-shrink-0">
+                      {currentIndex + 1}/{normalizedFiles.length}
+                    </span>
                   </div>
 
-                  {/* 第二行：工具按钮 - 支持水平滚动 */}
-                  <div className="rfp-flex rfp-items-center rfp-gap-1 md:rfp-gap-2 rfp-overflow-x-auto scrollbar-hide rfp-flex-shrink-0">
+                  {/* 移动端：仅显示下载+关闭 */}
+                  <div className="rfp-flex rfp-items-center rfp-gap-1 md:rfp-hidden rfp-flex-shrink-0">
+                    <ToolbarButton
+                      icon={<Download className="rfp-w-4 rfp-h-4" />}
+                      label="下载"
+                      onClick={handleDownload}
+                    />
+                    <ToolbarButton
+                      icon={<X className="rfp-w-4 rfp-h-4" />}
+                      label="关闭"
+                      onClick={onClose}
+                    />
+                  </div>
+
+                  {/* 桌面端：所有工具按钮 */}
+                  <div className="rfp-hidden md:rfp-flex rfp-items-center rfp-gap-1 rfp-flex-shrink-0">
                     {showZoomControls && (
                       <>
                         <ToolbarButton
-                          icon={<ZoomOut className="rfp-w-5 rfp-h-5" />}
+                          icon={<ZoomOut className="rfp-w-4 rfp-h-4" />}
                           label="缩小"
                           onClick={handleZoomOut}
                           disabled={zoom <= 0.01}
                         />
-                        <span className="rfp-text-white/70 rfp-text-sm rfp-min-w-[4rem] rfp-text-center rfp-font-medium">
+                        <span className="rfp-text-white/60 rfp-text-xs rfp-min-w-[3rem] rfp-text-center rfp-font-medium rfp-tabular-nums">
                           {Math.round(zoom * 100)}%
                         </span>
                         <ToolbarButton
-                          icon={<ZoomIn className="rfp-w-5 rfp-h-5" />}
+                          icon={<ZoomIn className="rfp-w-4 rfp-h-4" />}
                           label="放大"
                           onClick={handleZoomIn}
                           disabled={zoom >= 10}
                         />
-                        <div className="rfp-w-px rfp-h-6 rfp-bg-white/20 rfp-mx-2" />
+                        <div className="rfp-w-px rfp-h-4 rfp-bg-white/10 rfp-mx-1" />
                         {fileType === 'image' && (
                           <>
                             <ToolbarButton
-                              icon={<Scan className="rfp-w-5 rfp-h-5" />}
+                              icon={<Scan className="rfp-w-4 rfp-h-4" />}
                               label="适应窗口"
                               onClick={handleFitToWidth}
                             />
                             <ToolbarButton
-                              icon={<OriginalSizeIcon className="rfp-w-5 rfp-h-5" />}
+                              icon={<OriginalSizeIcon className="rfp-w-4 rfp-h-4" />}
                               label="原始尺寸"
                               onClick={handleOriginalSize}
                             />
-                            <div className="rfp-w-px rfp-h-6 rfp-bg-white/20 rfp-mx-2" />
+                            <div className="rfp-w-px rfp-h-4 rfp-bg-white/10 rfp-mx-1" />
                           </>
                         )}
                       </>
@@ -351,61 +363,112 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
                     {showRotateControl && (
                       <>
                         <ToolbarButton
-                          icon={<RotateCcw className="rfp-w-5 rfp-h-5" />}
+                          icon={<RotateCcw className="rfp-w-4 rfp-h-4" />}
                           label="向左旋转"
                           onClick={handleRotateLeft}
                         />
                         <ToolbarButton
-                          icon={<RotateCw className="rfp-w-5 rfp-h-5" />}
+                          icon={<RotateCw className="rfp-w-4 rfp-h-4" />}
                           label="向右旋转"
                           onClick={handleRotate}
                         />
-                        <div className="rfp-w-px rfp-h-6 rfp-bg-white/20 rfp-mx-2" />
+                        <div className="rfp-w-px rfp-h-4 rfp-bg-white/10 rfp-mx-1" />
                       </>
                     )}
 
                     {(showZoomControls || showRotateControl) && (
                       <>
                         <ToolbarButton
-                          icon={<RefreshCw className="rfp-w-5 rfp-h-5" />}
+                          icon={<RefreshCw className="rfp-w-4 rfp-h-4" />}
                           label="复原"
                           onClick={handleReset}
                         />
-                        <div className="rfp-w-px rfp-h-6 rfp-bg-white/20 rfp-mx-2" />
+                        <div className="rfp-w-px rfp-h-4 rfp-bg-white/10 rfp-mx-1" />
                       </>
                     )}
 
                     <ToolbarButton
-                      icon={<Download className="rfp-w-5 rfp-h-5" />}
+                      icon={<Download className="rfp-w-4 rfp-h-4" />}
                       label="下载"
                       onClick={handleDownload}
                     />
-
-                    {/* 桌面端关闭按钮 */}
-                    <div className="rfp-hidden md:rfp-flex rfp-items-center">
-                      <div className="rfp-w-px rfp-h-6 rfp-bg-white/20 rfp-mx-2" />
-                      <ToolbarButton
-                        icon={<X className="rfp-w-5 rfp-h-5" />}
-                        label="关闭"
-                        onClick={onClose}
-                      />
-                    </div>
+                    <ToolbarButton
+                      icon={<X className="rfp-w-4 rfp-h-4" />}
+                      label="关闭"
+                      onClick={onClose}
+                    />
                   </div>
                 </div>
+
+                {/* 第二行：移动端工具按钮（仅 image/pdf 显示） */}
+                {(showZoomControls || showRotateControl) && (
+                  <div className="rfp-flex rfp-items-center rfp-gap-1 rfp-px-3 rfp-pb-1.5 rfp-overflow-x-auto scrollbar-hide md:rfp-hidden">
+                    {showZoomControls && (
+                      <>
+                        <ToolbarButton
+                          icon={<ZoomOut className="rfp-w-4 rfp-h-4" />}
+                          label="缩小"
+                          onClick={handleZoomOut}
+                          disabled={zoom <= 0.01}
+                        />
+                        <span className="rfp-text-white/60 rfp-text-xs rfp-min-w-[3rem] rfp-text-center rfp-font-medium rfp-tabular-nums">
+                          {Math.round(zoom * 100)}%
+                        </span>
+                        <ToolbarButton
+                          icon={<ZoomIn className="rfp-w-4 rfp-h-4" />}
+                          label="放大"
+                          onClick={handleZoomIn}
+                          disabled={zoom >= 10}
+                        />
+                        <div className="rfp-w-px rfp-h-4 rfp-bg-white/10 rfp-mx-0.5" />
+                        {fileType === 'image' && (
+                          <>
+                            <ToolbarButton
+                              icon={<Scan className="rfp-w-4 rfp-h-4" />}
+                              label="适应窗口"
+                              onClick={handleFitToWidth}
+                            />
+                            <ToolbarButton
+                              icon={<OriginalSizeIcon className="rfp-w-4 rfp-h-4" />}
+                              label="原始尺寸"
+                              onClick={handleOriginalSize}
+                            />
+                            <div className="rfp-w-px rfp-h-4 rfp-bg-white/10 rfp-mx-0.5" />
+                          </>
+                        )}
+                      </>
+                    )}
+
+                    {showRotateControl && (
+                      <>
+                        <ToolbarButton
+                          icon={<RotateCcw className="rfp-w-4 rfp-h-4" />}
+                          label="向左旋转"
+                          onClick={handleRotateLeft}
+                        />
+                        <ToolbarButton
+                          icon={<RotateCw className="rfp-w-4 rfp-h-4" />}
+                          label="向右旋转"
+                          onClick={handleRotate}
+                        />
+                        <div className="rfp-w-px rfp-h-4 rfp-bg-white/10 rfp-mx-0.5" />
+                      </>
+                    )}
+
+                    <ToolbarButton
+                      icon={<RefreshCw className="rfp-w-4 rfp-h-4" />}
+                      label="复原"
+                      onClick={handleReset}
+                    />
+                  </div>
+                )}
               </motion.div>
 
               {/* 内容区域 */}
               <div
                 ref={contentRef}
-                className={`rfp-flex-1 rfp-flex rfp-items-center rfp-justify-center rfp-overflow-auto ${fileType === 'image'
-                  ? 'rfp-p-0'
-                  : fileType === 'xlsx'
-                    ? 'rfp-pt-32 md:rfp-pt-24'
-                    : 'rfp-pt-32 md:rfp-pt-24 rfp-pb-4 md:rfp-pb-8'
-                  }`}
-                onTouchStart={handleTouchStart}
-                onTouchMove={handleTouchMove}
-                onTouchEnd={handleTouchEnd}
+                className="rfp-flex-1 rfp-flex rfp-items-center rfp-justify-center rfp-overflow-auto"
+                onMouseMove={handleMouseMove}
               >
                 {customRenderer ? (
                   // 使用自定义渲染器
@@ -455,16 +518,18 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
                 )}
               </div>
 
-              {/* 左右导航箭头 */}
+              {/* 左右导航箭头 - 自动隐藏 */}
               {normalizedFiles.length > 1 && (
                 <>
                   {currentIndex > 0 && (
                     <motion.button
-                      initial={{ x: -100, opacity: 0 }}
-                      animate={{ x: 0, opacity: 1 }}
-                      exit={{ x: -100, opacity: 0 }}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: navVisible ? 1 : 0, x: navVisible ? 0 : -20 }}
+                      transition={{ duration: 0.2 }}
                       onClick={() => onNavigate?.(currentIndex - 1)}
-                      className="rfp-absolute rfp-left-2 md:rfp-left-4 rfp-top-1/2 -rfp-translate-y-1/2 rfp-w-10 rfp-h-10 md:rfp-w-12 md:rfp-h-12 rfp-rounded-full rfp-bg-black/40 rfp-backdrop-blur-xl rfp-border rfp-border-white/10 rfp-flex rfp-items-center rfp-justify-center rfp-text-white hover:rfp-bg-black/60 rfp-transition-all rfp-shadow-2xl"
+                      onMouseEnter={() => setNavVisible(true)}
+                      style={{ pointerEvents: navVisible ? 'auto' : 'none' }}
+                      className="rfp-absolute rfp-z-20 rfp-left-2 md:rfp-left-4 rfp-top-1/2 -rfp-translate-y-1/2 rfp-w-10 rfp-h-10 md:rfp-w-12 md:rfp-h-12 rfp-rounded-full rfp-bg-black/40 rfp-backdrop-blur-xl rfp-border rfp-border-white/10 rfp-flex rfp-items-center rfp-justify-center rfp-text-white hover:rfp-bg-black/60 rfp-transition-colors rfp-shadow-2xl"
                     >
                       <ChevronLeft className="rfp-w-5 rfp-h-5 md:rfp-w-6 md:rfp-h-6" />
                     </motion.button>
@@ -472,11 +537,13 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
 
                   {currentIndex < normalizedFiles.length - 1 && (
                     <motion.button
-                      initial={{ x: 100, opacity: 0 }}
-                      animate={{ x: 0, opacity: 1 }}
-                      exit={{ x: 100, opacity: 0 }}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: navVisible ? 1 : 0, x: navVisible ? 0 : 20 }}
+                      transition={{ duration: 0.2 }}
                       onClick={() => onNavigate?.(currentIndex + 1)}
-                      className="rfp-absolute rfp-right-2 md:rfp-right-4 rfp-top-1/2 -rfp-translate-y-1/2 rfp-w-10 rfp-h-10 md:rfp-w-12 md:rfp-h-12 rfp-rounded-full rfp-bg-black/40 rfp-backdrop-blur-xl rfp-border rfp-border-white/10 rfp-flex rfp-items-center rfp-justify-center rfp-text-white hover:rfp-bg-black/60 rfp-transition-all rfp-shadow-2xl"
+                      onMouseEnter={() => setNavVisible(true)}
+                      style={{ pointerEvents: navVisible ? 'auto' : 'none' }}
+                      className="rfp-absolute rfp-z-20 rfp-right-2 md:rfp-right-4 rfp-top-1/2 -rfp-translate-y-1/2 rfp-w-10 rfp-h-10 md:rfp-w-12 md:rfp-h-12 rfp-rounded-full rfp-bg-black/40 rfp-backdrop-blur-xl rfp-border rfp-border-white/10 rfp-flex rfp-items-center rfp-justify-center rfp-text-white hover:rfp-bg-black/60 rfp-transition-colors rfp-shadow-2xl"
                     >
                       <ChevronRight className="rfp-w-5 rfp-h-5 md:rfp-w-6 md:rfp-h-6" />
                     </motion.button>
@@ -508,7 +575,7 @@ const ToolbarButton: React.FC<ToolbarButtonProps> = ({ icon, label, onClick, dis
       onClick={onClick}
       disabled={disabled}
       title={label}
-      className={`rfp-p-2 rfp-rounded-lg rfp-transition-all ${disabled
+      className={`rfp-p-2 md:rfp-p-1.5 rfp-rounded-md rfp-transition-all ${disabled
         ? 'rfp-text-white/30 rfp-cursor-not-allowed'
         : 'rfp-text-white hover:rfp-bg-white/10 active:rfp-bg-white/20'
         }`}

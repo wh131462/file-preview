@@ -3,6 +3,7 @@ import { FilePreviewModal, VERSION } from '@eternalheart/react-file-preview';
 import type { PreviewFile, PreviewFileInput, CustomRenderer } from '@eternalheart/react-file-preview';
 import '@eternalheart/react-file-preview/style.css';
 import { FileText, Image, FileSpreadsheet, Video, Music, Upload, X, Package, BookOpen, Code } from 'lucide-react';
+import iconSvg from '/icon.svg';
 
 // 环境检测：开发环境和生产环境的 URL
 const isDev = import.meta.env.DEV;
@@ -137,7 +138,7 @@ function App() {
         <div className="container mx-auto px-3 py-3 sm:px-4 sm:py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-              <img src="/icon.svg" alt="logo" className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex-shrink-0" />
+              <img src={iconSvg} alt="logo" className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex-shrink-0" />
               <div className="flex flex-col items-start min-w-0">
                 <h1 className="text-base sm:text-xl font-bold text-white truncate">React File Preview</h1>
                 <p className="text-[10px] sm:text-xs text-gray-400 truncate max-w-[160px] sm:max-w-none">

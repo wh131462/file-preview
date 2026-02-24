@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(git add packages/example/index.html packages/example/src/App.tsx packages/example/src/index.css)",
-      "Bash(git add packages/react-file-preview/README.md packages/react-file-preview/README.zh-CN.md)"
+      "Bash(git add packages/react-file-preview/README.md packages/react-file-preview/README.zh-CN.md)",
+      "Bash(ls /Users/eternalheart/workspace/wh131462/react-file-preview/packages/example/public/icon*)"
     ]
   }
 }

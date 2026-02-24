@@ -6,7 +6,7 @@
   "type": "module",
   "packageManager": "pnpm@10.15.0",
   "scripts": {
-    "dev": "pnpm build:lib && pnpm --filter @eternalheart/react-file-preview-example dev",
+    "dev": "pnpm build:lib && (pnpm --filter @eternalheart/react-file-preview dev & pnpm --filter @eternalheart/react-file-preview-example dev)",
     "dev:docs": "pnpm --filter @eternalheart/react-file-preview-docs dev",
     "build": "pnpm build:lib && pnpm --filter @eternalheart/react-file-preview-example build && pnpm --filter @eternalheart/react-file-preview-docs build",
     "build:lib": "pnpm --filter @eternalheart/react-file-preview build",
@@ -42,6 +42,7 @@
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^8.15.0",
     "@typescript-eslint/parser": "^8.15.0",
+    "baseline-browser-mapping": "^2.10.0",
     "eslint": "^9.15.0",
     "eslint-plugin-react-hooks": "^5.0.0",
     "eslint-plugin-react-refresh": "^0.4.14",

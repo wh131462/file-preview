@@ -3,7 +3,7 @@ import { defineConfig } from 'vitepress'
 // 环境检测：开发环境和生产环境的 URL
 const isDev = process.env.NODE_ENV !== 'production'
 const EXAMPLE_URL = isDev
-  ? 'http://localhost:5173/'
+  ? 'http://localhost:4800/'
   : 'https://wh131462.github.io/react-file-preview/'
 
 const base = '/react-file-preview/docs/'
@@ -16,6 +16,13 @@ export default defineConfig({
   head: [
     ['link', { rel: 'icon', type: 'image/svg+xml', href: `${base}icon.svg` }],
   ],
+
+  vite: {
+    server: {
+      port: 4801,
+      strictPort: true,
+    },
+  },
 
   themeConfig: {
     logo: '/icon.svg',
@@ -64,7 +71,7 @@ export default defineConfig({
 
     footer: {
       message: 'Released under the MIT License.',
-      copyright: 'Copyright © 2024-present EternalHeart'
+      copyright: 'Copyright © 2024-2026 <a href="https://github.com/wh131462" target="_blank">EternalHeart</a>'
     },
 
     search: {

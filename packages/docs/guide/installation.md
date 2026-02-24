@@ -36,10 +36,10 @@ import '@eternalheart/react-file-preview/style.css'
 组件已内置 PDF.js worker 配置，**无需任何额外配置**。
 
 Worker 文件会自动从 CDN 加载，确保：
-- ✅ 零配置，开箱即用
-- ✅ 自动匹配 pdfjs-dist 版本
-- ✅ 稳定可靠的加载方式
-- ✅ 无需手动复制任何文件
+- <img src="/assets/icons/check.svg" width="18" height="18" style="display:inline;vertical-align:middle" /> 零配置，开箱即用
+- <img src="/assets/icons/check.svg" width="18" height="18" style="display:inline;vertical-align:middle" /> 自动匹配 pdfjs-dist 版本
+- <img src="/assets/icons/check.svg" width="18" height="18" style="display:inline;vertical-align:middle" /> 稳定可靠的加载方式
+- <img src="/assets/icons/check.svg" width="18" height="18" style="display:inline;vertical-align:middle" /> 无需手动复制任何文件
 
 ::: tip
 组件会自动使用 unpkg CDN 加载 PDF.js worker 文件，无需任何手动配置。

@@ -20,22 +20,40 @@ hero:
       link: https://github.com/wh131462/react-file-preview
 
 features:
-  - icon: 🖼️
+  - icon:
+      src: /assets/icons/picture.svg
+      width: 48
+      height: 48
     title: 多格式支持
     details: 支持图片、视频、音频、PDF、Word、Excel、PowerPoint、Markdown 和代码文件等多种格式
-  - icon: ⚡
+  - icon:
+      src: /assets/icons/lightning.svg
+      width: 48
+      height: 48
     title: 高性能
     details: 基于 React 18 和现代浏览器 API，提供流畅的预览体验
-  - icon: 🎨
+  - icon:
+      src: /assets/icons/palette.svg
+      width: 48
+      height: 48
     title: 可定制
     details: 支持自定义渲染器和主题，轻松适配你的应用风格
-  - icon: 📱
+  - icon:
+      src: /assets/icons/mobile.svg
+      width: 48
+      height: 48
     title: 响应式设计
     details: 完美适配桌面和移动设备，提供一致的用户体验
-  - icon: 🔧
+  - icon:
+      src: /assets/icons/wrench.svg
+      width: 48
+      height: 48
     title: 易于集成
     details: 简单的 API 设计，几行代码即可集成到你的 React 应用
-  - icon: 📦
+  - icon:
+      src: /assets/icons/package.svg
+      width: 48
+      height: 48
     title: TypeScript 支持
     details: 完整的 TypeScript 类型定义，提供更好的开发体验
 ---
@@ -89,9 +107,9 @@ function App() {
 ## 支持的文件类型
 
 - **图片**: JPG, PNG, GIF, WebP, SVG, BMP, ICO
-- **视频**: MP4, WebM, OGG
-- **音频**: MP3, WAV, OGG, AAC
-- **文档**: PDF, Word (DOC/DOCX), Excel (XLS/XLSX), PowerPoint (PPT/PPTX)
+- **视频**: MP4, WebM, OGG, MOV, AVI, MKV, M4V, 3GP, FLV
+- **音频**: MP3, WAV, OGG, M4A, AAC, FLAC
+- **文档**: PDF, Word (DOCX), Excel (XLSX), PowerPoint (PPT/PPTX), Outlook (MSG)
 - **文本**: Markdown, 代码文件 (支持语法高亮)
 
 ## 许可证

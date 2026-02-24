@@ -84,12 +84,13 @@ interface PreviewFile {
 支持的文件类型枚举：
 
 ```typescript
-type FileType = 
+type FileType =
   | 'image'       // 图片 (JPG, PNG, GIF, WebP, SVG, BMP, ICO)
   | 'pdf'         // PDF 文档
   | 'docx'        // Word 文档 (DOCX)
   | 'xlsx'        // Excel 表格 (XLSX)
   | 'pptx'        // PowerPoint 演示文稿 (PPTX, PPT)
+  | 'msg'         // Outlook 邮件 (MSG)
   | 'video'       // 视频 (MP4, WebM, OGG, MOV, AVI, MKV 等)
   | 'audio'       // 音频 (MP3, WAV, OGG, M4A, AAC, FLAC)
   | 'markdown'    // Markdown 文件 (MD)
@@ -183,17 +184,48 @@ const customRenderers: CustomRenderer[] = [
 3. **性能**: `test` 函数应该尽可能快速，避免复杂的异步操作
 4. **样式**: 自定义渲染器应该自行处理样式和布局
 
+## PdfConfigOptions
+
+PDF.js 配置选项接口：
+
+```typescript
+interface PdfConfigOptions {
+  workerSrc?: string     // PDF.js Worker 文件路径
+  cMapUrl?: string       // CMap 文件路径（多字节字符支持）
+  cMapPacked?: boolean   // 是否使用压缩的 CMap
+}
+```
+
+### 属性说明
+
+- `workerSrc`: 自定义 PDF.js Worker 文件路径，默认从 unpkg CDN 加载
+- `cMapUrl`: CMap 文件路径，用于支持 CJK 等多字节字符
+- `cMapPacked`: 是否使用压缩格式的 CMap 文件
+
+### 示例
+
+```typescript
+import { configurePdfjs } from '@eternalheart/react-file-preview'
+
+// 使用本地 worker
+configurePdfjs({
+  workerSrc: '/pdf.worker.min.mjs'
+})
+```
+
 ## 完整类型定义示例
 
 ```typescript
 import { FilePreviewModal } from '@eternalheart/react-file-preview'
-import type { 
-  PreviewFileInput, 
-  PreviewFileLink, 
+import type {
+  PreviewFileInput,
+  PreviewFileLink,
   PreviewFile,
   FileType,
   ToolbarAction,
-  PreviewState
+  PreviewState,
+  CustomRenderer,
+  PdfConfigOptions,
 } from '@eternalheart/react-file-preview'
 
 // 使用示例

@@ -1,5 +1,15 @@
 # 工具函数
 
+## VERSION
+
+当前包的版本号常量。
+
+```typescript
+import { VERSION } from '@eternalheart/react-file-preview'
+
+console.log(VERSION) // e.g. "1.0.5"
+```
+
 ## normalizeFile
 
 将单个文件输入标准化为内部使用的 `PreviewFile` 格式。
@@ -146,6 +156,7 @@ const normalized = normalizeFiles(inputs)
 - `.docx` → `application/vnd.openxmlformats-officedocument.wordprocessingml.document`
 - `.xlsx` → `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`
 - `.pptx`, `.ppt` → `application/vnd.openxmlformats-officedocument.presentationml.presentation`
+- `.msg` → `application/vnd.ms-outlook`
 
 ### 视频
 - `.mp4` → `video/mp4`
@@ -237,6 +248,55 @@ function processFile(input: PreviewFileInput, index: number) {
 
   return normalized
 }
+```
+
+## configurePdfjs
+
+配置 PDF.js 的 Worker 和 CMap 设置。
+
+### 签名
+
+```typescript
+function configurePdfjs(options?: PdfConfigOptions): void
+```
+
+### 参数
+
+- `options` - 可选配置对象：
+  - `workerSrc`: PDF.js Worker 文件路径
+  - `cMapUrl`: CMap 文件路径
+  - `cMapPacked`: 是否使用压缩的 CMap
+
+### 示例
+
+```typescript
+import { configurePdfjs } from '@eternalheart/react-file-preview'
+
+// 使用本地 Worker 文件
+configurePdfjs({
+  workerSrc: '/pdf.worker.min.mjs'
+})
+
+// 自定义 CMap 配置
+configurePdfjs({
+  cMapUrl: '/cmaps/',
+  cMapPacked: true
+})
+```
+
+::: tip
+默认情况下，组件会自动从 unpkg CDN 加载 PDF.js Worker，无需手动配置。仅在需要离线使用或自定义部署时才需要调用此函数。
+:::
+
+## pdfjs
+
+PDF.js 库的重新导出，可用于高级配置场景。
+
+```typescript
+import { pdfjs } from '@eternalheart/react-file-preview'
+
+// 访问 PDF.js 版本
+console.log(pdfjs.version)
 ```
 
 ## 下一步

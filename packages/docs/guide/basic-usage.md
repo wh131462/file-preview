@@ -26,7 +26,7 @@ function App() {
         onClose={() => setIsOpen(false)}
         files={files}
         currentIndex={currentIndex}
-        onIndexChange={setCurrentIndex}
+        onNavigate={setCurrentIndex}
       />
     </>
   )
@@ -35,40 +35,40 @@ function App() {
 
 ## 文件对象格式
 
-文件对象支持两种格式：
+文件对象支持三种格式：
 
-### URL 格式
+### URL 字符串
+
+```tsx
+const files = ['https://example.com/file.pdf']
+```
+
+### PreviewFileLink 对象
 
 ```tsx
 const file = {
+  name: 'document.pdf',
   url: 'https://example.com/file.pdf',
-  name: 'document.pdf'
+  type: 'application/pdf'
 }
 ```
 
-### File 对象格式
+### 原生 File 对象
 
 ```tsx
-const file = {
-  file: new File(['content'], 'document.txt', { type: 'text/plain' }),
-  name: 'document.txt'
-}
+const file = new File(['content'], 'document.txt', { type: 'text/plain' })
 ```
 
 ## 处理文件上传
 
 ```tsx
 function FileUploadExample() {
-  const [files, setFiles] = useState<PreviewFile[]>([])
+  const [files, setFiles] = useState<PreviewFileInput[]>([])
   const [isOpen, setIsOpen] = useState(false)
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = Array.from(e.target.files || [])
-    const previewFiles = selectedFiles.map(file => ({
-      file,
-      name: file.name
-    }))
-    setFiles(previewFiles)
+    setFiles(selectedFiles)
     setIsOpen(true)
   }
 
@@ -122,7 +122,7 @@ const customRenderers: CustomRenderer[] = [
   onClose={() => setIsOpen(false)}
   files={files}
   currentIndex={currentIndex}
-  onIndexChange={(index) => {
+  onNavigate={(index) => {
     console.log('切换到文件:', index)
     setCurrentIndex(index)
   }}
@@ -135,9 +135,9 @@ const customRenderers: CustomRenderer[] = [
 
 `FilePreviewModal` 使用 React Portal 将模态框渲染到 `document.body`，这确保了：
 
-- ✅ **最高层级**: 模态框始终显示在页面最上层，不受父元素 `z-index` 影响
-- ✅ **样式隔离**: 避免父元素的 CSS 样式（如 `overflow: hidden`）影响模态框
-- ✅ **定位准确**: 模态框相对于视口定位，不受父元素定位影响
+- <img src="/assets/icons/check.svg" width="18" height="18" style="display:inline;vertical-align:middle" /> **最高层级**: 模态框始终显示在页面最上层，不受父元素 `z-index` 影响
+- <img src="/assets/icons/check.svg" width="18" height="18" style="display:inline;vertical-align:middle" /> **样式隔离**: 避免父元素的 CSS 样式（如 `overflow: hidden`）影响模态框
+- <img src="/assets/icons/check.svg" width="18" height="18" style="display:inline;vertical-align:middle" /> **定位准确**: 模态框相对于视口定位，不受父元素定位影响
 
 这意味着你可以在任何位置使用 `FilePreviewModal`，无需担心层级和定位问题：
 

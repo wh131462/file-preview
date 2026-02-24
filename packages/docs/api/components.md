@@ -172,10 +172,10 @@ function App() {
 
 **优势：**
 
-- ✅ **最高层级**: 模态框的 `z-index` 设置为 `9999`，确保始终显示在页面最上层
-- ✅ **样式隔离**: 不受父元素的 CSS 样式影响（如 `overflow: hidden`、`transform`、`filter` 等）
-- ✅ **定位准确**: 模态框使用 `fixed` 定位相对于视口，不受父元素定位上下文影响
-- ✅ **无需配置**: 开箱即用，无需担心层级和定位问题
+- <img src="/assets/icons/check.svg" width="18" height="18" style="display:inline;vertical-align:middle" /> **最高层级**: 模态框的 `z-index` 设置为 `9999`，确保始终显示在页面最上层
+- <img src="/assets/icons/check.svg" width="18" height="18" style="display:inline;vertical-align:middle" /> **样式隔离**: 不受父元素的 CSS 样式影响（如 `overflow: hidden`、`transform`、`filter` 等）
+- <img src="/assets/icons/check.svg" width="18" height="18" style="display:inline;vertical-align:middle" /> **定位准确**: 模态框使用 `fixed` 定位相对于视口，不受父元素定位上下文影响
+- <img src="/assets/icons/check.svg" width="18" height="18" style="display:inline;vertical-align:middle" /> **无需配置**: 开箱即用，无需担心层级和定位问题
 
 **示例：**
 
@@ -202,25 +202,37 @@ function App() {
 根据文件类型，组件提供不同的工具栏控制：
 
 #### 图片预览
-- **缩放控制**: 放大/缩小按钮（步进 0.25，范围 0.5x - 5x）
+- **缩放控制**: 放大/缩小按钮（步进 10%，范围 0.01x - 10x），鼠标滚轮缩放（步进 0.05）
 - **旋转控制**: 顺时针/逆时针旋转（每次 90°）
 - **拖拽移动**: 缩放后可拖拽图片
 - **重置按钮**: 恢复到原始状态
 
 #### PDF 预览
-- **缩放控制**: 放大/缩小按钮（范围 0.5x - 5x）
+- **缩放控制**: 放大/缩小按钮（范围 0.01x - 10x）
 - **页面导航**: 上一页/下一页按钮
 - **页码显示**: 当前页/总页数
 - **连续滚动**: 支持滚动浏览所有页面
 
 #### Office 文档
-- **Word (DOCX)**: 完整文档渲染
-- **Excel (XLSX)**: 显示所有工作表
-- **PowerPoint (PPTX)**: 显示所有幻灯片
+- **Word (DOCX)**: 通过 mammoth 库渲染为 HTML
+- **Excel (XLSX)**: 多工作表切换，表格渲染
+- **PowerPoint (PPT/PPTX)**: 平铺/幻灯片两种显示模式，16:9 宽高比
 
-#### 视频/音频
-- 使用原生 HTML5 播放器
-- 支持播放控制、音量调节、全屏等
+#### Outlook 邮件
+- **MSG**: 解析邮件头信息（发件人、收件人、主题、日期）
+- 邮件正文渲染
+- 附件列表展示
+
+#### 视频
+- 基于 Video.js 播放器
+- 支持播放控制、音量调节、进度条、全屏播放
+- 支持 MP4、WebM、OGG、MOV、AVI、MKV 等格式
+
+#### 音频
+- 自定义播放器界面（紫粉渐变主题）
+- 播放/暂停控制、进度条、音量调节
+- 快进/快退按钮（±10 秒）
+- 支持 MP3、WAV、OGG、M4A、AAC、FLAC 格式
 
 #### Markdown
 - 实时渲染 Markdown 内容
@@ -251,6 +263,15 @@ function App() {
 - **桌面端**: 完整工具栏和控制按钮
 - **移动端**: 优化的触摸操作和简化的 UI
 - **平板**: 介于两者之间的体验
+
+### 触摸手势
+
+- **左滑** (>50px): 切换到下一个文件
+- **右滑** (>50px): 切换到上一个文件
+
+### 动画效果
+
+基于 Framer Motion 提供入场/退场动画，包括模态框、导航按钮和工具栏的过渡动画。
 
 ### 滚动锁定
 

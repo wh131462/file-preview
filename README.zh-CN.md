@@ -214,7 +214,7 @@ const files = [
 
 ### 图片
 - **格式**: JPG, PNG, GIF, WebP, SVG, BMP, ICO
-- **功能**: 缩放 (0.5x - 5x)、旋转、拖拽、滚轮缩放、双击重置
+- **功能**: 缩放 (0.1x - 10x)、旋转、拖拽、滚轮缩放、双击重置
 
 ### 视频
 - **格式**: MP4, WebM, OGG, MOV, AVI, MKV, M4V, 3GP, FLV

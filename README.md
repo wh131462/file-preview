@@ -216,7 +216,7 @@ const files = [
 
 ### Images
 - **Formats**: JPG, PNG, GIF, WebP, SVG, BMP, ICO
-- **Features**: Zoom (0.5x - 5x), rotate, drag, mouse wheel zoom, double-click reset
+- **Features**: Zoom (0.1x - 10x), rotate, drag, mouse wheel zoom, double-click reset
 
 ### Videos
 - **Formats**: MP4, WebM, OGG, MOV, AVI, MKV, M4V, 3GP, FLV

@@ -3,12 +3,11 @@ import { FilePreviewModal, VERSION } from '@eternalheart/react-file-preview';
 import type { PreviewFile, PreviewFileInput, CustomRenderer } from '@eternalheart/react-file-preview';
 import '@eternalheart/react-file-preview/style.css';
 import { FileText, Image, FileSpreadsheet, Video, Music, Upload, X, Package, BookOpen, Code } from 'lucide-react';
-import packageJson from '../package.json';
 
 // 环境检测：开发环境和生产环境的 URL
 const isDev = import.meta.env.DEV;
 const DOCS_URL = isDev
-  ? 'http://localhost:5173/react-file-preview/docs/'
+  ? 'http://localhost:4801/react-file-preview/docs/'
   : 'https://wh131462.github.io/react-file-preview/docs/';
 
 // JSON 查看器组件
@@ -138,13 +137,11 @@ function App() {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                <FileText className="w-6 h-6 text-white" />
-              </div>
-              <div>
+              <img src="/icon.svg" alt="logo" className="w-10 h-10 rounded-xl" />
+              <div className="flex flex-col items-start">
                 <h1 className="text-xl font-bold text-white">React File Preview</h1>
                 <p className="text-xs text-gray-400">
-                  示例 v{packageJson.version} · 库 v{VERSION}
+                  @eternalheart/react-file-preview@{VERSION}
                 </p>
               </div>
             </div>
@@ -211,7 +208,7 @@ function App() {
               onChange={handleFileUpload}
               className="hidden"
               id="file-upload"
-              accept="image/*,video/*,audio/*,.pdf,.docx,.xlsx,.pptx,.ppt,.md,.txt,.js,.jsx,.ts,.tsx,.json,.py,.java,.cpp,.c,.cs,.php,.rb,.go,.rs,.html,.css,.xml,.yaml,.yml,.mp4,.webm,.ogg,.ogv,.mov,.avi,.mkv,.m4v,.3gp,.flv"
+              accept="image/*,video/*,audio/*,.pdf,.docx,.xlsx,.pptx,.ppt,.msg,.md,.txt,.js,.jsx,.ts,.tsx,.json,.py,.java,.cpp,.c,.cs,.php,.rb,.go,.rs,.html,.css,.xml,.yaml,.yml,.mp4,.webm,.ogg,.ogv,.mov,.avi,.mkv,.m4v,.3gp,.flv"
             />
             <label
               htmlFor="file-upload"

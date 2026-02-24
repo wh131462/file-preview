@@ -28,8 +28,19 @@ export default defineConfig({
       ],
     }),
   ],
+  resolve: {
+    alias: {
+      // 指向库构建产物，配合 vite build --watch 实现热更新
+      '@eternalheart/react-file-preview/style.css': resolve(__dirname, '../react-file-preview/lib/index.css'),
+      '@eternalheart/react-file-preview': resolve(__dirname, '../react-file-preview/lib/index.mjs'),
+    },
+  },
   optimizeDeps: {
     exclude: ['pdfjs-dist']
+  },
+  server: {
+    port: 4800,
+    strictPort: true,
   },
   build: {
     // 输出到 dist 目录

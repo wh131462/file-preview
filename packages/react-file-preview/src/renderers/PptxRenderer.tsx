@@ -290,7 +290,7 @@ export const PptxRenderer: React.FC<PptxRendererProps> = ({ url, tiled = true })
   }, [url, calculateDimensions, tiled]);
 
   return (
-    <div className="rfp-relative rfp-flex rfp-flex-col rfp-items-center rfp-w-full rfp-h-full rfp-px-2 md:rfp-px-4">
+    <div className="rfp-relative rfp-flex rfp-flex-col rfp-items-center rfp-w-full rfp-h-full">
       {/* 加载状态 - 绝对定位覆盖 */}
       {loading && (
         <div className="rfp-absolute rfp-inset-0 rfp-flex rfp-items-center rfp-justify-center rfp-bg-black/50 rfp-backdrop-blur-sm rfp-z-10 rfp-rounded-xl md:rfp-rounded-2xl">

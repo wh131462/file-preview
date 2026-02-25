@@ -51,8 +51,7 @@ export const VideoRenderer: React.FC<VideoRendererProps> = ({ url }) => {
 
       const player = videojs(videoElement, {
         controls: true,
-        responsive: true,
-        fluid: true,
+        fill: true,
         preload: 'auto',
         controlBar: {
           children: [
@@ -79,6 +78,12 @@ export const VideoRenderer: React.FC<VideoRendererProps> = ({ url }) => {
         },
         sources
       });
+
+      // 确保视频保持比例
+      const videoEl = player.el().querySelector('video');
+      if (videoEl) {
+        (videoEl as HTMLVideoElement).style.objectFit = 'contain';
+      }
 
       // 监听加载完成
       player.on('loadeddata', () => {
@@ -125,8 +130,8 @@ export const VideoRenderer: React.FC<VideoRendererProps> = ({ url }) => {
   }
 
   return (
-    <div className="rfp-flex rfp-items-center rfp-justify-center rfp-w-full rfp-h-full rfp-p-4 md:rfp-p-8">
-      <div className="rfp-w-full rfp-max-w-full md:rfp-max-w-5xl rfp-relative">
+    <div className="rfp-flex rfp-items-center rfp-justify-center rfp-w-full rfp-h-full">
+      <div className="rfp-w-full rfp-h-full rfp-relative">
         {/* 加载状态 */}
         {isLoading && (
           <div className="rfp-absolute rfp-inset-0 rfp-flex rfp-items-center rfp-justify-center rfp-bg-black/20 rfp-backdrop-blur-sm rfp-rounded-2xl rfp-z-10">
@@ -140,7 +145,7 @@ export const VideoRenderer: React.FC<VideoRendererProps> = ({ url }) => {
         {/* 视频播放器容器 */}
         <div
           ref={videoRef}
-          className="rfp-overflow-hidden"
+          className="rfp-overflow-hidden rfp-w-full rfp-h-full [&_video]:rfp-object-contain"
           style={{
             boxShadow: '0 20px 60px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.05)'
           }}

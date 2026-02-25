@@ -48,7 +48,6 @@ export default defineConfig({
         'docx-preview',
         'pptx-preview',
         'exceljs',
-        'x-data-spreadsheet',
         'react-markdown',
         'remark-gfm',
         'react-syntax-highlighter',

@@ -189,7 +189,7 @@ export const XlsxRenderer: React.FC<XlsxRendererProps> = ({ url }) => {
   }, [url, mountSpreadsheet]);
 
   return (
-    <div className="rfp-relative rfp-flex rfp-flex-col rfp-items-center rfp-w-full rfp-h-full md:rfp-px-4">
+    <div className="rfp-relative rfp-flex rfp-flex-col rfp-items-center rfp-w-full rfp-h-full">
       {/* 加载状态 */}
       {loading && (
         <div className="rfp-absolute rfp-inset-0 rfp-flex rfp-items-center rfp-justify-center rfp-bg-black/50 rfp-backdrop-blur-sm rfp-z-10 rfp-rounded-xl md:rfp-rounded-2xl">

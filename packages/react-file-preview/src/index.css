@@ -328,14 +328,17 @@
 }
 
 /* x-data-spreadsheet 样式覆盖 */
+.rfp-root .xlsx-spreadsheet-container {
+  overflow: hidden;
+}
+
 .rfp-root .xlsx-spreadsheet-container .x-spreadsheet {
   width: 100% !important;
   height: 100% !important;
 }
 
 .rfp-root .xlsx-spreadsheet-container .x-spreadsheet-sheet {
-  overflow: auto;
-  -webkit-overflow-scrolling: touch;
+  overflow: hidden;
 }
 
 /* 隐藏底部栏的添加 Sheet 按钮（添加按钮是 li:first-child 的直接子 .x-spreadsheet-icon，更多按钮在 span 内不受影响） */
@@ -352,8 +355,8 @@
 .rfp-root .xlsx-spreadsheet-container .x-spreadsheet-bottombar .x-spreadsheet-menu {
   display: flex;
   width: 100%;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
+  overflow: visible;
+  flex-wrap: nowrap;
 }
 
 .rfp-root .xlsx-spreadsheet-container .x-spreadsheet-bottombar .x-spreadsheet-menu > li:first-child {
@@ -378,6 +381,16 @@
 /* 隐藏底部栏的右键菜单（删除 Sheet） */
 .rfp-root .xlsx-spreadsheet-container .x-spreadsheet-bottombar .x-spreadsheet-contextmenu {
   display: none !important;
+}
+
+/* 自定义滚动条适配深色主题 */
+.rfp-root .xlsx-spreadsheet-container .x-spreadsheet-scrollbar {
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+.rfp-root .xlsx-spreadsheet-container .x-spreadsheet-scrollbar.vertical > div,
+.rfp-root .xlsx-spreadsheet-container .x-spreadsheet-scrollbar.horizontal > div {
+  background: rgba(255, 255, 255, 0.15);
 }
 
 /* 移动端优化 */

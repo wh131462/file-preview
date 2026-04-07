@@ -50,6 +50,7 @@ pnpm pub              # 发布库到 npm
 
 - 🎨 **现代化 UI** - Apple 风格的简约设计，毛玻璃效果
 - 📁 **多格式支持** - 支持 20+ 种文件格式
+- 🪟 **两种展示模式** - 全屏弹窗 **或** 嵌入式内联预览
 - 🖼️ **强大的图片查看器** - 缩放、旋转、拖拽、滚轮缩放
 - 🎬 **自定义视频播放器** - 基于 Video.js，支持多种视频格式
 - 🎵 **自定义音频播放器** - 精美的音频控制界面
@@ -159,6 +160,48 @@ function App() {
 }
 ```
 
+### 嵌入模式 (`FilePreviewEmbed`)
+
+除了全屏弹窗，组件库还提供了**嵌入式**变体，可以将预览内联渲染到任意 div 容器中，适合详情面板、左右分栏布局、仪表盘等场景。
+
+```tsx
+import { FilePreviewEmbed } from '@eternalheart/react-file-preview';
+import '@eternalheart/react-file-preview/style.css';
+import { useState } from 'react';
+
+function InlinePreview() {
+  const [index, setIndex] = useState(0);
+
+  const files = [
+    'https://example.com/image.jpg',
+    { name: 'document.pdf', type: 'application/pdf', url: '/doc.pdf' },
+  ];
+
+  return (
+    // 嵌入式预览默认填充父容器
+    <div style={{ width: '100%', height: 520 }}>
+      <FilePreviewEmbed
+        files={files}
+        currentIndex={index}
+        onNavigate={setIndex}
+      />
+    </div>
+  );
+}
+```
+
+与 `FilePreviewModal` 的区别：
+
+- 不使用 Portal、无全屏遮罩、没有 `isOpen` / `onClose`
+- **不显示关闭按钮**（嵌入式预览没有"关闭"概念）
+- 键盘导航（←/→）作用域限定在嵌入容器内（基于 focus），不会劫持页面其他交互
+- 尺寸默认 `width: 100%; height: 100%`，可通过 `width` / `height` props 覆盖
+
+```tsx
+// 显式指定尺寸
+<FilePreviewEmbed files={files} width={800} height={500} />
+```
+
 ## 💡 使用示例
 
 ### 预览 PowerPoint 文件
@@ -248,6 +291,39 @@ const files = [
 | `isOpen` | `boolean` | ✅ | 是否打开预览 |
 | `onClose` | `() => void` | ✅ | 关闭回调 |
 | `onNavigate` | `(index: number) => void` | ❌ | 导航回调 |
+| `customRenderers` | `CustomRenderer[]` | ❌ | 自定义渲染器 |
+
+### FilePreviewEmbed Props
+
+| 属性 | 类型 | 必填 | 默认值 | 说明 |
+|------|------|------|--------|------|
+| `files` | `PreviewFileInput[]` | ✅ | - | 文件列表 |
+| `currentIndex` | `number` | ❌ | `0` | 当前文件索引 |
+| `onNavigate` | `(index: number) => void` | ❌ | - | 导航回调 |
+| `customRenderers` | `CustomRenderer[]` | ❌ | - | 自定义渲染器 |
+| `width` | `number \| string` | ❌ | `'100%'` | 容器宽度 |
+| `height` | `number \| string` | ❌ | `'100%'` | 容器高度 |
+| `className` | `string` | ❌ | - | 根节点额外 className |
+| `style` | `CSSProperties` | ❌ | - | 根节点额外内联样式 |
+
+> `FilePreviewEmbed` 没有 `isOpen` / `onClose`。若要显示/隐藏嵌入预览，请在父组件中条件渲染。同时它不会显示工具栏上的关闭按钮。
+
+### FilePreviewContent（高级用法）
+
+`FilePreviewModal` 和 `FilePreviewEmbed` 都是基于底层 `FilePreviewContent` 组件的薄包装。当你需要构建完全自定义的容器（自定义抽屉、分栏、浮层等）时，可以直接使用它：
+
+```tsx
+import { FilePreviewContent } from '@eternalheart/react-file-preview';
+
+<div className="my-custom-wrapper">
+  <FilePreviewContent
+    mode="embed"       // 或 "modal"
+    files={files}
+    currentIndex={index}
+    onNavigate={setIndex}
+  />
+</div>
+```
 
 ### 文件类型定义
 

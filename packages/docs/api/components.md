@@ -1,5 +1,15 @@
 # 组件 API
 
+本库导出三个预览组件:
+
+| 组件 | 场景 | 渲染方式 |
+|------|------|---------|
+| [`FilePreviewModal`](#filepreviewmodal) | 全屏弹窗预览 | Portal 挂载到 `document.body`,带半透明遮罩 |
+| [`FilePreviewEmbed`](#filepreviewembed) | 内联嵌入到任意 div 容器 | 普通 DOM,填充父容器 |
+| [`FilePreviewContent`](#filepreviewcontent) | 底层组件,自定义包装 | 由你决定包装方式 |
+
+`FilePreviewModal` 和 `FilePreviewEmbed` 都是基于底层 `FilePreviewContent` 的薄包装,核心功能(工具栏、缩放、旋转、导航、渲染器分发)完全一致。
+
 ## FilePreviewModal
 
 主要的文件预览模态框组件。
@@ -160,6 +170,159 @@ function App() {
         onNavigate={setCurrentIndex}
       />
     </>
+  )
+}
+```
+
+## FilePreviewEmbed
+
+嵌入式文件预览组件。与 `FilePreviewModal` 共用同一套渲染逻辑,但以内联方式渲染到你指定的容器内,而不是全屏弹出。
+
+**适用场景:**
+
+- 详情页中的文件预览面板
+- 左右分栏的文件浏览器
+- 仪表盘卡片里的文件预览
+- 任何不希望遮挡页面其他内容的场景
+
+### 基础用法
+
+```tsx
+import { FilePreviewEmbed } from '@eternalheart/react-file-preview'
+import '@eternalheart/react-file-preview/style.css'
+
+function Panel() {
+  const files = [
+    'https://example.com/image.jpg',
+    { name: 'doc.pdf', url: '/doc.pdf', type: 'application/pdf' }
+  ]
+
+  return (
+    // 嵌入预览默认填充父容器,父容器需要有明确的高度
+    <div style={{ width: '100%', height: 520 }}>
+      <FilePreviewEmbed files={files} />
+    </div>
+  )
+}
+```
+
+### Props
+
+| 属性 | 类型 | 必需 | 默认值 | 描述 |
+|------|------|------|--------|------|
+| `files` | `PreviewFileInput[]` | ✅ | - | 要预览的文件列表,格式与 `FilePreviewModal.files` 一致 |
+| `currentIndex` | `number` | ❌ | `0` | 当前显示的文件索引 |
+| `onNavigate` | `(index: number) => void` | ❌ | - | 切换文件时的回调 |
+| `customRenderers` | `CustomRenderer[]` | ❌ | - | 自定义渲染器数组 |
+| `width` | `number \| string` | ❌ | `'100%'` | 容器宽度,填充父容器或显式指定 |
+| `height` | `number \| string` | ❌ | `'100%'` | 容器高度 |
+| `className` | `string` | ❌ | - | 根节点额外 className |
+| `style` | `CSSProperties` | ❌ | - | 根节点额外内联样式 |
+
+::: tip 尺寸说明
+`FilePreviewEmbed` 默认使用 `width: 100%; height: 100%` 填充父容器,因此 **父容器必须具有明确的高度**(如 `height: 520px` 或通过 flex/grid 布局给定高度),否则组件会塌陷为 0 高度。
+
+也可以直接在组件上显式指定尺寸:
+
+```tsx
+<FilePreviewEmbed files={files} width={800} height={500} />
+```
+:::
+
+### 与 FilePreviewModal 的区别
+
+| 特性 | FilePreviewModal | FilePreviewEmbed |
+|------|------------------|------------------|
+| 渲染位置 | Portal 到 `document.body` | 组件树内联 |
+| 背景遮罩 | 半透明黑色全屏遮罩 | 无 |
+| `isOpen` / `onClose` | 必填 | 不存在,由父组件控制是否渲染 |
+| 工具栏"关闭"按钮 | ✅ 显示 | ❌ 不显示 |
+| `Esc` 键关闭 | ✅ 支持(全局监听) | ❌ 不支持 |
+| ← → 键导航 | ✅ 全局 `window` 监听 | ✅ 仅容器 focus 时响应 |
+| body 滚动锁定 | ✅ 打开时锁定 | ❌ 不锁定 |
+| z-index | `9999`(最高层) | 跟随组件树,由外层决定 |
+
+### 完整示例
+
+```tsx
+import { useState } from 'react'
+import { FilePreviewEmbed } from '@eternalheart/react-file-preview'
+import type { PreviewFileInput } from '@eternalheart/react-file-preview'
+import '@eternalheart/react-file-preview/style.css'
+
+function DetailPanel() {
+  const [index, setIndex] = useState(0)
+
+  const files: PreviewFileInput[] = [
+    'https://example.com/image.jpg',
+    { name: 'document.pdf', url: 'https://example.com/doc.pdf', type: 'application/pdf' },
+    { name: 'data.xlsx', url: 'https://example.com/data.xlsx', type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' },
+  ]
+
+  return (
+    <div className="grid grid-cols-2 gap-4">
+      <aside>
+        {files.map((f, i) => (
+          <button key={i} onClick={() => setIndex(i)}>
+            文件 {i + 1}
+          </button>
+        ))}
+      </aside>
+
+      <div style={{ height: 600 }}>
+        <FilePreviewEmbed
+          files={files}
+          currentIndex={index}
+          onNavigate={setIndex}
+        />
+      </div>
+    </div>
+  )
+}
+```
+
+## FilePreviewContent
+
+底层文件预览组件。`FilePreviewModal` 和 `FilePreviewEmbed` 都是基于它的薄包装。
+
+当你需要构建完全自定义的外壳(例如自定义抽屉、浮层、Tab 切换容器等)时,可以直接使用它。
+
+### Props
+
+| 属性 | 类型 | 必需 | 默认值 | 描述 |
+|------|------|------|--------|------|
+| `files` | `PreviewFileInput[]` | ✅ | - | 文件列表 |
+| `currentIndex` | `number` | ✅ | - | 当前文件索引 |
+| `onNavigate` | `(index: number) => void` | ❌ | - | 导航回调 |
+| `customRenderers` | `CustomRenderer[]` | ❌ | - | 自定义渲染器 |
+| `mode` | `'modal' \| 'embed'` | ❌ | `'modal'` | 运行模式,控制细节差异 |
+| `onClose` | `() => void` | ❌ | - | 关闭回调,仅在 `mode='modal'` 时显示关闭按钮 |
+
+**mode 差异:**
+
+- `mode='modal'`: 显示工具栏"关闭"按钮、全局监听键盘(Esc 关闭、←/→ 导航)
+- `mode='embed'`: 不显示"关闭"按钮、键盘事件绑定到组件根节点(需 focus),不监听 Esc
+
+### 使用示例
+
+```tsx
+import { FilePreviewContent } from '@eternalheart/react-file-preview'
+
+function CustomDrawer({ files, currentIndex, onNavigate, onClose }) {
+  return (
+    <div className="my-drawer-wrapper" style={{ width: 720, height: '100vh' }}>
+      <div className="my-drawer-header">
+        <button onClick={onClose}>自定义关闭按钮</button>
+      </div>
+      <div style={{ flex: 1 }}>
+        <FilePreviewContent
+          mode="embed"
+          files={files}
+          currentIndex={currentIndex}
+          onNavigate={onNavigate}
+        />
+      </div>
+    </div>
   )
 }
 ```

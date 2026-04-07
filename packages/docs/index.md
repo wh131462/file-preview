@@ -48,8 +48,8 @@ features:
       src: /assets/icons/wrench.svg
       width: 48
       height: 48
-    title: 易于集成
-    details: 简单的 API 设计，几行代码即可集成到你的 React 应用
+    title: 弹窗 & 嵌入双模式
+    details: 既可以全屏弹窗展示,也可以嵌入到任意 div 容器中内联预览,灵活适配不同场景
   - icon:
       src: /assets/icons/package.svg
       width: 48
@@ -80,6 +80,8 @@ yarn add @eternalheart/react-file-preview
 
 ### 基础用法
 
+使用 **弹窗模式** (`FilePreviewModal`):
+
 ```tsx
 import { FilePreviewModal } from '@eternalheart/react-file-preview'
 import '@eternalheart/react-file-preview/style.css'
@@ -100,6 +102,25 @@ function App() {
         currentIndex={0}
       />
     </>
+  )
+}
+```
+
+使用 **嵌入模式** (`FilePreviewEmbed`) — 将预览直接内联到页面任意容器:
+
+```tsx
+import { FilePreviewEmbed } from '@eternalheart/react-file-preview'
+import '@eternalheart/react-file-preview/style.css'
+
+function Detail() {
+  const files = [
+    { url: 'https://example.com/document.pdf', name: 'document.pdf' }
+  ]
+
+  return (
+    <div style={{ width: '100%', height: 520 }}>
+      <FilePreviewEmbed files={files} />
+    </div>
   )
 }
 ```

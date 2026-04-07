@@ -10,6 +10,7 @@ A modern, feature-rich file preview component for React with support for images,
 
 - 🎨 **Modern UI** - Apple-inspired minimalist design with glassmorphism effects
 - 📁 **Multi-format Support** - Supports 20+ file formats
+- 🪟 **Two Display Modes** - Full-screen modal **or** inline embedded preview
 - 🖼️ **Powerful Image Viewer** - Zoom, rotate, drag, mouse wheel zoom
 - 🎬 **Custom Video Player** - Built on Video.js, supports multiple video formats
 - 🎵 **Custom Audio Player** - Beautiful audio control interface
@@ -188,6 +189,48 @@ function App() {
 }
 ```
 
+### Embedded Mode (`FilePreviewEmbed`)
+
+Besides the full-screen modal, the library also ships an **embedded** variant that renders the preview inline inside any container. Useful for detail panels, side-by-side layouts, dashboards, etc.
+
+```tsx
+import { FilePreviewEmbed } from '@eternalheart/react-file-preview';
+import '@eternalheart/react-file-preview/style.css';
+import { useState } from 'react';
+
+function InlinePreview() {
+  const [index, setIndex] = useState(0);
+
+  const files = [
+    'https://example.com/image.jpg',
+    { name: 'document.pdf', type: 'application/pdf', url: '/doc.pdf' },
+  ];
+
+  return (
+    // The embedded preview fills its parent container by default.
+    <div style={{ width: '100%', height: 520 }}>
+      <FilePreviewEmbed
+        files={files}
+        currentIndex={index}
+        onNavigate={setIndex}
+      />
+    </div>
+  );
+}
+```
+
+Differences from `FilePreviewModal`:
+
+- No portal, no full-screen overlay, no `isOpen` / `onClose`
+- Does **not** show the close button in the toolbar
+- Keyboard navigation (←/→) is scoped to the embed container (focus-based)
+- Size defaults to `width: 100%; height: 100%`; override via `width` / `height` props
+
+```tsx
+// Explicit size
+<FilePreviewEmbed files={files} width={800} height={500} />
+```
+
 ## 💡 Usage Examples
 
 ### Preview PowerPoint Files
@@ -277,6 +320,37 @@ const files = [
 | `isOpen` | `boolean` | ✅ | Whether the modal is open |
 | `onClose` | `() => void` | ✅ | Close callback |
 | `onNavigate` | `(index: number) => void` | ❌ | Navigation callback |
+| `customRenderers` | `CustomRenderer[]` | ❌ | Custom renderers for specific file types |
+
+### FilePreviewEmbed Props
+
+| Prop | Type | Required | Default | Description |
+|------|------|----------|---------|-------------|
+| `files` | `PreviewFileInput[]` | ✅ | - | Array of files |
+| `currentIndex` | `number` | ❌ | `0` | Current file index |
+| `onNavigate` | `(index: number) => void` | ❌ | - | Navigation callback |
+| `customRenderers` | `CustomRenderer[]` | ❌ | - | Custom renderers |
+| `width` | `number \| string` | ❌ | `'100%'` | Container width |
+| `height` | `number \| string` | ❌ | `'100%'` | Container height |
+| `className` | `string` | ❌ | - | Extra class on the root wrapper |
+| `style` | `CSSProperties` | ❌ | - | Extra inline style on the root wrapper |
+
+> `FilePreviewEmbed` has no `isOpen` / `onClose`. To hide/show it, conditionally render it from the parent. It also hides the close button in the toolbar.
+
+### FilePreviewContent (advanced)
+
+Both `FilePreviewModal` and `FilePreviewEmbed` are thin wrappers around the exported lower-level `FilePreviewContent` component. Use it directly when building a fully custom wrapper:
+
+```tsx
+import { FilePreviewContent } from '@eternalheart/react-file-preview';
+
+<FilePreviewContent
+  mode="embed"       // or "modal"
+  files={files}
+  currentIndex={index}
+  onNavigate={setIndex}
+/>
+```
 
 ### File Type Definitions
 

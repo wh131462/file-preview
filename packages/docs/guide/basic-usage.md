@@ -1,5 +1,12 @@
 # 基础用法
 
+本库提供两种预览组件:
+
+- **`FilePreviewModal`** — 全屏弹窗预览,默认通过 Portal 挂载到 `document.body`
+- **`FilePreviewEmbed`** — 嵌入式预览,直接内联到你指定的 div 容器中
+
+两者底层共用一套渲染逻辑,API 风格也非常相似。根据你的场景选择即可,或者两者搭配使用。
+
 ## 基本示例
 
 最简单的使用方式：
@@ -85,6 +92,67 @@ function FileUploadExample() {
   )
 }
 ```
+
+## 嵌入式预览 (FilePreviewEmbed)
+
+除了弹窗,你也可以把预览**直接内联**到页面任意位置,适合详情面板、分栏布局、仪表盘等场景。
+
+```tsx
+import { useState } from 'react'
+import { FilePreviewEmbed } from '@eternalheart/react-file-preview'
+import '@eternalheart/react-file-preview/style.css'
+
+function InlinePreview() {
+  const [index, setIndex] = useState(0)
+
+  const files = [
+    'https://example.com/image.jpg',
+    { name: 'doc.pdf', url: '/doc.pdf', type: 'application/pdf' }
+  ]
+
+  // 父容器必须有明确的高度,嵌入组件才能撑开
+  return (
+    <div style={{ width: '100%', height: 520 }}>
+      <FilePreviewEmbed
+        files={files}
+        currentIndex={index}
+        onNavigate={setIndex}
+      />
+    </div>
+  )
+}
+```
+
+### 显式指定尺寸
+
+除了默认填充父容器,你也可以通过 `width` / `height` props 显式指定:
+
+```tsx
+<FilePreviewEmbed files={files} width={800} height={500} />
+```
+
+### 与弹窗模式的主要区别
+
+| 特性 | FilePreviewModal | FilePreviewEmbed |
+|------|------------------|------------------|
+| 渲染方式 | Portal 到 `document.body` | 组件树内联 |
+| 遮罩背景 | ✅ 半透明黑色全屏 | ❌ 无 |
+| `isOpen` / `onClose` | ✅ 必填 | ❌ 不存在 |
+| 工具栏"关闭"按钮 | ✅ 显示 | ❌ 不显示 |
+| `Esc` 键关闭 | ✅ | ❌ |
+| ← → 键导航 | 全局监听 | 仅容器 focus 时响应,不影响页面其他交互 |
+
+::: tip
+如果需要"显示/隐藏"嵌入预览,直接在父组件条件渲染即可:
+
+```tsx
+{showPreview && (
+  <div style={{ height: 520 }}>
+    <FilePreviewEmbed files={files} />
+  </div>
+)}
+```
+:::
 
 ## 自定义渲染器
 

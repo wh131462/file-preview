@@ -93,31 +93,38 @@ export const ImageRenderer: React.FC<ImageRendererProps> = ({
   };
 
   // 鼠标滚轮缩放 —— 以鼠标位置为缩放原点
-  const handleWheel = useCallback((e: React.WheelEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-
+  // 使用原生事件 + passive: false,确保 preventDefault 生效,
+  // 避免滚轮事件冒泡触发外层(如嵌入模式下的页面滚动)
+  useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
-    const rect = container.getBoundingClientRect();
-    const mouseX = e.clientX - rect.left - rect.width / 2;
-    const mouseY = e.clientY - rect.top - rect.height / 2;
+    const handleWheelNative = (e: WheelEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
 
-    const delta = e.deltaY > 0 ? -0.05 : 0.05;
+      const rect = container.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left - rect.width / 2;
+      const mouseY = e.clientY - rect.top - rect.height / 2;
 
-    setInternalZoom(prev => {
-      const newZoom = Math.max(0.01, Math.min(10, prev + delta));
-      const scale = newZoom / prev;
+      const delta = e.deltaY > 0 ? -0.05 : 0.05;
 
-      setPosition(pos => clampPosition({
-        x: mouseX - scale * (mouseX - pos.x),
-        y: mouseY - scale * (mouseY - pos.y),
-      }, newZoom));
+      setInternalZoom(prev => {
+        const newZoom = Math.max(0.01, Math.min(10, prev + delta));
+        const scale = newZoom / prev;
 
-      onZoomChange?.(newZoom);
-      return newZoom;
-    });
+        setPosition(pos => clampPosition({
+          x: mouseX - scale * (mouseX - pos.x),
+          y: mouseY - scale * (mouseY - pos.y),
+        }, newZoom));
+
+        onZoomChange?.(newZoom);
+        return newZoom;
+      });
+    };
+
+    container.addEventListener('wheel', handleWheelNative, { passive: false });
+    return () => container.removeEventListener('wheel', handleWheelNative);
   }, [onZoomChange, clampPosition]);
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
@@ -145,7 +152,6 @@ export const ImageRenderer: React.FC<ImageRendererProps> = ({
     <div
       ref={containerRef}
       className="rfp-relative rfp-flex rfp-items-center rfp-justify-center rfp-w-full rfp-h-full rfp-overflow-hidden"
-      onWheel={handleWheel}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}

@@ -1,0 +1,55 @@
+<svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="120" y2="120" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#6366F1"/>
+      <stop offset="1" stop-color="#8B5CF6"/>
+    </linearGradient>
+    <linearGradient id="aurora" x1="26" y1="18" x2="80" y2="94" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#F472B6"/>
+      <stop offset="0.3" stop-color="#E9D5FF"/>
+      <stop offset="0.55" stop-color="#C4B5FD"/>
+      <stop offset="0.8" stop-color="#7DD3FC"/>
+      <stop offset="1" stop-color="#22D3EE"/>
+    </linearGradient>
+    <linearGradient id="shine" x1="26" y1="18" x2="52" y2="52" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="white" stop-opacity="0.25"/>
+      <stop offset="1" stop-color="white" stop-opacity="0"/>
+    </linearGradient>
+    <clipPath id="bg-clip">
+      <rect width="120" height="120" rx="26"/>
+    </clipPath>
+    <clipPath id="doc-clip">
+      <path d="M 34 18 L 66 18 L 80 32 L 80 86 Q 80 94 72 94 L 34 94 Q 26 94 26 86 L 26 26 Q 26 18 34 18 Z"/>
+    </clipPath>
+  </defs>
+
+  <!-- Background -->
+  <rect width="120" height="120" rx="26" fill="url(#bg)"/>
+
+  <!-- Document shadow -->
+  <path d="M 37 22 L 69 22 L 83 36 L 83 89 Q 83 97 75 97 L 37 97 Q 29 97 29 89 L 29 30 Q 29 22 37 22 Z" fill="#312E81" opacity="0.35"/>
+
+  <!-- Document body — rounded corners (r=8) -->
+  <path d="M 34 18 L 66 18 L 80 32 L 80 86 Q 80 94 72 94 L 34 94 Q 26 94 26 86 L 26 26 Q 26 18 34 18 Z" fill="url(#aurora)"/>
+
+  <!-- Glass shine -->
+  <g clip-path="url(#doc-clip)">
+    <rect x="26" y="18" width="54" height="34" fill="url(#shine)"/>
+  </g>
+
+  <!-- Fold corner -->
+  <path d="M 66 18 L 80 32 L 66 32 Z" fill="white" opacity="0.35"/>
+
+  <!-- Content lines -->
+  <rect x="36" y="42" width="22" height="3.5" rx="1.75" fill="white" opacity="0.55"/>
+  <rect x="36" y="51" width="32" height="3.5" rx="1.75" fill="white" opacity="0.4"/>
+  <rect x="36" y="60" width="16" height="3.5" rx="1.75" fill="white" opacity="0.3"/>
+  <rect x="36" y="73" width="28" height="3.5" rx="1.75" fill="white" opacity="0.22"/>
+  <rect x="36" y="82" width="20" height="3.5" rx="1.75" fill="white" opacity="0.15"/>
+
+  <!-- ========== Magnifying glass ========== -->
+  <circle cx="88" cy="86" r="15" fill="white" opacity="0.12"/>
+  <circle cx="88" cy="86" r="15" fill="none" stroke="white" stroke-width="3.5" opacity="0.92"/>
+  <line x1="99" y1="97" x2="109" y2="107" stroke="white" stroke-width="5" stroke-linecap="round" opacity="0.92"/>
+  <path d="M 80 80 Q 84 76 90 78" stroke="white" stroke-width="1.8" stroke-linecap="round" fill="none" opacity="0.45"/>
+</svg>

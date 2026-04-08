@@ -1,0 +1,98 @@
+{
+  "name": "@eternalheart/vue-file-preview",
+  "version": "1.1.4",
+  "description": "A modern, feature-rich file preview component for Vue 3 with support for images, videos, audio, PDFs, Office documents (Word, Excel, PowerPoint), Markdown, and code files.",
+  "type": "module",
+  "main": "./lib/index.cjs",
+  "module": "./lib/index.mjs",
+  "types": "./lib/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.ts",
+      "import": "./lib/index.mjs",
+      "require": "./lib/index.cjs"
+    },
+    "./style.css": "./lib/index.css"
+  },
+  "files": [
+    "lib",
+    "README.md",
+    "README.zh-CN.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "vue",
+    "vue3",
+    "file-preview",
+    "image-viewer",
+    "pdf-viewer",
+    "video-player",
+    "audio-player",
+    "document-viewer",
+    "office-viewer",
+    "ppt-viewer",
+    "pptx-viewer",
+    "powerpoint-viewer",
+    "word-viewer",
+    "excel-viewer",
+    "markdown-viewer",
+    "code-viewer"
+  ],
+  "homepage": "https://wh131462.github.io/react-file-preview",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wh131462/react-file-preview.git",
+    "directory": "packages/vue-file-preview"
+  },
+  "bugs": {
+    "url": "https://github.com/wh131462/react-file-preview/issues"
+  },
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "author": {
+    "name": "EternalHeart",
+    "email": "hao131462@qq.com",
+    "url": "https://github.com/wh131462"
+  },
+  "scripts": {
+    "build": "vite build && vue-tsc --project tsconfig.json --emitDeclarationOnly",
+    "dev": "vite build --watch --emptyOutDir false",
+    "prepublishOnly": "pnpm build",
+    "version:patch": "npm version patch",
+    "version:minor": "npm version minor",
+    "version:major": "npm version major",
+    "pub": "npm publish --registry https://registry.npmjs.com"
+  },
+  "peerDependencies": {
+    "vue": "^3.4.0"
+  },
+  "dependencies": {
+    "@eternalheart/file-preview-core": "workspace:*",
+    "@kenjiuno/msgreader": "^1.28.0",
+    "exceljs": "^4.4.0",
+    "lucide-vue-next": "^0.460.0",
+    "mammoth": "^1.8.0",
+    "markdown-it": "^14.1.0",
+    "pdfjs-dist": "4.8.69",
+    "pptx-preview": "^1.0.7",
+    "shiki": "^1.24.0",
+    "video.js": "^8.23.4",
+    "x-data-spreadsheet": "^1.1.9"
+  },
+  "devDependencies": {
+    "@types/markdown-it": "^14.1.2",
+    "@types/node": "^24.10.1",
+    "@vitejs/plugin-vue": "^5.2.1",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.49",
+    "postcss-prefix-selector": "^2.1.1",
+    "tailwindcss": "^3.4.18",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.11",
+    "vite-plugin-static-copy": "^3.1.4",
+    "vue": "^3.5.13",
+    "vue-tsc": "^2.1.10"
+  }
+}

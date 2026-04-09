@@ -1,4 +1,4 @@
-# React File Preview [![npm version](https://img.shields.io/npm/v/@eternalheart/@eternalheart/react-file-preview.svg)](https://www.npmjs.com/package/@eternalheart/react-file-preview)[![license](https://img.shields.io/npm/l/@eternalheart/react-file-preview.svg)](https://github.com/wh131462/react-file-preview/blob/master/LICENSE)[![downloads](https://img.shields.io/npm/dm/@eternalheart/react-file-preview.svg)](https://www.npmjs.com/package/@eternalheart/react-file-preview)
+# React File Preview [![npm version](https://img.shields.io/npm/v/@eternalheart/@eternalheart/react-file-preview.svg)](https://www.npmjs.com/package/@eternalheart/react-file-preview)[![license](https://img.shields.io/npm/l/@eternalheart/react-file-preview.svg)](https://github.com/wh131462/file-preview/blob/master/LICENSE)[![downloads](https://img.shields.io/npm/dm/@eternalheart/react-file-preview.svg)](https://www.npmjs.com/package/@eternalheart/react-file-preview)
 
 English | [简体中文](./README.zh-CN.md)
 
@@ -445,7 +445,7 @@ The component is built with Tailwind CSS. You can customize styles by overriding
 
 ## 📚 Documentation
 
-- [Online Demo](https://wh131462.github.io/react-file-preview) - Live demo
+- [Online Demo](https://wh131462.github.io/file-preview) - Live demo
 
 ## 🤖 Context7 Support
 
@@ -491,7 +491,7 @@ This project supports [Context7](https://context7.com) MCP Server. If you are us
 
 ```bash
 # Clone repository
-git clone https://github.com/wh131462/react-file-preview.git
+git clone https://github.com/wh131462/file-preview.git
 
 # Install dependencies
 pnpm install
@@ -533,7 +533,7 @@ Issues and Pull Requests are welcome!
 
 ## 🔗 Links
 
-- [GitHub](https://github.com/wh131462/react-file-preview)
+- [GitHub](https://github.com/wh131462/file-preview)
 - [npm](https://www.npmjs.com/package/@eternalheart/react-file-preview)
-- [Online Demo](https://wh131462.github.io/react-file-preview)
-- [Issue Tracker](https://github.com/wh131462/react-file-preview/issues)
+- [Online Demo](https://wh131462.github.io/file-preview)
+- [Issue Tracker](https://github.com/wh131462/file-preview/issues)

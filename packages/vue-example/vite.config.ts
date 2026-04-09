@@ -9,9 +9,9 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 // 演示应用构建配置（用于 GitHub Pages）
-// 部署到 /react-file-preview/vue/
+// 部署到 /file-preview/vue/
 export default defineConfig({
-  base: process.env.NODE_ENV === 'production' ? '/react-file-preview/vue/' : '/',
+  base: process.env.NODE_ENV === 'production' ? '/file-preview/vue/' : '/',
   plugins: [
     vue(),
     viteStaticCopy({

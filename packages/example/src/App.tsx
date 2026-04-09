@@ -8,11 +8,11 @@ import iconSvg from './assets/icon.svg';
 // 环境检测：开发环境和生产环境的 URL
 const isDev = import.meta.env.DEV;
 const DOCS_URL = isDev
-  ? 'http://localhost:4801/react-file-preview/docs/'
-  : 'https://wh131462.github.io/react-file-preview/docs/';
+  ? 'http://localhost:4801/file-preview/docs/'
+  : 'https://wh131462.github.io/file-preview/docs/';
 const VUE_EXAMPLE_URL = isDev
   ? 'http://localhost:4802/'
-  : 'https://wh131462.github.io/react-file-preview/vue/';
+  : 'https://wh131462.github.io/file-preview/vue/';
 
 // JSON 查看器组件
 function JsonViewer({ url }: { url: string }) {
@@ -167,7 +167,7 @@ function App() {
               </div>
 
               <a
-                href="https://github.com/wh131462/react-file-preview"
+                href="https://github.com/wh131462/file-preview"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 px-2.5 py-2 sm:px-4 sm:py-2 rounded-lg bg-white/5 hover:bg-white/10 active:bg-white/15 text-white transition-all hover:scale-105"
@@ -345,7 +345,7 @@ function App() {
           </p>
           <p className="flex flex-wrap items-center justify-center gap-1">
             <a
-              href="https://github.com/wh131462/react-file-preview/blob/main/LICENSE"
+              href="https://github.com/wh131462/file-preview/blob/main/LICENSE"
               target="_blank"
               rel="noopener noreferrer"
               className="text-gray-500 hover:text-gray-400 transition-colors"
@@ -354,7 +354,7 @@ function App() {
             </a>
             <span>{' '} · {' '}</span>
             <a
-              href="https://github.com/wh131462/react-file-preview"
+              href="https://github.com/wh131462/file-preview"
               target="_blank"
               rel="noopener noreferrer"
               className="text-gray-500 hover:text-gray-400 transition-colors"

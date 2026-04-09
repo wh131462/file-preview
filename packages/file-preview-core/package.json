@@ -26,10 +26,10 @@
     "pdf",
     "framework-agnostic"
   ],
-  "homepage": "https://wh131462.github.io/react-file-preview",
+  "homepage": "https://wh131462.github.io/file-preview",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/wh131462/react-file-preview.git",
+    "url": "git+https://github.com/wh131462/file-preview.git",
     "directory": "packages/file-preview-core"
   },
   "license": "MIT",

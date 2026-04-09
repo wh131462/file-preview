@@ -4,12 +4,12 @@ import { defineConfig } from 'vitepress'
 const isDev = process.env.NODE_ENV !== 'production'
 const REACT_EXAMPLE_URL = isDev
   ? 'http://localhost:4800/'
-  : 'https://wh131462.github.io/react-file-preview/'
+  : 'https://wh131462.github.io/file-preview/'
 const VUE_EXAMPLE_URL = isDev
   ? 'http://localhost:4802/'
-  : 'https://wh131462.github.io/react-file-preview/vue/'
+  : 'https://wh131462.github.io/file-preview/vue/'
 
-const base = '/react-file-preview/docs/'
+const base = '/file-preview/docs/'
 
 export default defineConfig({
   title: 'File Preview',
@@ -82,7 +82,7 @@ export default defineConfig({
     },
 
     socialLinks: [
-      { icon: 'github', link: 'https://github.com/wh131462/react-file-preview' }
+      { icon: 'github', link: 'https://github.com/wh131462/file-preview' }
     ],
 
     footer: {

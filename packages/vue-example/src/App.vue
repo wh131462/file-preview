@@ -27,11 +27,11 @@ import JsonViewer from './components/JsonViewer.vue';
 // 环境检测
 const isDev = import.meta.env.DEV;
 const DOCS_URL = isDev
-  ? 'http://localhost:4801/react-file-preview/docs/'
-  : 'https://wh131462.github.io/react-file-preview/docs/';
+  ? 'http://localhost:4801/file-preview/docs/'
+  : 'https://wh131462.github.io/file-preview/docs/';
 const REACT_EXAMPLE_URL = isDev
   ? 'http://localhost:4800/'
-  : 'https://wh131462.github.io/react-file-preview/';
+  : 'https://wh131462.github.io/file-preview/';
 
 const isPreviewOpen = ref(false);
 const currentFileIndex = ref(0);
@@ -170,7 +170,7 @@ onUnmounted(() => {
             </div>
 
             <a
-              href="https://github.com/wh131462/react-file-preview"
+              href="https://github.com/wh131462/file-preview"
               target="_blank"
               rel="noopener noreferrer"
               class="flex items-center gap-2 px-2.5 py-2 sm:px-4 sm:py-2 rounded-lg bg-white/5 hover:bg-white/10 active:bg-white/15 text-white transition-all hover:scale-105"
@@ -332,7 +332,7 @@ onUnmounted(() => {
         </p>
         <p class="flex flex-wrap items-center justify-center gap-1">
           <a
-            href="https://github.com/wh131462/react-file-preview/blob/main/LICENSE"
+            href="https://github.com/wh131462/file-preview/blob/main/LICENSE"
             target="_blank"
             rel="noopener noreferrer"
             class="text-gray-500 hover:text-gray-400 transition-colors"
@@ -341,7 +341,7 @@ onUnmounted(() => {
           </a>
           <span> · </span>
           <a
-            href="https://github.com/wh131462/react-file-preview"
+            href="https://github.com/wh131462/file-preview"
             target="_blank"
             rel="noopener noreferrer"
             class="text-gray-500 hover:text-gray-400 transition-colors"

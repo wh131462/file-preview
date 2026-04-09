@@ -1,4 +1,4 @@
-# React File Preview [![npm version](https://img.shields.io/npm/v/@eternalheart/react-file-preview.svg)](https://www.npmjs.com/package/@eternalheart/react-file-preview)[![license](https://img.shields.io/npm/l/@eternalheart/react-file-preview.svg)](https://github.com/wh131462/react-file-preview/blob/master/LICENSE)[![downloads](https://img.shields.io/npm/dm/@eternalheart/react-file-preview.svg)](https://www.npmjs.com/package/@eternalheart/react-file-preview)
+# React File Preview [![npm version](https://img.shields.io/npm/v/@eternalheart/react-file-preview.svg)](https://www.npmjs.com/package/@eternalheart/react-file-preview)[![license](https://img.shields.io/npm/l/@eternalheart/react-file-preview.svg)](https://github.com/wh131462/file-preview/blob/master/LICENSE)[![downloads](https://img.shields.io/npm/dm/@eternalheart/react-file-preview.svg)](https://www.npmjs.com/package/@eternalheart/react-file-preview)
 
 [English](./README.md) | 简体中文
 
@@ -443,7 +443,7 @@ const files = [
 
 ## 📚 文档
 
-- [在线演示](https://wh131462.github.io/react-file-preview) - 在线 Demo
+- [在线演示](https://wh131462.github.io/file-preview) - 在线 Demo
 
 ## 🤖 Context7 支持
 
@@ -489,7 +489,7 @@ const files = [
 
 ```bash
 # 克隆仓库
-git clone https://github.com/wh131462/react-file-preview.git
+git clone https://github.com/wh131462/file-preview.git
 
 # 安装依赖
 pnpm install
@@ -531,8 +531,8 @@ react-file-preview/
 
 ## 🔗 相关链接
 
-- [GitHub](https://github.com/wh131462/react-file-preview)
+- [GitHub](https://github.com/wh131462/file-preview)
 - [npm](https://www.npmjs.com/package/@eternalheart/react-file-preview)
-- [在线演示](https://wh131462.github.io/react-file-preview)
-- [问题反馈](https://github.com/wh131462/react-file-preview/issues)
+- [在线演示](https://wh131462.github.io/file-preview)
+- [问题反馈](https://github.com/wh131462/file-preview/issues)
 

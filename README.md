@@ -1,21 +1,26 @@
-# React File Preview [![npm version](https://img.shields.io/npm/v/@eternalheart/react-file-preview.svg)](https://www.npmjs.com/package/@eternalheart/react-file-preview)[![license](https://img.shields.io/npm/l/@eternalheart/react-file-preview.svg)](https://github.com/wh131462/react-file-preview/blob/master/LICENSE)[![downloads](https://img.shields.io/npm/dm/@eternalheart/react-file-preview.svg)](https://www.npmjs.com/package/@eternalheart/react-file-preview)
+# File Preview [![npm version](https://img.shields.io/npm/v/@eternalheart/react-file-preview.svg)](https://www.npmjs.com/package/@eternalheart/react-file-preview)[![license](https://img.shields.io/npm/l/@eternalheart/react-file-preview.svg)](https://github.com/wh131462/file-preview/blob/master/LICENSE)[![downloads](https://img.shields.io/npm/dm/@eternalheart/react-file-preview.svg)](https://www.npmjs.com/package/@eternalheart/react-file-preview)
 
 English | [简体中文](./README.zh-CN.md)
 
-A modern, feature-rich file preview component for React with support for images, videos, audio, PDFs, Office documents (Word, Excel, PowerPoint), Markdown, and code files.
+A modern, feature-rich file preview component library with **first-class support for both React and Vue**. Preview images, videos, audio, PDFs, Office documents (Word, Excel, PowerPoint), Markdown, and code files — through a shared core and framework-specific bindings.
+
+> **Note:** The repository is still hosted at `wh131462/file-preview` for historical reasons, but the project now ships as a multi-framework library under the **File Preview** name.
 
 ## 📚 Documentation
 
-- 📖 [Full Documentation](https://wh131462.github.io/react-file-preview/docs/)
-- 🎮 [Live Demo](https://wh131462.github.io/react-file-preview/)
+- 📖 [Full Documentation](https://wh131462.github.io/file-preview/docs/)
+- 🎮 [React Demo](https://wh131462.github.io/file-preview/) · [Vue Demo](https://wh131462.github.io/file-preview/vue/)
 
 ## 🏗️ Monorepo Structure
 
 This project is organized as a monorepo using pnpm workspaces:
 
-- **packages/react-file-preview** - Core library (published to npm)
-- **packages/example** - Demo application (deployed to GitHub Pages)
-- **packages/docs** - VitePress documentation site (deployed to GitHub Pages)
+- **packages/file-preview-core** — Framework-agnostic core (types, file detection, parsers)
+- **packages/react-file-preview** — React bindings (published as `@eternalheart/react-file-preview`)
+- **packages/vue-file-preview** — Vue bindings (published as `@eternalheart/vue-file-preview`)
+- **packages/example** — React demo app (deployed to GitHub Pages)
+- **packages/vue-example** — Vue demo app (deployed to GitHub Pages `/vue`)
+- **packages/docs** — VitePress documentation site
 
 ### Development Commands
 
@@ -65,26 +70,37 @@ pnpm pub              # Publish library to npm
 
 ## 📦 Installation
 
+### React
+
 ```bash
-# Using npm
 npm install @eternalheart/react-file-preview
+# or: yarn add @eternalheart/react-file-preview
+# or: pnpm add @eternalheart/react-file-preview
+```
 
-# Using yarn
-yarn add @eternalheart/react-file-preview
+### Vue
 
-# Using pnpm
-pnpm add @eternalheart/react-file-preview
+```bash
+npm install @eternalheart/vue-file-preview
+# or: yarn add @eternalheart/vue-file-preview
+# or: pnpm add @eternalheart/vue-file-preview
 ```
 
 **Important:** You also need to import the CSS file:
 
 ```tsx
+// React
 import '@eternalheart/react-file-preview/style.css';
+```
+
+```ts
+// Vue
+import '@eternalheart/vue-file-preview/style.css';
 ```
 
 ## 🚀 Quick Start
 
-📖 **New to this library?** Check out the [Quick Start Guide](https://wh131462.github.io/react-file-preview/docs/guide/getting-started.html) for a 5-minute introduction!
+📖 **New to this library?** Check out the [Quick Start Guide](https://wh131462.github.io/file-preview/docs/guide/getting-started.html) for a 5-minute introduction!
 
 ### Basic Usage
 
@@ -418,7 +434,7 @@ The component is built with Tailwind CSS. You can customize styles by overriding
 
 ## 📚 Documentation
 
-- [Online Demo](https://wh131462.github.io/react-file-preview) - Live demo
+- [Online Demo](https://wh131462.github.io/file-preview) - Live demo
 
 ## 🛠️ Development
 
@@ -426,7 +442,7 @@ The component is built with Tailwind CSS. You can customize styles by overriding
 
 ```bash
 # Clone repository
-git clone https://github.com/wh131462/react-file-preview.git
+git clone https://github.com/wh131462/file-preview.git
 
 # Install dependencies
 pnpm install
@@ -451,7 +467,7 @@ Issues and Pull Requests are welcome!
 
 ## 🔗 Links
 
-- [GitHub](https://github.com/wh131462/react-file-preview)
+- [GitHub](https://github.com/wh131462/file-preview)
 - [npm](https://www.npmjs.com/package/@eternalheart/react-file-preview)
-- [Online Demo](https://wh131462.github.io/react-file-preview)
-- [Issue Tracker](https://github.com/wh131462/react-file-preview/issues)
+- [Online Demo](https://wh131462.github.io/file-preview)
+- [Issue Tracker](https://github.com/wh131462/file-preview/issues)

@@ -33,8 +33,8 @@ pnpm add @eternalheart/vue-file-preview
 
 ## 在线示例
 
-- [React 在线示例](https://wh131462.github.io/react-file-preview/)
-- [Vue 在线示例](https://wh131462.github.io/react-file-preview/vue/)
+- [React 在线示例](https://wh131462.github.io/file-preview/)
+- [Vue 在线示例](https://wh131462.github.io/file-preview/vue/)
 
 ## 下一步
 

@@ -8,8 +8,8 @@ import * as pdfjsLib from 'pdfjs-dist/build/pdf.mjs';
 // 配置 PDF.js
 if (import.meta.env.PROD) {
   configurePdfWorker(pdfjsLib, {
-    workerSrc: '/react-file-preview/vue/pdfjs/pdf.worker.min.mjs',
-    cMapUrl: '/react-file-preview/vue/pdfjs/cmaps/',
+    workerSrc: '/file-preview/vue/pdfjs/pdf.worker.min.mjs',
+    cMapUrl: '/file-preview/vue/pdfjs/cmaps/',
     cMapPacked: true,
   });
 } else {

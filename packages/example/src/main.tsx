@@ -9,8 +9,8 @@ import { configurePdfjs } from '@eternalheart/react-file-preview'
 if (import.meta.env.PROD) {
   // 生产环境：使用本地静态文件（通过 vite-plugin-static-copy 复制）
   configurePdfjs({
-    workerSrc: '/react-file-preview/pdfjs/pdf.worker.min.mjs',
-    cMapUrl: '/react-file-preview/pdfjs/cmaps/',
+    workerSrc: '/file-preview/pdfjs/pdf.worker.min.mjs',
+    cMapUrl: '/file-preview/pdfjs/cmaps/',
     cMapPacked: true
   })
 } else {

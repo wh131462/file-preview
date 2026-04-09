@@ -11,7 +11,7 @@ const __dirname = dirname(__filename)
 // 演示应用构建配置（用于 GitHub Pages）
 // https://vitejs.dev/config/
 export default defineConfig({
-  base: process.env.NODE_ENV === 'production' ? '/react-file-preview/' : '/',
+  base: process.env.NODE_ENV === 'production' ? '/file-preview/' : '/',
   plugins: [
     react(),
     // 复制 PDF.js worker 和 cmaps 文件到构建输出

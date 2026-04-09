@@ -1,4 +1,4 @@
-# React File Preview [![npm version](https://img.shields.io/npm/v/@eternalheart/react-file-preview.svg)](https://www.npmjs.com/package/@eternalheart/react-file-preview)[![license](https://img.shields.io/npm/l/@eternalheart/react-file-preview.svg)](https://github.com/wh131462/react-file-preview/blob/master/LICENSE)[![downloads](https://img.shields.io/npm/dm/@eternalheart/react-file-preview.svg)](https://www.npmjs.com/package/@eternalheart/react-file-preview)
+# React File Preview [![npm version](https://img.shields.io/npm/v/@eternalheart/react-file-preview.svg)](https://www.npmjs.com/package/@eternalheart/react-file-preview)[![license](https://img.shields.io/npm/l/@eternalheart/react-file-preview.svg)](https://github.com/wh131462/file-preview/blob/master/LICENSE)[![downloads](https://img.shields.io/npm/dm/@eternalheart/react-file-preview.svg)](https://www.npmjs.com/package/@eternalheart/react-file-preview)
 
 [English](./README.md) | 简体中文
 
@@ -6,8 +6,8 @@
 
 ## 📚 文档
 
-- 📖 [完整文档](https://wh131462.github.io/react-file-preview/docs/)
-- 🎮 [在线演示](https://wh131462.github.io/react-file-preview/)
+- 📖 [完整文档](https://wh131462.github.io/file-preview/docs/)
+- 🎮 [在线演示](https://wh131462.github.io/file-preview/)
 
 ## 🏗️ Monorepo 结构
 
@@ -84,7 +84,7 @@ import '@eternalheart/react-file-preview/style.css';
 
 ## 🚀 快速开始
 
-📖 **第一次使用？** 查看 [快速开始指南](https://wh131462.github.io/react-file-preview/docs/guide/getting-started.html) 获取 5 分钟入门教程！
+📖 **第一次使用？** 查看 [快速开始指南](https://wh131462.github.io/file-preview/docs/guide/getting-started.html) 获取 5 分钟入门教程！
 
 ### 基础用法
 
@@ -418,7 +418,7 @@ const files = [
 
 ## 📚 文档
 
-- [在线演示](https://wh131462.github.io/react-file-preview) - 在线 Demo
+- [在线演示](https://wh131462.github.io/file-preview) - 在线 Demo
 
 ## 🛠️ 开发
 
@@ -426,7 +426,7 @@ const files = [
 
 ```bash
 # 克隆仓库
-git clone https://github.com/wh131462/react-file-preview.git
+git clone https://github.com/wh131462/file-preview.git
 
 # 安装依赖
 pnpm install
@@ -451,7 +451,7 @@ pnpm build:demo
 
 ## 🔗 相关链接
 
-- [GitHub](https://github.com/wh131462/react-file-preview)
+- [GitHub](https://github.com/wh131462/file-preview)
 - [npm](https://www.npmjs.com/package/@eternalheart/react-file-preview)
-- [在线演示](https://wh131462.github.io/react-file-preview)
-- [问题反馈](https://github.com/wh131462/react-file-preview/issues)
+- [在线演示](https://wh131462.github.io/file-preview)
+- [问题反馈](https://github.com/wh131462/file-preview/issues)

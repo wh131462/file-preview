@@ -61,16 +61,16 @@ git commit -m "Deploy to GitHub Pages"
 # 检测是否在 CI 环境中
 if [ -n "$GITHUB_ACTIONS" ]; then
   echo "检测到 CI 环境，使用 HTTPS 推送..."
-  git push -f https://x-access-token:${GITHUB_TOKEN}@github.com/wh131462/react-file-preview.git HEAD:gh-pages
+  git push -f https://x-access-token:${GITHUB_TOKEN}@github.com/wh131462/file-preview.git HEAD:gh-pages
 else
   echo "本地环境，使用 SSH 推送..."
-  git push -f git@github.com:wh131462/react-file-preview.git HEAD:gh-pages
+  git push -f git@github.com:wh131462/file-preview.git HEAD:gh-pages
 fi
 
 cd ..
 rm -rf dist-deploy
 
 echo "部署完成！"
-echo "React 示例: https://wh131462.github.io/react-file-preview/"
-echo "Vue 示例:   https://wh131462.github.io/react-file-preview/vue/"
-echo "文档站点:   https://wh131462.github.io/react-file-preview/docs/"
+echo "React 示例: https://wh131462.github.io/file-preview/"
+echo "Vue 示例:   https://wh131462.github.io/file-preview/vue/"
+echo "文档站点:   https://wh131462.github.io/file-preview/docs/"

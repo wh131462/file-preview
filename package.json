@@ -1,8 +1,8 @@
 {
-  "name": "@eternalheart/react-file-preview-monorepo",
+  "name": "@eternalheart/file-preview-monorepo",
   "version": "0.0.0",
   "private": true,
-  "description": "A modern, feature-rich file preview component for React - Monorepo",
+  "description": "A modern, feature-rich file preview component library for React and Vue - Monorepo",
   "type": "module",
   "packageManager": "pnpm@10.15.0",
   "scripts": {
@@ -22,22 +22,29 @@
     "clean": "pnpm -r exec rm -rf dist lib .vitepress/dist node_modules && rm -rf node_modules dist-deploy",
     "lint": "eslint packages --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "gh": "bash scripts/deploy.sh",
-    "version:patch": "pnpm --filter @eternalheart/react-file-preview version:patch",
-    "version:minor": "pnpm --filter @eternalheart/react-file-preview version:minor",
-    "version:major": "pnpm --filter @eternalheart/react-file-preview version:major",
-    "pub": "pnpm --filter @eternalheart/react-file-preview pub",
-    "pub:patch": "pnpm version:patch && pnpm pub",
-    "pub:minor": "pnpm version:minor && pnpm pub",
-    "pub:major": "pnpm version:major && pnpm pub"
+    "version:patch:react": "pnpm --filter @eternalheart/react-file-preview version:patch",
+    "version:minor:react": "pnpm --filter @eternalheart/react-file-preview version:minor",
+    "version:major:react": "pnpm --filter @eternalheart/react-file-preview version:major",
+    "pub:react": "pnpm --filter @eternalheart/react-file-preview pub",
+    "pub:patch:react": "pnpm version:patch:react && pnpm pub:react",
+    "pub:minor:react": "pnpm version:minor:react && pnpm pub:react",
+    "pub:major:react": "pnpm version:major:react && pnpm pub:react",
+    "version:patch:vue": "pnpm --filter @eternalheart/vue-file-preview version:patch",
+    "version:minor:vue": "pnpm --filter @eternalheart/vue-file-preview version:minor",
+    "version:major:vue": "pnpm --filter @eternalheart/vue-file-preview version:major",
+    "pub:vue": "pnpm --filter @eternalheart/vue-file-preview pub",
+    "pub:patch:vue": "pnpm version:patch:vue && pnpm pub:vue",
+    "pub:minor:vue": "pnpm version:minor:vue && pnpm pub:vue",
+    "pub:major:vue": "pnpm version:major:vue && pnpm pub:vue"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/wh131462/react-file-preview.git"
+    "url": "git+https://github.com/wh131462/file-preview.git"
   },
   "bugs": {
-    "url": "https://github.com/wh131462/react-file-preview/issues"
+    "url": "https://github.com/wh131462/file-preview/issues"
   },
-  "homepage": "https://wh131462.github.io/react-file-preview",
+  "homepage": "https://wh131462.github.io/file-preview",
   "license": "MIT",
   "author": {
     "name": "EternalHeart",

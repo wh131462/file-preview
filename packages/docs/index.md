@@ -14,13 +14,13 @@ hero:
       link: /guide/getting-started
     - theme: alt
       text: React 在线示例
-      link: https://wh131462.github.io/react-file-preview/
+      link: https://wh131462.github.io/file-preview/
     - theme: alt
       text: Vue 在线示例
-      link: https://wh131462.github.io/react-file-preview/vue/
+      link: https://wh131462.github.io/file-preview/vue/
     - theme: alt
       text: GitHub
-      link: https://github.com/wh131462/react-file-preview
+      link: https://github.com/wh131462/file-preview
 
 features:
   - icon:
@@ -202,4 +202,4 @@ const files = [
 
 ## 许可证
 
-[MIT License](https://github.com/wh131462/react-file-preview/blob/main/LICENSE)
+[MIT License](https://github.com/wh131462/file-preview/blob/main/LICENSE)

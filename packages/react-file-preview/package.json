@@ -1,6 +1,6 @@
 {
   "name": "@eternalheart/react-file-preview",
-  "version": "1.1.5",
+  "version": "1.2.0",
   "description": "A modern, feature-rich file preview component for React with support for images, videos, audio, PDFs, Office documents (Word, Excel, PowerPoint), Markdown, and code files.",
   "type": "module",
   "main": "./lib/index.cjs",

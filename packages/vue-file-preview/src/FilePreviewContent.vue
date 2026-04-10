@@ -1,38 +1,29 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue';
-import {
-  X,
-  ZoomIn,
-  ZoomOut,
-  RotateCw,
-  RotateCcw,
-  Download,
-  ChevronLeft,
-  ChevronRight,
-  Scan,
-  RefreshCw,
-  Maximize2,
-  Minimize2,
-  List,
-} from 'lucide-vue-next';
+import { X, Download, ChevronLeft, ChevronRight } from 'lucide-vue-next';
 import {
   normalizeFiles,
   getFileType,
   type PreviewFileInput,
 } from '@eternalheart/file-preview-core';
 import type { CustomRenderer } from './types';
-import ImageRenderer from './renderers/ImageRenderer.vue';
-import PdfRenderer from './renderers/PdfRenderer.vue';
-import DocxRenderer from './renderers/DocxRenderer.vue';
-import XlsxRenderer from './renderers/XlsxRenderer.vue';
-import PptxRenderer from './renderers/PptxRenderer.vue';
-import MsgRenderer from './renderers/MsgRenderer.vue';
-import EpubRenderer from './renderers/EpubRenderer.vue';
-import VideoRenderer from './renderers/VideoRenderer.vue';
-import AudioRenderer from './renderers/AudioRenderer.vue';
-import MarkdownRenderer from './renderers/MarkdownRenderer.vue';
-import TextRenderer from './renderers/TextRenderer.vue';
-import UnsupportedRenderer from './renderers/UnsupportedRenderer.vue';
+import type { ToolbarGroup, ToolbarButtonItem, ToolbarTextItem } from './renderers/toolbar.types';
+import { getImageToolbarGroups } from './renderers/Image/toolbar';
+import { getPdfToolbarGroups } from './renderers/Pdf/toolbar';
+import { getEpubToolbarGroups } from './renderers/Epub/toolbar';
+import ImageRenderer from './renderers/Image/index.vue';
+import PdfRenderer from './renderers/Pdf/index.vue';
+import DocxRenderer from './renderers/Docx/index.vue';
+import XlsxRenderer from './renderers/Xlsx/index.vue';
+import PptxRenderer from './renderers/Pptx/index.vue';
+import MsgRenderer from './renderers/Msg/index.vue';
+import EpubRenderer from './renderers/Epub/index.vue';
+import VideoRenderer from './renderers/Video/index.vue';
+import AudioRenderer from './renderers/Audio/index.vue';
+import MarkdownRenderer from './renderers/Markdown/index.vue';
+import JsonRenderer from './renderers/Json/index.vue';
+import TextRenderer from './renderers/Text/index.vue';
+import UnsupportedRenderer from './renderers/Unsupported/index.vue';
 
 interface Props {
   files: PreviewFileInput[];
@@ -224,9 +215,6 @@ const handleDownload = () => {
   link.click();
 };
 
-const showZoomControls = computed(() => fileType.value === 'image' || fileType.value === 'pdf');
-const showRotateControl = computed(() => fileType.value === 'image');
-const showEpubControls = computed(() => fileType.value === 'epub');
 const showCloseButton = computed(() => props.mode === 'modal');
 
 const epubRef = ref<{ prevChapter: () => void; nextChapter: () => void; toggleFullWidth: () => void; toggleToc: () => void } | null>(null);
@@ -238,6 +226,60 @@ const handleEpubChapterChange = (current: number, total: number) => {
   epubCurrent.value = current;
   epubTotal.value = total;
 };
+
+// 工具栏配置 — 各 Renderer 自行声明
+const toolGroups = computed(() => {
+  if (fileType.value === 'image') {
+    return getImageToolbarGroups({
+      zoom: zoom.value,
+      onZoomIn: handleZoomIn,
+      onZoomOut: handleZoomOut,
+      onFitToWidth: handleFitToWidth,
+      onOriginalSize: handleOriginalSize,
+      onRotateLeft: handleRotateLeft,
+      onRotateRight: handleRotate,
+      onReset: handleReset,
+    });
+  }
+  if (fileType.value === 'pdf') {
+    return getPdfToolbarGroups({
+      zoom: zoom.value,
+      onZoomIn: handleZoomIn,
+      onZoomOut: handleZoomOut,
+      onReset: handleReset,
+    });
+  }
+  if (fileType.value === 'epub') {
+    return getEpubToolbarGroups({
+      epubRef: epubRef.value,
+      current: epubCurrent.value,
+      total: epubTotal.value,
+      fullWidth: epubFullWidth.value,
+    });
+  }
+  return [];
+});
+
+// 操作组：下载、关闭（通用，不属于任何 Renderer）
+const actionGroups = computed<ToolbarGroup[]>(() => {
+  const groups: ToolbarGroup[] = [
+    {
+      items: [
+        { type: 'button', icon: Download, tooltip: '下载', action: handleDownload },
+      ],
+    },
+  ];
+  if (showCloseButton.value) {
+    groups.push({
+      items: [
+        { type: 'button', icon: X, tooltip: '关闭', action: () => emit('close') },
+      ],
+    });
+  }
+  return groups;
+});
+
+const hasToolGroups = computed(() => toolGroups.value.length > 0);
 </script>
 
 <template>
@@ -265,196 +307,85 @@ const handleEpubChapterChange = (current: number, total: number) => {
 
         <!-- 移动端: 仅下载 + 关闭 -->
         <div class="vfp-flex vfp-items-center vfp-gap-1 md:vfp-hidden vfp-flex-shrink-0">
-          <button class="toolbar-btn" title="下载" @click="handleDownload">
-            <Download class="vfp-w-4 vfp-h-4" />
-          </button>
-          <button v-if="showCloseButton" class="toolbar-btn" title="关闭" @click="emit('close')">
-            <X class="vfp-w-4 vfp-h-4" />
-          </button>
+          <template v-for="(group, gi) in actionGroups" :key="'m-action-' + gi">
+            <template v-for="(item, ii) in group.items" :key="'m-action-' + gi + '-' + ii">
+              <button
+                v-if="item.type === 'button'"
+                class="toolbar-btn"
+                :data-tooltip="(item as ToolbarButtonItem).tooltip"
+                :disabled="(item as ToolbarButtonItem).disabled"
+                @click="(item as ToolbarButtonItem).action"
+              >
+                <component :is="(item as ToolbarButtonItem).icon" class="vfp-w-4 vfp-h-4" />
+              </button>
+            </template>
+          </template>
         </div>
 
         <!-- 桌面端: 完整工具按钮 -->
         <div class="vfp-hidden md:vfp-flex vfp-items-center vfp-gap-1 vfp-flex-shrink-0">
-          <template v-if="showZoomControls">
-            <button class="toolbar-btn" :disabled="zoom <= 0.01" title="缩小" @click="handleZoomOut">
-              <ZoomOut class="vfp-w-4 vfp-h-4" />
-            </button>
-            <span
-              class="vfp-text-white/60 vfp-text-xs vfp-min-w-[3rem] vfp-text-center vfp-font-medium vfp-tabular-nums"
-            >
-              {{ Math.round(zoom * 100) }}%
-            </span>
-            <button class="toolbar-btn" :disabled="zoom >= 10" title="放大" @click="handleZoomIn">
-              <ZoomIn class="vfp-w-4 vfp-h-4" />
-            </button>
+          <template v-for="(group, gi) in toolGroups" :key="'d-tool-' + gi">
+            <template v-for="(item, ii) in group.items" :key="'d-tool-' + gi + '-' + ii">
+              <button
+                v-if="item.type === 'button'"
+                class="toolbar-btn"
+                :data-tooltip="(item as ToolbarButtonItem).tooltip"
+                :disabled="(item as ToolbarButtonItem).disabled"
+                @click="(item as ToolbarButtonItem).action"
+              >
+                <component :is="(item as ToolbarButtonItem).icon" class="vfp-w-4 vfp-h-4" />
+              </button>
+              <span
+                v-else-if="item.type === 'text'"
+                class="vfp-text-white/60 vfp-text-xs vfp-text-center vfp-font-medium vfp-tabular-nums"
+                :style="{ minWidth: (item as ToolbarTextItem).minWidth || 'auto' }"
+              >
+                {{ (item as ToolbarTextItem).content }}
+              </span>
+            </template>
             <div class="vfp-w-px vfp-h-4 vfp-bg-white/10 vfp-mx-1" />
-
-            <template v-if="fileType === 'image'">
-              <button class="toolbar-btn" title="适应窗口" @click="handleFitToWidth">
-                <Scan class="vfp-w-4 vfp-h-4" />
+          </template>
+          <template v-for="(group, gi) in actionGroups" :key="'d-action-' + gi">
+            <template v-for="(item, ii) in group.items" :key="'d-action-' + gi + '-' + ii">
+              <button
+                v-if="item.type === 'button'"
+                class="toolbar-btn"
+                :data-tooltip="(item as ToolbarButtonItem).tooltip"
+                :disabled="(item as ToolbarButtonItem).disabled"
+                @click="(item as ToolbarButtonItem).action"
+              >
+                <component :is="(item as ToolbarButtonItem).icon" class="vfp-w-4 vfp-h-4" />
               </button>
-              <button class="toolbar-btn" title="原始尺寸" @click="handleOriginalSize">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  class="vfp-w-4 vfp-h-4"
-                >
-                  <text
-                    x="12"
-                    y="17.5"
-                    text-anchor="middle"
-                    font-size="20"
-                    font-weight="bold"
-                    fill="currentColor"
-                    stroke="none"
-                  >
-                    1:1
-                  </text>
-                </svg>
-              </button>
-              <div class="vfp-w-px vfp-h-4 vfp-bg-white/10 vfp-mx-1" />
             </template>
           </template>
-
-          <template v-if="showRotateControl">
-            <button class="toolbar-btn" title="向左旋转" @click="handleRotateLeft">
-              <RotateCcw class="vfp-w-4 vfp-h-4" />
-            </button>
-            <button class="toolbar-btn" title="向右旋转" @click="handleRotate">
-              <RotateCw class="vfp-w-4 vfp-h-4" />
-            </button>
-            <div class="vfp-w-px vfp-h-4 vfp-bg-white/10 vfp-mx-1" />
-          </template>
-
-          <template v-if="showZoomControls || showRotateControl">
-            <button class="toolbar-btn" title="复原" @click="handleReset">
-              <RefreshCw class="vfp-w-4 vfp-h-4" />
-            </button>
-            <div class="vfp-w-px vfp-h-4 vfp-bg-white/10 vfp-mx-1" />
-          </template>
-
-          <template v-if="showEpubControls">
-            <button class="toolbar-btn" title="目录" @click="epubRef?.toggleToc()">
-              <List class="vfp-w-4 vfp-h-4" />
-            </button>
-            <div class="vfp-w-px vfp-h-4 vfp-bg-white/10 vfp-mx-1" />
-            <button class="toolbar-btn" title="上一章" @click="epubRef?.prevChapter()">
-              <ChevronLeft class="vfp-w-4 vfp-h-4" />
-            </button>
-            <span
-              class="vfp-text-white/60 vfp-text-xs vfp-min-w-[4rem] vfp-text-center vfp-font-medium vfp-tabular-nums"
-            >
-              {{ epubCurrent }} / {{ epubTotal }}
-            </span>
-            <button class="toolbar-btn" title="下一章" @click="epubRef?.nextChapter()">
-              <ChevronRight class="vfp-w-4 vfp-h-4" />
-            </button>
-            <div class="vfp-w-px vfp-h-4 vfp-bg-white/10 vfp-mx-1" />
-            <button class="toolbar-btn" :title="epubFullWidth ? '正常宽度' : '全屏宽度'" @click="epubRef?.toggleFullWidth()">
-              <Minimize2 v-if="epubFullWidth" class="vfp-w-4 vfp-h-4" />
-              <Maximize2 v-else class="vfp-w-4 vfp-h-4" />
-            </button>
-            <div class="vfp-w-px vfp-h-4 vfp-bg-white/10 vfp-mx-1" />
-          </template>
-
-          <button class="toolbar-btn" title="下载" @click="handleDownload">
-            <Download class="vfp-w-4 vfp-h-4" />
-          </button>
-          <button v-if="showCloseButton" class="toolbar-btn" title="关闭" @click="emit('close')">
-            <X class="vfp-w-4 vfp-h-4" />
-          </button>
         </div>
       </div>
 
       <!-- 移动端第二行工具按钮 -->
       <div
-        v-if="showZoomControls || showRotateControl || showEpubControls"
+        v-if="hasToolGroups"
         class="vfp-flex vfp-items-center vfp-gap-1 vfp-px-3 vfp-pb-1.5 vfp-overflow-x-auto scrollbar-hide md:vfp-hidden"
       >
-        <template v-if="showZoomControls">
-          <button class="toolbar-btn" :disabled="zoom <= 0.01" title="缩小" @click="handleZoomOut">
-            <ZoomOut class="vfp-w-4 vfp-h-4" />
-          </button>
-          <span
-            class="vfp-text-white/60 vfp-text-xs vfp-min-w-[3rem] vfp-text-center vfp-font-medium vfp-tabular-nums"
-          >
-            {{ Math.round(zoom * 100) }}%
-          </span>
-          <button class="toolbar-btn" :disabled="zoom >= 10" title="放大" @click="handleZoomIn">
-            <ZoomIn class="vfp-w-4 vfp-h-4" />
-          </button>
-          <div class="vfp-w-px vfp-h-4 vfp-bg-white/10 vfp-mx-0.5" />
-          <template v-if="fileType === 'image'">
-            <button class="toolbar-btn" title="适应窗口" @click="handleFitToWidth">
-              <Scan class="vfp-w-4 vfp-h-4" />
+        <template v-for="(group, gi) in toolGroups" :key="'m-tool-' + gi">
+          <div v-if="gi > 0" class="vfp-w-px vfp-h-4 vfp-bg-white/10 vfp-mx-0.5" />
+          <template v-for="(item, ii) in group.items" :key="'m-tool-' + gi + '-' + ii">
+            <button
+              v-if="item.type === 'button'"
+              class="toolbar-btn"
+              :data-tooltip="(item as ToolbarButtonItem).tooltip"
+              :disabled="(item as ToolbarButtonItem).disabled"
+              @click="(item as ToolbarButtonItem).action"
+            >
+              <component :is="(item as ToolbarButtonItem).icon" class="vfp-w-4 vfp-h-4" />
             </button>
-            <button class="toolbar-btn" title="原始尺寸" @click="handleOriginalSize">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                class="vfp-w-4 vfp-h-4"
-              >
-                <text
-                  x="12"
-                  y="17.5"
-                  text-anchor="middle"
-                  font-size="20"
-                  font-weight="bold"
-                  fill="currentColor"
-                  stroke="none"
-                >
-                  1:1
-                </text>
-              </svg>
-            </button>
-            <div class="vfp-w-px vfp-h-4 vfp-bg-white/10 vfp-mx-0.5" />
+            <span
+              v-else-if="item.type === 'text'"
+              class="vfp-text-white/60 vfp-text-xs vfp-text-center vfp-font-medium vfp-tabular-nums"
+              :style="{ minWidth: (item as ToolbarTextItem).minWidth || 'auto' }"
+            >
+              {{ (item as ToolbarTextItem).content }}
+            </span>
           </template>
-        </template>
-
-        <template v-if="showRotateControl">
-          <button class="toolbar-btn" title="向左旋转" @click="handleRotateLeft">
-            <RotateCcw class="vfp-w-4 vfp-h-4" />
-          </button>
-          <button class="toolbar-btn" title="向右旋转" @click="handleRotate">
-            <RotateCw class="vfp-w-4 vfp-h-4" />
-          </button>
-          <div class="vfp-w-px vfp-h-4 vfp-bg-white/10 vfp-mx-0.5" />
-        </template>
-
-        <button class="toolbar-btn" title="复原" @click="handleReset">
-          <RefreshCw class="vfp-w-4 vfp-h-4" />
-        </button>
-
-        <template v-if="showEpubControls">
-          <div class="vfp-w-px vfp-h-4 vfp-bg-white/10 vfp-mx-0.5" />
-          <button class="toolbar-btn" title="目录" @click="epubRef?.toggleToc()">
-            <List class="vfp-w-4 vfp-h-4" />
-          </button>
-          <button class="toolbar-btn" title="上一章" @click="epubRef?.prevChapter()">
-            <ChevronLeft class="vfp-w-4 vfp-h-4" />
-          </button>
-          <span
-            class="vfp-text-white/60 vfp-text-xs vfp-min-w-[4rem] vfp-text-center vfp-font-medium vfp-tabular-nums"
-          >
-            {{ epubCurrent }} / {{ epubTotal }}
-          </span>
-          <button class="toolbar-btn" title="下一章" @click="epubRef?.nextChapter()">
-            <ChevronRight class="vfp-w-4 vfp-h-4" />
-          </button>
-          <button class="toolbar-btn" :title="epubFullWidth ? '正常宽度' : '全屏宽度'" @click="epubRef?.toggleFullWidth()">
-            <Minimize2 v-if="epubFullWidth" class="vfp-w-4 vfp-h-4" />
-            <Maximize2 v-else class="vfp-w-4 vfp-h-4" />
-          </button>
         </template>
       </div>
     </div>
@@ -506,6 +437,11 @@ const handleEpubChapterChange = (current: number, total: number) => {
             :file-name="currentFile.name"
           />
           <MarkdownRenderer v-else-if="fileType === 'markdown'" :url="currentFile.url" />
+          <JsonRenderer
+            v-else-if="fileType === 'json'"
+            :url="currentFile.url"
+            :file-name="currentFile.name"
+          />
           <TextRenderer
             v-else-if="fileType === 'text'"
             :url="currentFile.url"
@@ -558,6 +494,7 @@ const handleEpubChapterChange = (current: number, total: number) => {
 
 <style scoped>
 .toolbar-btn {
+  position: relative;
   padding: 0.5rem;
   border-radius: 0.375rem;
   transition: all 0.15s;
@@ -581,5 +518,46 @@ const handleEpubChapterChange = (current: number, total: number) => {
 .toolbar-btn:disabled {
   color: rgba(255, 255, 255, 0.3);
   cursor: not-allowed;
+}
+/* Tooltip */
+.toolbar-btn[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  transform: translateX(-50%);
+  margin-top: 6px;
+  padding: 4px 8px;
+  background: rgba(0, 0, 0, 0.85);
+  color: #fff;
+  font-size: 12px;
+  line-height: 1.5;
+  border-radius: 4px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s, visibility 0.2s;
+  z-index: 50;
+}
+.toolbar-btn[data-tooltip]::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  transform: translateX(-50%);
+  margin-top: 2px;
+  border: 4px solid transparent;
+  border-bottom-color: rgba(0, 0, 0, 0.85);
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s, visibility 0.2s;
+  z-index: 50;
+}
+.toolbar-btn[data-tooltip]:hover::after,
+.toolbar-btn[data-tooltip]:hover::before {
+  opacity: 1;
+  visibility: visible;
 }
 </style>

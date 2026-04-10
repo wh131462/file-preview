@@ -1,53 +1,27 @@
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { motion } from 'framer-motion';
-import {
-  X,
-  ZoomIn,
-  ZoomOut,
-  RotateCw,
-  RotateCcw,
-  Download,
-  ChevronLeft,
-  ChevronRight,
-  Scan,
-  RefreshCw,
-  Maximize2,
-  Minimize2,
-  List,
-} from 'lucide-react';
-
-const OriginalSizeIcon: React.FC<{ className?: string }> = ({ className }) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className={className}
-  >
-    <text x="12" y="17.5" textAnchor="middle" fontSize="20" fontWeight="bold" fill="currentColor" stroke="none">
-      1:1
-    </text>
-  </svg>
-);
+import { X, Download, ChevronLeft, ChevronRight } from 'lucide-react';
+import type { ToolbarGroup } from './renderers/toolbar.types';
+import { getImageToolbarGroups } from './renderers/Image/toolbar';
+import { getPdfToolbarGroups } from './renderers/Pdf/toolbar';
+import { getEpubToolbarGroups } from './renderers/Epub/toolbar';
 
 import { PreviewFile, PreviewFileInput, FileType, CustomRenderer } from './types';
 import { normalizeFiles } from './utils/fileNormalizer';
-import { ImageRenderer } from './renderers/ImageRenderer';
-import { PdfRenderer } from './renderers/PdfRenderer';
-import { DocxRenderer } from './renderers/DocxRenderer';
-import { XlsxRenderer } from './renderers/XlsxRenderer';
-import { PptxRenderer } from './renderers/PptxRenderer';
-import { MsgRenderer } from './renderers/MsgRenderer';
-import { EpubRenderer } from './renderers/EpubRenderer';
-import type { EpubRendererHandle } from './renderers/EpubRenderer';
-import { VideoRenderer } from './renderers/VideoRenderer';
-import { AudioRenderer } from './renderers/AudioRenderer';
-import { MarkdownRenderer } from './renderers/MarkdownRenderer';
-import { TextRenderer } from './renderers/TextRenderer';
-import { UnsupportedRenderer } from './renderers/UnsupportedRenderer';
+import { ImageRenderer } from './renderers/Image';
+import { PdfRenderer } from './renderers/Pdf';
+import { DocxRenderer } from './renderers/Docx';
+import { XlsxRenderer } from './renderers/Xlsx';
+import { PptxRenderer } from './renderers/Pptx';
+import { MsgRenderer } from './renderers/Msg';
+import { EpubRenderer } from './renderers/Epub';
+import type { EpubRendererHandle } from './renderers/Epub';
+import { VideoRenderer } from './renderers/Video';
+import { AudioRenderer } from './renderers/Audio';
+import { MarkdownRenderer } from './renderers/Markdown';
+import { JsonRenderer } from './renderers/Json';
+import { TextRenderer } from './renderers/Text';
+import { UnsupportedRenderer } from './renderers/Unsupported';
 
 export interface FilePreviewContentProps {
   files: PreviewFileInput[];
@@ -94,9 +68,12 @@ const getFileType = (file: PreviewFile): FileType => {
   if (ext === 'md' || ext === 'markdown') {
     return 'markdown';
   }
+  if (mimeType === 'application/json' || ext === 'json') {
+    return 'json';
+  }
   const textExtensions = [
     'txt', 'log', 'csv',
-    'js', 'jsx', 'ts', 'tsx', 'json',
+    'js', 'jsx', 'ts', 'tsx',
     'py', 'java', 'cpp', 'c', 'h', 'cs', 'php', 'rb', 'go', 'rs', 'swift', 'kt',
     'html', 'css', 'scss', 'sass', 'less',
     'xml', 'yaml', 'yml', 'toml', 'ini', 'conf',
@@ -287,10 +264,80 @@ export const FilePreviewContent: React.FC<FilePreviewContentProps> = ({
 
   if (!currentFile) return null;
 
-  const showZoomControls = fileType === 'image' || fileType === 'pdf';
-  const showRotateControl = fileType === 'image';
-  const showEpubControls = fileType === 'epub';
   const showCloseButton = mode === 'modal' && !!onClose;
+
+  // 工具栏配置 — 各 Renderer 自行声明
+  const toolGroups: ToolbarGroup[] = (() => {
+    if (fileType === 'image') {
+      return getImageToolbarGroups({
+        zoom,
+        onZoomIn: handleZoomIn,
+        onZoomOut: handleZoomOut,
+        onFitToWidth: handleFitToWidth,
+        onOriginalSize: handleOriginalSize,
+        onRotateLeft: handleRotateLeft,
+        onRotateRight: handleRotate,
+        onReset: handleReset,
+      });
+    }
+    if (fileType === 'pdf') {
+      return getPdfToolbarGroups({
+        zoom,
+        onZoomIn: handleZoomIn,
+        onZoomOut: handleZoomOut,
+        onReset: handleReset,
+      });
+    }
+    if (fileType === 'epub') {
+      return getEpubToolbarGroups({
+        epubRef,
+        current: epubCurrent,
+        total: epubTotal,
+        fullWidth: epubFullWidth,
+      });
+    }
+    return [];
+  })();
+
+  // 操作组：下载、关闭（通用，不属于任何 Renderer）
+  const actionGroups: ToolbarGroup[] = [
+    {
+      items: [
+        { type: 'button', icon: <Download className="rfp-w-4 rfp-h-4" />, tooltip: '下载', action: handleDownload },
+      ],
+    },
+    ...(showCloseButton ? [{
+      items: [
+        { type: 'button' as const, icon: <X className="rfp-w-4 rfp-h-4" />, tooltip: '关闭', action: onClose! },
+      ],
+    }] : []),
+  ];
+
+  const renderToolbarItems = (groups: ToolbarGroup[], dividerClass: string) =>
+    groups.map((group, gi, arr) => (
+      <React.Fragment key={gi}>
+        {group.items.map((item, ii) =>
+          item.type === 'button' ? (
+            <ToolbarButton
+              key={`${gi}-${ii}`}
+              icon={item.icon}
+              label={item.tooltip}
+              onClick={item.action}
+              disabled={item.disabled}
+            />
+          ) : (
+            <span
+              key={`${gi}-${ii}`}
+              className="rfp-text-white/60 rfp-text-xs rfp-text-center rfp-font-medium rfp-tabular-nums"
+              style={{ minWidth: item.minWidth || 'auto' }}
+            >
+              {item.content}
+            </span>
+          )
+        )}
+        {gi < arr.length - 1 && <div className={`rfp-w-px rfp-h-4 rfp-bg-white/10 ${dividerClass}`} />}
+      </React.Fragment>
+    ));
 
   return (
     <div
@@ -320,220 +367,21 @@ export const FilePreviewContent: React.FC<FilePreviewContentProps> = ({
 
           {/* 移动端:仅显示下载+关闭 */}
           <div className="rfp-flex rfp-items-center rfp-gap-1 md:rfp-hidden rfp-flex-shrink-0">
-            <ToolbarButton
-              icon={<Download className="rfp-w-4 rfp-h-4" />}
-              label="下载"
-              onClick={handleDownload}
-            />
-            {showCloseButton && (
-              <ToolbarButton
-                icon={<X className="rfp-w-4 rfp-h-4" />}
-                label="关闭"
-                onClick={onClose!}
-              />
-            )}
+            {renderToolbarItems(actionGroups, 'rfp-mx-0.5')}
           </div>
 
           {/* 桌面端:所有工具按钮 */}
           <div className="rfp-hidden md:rfp-flex rfp-items-center rfp-gap-1 rfp-flex-shrink-0">
-            {showZoomControls && (
-              <>
-                <ToolbarButton
-                  icon={<ZoomOut className="rfp-w-4 rfp-h-4" />}
-                  label="缩小"
-                  onClick={handleZoomOut}
-                  disabled={zoom <= 0.01}
-                />
-                <span className="rfp-text-white/60 rfp-text-xs rfp-min-w-[3rem] rfp-text-center rfp-font-medium rfp-tabular-nums">
-                  {Math.round(zoom * 100)}%
-                </span>
-                <ToolbarButton
-                  icon={<ZoomIn className="rfp-w-4 rfp-h-4" />}
-                  label="放大"
-                  onClick={handleZoomIn}
-                  disabled={zoom >= 10}
-                />
-                <div className="rfp-w-px rfp-h-4 rfp-bg-white/10 rfp-mx-1" />
-                {fileType === 'image' && (
-                  <>
-                    <ToolbarButton
-                      icon={<Scan className="rfp-w-4 rfp-h-4" />}
-                      label="适应窗口"
-                      onClick={handleFitToWidth}
-                    />
-                    <ToolbarButton
-                      icon={<OriginalSizeIcon className="rfp-w-4 rfp-h-4" />}
-                      label="原始尺寸"
-                      onClick={handleOriginalSize}
-                    />
-                    <div className="rfp-w-px rfp-h-4 rfp-bg-white/10 rfp-mx-1" />
-                  </>
-                )}
-              </>
-            )}
-
-            {showRotateControl && (
-              <>
-                <ToolbarButton
-                  icon={<RotateCcw className="rfp-w-4 rfp-h-4" />}
-                  label="向左旋转"
-                  onClick={handleRotateLeft}
-                />
-                <ToolbarButton
-                  icon={<RotateCw className="rfp-w-4 rfp-h-4" />}
-                  label="向右旋转"
-                  onClick={handleRotate}
-                />
-                <div className="rfp-w-px rfp-h-4 rfp-bg-white/10 rfp-mx-1" />
-              </>
-            )}
-
-            {(showZoomControls || showRotateControl) && (
-              <>
-                <ToolbarButton
-                  icon={<RefreshCw className="rfp-w-4 rfp-h-4" />}
-                  label="复原"
-                  onClick={handleReset}
-                />
-                <div className="rfp-w-px rfp-h-4 rfp-bg-white/10 rfp-mx-1" />
-              </>
-            )}
-
-            {showEpubControls && (
-              <>
-                <ToolbarButton
-                  icon={<List className="rfp-w-4 rfp-h-4" />}
-                  label="目录"
-                  onClick={() => epubRef.current?.toggleToc()}
-                />
-                <div className="rfp-w-px rfp-h-4 rfp-bg-white/10 rfp-mx-1" />
-                <ToolbarButton
-                  icon={<ChevronLeft className="rfp-w-4 rfp-h-4" />}
-                  label="上一章"
-                  onClick={() => epubRef.current?.prevChapter()}
-                />
-                <span className="rfp-text-white/60 rfp-text-xs rfp-min-w-[4rem] rfp-text-center rfp-font-medium rfp-tabular-nums">
-                  {epubCurrent} / {epubTotal}
-                </span>
-                <ToolbarButton
-                  icon={<ChevronRight className="rfp-w-4 rfp-h-4" />}
-                  label="下一章"
-                  onClick={() => epubRef.current?.nextChapter()}
-                />
-                <div className="rfp-w-px rfp-h-4 rfp-bg-white/10 rfp-mx-1" />
-                <ToolbarButton
-                  icon={epubFullWidth ? <Minimize2 className="rfp-w-4 rfp-h-4" /> : <Maximize2 className="rfp-w-4 rfp-h-4" />}
-                  label={epubFullWidth ? '正常宽度' : '全屏宽度'}
-                  onClick={() => epubRef.current?.toggleFullWidth()}
-                />
-                <div className="rfp-w-px rfp-h-4 rfp-bg-white/10 rfp-mx-1" />
-              </>
-            )}
-
-            <ToolbarButton
-              icon={<Download className="rfp-w-4 rfp-h-4" />}
-              label="下载"
-              onClick={handleDownload}
-            />
-            {showCloseButton && (
-              <ToolbarButton
-                icon={<X className="rfp-w-4 rfp-h-4" />}
-                label="关闭"
-                onClick={onClose!}
-              />
-            )}
+            {renderToolbarItems(toolGroups, 'rfp-mx-1')}
+            {toolGroups.length > 0 && <div className="rfp-w-px rfp-h-4 rfp-bg-white/10 rfp-mx-1" />}
+            {renderToolbarItems(actionGroups, 'rfp-mx-1')}
           </div>
         </div>
 
         {/* 第二行:移动端工具按钮(image/pdf/epub) */}
-        {(showZoomControls || showRotateControl || showEpubControls) && (
+        {toolGroups.length > 0 && (
           <div className="rfp-flex rfp-items-center rfp-gap-1 rfp-px-3 rfp-pb-1.5 rfp-overflow-x-auto scrollbar-hide md:rfp-hidden">
-            {showZoomControls && (
-              <>
-                <ToolbarButton
-                  icon={<ZoomOut className="rfp-w-4 rfp-h-4" />}
-                  label="缩小"
-                  onClick={handleZoomOut}
-                  disabled={zoom <= 0.01}
-                />
-                <span className="rfp-text-white/60 rfp-text-xs rfp-min-w-[3rem] rfp-text-center rfp-font-medium rfp-tabular-nums">
-                  {Math.round(zoom * 100)}%
-                </span>
-                <ToolbarButton
-                  icon={<ZoomIn className="rfp-w-4 rfp-h-4" />}
-                  label="放大"
-                  onClick={handleZoomIn}
-                  disabled={zoom >= 10}
-                />
-                <div className="rfp-w-px rfp-h-4 rfp-bg-white/10 rfp-mx-0.5" />
-                {fileType === 'image' && (
-                  <>
-                    <ToolbarButton
-                      icon={<Scan className="rfp-w-4 rfp-h-4" />}
-                      label="适应窗口"
-                      onClick={handleFitToWidth}
-                    />
-                    <ToolbarButton
-                      icon={<OriginalSizeIcon className="rfp-w-4 rfp-h-4" />}
-                      label="原始尺寸"
-                      onClick={handleOriginalSize}
-                    />
-                    <div className="rfp-w-px rfp-h-4 rfp-bg-white/10 rfp-mx-0.5" />
-                  </>
-                )}
-              </>
-            )}
-
-            {showRotateControl && (
-              <>
-                <ToolbarButton
-                  icon={<RotateCcw className="rfp-w-4 rfp-h-4" />}
-                  label="向左旋转"
-                  onClick={handleRotateLeft}
-                />
-                <ToolbarButton
-                  icon={<RotateCw className="rfp-w-4 rfp-h-4" />}
-                  label="向右旋转"
-                  onClick={handleRotate}
-                />
-                <div className="rfp-w-px rfp-h-4 rfp-bg-white/10 rfp-mx-0.5" />
-              </>
-            )}
-
-            <ToolbarButton
-              icon={<RefreshCw className="rfp-w-4 rfp-h-4" />}
-              label="复原"
-              onClick={handleReset}
-            />
-
-            {showEpubControls && (
-              <>
-                <div className="rfp-w-px rfp-h-4 rfp-bg-white/10 rfp-mx-0.5" />
-                <ToolbarButton
-                  icon={<List className="rfp-w-4 rfp-h-4" />}
-                  label="目录"
-                  onClick={() => epubRef.current?.toggleToc()}
-                />
-                <ToolbarButton
-                  icon={<ChevronLeft className="rfp-w-4 rfp-h-4" />}
-                  label="上一章"
-                  onClick={() => epubRef.current?.prevChapter()}
-                />
-                <span className="rfp-text-white/60 rfp-text-xs rfp-min-w-[4rem] rfp-text-center rfp-font-medium rfp-tabular-nums">
-                  {epubCurrent} / {epubTotal}
-                </span>
-                <ToolbarButton
-                  icon={<ChevronRight className="rfp-w-4 rfp-h-4" />}
-                  label="下一章"
-                  onClick={() => epubRef.current?.nextChapter()}
-                />
-                <ToolbarButton
-                  icon={epubFullWidth ? <Minimize2 className="rfp-w-4 rfp-h-4" /> : <Maximize2 className="rfp-w-4 rfp-h-4" />}
-                  label={epubFullWidth ? '正常宽度' : '全屏宽度'}
-                  onClick={() => epubRef.current?.toggleFullWidth()}
-                />
-              </>
-            )}
+            {renderToolbarItems(toolGroups, 'rfp-mx-0.5')}
           </div>
         )}
       </motion.div>
@@ -587,6 +435,9 @@ export const FilePreviewContent: React.FC<FilePreviewContentProps> = ({
               <AudioRenderer url={currentFile.url} fileName={currentFile.name} />
             )}
             {fileType === 'markdown' && <MarkdownRenderer url={currentFile.url} />}
+            {fileType === 'json' && (
+              <JsonRenderer url={currentFile.url} fileName={currentFile.name} />
+            )}
             {fileType === 'text' && (
               <TextRenderer url={currentFile.url} fileName={currentFile.name} />
             )}
@@ -650,13 +501,16 @@ const ToolbarButton: React.FC<ToolbarButtonProps> = ({ icon, label, onClick, dis
     <button
       onClick={onClick}
       disabled={disabled}
-      title={label}
-      className={`rfp-p-2 md:rfp-p-1.5 rfp-rounded-md rfp-transition-all rfp-select-none ${disabled
+      className={`rfp-relative rfp-group rfp-p-2 md:rfp-p-1.5 rfp-rounded-md rfp-transition-all rfp-select-none ${disabled
         ? 'rfp-text-white/30 rfp-cursor-not-allowed'
         : 'rfp-text-white hover:rfp-bg-white/10 active:rfp-bg-white/20'
         }`}
     >
       {icon}
+      <span className="rfp-absolute rfp-left-1/2 -rfp-translate-x-1/2 rfp-top-full rfp-mt-1.5 rfp-px-2 rfp-py-1 rfp-bg-[rgba(0,0,0,0.85)] rfp-text-white rfp-text-xs rfp-rounded rfp-whitespace-nowrap rfp-pointer-events-none rfp-opacity-0 rfp-invisible group-hover:rfp-opacity-100 group-hover:rfp-visible rfp-transition-opacity rfp-duration-200 rfp-z-50">
+        <span className="rfp-absolute rfp-left-1/2 -rfp-translate-x-1/2 -rfp-top-1 rfp-w-2 rfp-h-2 rfp-bg-[rgba(0,0,0,0.85)] rfp-rotate-45" />
+        <span className="rfp-relative">{label}</span>
+      </span>
     </button>
   );
 };

@@ -56,3 +56,14 @@ export { convertWorkbookToSpreadsheetData } from './utils/excelDataConverter';
 // 导出 PDF.js Worker 配置
 export { configurePdfWorker } from './utils/pdfWorker';
 export type { PdfWorkerOptions } from './utils/pdfWorker';
+
+// 导出 i18n 国际化
+export { createTranslator, builtInMessages } from './i18n';
+export type {
+  Locale,
+  MessageKey,
+  Messages,
+  TranslateParams,
+  Translator,
+  CreateTranslatorOptions,
+} from './i18n/types';

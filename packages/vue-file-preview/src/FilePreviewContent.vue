@@ -13,6 +13,7 @@ import { getPdfToolbarGroups } from './renderers/Pdf/toolbar';
 import { getEpubToolbarGroups } from './renderers/Epub/toolbar';
 import { getMobiToolbarGroups } from './renderers/Mobi/toolbar';
 import { getZipToolbarGroups, type ZipToolbarStats } from './renderers/Zip/toolbar';
+import { getTextToolbarGroups } from './renderers/Text/toolbar';
 import ImageRenderer from './renderers/Image/index.vue';
 import PdfRenderer from './renderers/Pdf/index.vue';
 import DocxRenderer from './renderers/Docx/index.vue';
@@ -254,6 +255,9 @@ const handleZipStatsChange = (stats: ZipToolbarStats | null) => {
   zipStats.value = stats;
 };
 
+const textWordWrap = ref(true);
+const textHtmlPreview = ref(false);
+
 // 工具栏配置 — 各 Renderer 自行声明
 const toolGroups = computed(() => {
   if (fileType.value === 'image') {
@@ -294,6 +298,16 @@ const toolGroups = computed(() => {
   }
   if (fileType.value === 'zip') {
     return getZipToolbarGroups({ stats: zipStats.value });
+  }
+  if (fileType.value === 'text') {
+    const ext = currentFile.value!.name.split('.').pop()?.toLowerCase() || '';
+    return getTextToolbarGroups({
+      wordWrap: textWordWrap.value,
+      onToggleWrap: () => { textWordWrap.value = !textWordWrap.value; },
+      isHtml: ext === 'html' || ext === 'htm',
+      htmlPreview: textHtmlPreview.value,
+      onToggleHtmlPreview: () => { textHtmlPreview.value = !textHtmlPreview.value; },
+    });
   }
   return [];
 });
@@ -519,6 +533,8 @@ const hasToolGroups = computed(() => toolGroups.value.length > 0);
             v-else-if="fileType === 'text'"
             :url="currentFile.url"
             :file-name="currentFile.name"
+            :word-wrap="textWordWrap"
+            :html-preview="textHtmlPreview"
           />
           <UnsupportedRenderer
             v-else

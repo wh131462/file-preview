@@ -8,6 +8,7 @@ import { getPdfToolbarGroups } from './renderers/Pdf/toolbar';
 import { getEpubToolbarGroups } from './renderers/Epub/toolbar';
 import { getMobiToolbarGroups } from './renderers/Mobi/toolbar';
 import { getZipToolbarGroups, type ZipToolbarStats } from './renderers/Zip/toolbar';
+import { getTextToolbarGroups } from './renderers/Text/toolbar';
 
 import { PreviewFileInput, CustomRenderer } from './types';
 import { normalizeFiles } from './utils/fileNormalizer';
@@ -74,6 +75,8 @@ export const FilePreviewContent: React.FC<FilePreviewContentProps> = ({
   const [mobiTotal, setMobiTotal] = useState(0);
   const [mobiFullWidth, setMobiFullWidth] = useState(false);
   const [zipStats, setZipStats] = useState<ZipToolbarStats | null>(null);
+  const [textWordWrap, setTextWordWrap] = useState(true);
+  const [textHtmlPreview, setTextHtmlPreview] = useState(false);
 
   // 导航箭头自动隐藏
   const [navVisible, setNavVisible] = useState(true);
@@ -284,6 +287,16 @@ export const FilePreviewContent: React.FC<FilePreviewContentProps> = ({
     if (fileType === 'zip') {
       return getZipToolbarGroups({ stats: zipStats });
     }
+    if (fileType === 'text') {
+      const ext = currentFile.name.split('.').pop()?.toLowerCase() || '';
+      return getTextToolbarGroups({
+        wordWrap: textWordWrap,
+        onToggleWrap: () => setTextWordWrap(prev => !prev),
+        isHtml: ext === 'html' || ext === 'htm',
+        htmlPreview: textHtmlPreview,
+        onToggleHtmlPreview: () => setTextHtmlPreview(prev => !prev),
+      });
+    }
     return [];
   })();
 
@@ -455,7 +468,12 @@ export const FilePreviewContent: React.FC<FilePreviewContentProps> = ({
               )
             )}
             {fileType === 'text' && (
-              <TextRenderer url={currentFile.url} fileName={currentFile.name} />
+              <TextRenderer
+                url={currentFile.url}
+                fileName={currentFile.name}
+                wordWrap={textWordWrap}
+                htmlPreview={textHtmlPreview}
+              />
             )}
             {fileType === 'unsupported' && (
               <UnsupportedRenderer

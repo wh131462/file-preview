@@ -1,13 +1,17 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
-import { FileText } from 'lucide-vue-next';
 import { getLanguageFromFileName, fetchTextUtf8 } from '@eternalheart/file-preview-core';
 import { codeToHtml } from 'shiki';
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   url: string;
   fileName: string;
-}>();
+  wordWrap?: boolean;
+  htmlPreview?: boolean;
+}>(), {
+  wordWrap: true,
+  htmlPreview: false,
+});
 
 const content = ref<string>('');
 const highlighted = ref<string>('');
@@ -30,7 +34,6 @@ const loadText = async () => {
           theme: 'dark-plus',
         });
       } catch {
-        // 不支持的语言或解析失败,降级为纯文本
         highlighted.value = '';
       }
     } else {
@@ -60,27 +63,24 @@ watch(() => props.url, loadText, { immediate: true });
     </div>
   </div>
 
-  <div v-else class="vfp-w-full vfp-h-full vfp-overflow-auto vfp-p-4 md:vfp-p-8">
-    <div
-      class="vfp-max-w-full md:vfp-max-w-6xl vfp-mx-auto vfp-bg-white/5 vfp-backdrop-blur-sm vfp-rounded-2xl vfp-border vfp-border-white/10 vfp-overflow-hidden"
-    >
-      <div
-        class="vfp-flex vfp-items-center vfp-gap-2 md:vfp-gap-3 vfp-px-4 vfp-py-3 md:vfp-px-6 md:vfp-py-4 vfp-bg-white/5 vfp-border-b vfp-border-white/10"
-      >
-        <FileText class="vfp-w-4 vfp-h-4 md:vfp-w-5 md:vfp-h-5 vfp-text-white/70 vfp-flex-shrink-0" />
-        <span class="vfp-text-white vfp-font-medium vfp-text-sm md:vfp-text-base vfp-truncate">{{ fileName }}</span>
-        <span class="vfp-ml-auto vfp-text-xs vfp-text-white/50 vfp-uppercase vfp-flex-shrink-0">{{ language }}</span>
-      </div>
+  <!-- HTML 预览模式 -->
+  <div v-else-if="htmlPreview && language === 'html'" class="vfp-w-full vfp-h-full vfp-bg-white">
+    <iframe
+      :srcdoc="content"
+      sandbox="allow-same-origin"
+      class="vfp-w-full vfp-h-full vfp-border-0"
+      :title="fileName"
+    />
+  </div>
 
-      <div class="vfp-text-sm">
-        <pre
-          v-if="!highlighted"
-          class="vfp-p-6 vfp-text-white/90 vfp-font-mono vfp-whitespace-pre-wrap vfp-break-words"
-          >{{ content }}</pre
-        >
-        <div v-else class="shiki-wrapper" v-html="highlighted" />
-      </div>
-    </div>
+  <!-- 源码模式 -->
+  <div v-else class="vfp-w-full vfp-h-full vfp-overflow-auto" style="background: #1e1e1e;">
+    <pre
+      v-if="!highlighted"
+      class="vfp-p-6 vfp-text-white/90 vfp-font-mono vfp-text-sm"
+      :class="wordWrap ? 'vfp-whitespace-pre-wrap vfp-break-words' : 'vfp-whitespace-pre'"
+    >{{ content }}</pre>
+    <div v-else class="shiki-wrapper" :class="{ 'no-wrap': !wordWrap }" v-html="highlighted" />
   </div>
 </template>
 
@@ -94,5 +94,15 @@ watch(() => props.url, loadText, { immediate: true });
 }
 .shiki-wrapper :deep(code) {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+.shiki-wrapper.no-wrap :deep(code) {
+  white-space: pre;
+  word-break: normal;
+  overflow-wrap: normal;
+}
+.shiki-wrapper:not(.no-wrap) :deep(code) {
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 </style>

@@ -2,7 +2,7 @@ import { ChevronLeft, ChevronRight, List, Maximize2, Minimize2 } from 'lucide-vu
 import type { ToolbarGroup } from '../toolbar.types';
 
 export interface EpubToolbarContext {
-  epubRef: { prevChapter: () => void; nextChapter: () => void; toggleFullWidth: () => void; toggleToc: () => void } | null;
+  epubRef: { prevPage: () => void; nextPage: () => void; toggleFullWidth: () => void; toggleToc: () => void } | null;
   current: number;
   total: number;
   fullWidth: boolean;
@@ -17,9 +17,9 @@ export function getEpubToolbarGroups(ctx: EpubToolbarContext): ToolbarGroup[] {
     },
     {
       items: [
-        { type: 'button', icon: ChevronLeft, tooltip: '上一章', action: () => ctx.epubRef?.prevChapter() },
+        { type: 'button', icon: ChevronLeft, tooltip: '上一页', action: () => ctx.epubRef?.prevPage() },
         { type: 'text', content: `${ctx.current} / ${ctx.total}`, minWidth: '4rem' },
-        { type: 'button', icon: ChevronRight, tooltip: '下一章', action: () => ctx.epubRef?.nextChapter() },
+        { type: 'button', icon: ChevronRight, tooltip: '下一页', action: () => ctx.epubRef?.nextPage() },
       ],
     },
     {

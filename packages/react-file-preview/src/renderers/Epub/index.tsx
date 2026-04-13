@@ -24,8 +24,8 @@ export interface TocItem {
 }
 
 export interface EpubRendererHandle {
-  prevChapter: () => void;
-  nextChapter: () => void;
+  prevPage: () => void;
+  nextPage: () => void;
   toggleFullWidth: () => void;
   toggleToc: () => void;
 }
@@ -164,8 +164,8 @@ export const EpubRenderer = forwardRef<EpubRendererHandle, EpubRendererProps>(
     }, []);
 
     useImperativeHandle(ref, () => ({
-      prevChapter: handlePrev,
-      nextChapter: handleNext,
+      prevPage: handlePrev,
+      nextPage: handleNext,
       toggleFullWidth,
       toggleToc,
     }), [handlePrev, handleNext, toggleFullWidth, toggleToc]);

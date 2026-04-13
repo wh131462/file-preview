@@ -19,9 +19,9 @@ export function getEpubToolbarGroups(ctx: EpubToolbarContext): ToolbarGroup[] {
     },
     {
       items: [
-        { type: 'button', icon: <ChevronLeft className="rfp-w-4 rfp-h-4" />, tooltip: '上一章', action: () => ctx.epubRef.current?.prevChapter() },
+        { type: 'button', icon: <ChevronLeft className="rfp-w-4 rfp-h-4" />, tooltip: '上一页', action: () => ctx.epubRef.current?.prevPage() },
         { type: 'text', content: `${ctx.current} / ${ctx.total}`, minWidth: '4rem' },
-        { type: 'button', icon: <ChevronRight className="rfp-w-4 rfp-h-4" />, tooltip: '下一章', action: () => ctx.epubRef.current?.nextChapter() },
+        { type: 'button', icon: <ChevronRight className="rfp-w-4 rfp-h-4" />, tooltip: '下一页', action: () => ctx.epubRef.current?.nextPage() },
       ],
     },
     {

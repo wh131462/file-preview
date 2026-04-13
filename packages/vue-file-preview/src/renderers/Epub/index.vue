@@ -66,8 +66,8 @@ const cleanup = () => {
   lastCfi = null;
 };
 
-const prevChapter = () => { rendition?.prev(); };
-const nextChapter = () => { rendition?.next(); };
+const prevPage = () => { rendition?.prev(); };
+const nextPage = () => { rendition?.next(); };
 const toggleFullWidth = () => {
   isFullWidth.value = !isFullWidth.value;
   emit('fullWidthChange', isFullWidth.value);
@@ -93,7 +93,7 @@ const isActive = (href: string) => {
   return href === activeTocHref.value;
 };
 
-defineExpose({ prevChapter, nextChapter, toggleFullWidth, toggleToc });
+defineExpose({ prevPage, nextPage, toggleFullWidth, toggleToc });
 
 const loadEpub = async () => {
   if (!viewerRef.value) return;

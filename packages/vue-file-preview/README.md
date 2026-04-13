@@ -267,6 +267,8 @@ Differences from `FilePreviewModal`:
 | `currentIndex` | `number` | ✅ | Current file index |
 | `isOpen` | `boolean` | ✅ | Whether the modal is open |
 | `customRenderers` | `CustomRenderer[]` | ❌ | Custom renderers for specific file types |
+| `locale` | `Locale` | ❌ | UI language (`'zh-CN'` default, `'en-US'` built-in) |
+| `messages` | `Partial<Record<Locale, Partial<Messages>>>` | ❌ | Custom translation overrides |
 
 ### FilePreviewModal Events
 
@@ -284,6 +286,8 @@ Differences from `FilePreviewModal`:
 | `customRenderers` | `CustomRenderer[]` | ❌ | - | Custom renderers |
 | `width` | `number \| string` | ❌ | `'100%'` | Container width |
 | `height` | `number \| string` | ❌ | `'100%'` | Container height |
+| `locale` | `Locale` | ❌ | `'zh-CN'` | UI language (`'zh-CN'` or `'en-US'`) |
+| `messages` | `Partial<Record<Locale, Partial<Messages>>>` | ❌ | - | Custom translation overrides |
 
 ### FilePreviewEmbed Events
 

@@ -339,6 +339,8 @@ const files = [
 | `onClose` | `() => void` | ✅ | 关闭回调 |
 | `onNavigate` | `(index: number) => void` | ❌ | 导航回调 |
 | `customRenderers` | `CustomRenderer[]` | ❌ | 自定义渲染器 |
+| `locale` | `Locale` | ❌ | 界面语言（默认 `'zh-CN'`，内置 `'en-US'`） |
+| `messages` | `Partial<Record<Locale, Partial<Messages>>>` | ❌ | 自定义翻译覆盖 |
 
 ### FilePreviewEmbed Props
 
@@ -352,6 +354,8 @@ const files = [
 | `height` | `number \| string` | ❌ | `'100%'` | 容器高度 |
 | `className` | `string` | ❌ | - | 根节点额外 className |
 | `style` | `CSSProperties` | ❌ | - | 根节点额外内联样式 |
+| `locale` | `Locale` | ❌ | `'zh-CN'` | 界面语言（`'zh-CN'` 或 `'en-US'`） |
+| `messages` | `Partial<Record<Locale, Partial<Messages>>>` | ❌ | - | 自定义翻译覆盖 |
 
 > `FilePreviewEmbed` 没有 `isOpen` / `onClose`,若要显示/隐藏,请在父组件中条件渲染。同时它不会显示工具栏上的关闭按钮。
 
@@ -464,6 +468,24 @@ const files = [
 
 #### 电子书
 - **EPUB**: `application/epub+zip` (.epub)
+
+## 🌐 国际化（i18n）
+
+内置中文（默认）和英文，零外部依赖。
+
+```tsx
+// 切换为英文
+<FilePreviewModal files={files} locale="en-US" ... />
+
+// 自定义覆盖某些翻译
+<FilePreviewModal
+  files={files}
+  locale="en-US"
+  messages={{ 'en-US': { 'toolbar.zoom_in': 'Zoom ++' } }}
+/>
+```
+
+在自定义渲染器中可通过 `useTranslator()` hook 获取翻译函数。
 
 ## 🎨 自定义样式
 

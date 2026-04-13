@@ -267,6 +267,8 @@ const files = [
 | `currentIndex` | `number` | ✅ | 当前文件索引 |
 | `isOpen` | `boolean` | ✅ | 是否打开预览 |
 | `customRenderers` | `CustomRenderer[]` | ❌ | 自定义渲染器 |
+| `locale` | `Locale` | ❌ | 界面语言（默认 `'zh-CN'`，内置 `'en-US'`） |
+| `messages` | `Partial<Record<Locale, Partial<Messages>>>` | ❌ | 自定义翻译覆盖 |
 
 ### FilePreviewModal 事件
 
@@ -284,6 +286,8 @@ const files = [
 | `customRenderers` | `CustomRenderer[]` | ❌ | - | 自定义渲染器 |
 | `width` | `number \| string` | ❌ | `'100%'` | 容器宽度 |
 | `height` | `number \| string` | ❌ | `'100%'` | 容器高度 |
+| `locale` | `Locale` | ❌ | `'zh-CN'` | 界面语言（`'zh-CN'` 或 `'en-US'`） |
+| `messages` | `Partial<Record<Locale, Partial<Messages>>>` | ❌ | - | 自定义翻译覆盖 |
 
 ### FilePreviewEmbed 事件
 

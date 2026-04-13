@@ -135,6 +135,31 @@ const customRenderers: CustomRenderer[] = [
 />
 ```
 
+#### locale
+
+- **类型**: `Locale`（`'zh-CN' | 'en-US' | string`）
+- **必需**: 否
+- **默认值**: `'zh-CN'`
+- **描述**: 界面语言。内置支持 `'zh-CN'`（中文）和 `'en-US'`（英文），也可传入任意 locale 字符串并通过 `messages` prop 提供字典。
+
+```tsx
+<FilePreviewModal locale="en-US" ... />
+```
+
+#### messages
+
+- **类型**: `Partial<Record<Locale, Partial<Messages>>>`
+- **必需**: 否
+- **描述**: 用户自定义翻译字典。浅合并到对应语言的内置字典之上，可覆盖任何翻译值。详见 [国际化指南](/guide/i18n)。
+
+```tsx
+<FilePreviewModal
+  locale="en-US"
+  messages={{ 'en-US': { 'toolbar.zoom_in': 'ZOOM++' } }}
+  ...
+/>
+```
+
 ### 完整示例
 
 ```tsx

@@ -341,6 +341,8 @@ const files = [
 | `onClose` | `() => void` | ✅ | Close callback |
 | `onNavigate` | `(index: number) => void` | ❌ | Navigation callback |
 | `customRenderers` | `CustomRenderer[]` | ❌ | Custom renderers for specific file types |
+| `locale` | `Locale` | ❌ | UI language (`'zh-CN'` default, `'en-US'` built-in) |
+| `messages` | `Partial<Record<Locale, Partial<Messages>>>` | ❌ | Custom translation overrides |
 
 ### FilePreviewEmbed Props
 
@@ -354,6 +356,8 @@ const files = [
 | `height` | `number \| string` | ❌ | `'100%'` | Container height |
 | `className` | `string` | ❌ | - | Extra class on the root wrapper |
 | `style` | `CSSProperties` | ❌ | - | Extra inline style on the root wrapper |
+| `locale` | `Locale` | ❌ | `'zh-CN'` | UI language (`'zh-CN'` or `'en-US'`) |
+| `messages` | `Partial<Record<Locale, Partial<Messages>>>` | ❌ | - | Custom translation overrides |
 
 > `FilePreviewEmbed` has no `isOpen` / `onClose`. To hide/show it, conditionally render it from the parent. It also hides the close button in the toolbar.
 
@@ -466,6 +470,24 @@ const files = [
 
 #### E-books
 - **EPUB**: `application/epub+zip` (.epub)
+
+## 🌐 Internationalization (i18n)
+
+Built-in support for Chinese (default) and English. Zero external dependencies.
+
+```tsx
+// Switch to English
+<FilePreviewModal files={files} locale="en-US" ... />
+
+// Override specific translations
+<FilePreviewModal
+  files={files}
+  locale="en-US"
+  messages={{ 'en-US': { 'toolbar.zoom_in': 'Zoom ++' } }}
+/>
+```
+
+Use `useTranslator()` hook in custom renderers to access the translation function.
 
 ## 🎨 Custom Styling
 

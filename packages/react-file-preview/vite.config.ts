@@ -40,8 +40,11 @@ export default defineConfig({
         'react',
         'react-dom',
         'react/jsx-runtime',
+        '@eternalheart/file-preview-core',
+        '@kenjiuno/msgreader',
         '@likecoin/epub-ts',
         'framer-motion',
+        'jszip',
         'lucide-react',
         'pdfjs-dist',
         'react-pdf',
@@ -55,6 +58,8 @@ export default defineConfig({
         'video.js',
       ],
       output: {
+        // 强制所有动态 import 内联到主 chunk（避免 foliate-js 等库内部的动态 import 导致 code splitting）
+        inlineDynamicImports: true,
         // 为外部依赖提供全局变量
         globals: {
           react: 'React',

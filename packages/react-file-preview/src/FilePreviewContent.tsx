@@ -1,12 +1,15 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { X, Download, ChevronLeft, ChevronRight } from 'lucide-react';
+import { getFileType } from '@eternalheart/file-preview-core';
 import type { ToolbarGroup } from './renderers/toolbar.types';
 import { getImageToolbarGroups } from './renderers/Image/toolbar';
 import { getPdfToolbarGroups } from './renderers/Pdf/toolbar';
 import { getEpubToolbarGroups } from './renderers/Epub/toolbar';
+import { getMobiToolbarGroups } from './renderers/Mobi/toolbar';
+import { getZipToolbarGroups, type ZipToolbarStats } from './renderers/Zip/toolbar';
 
-import { PreviewFile, PreviewFileInput, FileType, CustomRenderer } from './types';
+import { PreviewFileInput, CustomRenderer } from './types';
 import { normalizeFiles } from './utils/fileNormalizer';
 import { ImageRenderer } from './renderers/Image';
 import { PdfRenderer } from './renderers/Pdf';
@@ -16,12 +19,20 @@ import { PptxRenderer } from './renderers/Pptx';
 import { MsgRenderer } from './renderers/Msg';
 import { EpubRenderer } from './renderers/Epub';
 import type { EpubRendererHandle } from './renderers/Epub';
+import { MobiRenderer } from './renderers/Mobi';
+import type { MobiRendererHandle } from './renderers/Mobi';
 import { VideoRenderer } from './renderers/Video';
 import { AudioRenderer } from './renderers/Audio';
 import { MarkdownRenderer } from './renderers/Markdown';
 import { JsonRenderer } from './renderers/Json';
+import { CsvRenderer } from './renderers/Csv';
+import { XmlRenderer } from './renderers/Xml';
+import { SubtitleRenderer } from './renderers/Subtitle';
+import { ZipRenderer } from './renderers/Zip';
 import { TextRenderer } from './renderers/Text';
 import { UnsupportedRenderer } from './renderers/Unsupported';
+
+const MAX_ZIP_NESTING_DEPTH = 3;
 
 export interface FilePreviewContentProps {
   files: PreviewFileInput[];
@@ -32,58 +43,9 @@ export interface FilePreviewContentProps {
   mode?: 'modal' | 'embed';
   /** 关闭回调,仅 modal 模式使用 */
   onClose?: () => void;
+  /** ZIP 嵌套深度（内部使用），超过上限时不再递归渲染 ZIP */
+  zipNestingDepth?: number;
 }
-
-const getFileType = (file: PreviewFile): FileType => {
-  const ext = file.name.split('.').pop()?.toLowerCase() || '';
-  const mimeType = file.type.toLowerCase();
-
-  if (mimeType.startsWith('image/') || ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(ext)) {
-    return 'image';
-  }
-  if (mimeType.includes('pdf') || ext === 'pdf') {
-    return 'pdf';
-  }
-  if (mimeType.includes('wordprocessingml') || ext === 'docx') {
-    return 'docx';
-  }
-  if (mimeType.includes('spreadsheetml') || ext === 'xlsx') {
-    return 'xlsx';
-  }
-  if (mimeType.includes('presentationml') || ext === 'pptx' || ext === 'ppt') {
-    return 'pptx';
-  }
-  if (mimeType.includes('ms-outlook') || ext === 'msg') {
-    return 'msg';
-  }
-  if (mimeType.includes('epub') || ext === 'epub') {
-    return 'epub';
-  }
-  if (mimeType.startsWith('video/') || ['mp4', 'webm', 'ogg', 'ogv', 'mov', 'avi', 'mkv', 'm4v', '3gp', 'flv'].includes(ext)) {
-    return 'video';
-  }
-  if (mimeType.startsWith('audio/') || ['mp3', 'wav', 'ogg', 'm4a', 'flac', 'aac'].includes(ext)) {
-    return 'audio';
-  }
-  if (ext === 'md' || ext === 'markdown') {
-    return 'markdown';
-  }
-  if (mimeType === 'application/json' || ext === 'json') {
-    return 'json';
-  }
-  const textExtensions = [
-    'txt', 'log', 'csv',
-    'js', 'jsx', 'ts', 'tsx',
-    'py', 'java', 'cpp', 'c', 'h', 'cs', 'php', 'rb', 'go', 'rs', 'swift', 'kt',
-    'html', 'css', 'scss', 'sass', 'less',
-    'xml', 'yaml', 'yml', 'toml', 'ini', 'conf',
-    'sh', 'bash', 'zsh', 'sql',
-  ];
-  if (mimeType.startsWith('text/') || textExtensions.includes(ext)) {
-    return 'text';
-  }
-  return 'unsupported';
-};
 
 export const FilePreviewContent: React.FC<FilePreviewContentProps> = ({
   files,
@@ -92,6 +54,7 @@ export const FilePreviewContent: React.FC<FilePreviewContentProps> = ({
   customRenderers = [],
   mode = 'modal',
   onClose,
+  zipNestingDepth = 0,
 }) => {
   const [zoom, setZoom] = useState(1);
   const [rotation, setRotation] = useState(0);
@@ -106,6 +69,11 @@ export const FilePreviewContent: React.FC<FilePreviewContentProps> = ({
   const [epubCurrent, setEpubCurrent] = useState(0);
   const [epubTotal, setEpubTotal] = useState(0);
   const [epubFullWidth, setEpubFullWidth] = useState(false);
+  const mobiRef = useRef<MobiRendererHandle>(null);
+  const [mobiCurrent, setMobiCurrent] = useState(0);
+  const [mobiTotal, setMobiTotal] = useState(0);
+  const [mobiFullWidth, setMobiFullWidth] = useState(false);
+  const [zipStats, setZipStats] = useState<ZipToolbarStats | null>(null);
 
   // 导航箭头自动隐藏
   const [navVisible, setNavVisible] = useState(true);
@@ -262,6 +230,15 @@ export const FilePreviewContent: React.FC<FilePreviewContentProps> = ({
     setEpubTotal(total);
   }, []);
 
+  const handleMobiChapterChange = useCallback((current: number, total: number) => {
+    setMobiCurrent(current);
+    setMobiTotal(total);
+  }, []);
+
+  const handleZipStatsChange = useCallback((stats: ZipToolbarStats | null) => {
+    setZipStats(stats);
+  }, []);
+
   if (!currentFile) return null;
 
   const showCloseButton = mode === 'modal' && !!onClose;
@@ -295,6 +272,17 @@ export const FilePreviewContent: React.FC<FilePreviewContentProps> = ({
         total: epubTotal,
         fullWidth: epubFullWidth,
       });
+    }
+    if (fileType === 'mobi') {
+      return getMobiToolbarGroups({
+        mobiRef,
+        current: mobiCurrent,
+        total: mobiTotal,
+        fullWidth: mobiFullWidth,
+      });
+    }
+    if (fileType === 'zip') {
+      return getZipToolbarGroups({ stats: zipStats });
     }
     return [];
   })();
@@ -430,6 +418,14 @@ export const FilePreviewContent: React.FC<FilePreviewContentProps> = ({
                 onFullWidthChange={setEpubFullWidth}
               />
             )}
+            {fileType === 'mobi' && (
+              <MobiRenderer
+                ref={mobiRef}
+                url={currentFile.url}
+                onChapterChange={handleMobiChapterChange}
+                onFullWidthChange={setMobiFullWidth}
+              />
+            )}
             {fileType === 'video' && <VideoRenderer url={currentFile.url} />}
             {fileType === 'audio' && (
               <AudioRenderer url={currentFile.url} fileName={currentFile.name} />
@@ -437,6 +433,26 @@ export const FilePreviewContent: React.FC<FilePreviewContentProps> = ({
             {fileType === 'markdown' && <MarkdownRenderer url={currentFile.url} />}
             {fileType === 'json' && (
               <JsonRenderer url={currentFile.url} fileName={currentFile.name} />
+            )}
+            {fileType === 'csv' && (
+              <CsvRenderer url={currentFile.url} fileName={currentFile.name} />
+            )}
+            {fileType === 'xml' && (
+              <XmlRenderer url={currentFile.url} fileName={currentFile.name} />
+            )}
+            {fileType === 'subtitle' && (
+              <SubtitleRenderer url={currentFile.url} fileName={currentFile.name} />
+            )}
+            {fileType === 'zip' && (
+              zipNestingDepth >= MAX_ZIP_NESTING_DEPTH ? (
+                <UnsupportedRenderer
+                  fileName={currentFile.name}
+                  fileType={currentFile.type}
+                  onDownload={handleDownload}
+                />
+              ) : (
+                <ZipRenderer url={currentFile.url} onStatsChange={handleZipStatsChange} nestingDepth={zipNestingDepth} />
+              )
             )}
             {fileType === 'text' && (
               <TextRenderer url={currentFile.url} fileName={currentFile.name} />

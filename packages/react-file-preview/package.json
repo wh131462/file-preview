@@ -78,7 +78,9 @@
     "@types/react-syntax-highlighter": "^15.5.13",
     "@videojs-player/react": "^1.0.0",
     "docx-preview": "^0.3.2",
+    "foliate-js": "1.0.1",
     "framer-motion": "^11.11.17",
+    "jszip": "^3.10.1",
     "lucide-react": "^0.460.0",
     "mammoth": "^1.8.0",
     "pdfjs-dist": "4.8.69",
@@ -90,6 +92,7 @@
     "video.js": "^8.23.4"
   },
   "devDependencies": {
+    "@eternalheart/file-preview-core": "workspace:*",
     "@types/node": "^24.10.1",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
@@ -104,7 +107,6 @@
     "typescript": "^5.6.3",
     "vite": "^5.4.11",
     "vite-plugin-static-copy": "^3.1.4",
-    "x-data-spreadsheet": "^1.1.9",
-    "@eternalheart/file-preview-core": "workspace:*"
+    "x-data-spreadsheet": "^1.1.9"
   }
 }

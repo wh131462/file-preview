@@ -32,6 +32,7 @@
     "src/css.d.ts",
     "src/FilePreviewModal.tsx",
     "src/types.ts",
+    "src/types/**/*",
     "src/utils/fileNormalizer.ts",
     "src/renderers/**/*"
   ],

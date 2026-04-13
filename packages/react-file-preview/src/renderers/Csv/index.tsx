@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { FileSpreadsheet } from 'lucide-react';
 import { parseCsv, guessCsvDelimiter, fetchTextUtf8, type CsvParseResult } from '@eternalheart/file-preview-core';
+import { useTranslator } from '../../i18n/LocaleContext';
 
 interface CsvRendererProps {
   url: string;
@@ -8,6 +9,7 @@ interface CsvRendererProps {
 }
 
 export const CsvRenderer: React.FC<CsvRendererProps> = ({ url, fileName }) => {
+  const t = useTranslator();
   const [text, setText] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -20,7 +22,7 @@ export const CsvRenderer: React.FC<CsvRendererProps> = ({ url, fileName }) => {
         setText(await fetchTextUtf8(url));
       } catch (err) {
         console.error(err);
-        setError('CSV 文件加载失败');
+        setError(t('csv.load_failed'));
       } finally {
         setLoading(false);
       }
@@ -50,7 +52,7 @@ export const CsvRenderer: React.FC<CsvRendererProps> = ({ url, fileName }) => {
     return (
       <div className="rfp-flex rfp-items-center rfp-justify-center rfp-w-full rfp-h-full">
         <div className="rfp-text-white/70 rfp-text-center">
-          <p className="rfp-text-lg">{error || 'CSV 解析失败'}</p>
+          <p className="rfp-text-lg">{error || t('csv.parse_failed')}</p>
         </div>
       </div>
     );

@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PreviewFileInput, CustomRenderer } from './types';
 import { FilePreviewContent } from './FilePreviewContent';
+import type { Locale, Messages } from '@eternalheart/file-preview-core';
 
 interface FilePreviewModalProps {
   files: PreviewFileInput[];
@@ -11,6 +12,10 @@ interface FilePreviewModalProps {
   onClose: () => void;
   onNavigate?: (index: number) => void;
   customRenderers?: CustomRenderer[];
+  /** 国际化语言，默认 'zh-CN' */
+  locale?: Locale;
+  /** 用户自定义翻译字典 */
+  messages?: Partial<Record<Locale, Partial<Messages>>>;
 }
 
 export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
@@ -20,6 +25,8 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
   onClose,
   onNavigate,
   customRenderers = [],
+  locale,
+  messages,
 }) => {
   // 锁定 body 滚动
   useEffect(() => {
@@ -66,6 +73,8 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
                 onClose={onClose}
                 onNavigate={onNavigate}
                 customRenderers={customRenderers}
+                locale={locale}
+                messages={messages}
               />
             </div>
           </motion.div>

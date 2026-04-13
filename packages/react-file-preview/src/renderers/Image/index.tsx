@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
+import { useTranslator } from '../../i18n/LocaleContext';
 
 interface ImageRendererProps {
   url: string;
@@ -22,6 +23,7 @@ export const ImageRenderer: React.FC<ImageRendererProps> = ({
   onNaturalWidthChange,
   onNaturalHeightChange
 }) => {
+  const t = useTranslator();
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -81,7 +83,7 @@ export const ImageRenderer: React.FC<ImageRendererProps> = ({
   }, [naturalSize]);
 
   const handleError = () => {
-    setError('图片加载失败');
+    setError(t('image.load_failed'));
     setLoaded(true);
   };
 

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import MsgReader from '@kenjiuno/msgreader';
 import type { FieldsData } from '@kenjiuno/msgreader';
 import { User, Users, Paperclip, Calendar, Mail, Tag, Clock, Hash } from 'lucide-react';
+import { useTranslator } from '../../i18n/LocaleContext';
 
 interface MsgRendererProps {
   url: string;
@@ -34,7 +35,7 @@ function formatDate(dateStr: string | undefined): string {
   }
 }
 
-function decodeHtmlBody(fields: FieldsData): string {
+function decodeHtmlBody(fields: FieldsData, emptyBodyText: string): string {
   // 优先使用 bodyHtml (string 类型)
   if (fields.bodyHtml) {
     return fields.bodyHtml;
@@ -53,7 +54,7 @@ function decodeHtmlBody(fields: FieldsData): string {
     return `<pre style="white-space: pre-wrap; word-wrap: break-word; font-family: system-ui, sans-serif;">${fields.body.replace(/&/g, '&amp;').replace(/\x3c/g, '&lt;').replace(/>/g, '&gt;')
       }</pre>`;
   }
-  return '<p style="color: #999;">（无邮件正文）</p>';
+  return `<p style="color: #999;">${emptyBodyText}</p>`;
 }
 
 function formatMessageClass(messageClass: string | undefined): string {
@@ -106,6 +107,7 @@ const valueStyle: React.CSSProperties = {
 };
 
 export const MsgRenderer: React.FC<MsgRendererProps> = ({ url }) => {
+  const t = useTranslator();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [fields, setFields] = useState<FieldsData | null>(null);
@@ -128,7 +130,7 @@ export const MsgRenderer: React.FC<MsgRendererProps> = ({ url }) => {
         setFields(fileData);
       } catch (err) {
         console.error('MSG 解析错误:', err);
-        setError('Outlook 邮件解析失败');
+        setError(t('msg.parse_failed'));
       } finally {
         setLoading(false);
       }
@@ -149,7 +151,7 @@ export const MsgRenderer: React.FC<MsgRendererProps> = ({ url }) => {
     return (
       <div className="rfp-flex rfp-items-center rfp-justify-center rfp-w-full rfp-h-full">
         <div className="rfp-text-white/70 rfp-text-center">
-          <p className="rfp-text-lg">{error || '邮件解析失败'}</p>
+          <p className="rfp-text-lg">{error || t('msg.parse_failed_short')}</p>
         </div>
       </div>
     );
@@ -169,7 +171,7 @@ export const MsgRenderer: React.FC<MsgRendererProps> = ({ url }) => {
   const lastModified = formatDate(fields.lastModificationTime);
   const subject = fields.subject || '（无主题）';
   const attachments = (fields.attachments || []).filter((a) => !a.attachmentHidden);
-  const bodyHtml = decodeHtmlBody(fields);
+  const bodyHtml = decodeHtmlBody(fields, t('msg.empty_body'));
   const messageClass = formatMessageClass(fields.messageClass);
   const messageId = fields.messageId || '';
   const fieldsAny = fields as FieldsData & Record<string, unknown>;

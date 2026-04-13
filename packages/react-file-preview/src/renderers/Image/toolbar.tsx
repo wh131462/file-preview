@@ -1,6 +1,7 @@
 import React from 'react';
 import { ZoomIn, ZoomOut, RotateCw, RotateCcw, Scan, RefreshCw } from 'lucide-react';
 import type { ToolbarGroup } from '../toolbar.types';
+import type { Translator } from '@eternalheart/file-preview-core';
 
 const OriginalSizeIcon: React.FC<{ className?: string }> = ({ className }) => (
   <svg
@@ -28,32 +29,33 @@ export interface ImageToolbarContext {
   onRotateLeft: () => void;
   onRotateRight: () => void;
   onReset: () => void;
+  t: Translator;
 }
 
 export function getImageToolbarGroups(ctx: ImageToolbarContext): ToolbarGroup[] {
   return [
     {
       items: [
-        { type: 'button', icon: <ZoomOut className="rfp-w-4 rfp-h-4" />, tooltip: '缩小', action: ctx.onZoomOut, disabled: ctx.zoom <= 0.01 },
+        { type: 'button', icon: <ZoomOut className="rfp-w-4 rfp-h-4" />, tooltip: ctx.t('toolbar.zoom_out'), action: ctx.onZoomOut, disabled: ctx.zoom <= 0.01 },
         { type: 'text', content: `${Math.round(ctx.zoom * 100)}%`, minWidth: '3rem' },
-        { type: 'button', icon: <ZoomIn className="rfp-w-4 rfp-h-4" />, tooltip: '放大', action: ctx.onZoomIn, disabled: ctx.zoom >= 10 },
+        { type: 'button', icon: <ZoomIn className="rfp-w-4 rfp-h-4" />, tooltip: ctx.t('toolbar.zoom_in'), action: ctx.onZoomIn, disabled: ctx.zoom >= 10 },
       ],
     },
     {
       items: [
-        { type: 'button', icon: <Scan className="rfp-w-4 rfp-h-4" />, tooltip: '适应窗口', action: ctx.onFitToWidth },
-        { type: 'button', icon: <OriginalSizeIcon className="rfp-w-4 rfp-h-4" />, tooltip: '原始尺寸', action: ctx.onOriginalSize },
+        { type: 'button', icon: <Scan className="rfp-w-4 rfp-h-4" />, tooltip: ctx.t('toolbar.fit_to_window'), action: ctx.onFitToWidth },
+        { type: 'button', icon: <OriginalSizeIcon className="rfp-w-4 rfp-h-4" />, tooltip: ctx.t('toolbar.original_size'), action: ctx.onOriginalSize },
       ],
     },
     {
       items: [
-        { type: 'button', icon: <RotateCcw className="rfp-w-4 rfp-h-4" />, tooltip: '向左旋转', action: ctx.onRotateLeft },
-        { type: 'button', icon: <RotateCw className="rfp-w-4 rfp-h-4" />, tooltip: '向右旋转', action: ctx.onRotateRight },
+        { type: 'button', icon: <RotateCcw className="rfp-w-4 rfp-h-4" />, tooltip: ctx.t('toolbar.rotate_left'), action: ctx.onRotateLeft },
+        { type: 'button', icon: <RotateCw className="rfp-w-4 rfp-h-4" />, tooltip: ctx.t('toolbar.rotate_right'), action: ctx.onRotateRight },
       ],
     },
     {
       items: [
-        { type: 'button', icon: <RefreshCw className="rfp-w-4 rfp-h-4" />, tooltip: '复原', action: ctx.onReset },
+        { type: 'button', icon: <RefreshCw className="rfp-w-4 rfp-h-4" />, tooltip: ctx.t('toolbar.reset'), action: ctx.onReset },
       ],
     },
   ];

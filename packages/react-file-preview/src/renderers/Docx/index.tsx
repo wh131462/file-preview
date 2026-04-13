@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import mammoth from 'mammoth';
+import { useTranslator } from '../../i18n/LocaleContext';
 
 interface DocxRendererProps {
   url: string;
@@ -19,6 +20,7 @@ const contentStyle: React.CSSProperties = {
 };
 
 export const DocxRenderer: React.FC<DocxRendererProps> = ({ url }) => {
+  const t = useTranslator();
   const [html, setHtml] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -42,7 +44,7 @@ export const DocxRenderer: React.FC<DocxRendererProps> = ({ url }) => {
         setHtml(result.value);
       } catch (err) {
         console.error('Docx 解析错误:', err);
-        setError('Word 文档解析失败');
+        setError(t('docx.parse_failed'));
       } finally {
         setLoading(false);
       }

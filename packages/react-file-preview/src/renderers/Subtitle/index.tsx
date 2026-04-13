@@ -6,6 +6,7 @@ import {
   type SubtitleParseResult,
   type SubtitleFormat,
 } from '@eternalheart/file-preview-core';
+import { useTranslator } from '../../i18n/LocaleContext';
 
 interface SubtitleRendererProps {
   url: string;
@@ -29,6 +30,7 @@ const getFormat = (fileName: string): SubtitleFormat | undefined => {
 };
 
 export const SubtitleRenderer: React.FC<SubtitleRendererProps> = ({ url, fileName }) => {
+  const t = useTranslator();
   const [text, setText] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -41,7 +43,7 @@ export const SubtitleRenderer: React.FC<SubtitleRendererProps> = ({ url, fileNam
         setText(await fetchTextUtf8(url));
       } catch (err) {
         console.error(err);
-        setError('字幕文件加载失败');
+        setError(t('subtitle.load_failed'));
       } finally {
         setLoading(false);
       }
@@ -71,7 +73,7 @@ export const SubtitleRenderer: React.FC<SubtitleRendererProps> = ({ url, fileNam
     return (
       <div className="rfp-flex rfp-items-center rfp-justify-center rfp-w-full rfp-h-full rfp-bg-[#0f0f12]">
         <div className="rfp-text-white/70 rfp-text-center">
-          <p className="rfp-text-lg">{error || '字幕解析失败'}</p>
+          <p className="rfp-text-lg">{error || t('subtitle.parse_failed')}</p>
         </div>
       </div>
     );
@@ -147,7 +149,7 @@ export const SubtitleRenderer: React.FC<SubtitleRendererProps> = ({ url, fileNam
 
       {/* 底部状态栏 */}
       <div className="rfp-pointer-events-none rfp-absolute rfp-bottom-3 rfp-right-3 md:rfp-bottom-4 md:rfp-right-4 rfp-flex rfp-items-center rfp-gap-2 rfp-px-2.5 rfp-py-1 rfp-rounded-full rfp-bg-black/40 rfp-backdrop-blur rfp-border rfp-border-white/10 rfp-text-[10px] rfp-text-white/55 rfp-font-mono rfp-tabular-nums">
-        <span>{parsed.cues.length} {isLyric ? 'lines' : 'cues'}</span>
+        <span>{parsed.cues.length} {isLyric ? t('subtitle.lines') : t('subtitle.cues')}</span>
         {meta.length && (
           <>
             <span className="rfp-text-white/20">·</span>

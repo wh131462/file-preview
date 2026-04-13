@@ -9,6 +9,7 @@ import {
 import { X } from 'lucide-react';
 import 'foliate-js/view.js';
 import type { FoliateView, TocItem } from 'foliate-js/view.js';
+import { useTranslator } from '../../i18n/LocaleContext';
 
 const READER_CSS = `
   @namespace epub "http://www.idpf.org/2007/ops";
@@ -51,6 +52,7 @@ interface MobiRendererProps {
 
 export const MobiRenderer = forwardRef<MobiRendererHandle, MobiRendererProps>(
   ({ url, onChapterChange, onFullWidthChange }, ref) => {
+    const t = useTranslator();
     const hostRef = useRef<HTMLDivElement>(null);
     const viewRef = useRef<FoliateView | null>(null);
     const onChapterChangeRef = useRef(onChapterChange);
@@ -197,7 +199,7 @@ export const MobiRenderer = forwardRef<MobiRendererHandle, MobiRendererProps>(
         } catch (err) {
           console.error('MOBI/AZW3 加载错误:', err);
           if (!cancelled) {
-            setError('电子书加载失败，文件可能已损坏或带有 DRM 保护');
+            setError(t('mobi.load_failed'));
             setLoading(false);
           }
         }
@@ -270,7 +272,7 @@ export const MobiRenderer = forwardRef<MobiRendererHandle, MobiRendererProps>(
               style={{ transform: showToc ? 'translateX(0)' : 'translateX(-100%)' }}
             >
               <div className="rfp-flex rfp-items-center rfp-justify-between rfp-px-4 rfp-py-3 rfp-border-b rfp-border-white/10 rfp-flex-shrink-0">
-                <span className="rfp-text-white rfp-font-medium rfp-text-sm">目录</span>
+                <span className="rfp-text-white rfp-font-medium rfp-text-sm">{t('toolbar.toc')}</span>
                 <button
                   onClick={() => setShowToc(false)}
                   className="rfp-text-white/60 hover:rfp-text-white rfp-transition-colors"

@@ -23,6 +23,7 @@ import {
 } from '@eternalheart/file-preview-core';
 import { ResizableSplit } from '../../components/ResizableSplit';
 import type { ZipToolbarStats } from './toolbar';
+import { useTranslator } from '../../i18n/LocaleContext';
 
 // 懒加载 FilePreviewContent 以打破循环依赖
 const LazyFilePreviewContent = lazy(() =>
@@ -160,6 +161,7 @@ const TreeItem: React.FC<TreeItemProps> = ({
 // ---------- Main Zip Renderer ----------
 
 export const ZipRenderer: React.FC<ZipRendererProps> = ({ url, nestingDepth = 0, onStatsChange }) => {
+  const t = useTranslator();
   const [zip, setZip] = useState<JSZip | null>(null);
   const [tree, setTree] = useState<ZipTreeNode | null>(null);
   const [loading, setLoading] = useState(true);
@@ -197,7 +199,7 @@ export const ZipRenderer: React.FC<ZipRendererProps> = ({ url, nestingDepth = 0,
         setExpanded(init);
       } catch (err) {
         console.error(err);
-        if (!cancelled) setError('ZIP 文件加载失败');
+        if (!cancelled) setError(t('zip.load_failed'));
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -296,7 +298,7 @@ export const ZipRenderer: React.FC<ZipRendererProps> = ({ url, nestingDepth = 0,
     return (
       <div className="rfp-flex rfp-items-center rfp-justify-center rfp-w-full rfp-h-full">
         <div className="rfp-text-white/70 rfp-text-center">
-          <p className="rfp-text-lg">{error || 'ZIP 解析失败'}</p>
+          <p className="rfp-text-lg">{error || t('zip.parse_failed')}</p>
         </div>
       </div>
     );

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { fetchTextUtf8 } from '@eternalheart/file-preview-core';
+import { useTranslator } from '../../i18n/LocaleContext';
 
 interface TextRendererProps {
   url: string;
@@ -58,6 +59,7 @@ export const TextRenderer: React.FC<TextRendererProps> = ({
   wordWrap = true,
   htmlPreview = false,
 }) => {
+  const t = useTranslator();
   const [content, setContent] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -71,7 +73,7 @@ export const TextRenderer: React.FC<TextRendererProps> = ({
         const text = await fetchTextUtf8(url);
         setContent(text);
       } catch (err) {
-        setError('文本文件加载失败');
+        setError(t('text.load_failed'));
         console.error(err);
       } finally {
         setLoading(false);

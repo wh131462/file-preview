@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useCallback, useImperativeHandle, forwardRef } from 'react';
 import ePub from '@likecoin/epub-ts';
 import { X } from 'lucide-react';
+import { useTranslator } from '../../i18n/LocaleContext';
 
 // 全局注入 epubjs 容器样式（只注入一次）
 if (typeof document !== 'undefined' && !document.getElementById('rfp-epub-styles')) {
@@ -66,6 +67,7 @@ const A4_WIDTH = 794;
 
 export const EpubRenderer = forwardRef<EpubRendererHandle, EpubRendererProps>(
   ({ url, onChapterChange, onFullWidthChange }, ref) => {
+    const t = useTranslator();
     const viewerRef = useRef<HTMLDivElement>(null);
     const bookRef = useRef<BookLike | null>(null);
     const renditionRef = useRef<RenditionLike | null>(null);
@@ -291,7 +293,7 @@ export const EpubRenderer = forwardRef<EpubRendererHandle, EpubRendererProps>(
         } catch (err) {
           console.error('EPUB 加载错误:', err);
           if (!cancelled) {
-            setError('EPUB 文件加载失败');
+            setError(t('epub.load_failed'));
             setLoading(false);
           }
         }
@@ -380,7 +382,7 @@ export const EpubRenderer = forwardRef<EpubRendererHandle, EpubRendererProps>(
               style={{ transform: showToc ? 'translateX(0)' : 'translateX(-100%)' }}
             >
               <div className="rfp-flex rfp-items-center rfp-justify-between rfp-px-4 rfp-py-3 rfp-border-b rfp-border-white/10 rfp-flex-shrink-0">
-                <span className="rfp-text-white rfp-font-medium rfp-text-sm">目录</span>
+                <span className="rfp-text-white rfp-font-medium rfp-text-sm">{t('toolbar.toc')}</span>
                 <button
                   onClick={() => setShowToc(false)}
                   className="rfp-text-white/60 hover:rfp-text-white rfp-transition-colors"

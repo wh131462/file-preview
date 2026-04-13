@@ -2,12 +2,14 @@ import React from 'react';
 import { ChevronLeft, ChevronRight, List, Maximize2, Minimize2 } from 'lucide-react';
 import type { ToolbarGroup } from '../toolbar.types';
 import type { MobiRendererHandle } from './index';
+import type { Translator } from '@eternalheart/file-preview-core';
 
 export interface MobiToolbarContext {
   mobiRef: React.RefObject<MobiRendererHandle | null>;
   current: number;
   total: number;
   fullWidth: boolean;
+  t: Translator;
 }
 
 export function getMobiToolbarGroups(ctx: MobiToolbarContext): ToolbarGroup[] {
@@ -17,7 +19,7 @@ export function getMobiToolbarGroups(ctx: MobiToolbarContext): ToolbarGroup[] {
         {
           type: 'button',
           icon: <List className="rfp-w-4 rfp-h-4" />,
-          tooltip: '目录',
+          tooltip: ctx.t('toolbar.toc'),
           action: () => ctx.mobiRef.current?.toggleToc(),
         },
       ],
@@ -27,7 +29,7 @@ export function getMobiToolbarGroups(ctx: MobiToolbarContext): ToolbarGroup[] {
         {
           type: 'button',
           icon: <ChevronLeft className="rfp-w-4 rfp-h-4" />,
-          tooltip: '上一页',
+          tooltip: ctx.t('toolbar.prev_page'),
           action: () => ctx.mobiRef.current?.prevPage(),
         },
         {
@@ -38,7 +40,7 @@ export function getMobiToolbarGroups(ctx: MobiToolbarContext): ToolbarGroup[] {
         {
           type: 'button',
           icon: <ChevronRight className="rfp-w-4 rfp-h-4" />,
-          tooltip: '下一页',
+          tooltip: ctx.t('toolbar.next_page'),
           action: () => ctx.mobiRef.current?.nextPage(),
         },
       ],
@@ -50,7 +52,7 @@ export function getMobiToolbarGroups(ctx: MobiToolbarContext): ToolbarGroup[] {
           icon: ctx.fullWidth
             ? <Minimize2 className="rfp-w-4 rfp-h-4" />
             : <Maximize2 className="rfp-w-4 rfp-h-4" />,
-          tooltip: ctx.fullWidth ? '正常宽度' : '全屏宽度',
+          tooltip: ctx.fullWidth ? ctx.t('toolbar.normal_width') : ctx.t('toolbar.full_width'),
           action: () => ctx.mobiRef.current?.toggleFullWidth(),
         },
       ],

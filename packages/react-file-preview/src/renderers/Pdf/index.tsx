@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Document, Page } from 'react-pdf';
+import { useTranslator } from '../../i18n/LocaleContext';
 
 // 导入 PDF.js 配置
 import '../../utils/pdfConfig';
@@ -21,6 +22,7 @@ export const PdfRenderer: React.FC<PdfRendererProps> = ({
   onTotalPagesChange,
   onPageWidthChange,
 }) => {
+  const t = useTranslator();
   const [numPages, setNumPages] = useState<number>(0);
   const [error, setError] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -38,7 +40,7 @@ export const PdfRenderer: React.FC<PdfRendererProps> = ({
 
   const onDocumentLoadError = (error: Error) => {
     console.error('PDF 加载错误:', error);
-    setError('PDF 文件加载失败');
+    setError(t('pdf.load_failed'));
   };
 
   // 滚动时更新当前页码

@@ -1,6 +1,7 @@
 import { useRef, useEffect, useState } from 'react';
 import videojs from 'video.js';
 import 'video.js/dist/video-js.css';
+import { useTranslator } from '../../i18n/LocaleContext';
 
 type VideoJsPlayer = ReturnType<typeof videojs>;
 
@@ -27,6 +28,7 @@ const getVideoType = (url: string): string => {
 };
 
 export const VideoRenderer: React.FC<VideoRendererProps> = ({ url }) => {
+  const t = useTranslator();
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const videoRef = useRef<HTMLDivElement>(null);
@@ -93,7 +95,7 @@ export const VideoRenderer: React.FC<VideoRendererProps> = ({ url }) => {
       player.on('error', () => {
         const error = player.error();
         console.error('Video.js error:', error);
-        setError(`视频加载失败: ${error?.message || '未知错误'}`);
+        setError(t('video.load_failed_with_error', { error: error?.message || t('common.unknown_error') }));
         setIsLoading(false);
       });
 
@@ -122,7 +124,7 @@ export const VideoRenderer: React.FC<VideoRendererProps> = ({ url }) => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
           </div>
-          <p className="rfp-text-lg rfp-font-medium rfp-text-white/90 rfp-mb-2">视频加载失败</p>
+          <p className="rfp-text-lg rfp-font-medium rfp-text-white/90 rfp-mb-2">{t('video.load_failed')}</p>
           <p className="rfp-text-sm rfp-text-white/60">{error}</p>
         </div>
       </div>
@@ -137,7 +139,7 @@ export const VideoRenderer: React.FC<VideoRendererProps> = ({ url }) => {
           <div className="rfp-absolute rfp-inset-0 rfp-flex rfp-items-center rfp-justify-center rfp-bg-black/20 rfp-backdrop-blur-sm rfp-rounded-2xl rfp-z-10">
             <div className="rfp-text-center">
               <div className="rfp-w-12 rfp-h-12 rfp-mx-auto rfp-mb-3 rfp-border-3 rfp-border-white/20 rfp-border-t-white rfp-rounded-full rfp-animate-spin" />
-              <p className="rfp-text-sm rfp-text-white/70 rfp-font-medium">加载视频中...</p>
+              <p className="rfp-text-sm rfp-text-white/70 rfp-font-medium">{t('video.loading')}</p>
             </div>
           </div>
         )}

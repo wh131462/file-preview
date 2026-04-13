@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { X, Download, ChevronLeft, ChevronRight } from 'lucide-react';
-import { getFileType } from '@eternalheart/file-preview-core';
+import { getFileType, createTranslator, type Locale, type Messages, type Translator } from '@eternalheart/file-preview-core';
+import { LocaleProvider } from './i18n/LocaleContext';
 import type { ToolbarGroup } from './renderers/toolbar.types';
 import { getImageToolbarGroups } from './renderers/Image/toolbar';
 import { getPdfToolbarGroups } from './renderers/Pdf/toolbar';
@@ -46,6 +47,10 @@ export interface FilePreviewContentProps {
   onClose?: () => void;
   /** ZIP 嵌套深度（内部使用），超过上限时不再递归渲染 ZIP */
   zipNestingDepth?: number;
+  /** 国际化语言，默认 'zh-CN' */
+  locale?: Locale;
+  /** 用户自定义翻译字典，浅合并到内置字典之上 */
+  messages?: Partial<Record<Locale, Partial<Messages>>>;
 }
 
 export const FilePreviewContent: React.FC<FilePreviewContentProps> = ({
@@ -56,7 +61,13 @@ export const FilePreviewContent: React.FC<FilePreviewContentProps> = ({
   mode = 'modal',
   onClose,
   zipNestingDepth = 0,
+  locale = 'zh-CN',
+  messages: userMessages,
 }) => {
+  const t: Translator = useMemo(
+    () => createTranslator({ locale, messages: userMessages }),
+    [locale, userMessages],
+  );
   const [zoom, setZoom] = useState(1);
   const [rotation, setRotation] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
@@ -258,6 +269,7 @@ export const FilePreviewContent: React.FC<FilePreviewContentProps> = ({
         onRotateLeft: handleRotateLeft,
         onRotateRight: handleRotate,
         onReset: handleReset,
+        t,
       });
     }
     if (fileType === 'pdf') {
@@ -266,6 +278,7 @@ export const FilePreviewContent: React.FC<FilePreviewContentProps> = ({
         onZoomIn: handleZoomIn,
         onZoomOut: handleZoomOut,
         onReset: handleReset,
+        t,
       });
     }
     if (fileType === 'epub') {
@@ -274,6 +287,7 @@ export const FilePreviewContent: React.FC<FilePreviewContentProps> = ({
         current: epubCurrent,
         total: epubTotal,
         fullWidth: epubFullWidth,
+        t,
       });
     }
     if (fileType === 'mobi') {
@@ -282,10 +296,11 @@ export const FilePreviewContent: React.FC<FilePreviewContentProps> = ({
         current: mobiCurrent,
         total: mobiTotal,
         fullWidth: mobiFullWidth,
+        t,
       });
     }
     if (fileType === 'zip') {
-      return getZipToolbarGroups({ stats: zipStats });
+      return getZipToolbarGroups({ stats: zipStats, t });
     }
     if (fileType === 'text') {
       const ext = currentFile.name.split('.').pop()?.toLowerCase() || '';
@@ -295,6 +310,7 @@ export const FilePreviewContent: React.FC<FilePreviewContentProps> = ({
         isHtml: ext === 'html' || ext === 'htm',
         htmlPreview: textHtmlPreview,
         onToggleHtmlPreview: () => setTextHtmlPreview(prev => !prev),
+        t,
       });
     }
     return [];
@@ -304,12 +320,12 @@ export const FilePreviewContent: React.FC<FilePreviewContentProps> = ({
   const actionGroups: ToolbarGroup[] = [
     {
       items: [
-        { type: 'button', icon: <Download className="rfp-w-4 rfp-h-4" />, tooltip: '下载', action: handleDownload },
+        { type: 'button', icon: <Download className="rfp-w-4 rfp-h-4" />, tooltip: t('common.download'), action: handleDownload },
       ],
     },
     ...(showCloseButton ? [{
       items: [
-        { type: 'button' as const, icon: <X className="rfp-w-4 rfp-h-4" />, tooltip: '关闭', action: onClose! },
+        { type: 'button' as const, icon: <X className="rfp-w-4 rfp-h-4" />, tooltip: t('common.close'), action: onClose! },
       ],
     }] : []),
   ];
@@ -341,6 +357,7 @@ export const FilePreviewContent: React.FC<FilePreviewContentProps> = ({
     ));
 
   return (
+    <LocaleProvider locale={locale} messages={userMessages}>
     <div
       ref={rootRef}
       tabIndex={mode === 'embed' ? 0 : -1}
@@ -519,6 +536,7 @@ export const FilePreviewContent: React.FC<FilePreviewContentProps> = ({
         </>
       )}
     </div>
+    </LocaleProvider>
   );
 };
 

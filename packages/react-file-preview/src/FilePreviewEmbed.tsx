@@ -1,5 +1,6 @@
 import { PreviewFileInput, CustomRenderer } from './types';
 import { FilePreviewContent } from './FilePreviewContent';
+import type { Locale, Messages } from '@eternalheart/file-preview-core';
 
 interface FilePreviewEmbedProps {
   files: PreviewFileInput[];
@@ -12,6 +13,10 @@ interface FilePreviewEmbedProps {
   height?: number | string;
   className?: string;
   style?: React.CSSProperties;
+  /** 国际化语言，默认 'zh-CN' */
+  locale?: Locale;
+  /** 用户自定义翻译字典 */
+  messages?: Partial<Record<Locale, Partial<Messages>>>;
 }
 
 export const FilePreviewEmbed: React.FC<FilePreviewEmbedProps> = ({
@@ -23,6 +28,8 @@ export const FilePreviewEmbed: React.FC<FilePreviewEmbedProps> = ({
   height = '100%',
   className,
   style,
+  locale,
+  messages,
 }) => {
   return (
     <div
@@ -36,6 +43,8 @@ export const FilePreviewEmbed: React.FC<FilePreviewEmbedProps> = ({
           currentIndex={currentIndex}
           onNavigate={onNavigate}
           customRenderers={customRenderers}
+          locale={locale}
+          messages={messages}
         />
       </div>
     </div>

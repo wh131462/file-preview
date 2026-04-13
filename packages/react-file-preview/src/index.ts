@@ -30,3 +30,15 @@ export { normalizeFile, normalizeFiles } from './utils/fileNormalizer';
 export { configurePdfjs, pdfjs } from './utils/pdfConfig';
 export type { PdfConfigOptions } from './utils/pdfConfig';
 
+// 导出 i18n 国际化
+export { LocaleProvider, useTranslator, useLocale } from './i18n/LocaleContext';
+export type { LocaleProviderProps, LocaleContextValue } from './i18n/LocaleContext';
+export type {
+  Locale,
+  Messages,
+  MessageKey,
+  Translator,
+  TranslateParams,
+  CreateTranslatorOptions,
+} from '@eternalheart/file-preview-core';
+

@@ -1,5 +1,6 @@
 import type { ToolbarGroup } from '../toolbar.types';
 import { formatFileSize } from '@eternalheart/file-preview-core';
+import type { Translator } from '@eternalheart/file-preview-core';
 
 export interface ZipToolbarStats {
   files: number;
@@ -9,6 +10,7 @@ export interface ZipToolbarStats {
 
 export interface ZipToolbarContext {
   stats: ZipToolbarStats | null;
+  t: Translator;
 }
 
 export function getZipToolbarGroups({ stats }: ZipToolbarContext): ToolbarGroup[] {

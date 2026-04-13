@@ -4,12 +4,14 @@ import ExcelJS from 'exceljs';
 import Spreadsheet from 'x-data-spreadsheet';
 import 'x-data-spreadsheet/dist/xspreadsheet.css';
 import { convertWorkbookToSpreadsheetData } from '../../utils/excelDataConverter';
+import { useTranslator } from '../../i18n/LocaleContext';
 
 interface XlsxRendererProps {
   url: string;
 }
 
 export const XlsxRenderer: React.FC<XlsxRendererProps> = ({ url }) => {
+  const t = useTranslator();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -130,7 +132,7 @@ export const XlsxRenderer: React.FC<XlsxRendererProps> = ({ url }) => {
 
         if (!response.ok) {
           if (response.status === 404) {
-            throw new Error('Excel 文件不存在');
+            throw new Error(t('xlsx.not_found'));
           } else if (response.status === 403) {
             throw new Error('无权限访问此文件');
           } else {
@@ -162,7 +164,7 @@ export const XlsxRenderer: React.FC<XlsxRendererProps> = ({ url }) => {
       } catch (err) {
         if (isMounted) {
           console.error('Excel 解析错误:', err);
-          let errorMsg = 'Excel 文件解析失败';
+          let errorMsg = t('xlsx.parse_failed');
           if (err instanceof Error) {
             errorMsg = err.message;
           }
@@ -196,7 +198,7 @@ export const XlsxRenderer: React.FC<XlsxRendererProps> = ({ url }) => {
         <div className="rfp-absolute rfp-inset-0 rfp-flex rfp-items-center rfp-justify-center rfp-bg-black/50 rfp-backdrop-blur-sm rfp-z-10 rfp-rounded-xl md:rfp-rounded-2xl">
           <div className="rfp-text-center">
             <div className="rfp-w-10 rfp-h-10 md:rfp-w-12 md:rfp-h-12 rfp-mx-auto rfp-mb-3 rfp-border-4 rfp-border-white/20 rfp-border-t-white rfp-rounded-full rfp-animate-spin" />
-            <p className="rfp-text-xs md:rfp-text-sm rfp-text-white/70 rfp-font-medium">加载 Excel 中...</p>
+            <p className="rfp-text-xs md:rfp-text-sm rfp-text-white/70 rfp-font-medium">{t('xlsx.loading')}</p>
           </div>
         </div>
       )}
@@ -208,7 +210,7 @@ export const XlsxRenderer: React.FC<XlsxRendererProps> = ({ url }) => {
             <div className="rfp-w-24 rfp-h-24 md:rfp-w-32 md:rfp-h-32 rfp-mx-auto rfp-mb-4 md:rfp-mb-6 rfp-rounded-2xl md:rfp-rounded-3xl rfp-bg-gradient-to-br rfp-from-green-500 rfp-via-emerald-500 rfp-to-teal-500 rfp-flex rfp-items-center rfp-justify-center rfp-shadow-2xl">
               <FileSpreadsheet className="rfp-w-12 rfp-h-12 md:rfp-w-16 md:rfp-h-16 rfp-text-white" />
             </div>
-            <p className="rfp-text-lg md:rfp-text-xl rfp-text-white/90 rfp-mb-2 md:rfp-mb-3 rfp-font-medium">Excel 加载失败</p>
+            <p className="rfp-text-lg md:rfp-text-xl rfp-text-white/90 rfp-mb-2 md:rfp-mb-3 rfp-font-medium">{t('xlsx.load_failed')}</p>
             <p className="rfp-text-xs md:rfp-text-sm rfp-text-white/60 rfp-mb-4 md:rfp-mb-6">
               {error}
             </p>
@@ -220,7 +222,7 @@ export const XlsxRenderer: React.FC<XlsxRendererProps> = ({ url }) => {
               <svg className="rfp-w-4 rfp-h-4 md:rfp-w-5 md:rfp-h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
               </svg>
-              下载文件
+              {t('common.download')}
             </a>
             <p className="rfp-text-xs rfp-text-white/40 rfp-mt-3 md:rfp-mt-4">
               提示：可以使用 Microsoft Excel 或 WPS 打开

@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Play, Pause, Volume2, VolumeX, Volume1, SkipBack, SkipForward, Repeat } from 'lucide-react';
 import { useAudioPlayer } from '../../hooks/useAudioPlayer';
+import { useTranslator } from '../../i18n/LocaleContext';
 
 /** 文本溢出时自动横向滚动 */
 const MarqueeText: React.FC<{
@@ -151,6 +152,7 @@ interface AudioRendererProps {
 }
 
 export const AudioRenderer: React.FC<AudioRendererProps> = ({ url, fileName }) => {
+  const t = useTranslator();
   const {
     audioRef,
     isPlaying,
@@ -342,7 +344,7 @@ export const AudioRenderer: React.FC<AudioRendererProps> = ({ url, fileName }) =
               value={currentTime}
               onChange={(e) => seek(parseFloat(e.target.value))}
               disabled={duration <= 0}
-              aria-label="播放进度"
+              aria-label={t('audio.aria.progress')}
               className="audio-slider rfp-absolute rfp-w-full"
             />
           </div>
@@ -359,7 +361,7 @@ export const AudioRenderer: React.FC<AudioRendererProps> = ({ url, fileName }) =
             onClick={toggleLoop}
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.92 }}
-            aria-label={isLoop ? '关闭循环' : '开启循环'}
+            aria-label={isLoop ? t('audio.aria.loop_off') : t('audio.aria.loop_on')}
             className="rfp-w-9 rfp-h-9 rfp-rounded-full rfp-flex rfp-items-center rfp-justify-center rfp-transition-colors"
             style={{
               background: isLoop ? 'rgba(129,140,248,0.15)' : 'rgba(255,255,255,0.06)',
@@ -374,7 +376,7 @@ export const AudioRenderer: React.FC<AudioRendererProps> = ({ url, fileName }) =
             onClick={() => skip(-10)}
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.92 }}
-            aria-label="后退10秒"
+            aria-label={t('audio.aria.backward_10')}
             className="rfp-w-10 rfp-h-10 rfp-rounded-full rfp-flex rfp-items-center rfp-justify-center rfp-transition-colors"
             style={{ background: 'rgba(255,255,255,0.06)', color: 'rgba(224,223,240,0.7)' }}
           >
@@ -386,7 +388,7 @@ export const AudioRenderer: React.FC<AudioRendererProps> = ({ url, fileName }) =
             onClick={togglePlay}
             whileHover={{ scale: 1.06 }}
             whileTap={{ scale: 0.94 }}
-            aria-label={isPlaying ? '暂停' : '播放'}
+            aria-label={isPlaying ? t('audio.aria.pause') : t('audio.aria.play')}
             className="rfp-w-14 rfp-h-14 rfp-rounded-full rfp-flex rfp-items-center rfp-justify-center"
             style={{
               background: 'linear-gradient(135deg, #818cf8, #6366f1)',
@@ -406,7 +408,7 @@ export const AudioRenderer: React.FC<AudioRendererProps> = ({ url, fileName }) =
             onClick={() => skip(10)}
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.92 }}
-            aria-label="前进10秒"
+            aria-label={t('audio.aria.forward_10')}
             className="rfp-w-10 rfp-h-10 rfp-rounded-full rfp-flex rfp-items-center rfp-justify-center rfp-transition-colors"
             style={{ background: 'rgba(255,255,255,0.06)', color: 'rgba(224,223,240,0.7)' }}
           >
@@ -424,7 +426,7 @@ export const AudioRenderer: React.FC<AudioRendererProps> = ({ url, fileName }) =
               onClick={toggleMute}
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.92 }}
-              aria-label={isMuted ? '取消静音' : '静音'}
+              aria-label={isMuted ? t('audio.aria.unmute') : t('audio.aria.mute')}
               className="rfp-w-9 rfp-h-9 rfp-rounded-full rfp-flex rfp-items-center rfp-justify-center rfp-transition-colors"
               style={{
                 background: showVolume ? 'rgba(129,140,248,0.15)' : 'rgba(255,255,255,0.06)',
@@ -474,7 +476,7 @@ export const AudioRenderer: React.FC<AudioRendererProps> = ({ url, fileName }) =
                         step="0.01"
                         value={isMuted ? 0 : volume}
                         onChange={(e) => setVolume(parseFloat(e.target.value))}
-                        aria-label="音量"
+                        aria-label={t('audio.aria.volume')}
                         className="volume-slider-vertical rfp-absolute"
                         style={{
                           width: '80px',

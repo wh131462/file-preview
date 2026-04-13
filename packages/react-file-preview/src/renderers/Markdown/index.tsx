@@ -5,12 +5,14 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { ghcolors } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { Copy, Check } from 'lucide-react';
 import { fetchTextUtf8 } from '@eternalheart/file-preview-core';
+import { useTranslator } from '../../i18n/LocaleContext';
 
 interface MarkdownRendererProps {
   url: string;
 }
 
 const CopyButton = ({ text }: { text: string }) => {
+  const t = useTranslator();
   const [copied, setCopied] = useState(false);
 
   const handleCopy = useCallback(async () => {
@@ -35,7 +37,7 @@ const CopyButton = ({ text }: { text: string }) => {
     <button
       onClick={handleCopy}
       className="rfp-absolute rfp-top-2 rfp-right-2 rfp-p-1.5 rfp-rounded-md rfp-bg-gray-100 hover:rfp-bg-gray-200 rfp-text-gray-500 hover:rfp-text-gray-700 rfp-transition-colors rfp-opacity-0 group-hover:rfp-opacity-100 rfp-border rfp-border-gray-200"
-      title={copied ? '已复制' : '复制代码'}
+      title={copied ? t('markdown.copied') : t('markdown.copy_code')}
     >
       {copied ? <Check size={14} /> : <Copy size={14} />}
     </button>
@@ -43,6 +45,7 @@ const CopyButton = ({ text }: { text: string }) => {
 };
 
 export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ url }) => {
+  const t = useTranslator();
   const [content, setContent] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -55,7 +58,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ url }) => {
         const text = await fetchTextUtf8(url);
         setContent(text);
       } catch (err) {
-        setError('Markdown 文件加载失败');
+        setError(t('markdown.load_failed'));
         console.error(err);
       } finally {
         setLoading(false);

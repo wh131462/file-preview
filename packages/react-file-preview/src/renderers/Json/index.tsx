@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { ChevronRight, ChevronDown } from 'lucide-react';
 import { fetchTextUtf8 } from '@eternalheart/file-preview-core';
+import { useTranslator } from '../../i18n/LocaleContext';
 
 interface JsonRendererProps {
   url: string;
@@ -17,6 +18,7 @@ interface JsonNodeProps {
 }
 
 const JsonNode: React.FC<JsonNodeProps> = ({ keyName, value, depth, defaultExpanded }) => {
+  const t = useTranslator();
   const [expanded, setExpanded] = useState(defaultExpanded);
   const indent = depth * 20;
 
@@ -80,7 +82,7 @@ const JsonNode: React.FC<JsonNodeProps> = ({ keyName, value, depth, defaultExpan
         <span className="rfp-text-white/70">{openBracket}</span>
         {!expanded && (
           <span className="rfp-text-white/30 rfp-ml-1">
-            {isArray ? `${count} items` : `${count} keys`}
+            {isArray ? `${count} ${t('json.items')}` : `${count} ${t('json.keys')}`}
             <span className="rfp-text-white/70"> {closeBracket}</span>
           </span>
         )}
@@ -118,6 +120,7 @@ function renderPrimitive(value: unknown) {
 // ---------- Main ----------
 
 export const JsonRenderer: React.FC<JsonRendererProps> = ({ url }) => {
+  const t = useTranslator();
   const [data, setData] = useState<unknown>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -130,7 +133,7 @@ export const JsonRenderer: React.FC<JsonRendererProps> = ({ url }) => {
         const text = await fetchTextUtf8(url);
         setData(JSON.parse(text));
       } catch (err) {
-        setError('JSON 文件加载失败');
+        setError(t('json.load_failed'));
         console.error(err);
       } finally {
         setLoading(false);

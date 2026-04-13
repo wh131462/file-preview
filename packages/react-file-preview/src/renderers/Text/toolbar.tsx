@@ -1,5 +1,6 @@
 import { WrapText, Eye, Code } from 'lucide-react';
 import type { ToolbarGroup } from '../toolbar.types';
+import type { Translator } from '@eternalheart/file-preview-core';
 
 export interface TextToolbarContext {
   wordWrap: boolean;
@@ -7,6 +8,7 @@ export interface TextToolbarContext {
   isHtml: boolean;
   htmlPreview: boolean;
   onToggleHtmlPreview: () => void;
+  t: Translator;
 }
 
 export function getTextToolbarGroups(ctx: TextToolbarContext): ToolbarGroup[] {
@@ -16,7 +18,7 @@ export function getTextToolbarGroups(ctx: TextToolbarContext): ToolbarGroup[] {
         {
           type: 'button',
           icon: <WrapText className="rfp-w-4 rfp-h-4" />,
-          tooltip: ctx.wordWrap ? '不换行' : '自动换行',
+          tooltip: ctx.wordWrap ? ctx.t('toolbar.wrap_off') : ctx.t('toolbar.wrap_on'),
           action: ctx.onToggleWrap,
         },
       ],
@@ -31,7 +33,7 @@ export function getTextToolbarGroups(ctx: TextToolbarContext): ToolbarGroup[] {
           icon: ctx.htmlPreview
             ? <Code className="rfp-w-4 rfp-h-4" />
             : <Eye className="rfp-w-4 rfp-h-4" />,
-          tooltip: ctx.htmlPreview ? '源码' : '预览',
+          tooltip: ctx.htmlPreview ? ctx.t('toolbar.source') : ctx.t('toolbar.preview'),
           action: ctx.onToggleHtmlPreview,
         },
       ],

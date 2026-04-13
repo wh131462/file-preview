@@ -3,6 +3,7 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { Code } from 'lucide-react';
 import { fetchTextUtf8 } from '@eternalheart/file-preview-core';
+import { useTranslator } from '../../i18n/LocaleContext';
 
 interface XmlRendererProps {
   url: string;
@@ -51,6 +52,7 @@ const indentXml = (xml: string): string => {
 };
 
 export const XmlRenderer: React.FC<XmlRendererProps> = ({ url, fileName }) => {
+  const t = useTranslator();
   const [content, setContent] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -64,7 +66,7 @@ export const XmlRenderer: React.FC<XmlRendererProps> = ({ url, fileName }) => {
         setContent(prettyPrintXml(raw));
       } catch (err) {
         console.error(err);
-        setError('XML 文件加载失败');
+        setError(t('xml.load_failed'));
       } finally {
         setLoading(false);
       }

@@ -184,16 +184,23 @@ React File Preview 支持多种常见的文件格式预览。
 - 自动缩进美化
 - 语法高亮
 
-## 字幕文件
+## 字幕 / 歌词文件
 
 - **SRT** - `.srt`
 - **WebVTT** - `.vtt`
+- **LRC** - `.lrc`（基础歌词，`[mm:ss.xx]` 行时间戳，支持 `[ti:][ar:][al:]` 等元数据）
+- **Enhanced LRC** - `.elrc`（增强歌词，行内 `<mm:ss.xx>` 逐字时间戳）
+- **ASS / SSA** - `.ass` / `.ssa`（Advanced SubStation Alpha，自动剥离 `\N` `\h` 与 `{...}` 样式覆盖码）
+- **TTML / DFXP** - `.ttml` / `.dfxp`（W3C / Apple Music 使用的 XML 字幕，支持 `begin` / `end` / `dur` 与 `<br/>`）
 
 ### 特性
 
-- 纯前端解析，无第三方依赖
+- 纯前端解析，零第三方依赖
+- 自动按内容/扩展名识别格式
 - 结构化 cue 列表展示（索引、时间区间、文本）
-- 自动识别 SRT / VTT 格式
+- LRC / ELRC 自动展示元数据（标题 / 艺术家 / 专辑 / 偏移……）
+- ELRC 逐字时间戳以词条形式排列展示
+- ASS / SSA 同步显示 Style 标签，自动应用 `offset` 偏移
 
 ## JSON
 
@@ -251,7 +258,7 @@ React File Preview 支持多种常见的文件格式预览。
 - `json` - JSON 文件
 - `csv` - CSV/TSV 文件
 - `xml` - XML 文件
-- `subtitle` - SRT/VTT 字幕文件
+- `subtitle` - SRT / VTT / LRC / ELRC / ASS / SSA / TTML 字幕与歌词文件
 - `zip` - ZIP 压缩包
 - `text` - 其他文本和代码文件
 - `unsupported` - 不支持的类型

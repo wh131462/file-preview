@@ -242,8 +242,11 @@ const files = [
 - **CSV / TSV**: 零依赖解析,表格视图 + 行列统计
 - **XML**: `DOMParser` 校验 + 自动缩进 + 语法高亮
 
-### 字幕
+### 字幕 / 歌词
 - **SRT / WebVTT**: 零依赖解析,结构化 cue 列表(索引、时间区间、文本)
+- **LRC / Enhanced LRC**: 歌词文件,`[mm:ss.xx]` 行时间戳(ELRC 额外支持行内 `<mm:ss.xx>` 逐字时间戳),自动解析 `[ti:][ar:][al:]` 等元数据
+- **ASS / SSA**: Advanced SubStation Alpha,提取 Dialogue 事件,自动剥离 `\N` `\h` 与 `{...}` 样式覆盖码,展示 Style 标签
+- **TTML / DFXP**: W3C / Apple Music 使用的 XML 字幕,支持 `begin` / `end` / `dur` 与 `<br/>`
 
 ### 压缩包
 - **ZIP**: 树形目录 + 内嵌预览文本/代码/图片,其他类型可下载导出

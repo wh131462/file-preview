@@ -98,7 +98,7 @@ type FileType =
   | 'json'        // JSON 文件
   | 'csv'         // CSV / TSV 表格
   | 'xml'         // XML 文件
-  | 'subtitle'    // SRT / WebVTT 字幕
+  | 'subtitle'    // SRT / WebVTT / LRC / ELRC / ASS / SSA / TTML 字幕与歌词
   | 'zip'         // ZIP 压缩包
   | 'text'        // 其他文本和代码文件
   | 'unsupported' // 不支持的类型

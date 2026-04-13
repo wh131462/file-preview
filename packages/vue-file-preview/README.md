@@ -242,8 +242,11 @@ Differences from `FilePreviewModal`:
 - **CSV/TSV**: Zero-dependency parser, table view with headers and row/column stats
 - **XML**: `DOMParser` validation + pretty print + syntax highlighting
 
-### Subtitles
+### Subtitles & Lyrics
 - **SRT / WebVTT**: Zero-dependency parser, structured cue list (index, time range, text)
+- **LRC / Enhanced LRC**: Lyric files with `[mm:ss.xx]` line stamps (and inline `<mm:ss.xx>` per-word stamps for ELRC), with `[ti:][ar:][al:]` metadata header
+- **ASS / SSA**: Advanced SubStation Alpha — extracts Dialogue events, strips `\N` `\h` and `{...}` override codes, surfaces Style names
+- **TTML / DFXP**: W3C / Apple Music XML captions, supports `begin` / `end` / `dur` and `<br/>`
 
 ### Archives
 - **ZIP**: Tree view + inline preview for text/code/image entries, download fallback for other types

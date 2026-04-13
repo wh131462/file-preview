@@ -36,18 +36,22 @@ export default defineConfig({
     rollupOptions: {
       external: [
         'vue',
+        '@eternalheart/file-preview-core',
         '@kenjiuno/msgreader',
         '@likecoin/epub-ts',
+        'jszip',
         'lucide-vue-next',
         'mammoth',
         'markdown-it',
-        'pdfjs-dist',
+        // 同时匹配 `pdfjs-dist` 和 `pdfjs-dist/build/pdf.mjs` 等子路径导入
+        /^pdfjs-dist(\/.*)?$/,
         'pptx-preview',
         'shiki',
         'video.js',
         'x-data-spreadsheet',
       ],
       output: {
+        inlineDynamicImports: true,
         globals: {
           vue: 'Vue',
         },

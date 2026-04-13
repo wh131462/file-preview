@@ -11,6 +11,8 @@ import type { ToolbarGroup, ToolbarButtonItem, ToolbarTextItem } from './rendere
 import { getImageToolbarGroups } from './renderers/Image/toolbar';
 import { getPdfToolbarGroups } from './renderers/Pdf/toolbar';
 import { getEpubToolbarGroups } from './renderers/Epub/toolbar';
+import { getMobiToolbarGroups } from './renderers/Mobi/toolbar';
+import { getZipToolbarGroups, type ZipToolbarStats } from './renderers/Zip/toolbar';
 import ImageRenderer from './renderers/Image/index.vue';
 import PdfRenderer from './renderers/Pdf/index.vue';
 import DocxRenderer from './renderers/Docx/index.vue';
@@ -18,12 +20,19 @@ import XlsxRenderer from './renderers/Xlsx/index.vue';
 import PptxRenderer from './renderers/Pptx/index.vue';
 import MsgRenderer from './renderers/Msg/index.vue';
 import EpubRenderer from './renderers/Epub/index.vue';
+import MobiRenderer from './renderers/Mobi/index.vue';
 import VideoRenderer from './renderers/Video/index.vue';
 import AudioRenderer from './renderers/Audio/index.vue';
 import MarkdownRenderer from './renderers/Markdown/index.vue';
 import JsonRenderer from './renderers/Json/index.vue';
+import CsvRenderer from './renderers/Csv/index.vue';
+import XmlRenderer from './renderers/Xml/index.vue';
+import SubtitleRenderer from './renderers/Subtitle/index.vue';
+import ZipRenderer from './renderers/Zip/index.vue';
 import TextRenderer from './renderers/Text/index.vue';
 import UnsupportedRenderer from './renderers/Unsupported/index.vue';
+
+const MAX_ZIP_NESTING_DEPTH = 3;
 
 interface Props {
   files: PreviewFileInput[];
@@ -31,11 +40,14 @@ interface Props {
   customRenderers?: CustomRenderer[];
   /** 运行模式: modal(弹窗) 或 embed(嵌入) */
   mode?: 'modal' | 'embed';
+  /** ZIP 嵌套深度（内部使用），超过上限时不再递归渲染 ZIP */
+  zipNestingDepth?: number;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   customRenderers: () => [],
   mode: 'modal',
+  zipNestingDepth: 0,
 });
 
 const emit = defineEmits<{
@@ -217,14 +229,29 @@ const handleDownload = () => {
 
 const showCloseButton = computed(() => props.mode === 'modal');
 
-const epubRef = ref<{ prevChapter: () => void; nextChapter: () => void; toggleFullWidth: () => void; toggleToc: () => void } | null>(null);
+const epubRef = ref<{ prevPage: () => void; nextPage: () => void; toggleFullWidth: () => void; toggleToc: () => void } | null>(null);
 const epubCurrent = ref(0);
 const epubTotal = ref(0);
 const epubFullWidth = ref(false);
 
+const mobiRef = ref<{ prevPage: () => void; nextPage: () => void; toggleFullWidth: () => void; toggleToc: () => void } | null>(null);
+const mobiCurrent = ref(0);
+const mobiTotal = ref(0);
+const mobiFullWidth = ref(false);
+
 const handleEpubChapterChange = (current: number, total: number) => {
   epubCurrent.value = current;
   epubTotal.value = total;
+};
+
+const handleMobiChapterChange = (current: number, total: number) => {
+  mobiCurrent.value = current;
+  mobiTotal.value = total;
+};
+
+const zipStats = ref<ZipToolbarStats | null>(null);
+const handleZipStatsChange = (stats: ZipToolbarStats | null) => {
+  zipStats.value = stats;
 };
 
 // 工具栏配置 — 各 Renderer 自行声明
@@ -256,6 +283,17 @@ const toolGroups = computed(() => {
       total: epubTotal.value,
       fullWidth: epubFullWidth.value,
     });
+  }
+  if (fileType.value === 'mobi') {
+    return getMobiToolbarGroups({
+      mobiRef: mobiRef.value,
+      current: mobiCurrent.value,
+      total: mobiTotal.value,
+      fullWidth: mobiFullWidth.value,
+    });
+  }
+  if (fileType.value === 'zip') {
+    return getZipToolbarGroups({ stats: zipStats.value });
   }
   return [];
 });
@@ -430,6 +468,13 @@ const hasToolGroups = computed(() => toolGroups.value.length > 0);
             @chapter-change="handleEpubChapterChange"
             @full-width-change="(v: boolean) => (epubFullWidth = v)"
           />
+          <MobiRenderer
+            v-else-if="fileType === 'mobi'"
+            ref="mobiRef"
+            :url="currentFile.url"
+            @chapter-change="handleMobiChapterChange"
+            @full-width-change="(v: boolean) => (mobiFullWidth = v)"
+          />
           <VideoRenderer v-else-if="fileType === 'video'" :url="currentFile.url" />
           <AudioRenderer
             v-else-if="fileType === 'audio'"
@@ -441,6 +486,34 @@ const hasToolGroups = computed(() => toolGroups.value.length > 0);
             v-else-if="fileType === 'json'"
             :url="currentFile.url"
             :file-name="currentFile.name"
+          />
+          <CsvRenderer
+            v-else-if="fileType === 'csv'"
+            :url="currentFile.url"
+            :file-name="currentFile.name"
+          />
+          <XmlRenderer
+            v-else-if="fileType === 'xml'"
+            :url="currentFile.url"
+            :file-name="currentFile.name"
+          />
+          <SubtitleRenderer
+            v-else-if="fileType === 'subtitle'"
+            :url="currentFile.url"
+            :file-name="currentFile.name"
+          />
+          <template v-if="fileType === 'zip' && props.zipNestingDepth >= MAX_ZIP_NESTING_DEPTH">
+            <UnsupportedRenderer
+              :file-name="currentFile.name"
+              :file-type="currentFile.type"
+              @download="handleDownload"
+            />
+          </template>
+          <ZipRenderer
+            v-else-if="fileType === 'zip'"
+            :url="currentFile.url"
+            :nesting-depth="props.zipNestingDepth"
+            @stats-change="handleZipStatsChange"
           />
           <TextRenderer
             v-else-if="fileType === 'text'"

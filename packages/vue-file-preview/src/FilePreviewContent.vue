@@ -533,7 +533,7 @@ const hasToolGroups = computed(() => toolGroups.value.length > 0);
             :url="currentFile.url"
             :file-name="currentFile.name"
           />
-          <template v-if="fileType === 'zip' && props.zipNestingDepth >= MAX_ZIP_NESTING_DEPTH">
+          <template v-else-if="fileType === 'zip' && props.zipNestingDepth >= MAX_ZIP_NESTING_DEPTH">
             <UnsupportedRenderer
               :file-name="currentFile.name"
               :file-type="currentFile.type"

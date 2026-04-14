@@ -81,6 +81,7 @@
     "foliate-js": "1.0.1",
     "framer-motion": "^11.11.17",
     "jszip": "^3.10.1",
+    "katex": "^0.16.45",
     "lucide-react": "^0.460.0",
     "mammoth": "^1.8.0",
     "pdfjs-dist": "4.8.69",
@@ -88,7 +89,10 @@
     "react-markdown": "^10.1.0",
     "react-pdf": "9.2.1",
     "react-syntax-highlighter": "^16.1.0",
+    "rehype-katex": "^7.0.1",
+    "rehype-raw": "^7.0.0",
     "remark-gfm": "^4.0.1",
+    "remark-math": "^6.0.0",
     "video.js": "^8.23.4"
   },
   "devDependencies": {

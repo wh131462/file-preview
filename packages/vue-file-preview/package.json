@@ -71,8 +71,10 @@
   "dependencies": {
     "@kenjiuno/msgreader": "^1.28.0",
     "@likecoin/epub-ts": "^0.6.0",
+    "@traptitech/markdown-it-katex": "^3.6.0",
     "foliate-js": "1.0.1",
     "jszip": "^3.10.1",
+    "katex": "^0.16.45",
     "lucide-vue-next": "^0.460.0",
     "mammoth": "^1.8.0",
     "markdown-it": "^14.1.0",

@@ -17,6 +17,7 @@ import { getEpubToolbarGroups } from './renderers/Epub/toolbar';
 import { getMobiToolbarGroups } from './renderers/Mobi/toolbar';
 import { getZipToolbarGroups, type ZipToolbarStats } from './renderers/Zip/toolbar';
 import { getTextToolbarGroups } from './renderers/Text/toolbar';
+import { getMarkdownToolbarGroups } from './renderers/Markdown/toolbar';
 import ImageRenderer from './renderers/Image/index.vue';
 import PdfRenderer from './renderers/Pdf/index.vue';
 import DocxRenderer from './renderers/Docx/index.vue';
@@ -269,6 +270,7 @@ const handleZipStatsChange = (stats: ZipToolbarStats | null) => {
 
 const textWordWrap = ref(true);
 const textHtmlPreview = ref(false);
+const markdownViewMode = ref<'preview' | 'source'>('preview');
 
 // 工具栏配置 — 各 Renderer 自行声明
 const toolGroups = computed(() => {
@@ -323,6 +325,13 @@ const toolGroups = computed(() => {
       isHtml: ext === 'html' || ext === 'htm',
       htmlPreview: textHtmlPreview.value,
       onToggleHtmlPreview: () => { textHtmlPreview.value = !textHtmlPreview.value; },
+      t: t.value,
+    });
+  }
+  if (fileType.value === 'markdown') {
+    return getMarkdownToolbarGroups({
+      viewMode: markdownViewMode.value,
+      onToggleViewMode: () => { markdownViewMode.value = markdownViewMode.value === 'preview' ? 'source' : 'preview'; },
       t: t.value,
     });
   }
@@ -512,7 +521,7 @@ const hasToolGroups = computed(() => toolGroups.value.length > 0);
             :url="currentFile.url"
             :file-name="currentFile.name"
           />
-          <MarkdownRenderer v-else-if="fileType === 'markdown'" :url="currentFile.url" />
+          <MarkdownRenderer v-else-if="fileType === 'markdown'" :url="currentFile.url" :view-mode="markdownViewMode" />
           <JsonRenderer
             v-else-if="fileType === 'json'"
             :url="currentFile.url"

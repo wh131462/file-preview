@@ -10,6 +10,7 @@ import { getEpubToolbarGroups } from './renderers/Epub/toolbar';
 import { getMobiToolbarGroups } from './renderers/Mobi/toolbar';
 import { getZipToolbarGroups, type ZipToolbarStats } from './renderers/Zip/toolbar';
 import { getTextToolbarGroups } from './renderers/Text/toolbar';
+import { getMarkdownToolbarGroups } from './renderers/Markdown/toolbar';
 
 import { PreviewFileInput, CustomRenderer } from './types';
 import { normalizeFiles } from './utils/fileNormalizer';
@@ -88,6 +89,7 @@ export const FilePreviewContent: React.FC<FilePreviewContentProps> = ({
   const [zipStats, setZipStats] = useState<ZipToolbarStats | null>(null);
   const [textWordWrap, setTextWordWrap] = useState(true);
   const [textHtmlPreview, setTextHtmlPreview] = useState(false);
+  const [markdownViewMode, setMarkdownViewMode] = useState<'preview' | 'source'>('preview');
 
   // 导航箭头自动隐藏
   const [navVisible, setNavVisible] = useState(true);
@@ -313,6 +315,13 @@ export const FilePreviewContent: React.FC<FilePreviewContentProps> = ({
         t,
       });
     }
+    if (fileType === 'markdown') {
+      return getMarkdownToolbarGroups({
+        viewMode: markdownViewMode,
+        onToggleViewMode: () => setMarkdownViewMode(prev => prev === 'preview' ? 'source' : 'preview'),
+        t,
+      });
+    }
     return [];
   })();
 
@@ -460,7 +469,7 @@ export const FilePreviewContent: React.FC<FilePreviewContentProps> = ({
             {fileType === 'audio' && (
               <AudioRenderer url={currentFile.url} fileName={currentFile.name} />
             )}
-            {fileType === 'markdown' && <MarkdownRenderer url={currentFile.url} />}
+            {fileType === 'markdown' && <MarkdownRenderer url={currentFile.url} viewMode={markdownViewMode} />}
             {fileType === 'json' && (
               <JsonRenderer url={currentFile.url} fileName={currentFile.name} />
             )}

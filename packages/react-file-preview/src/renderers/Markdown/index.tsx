@@ -1,42 +1,63 @@
 import { useState, useEffect, useCallback } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
+import rehypeRaw from 'rehype-raw';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { ghcolors } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { Copy, Check } from 'lucide-react';
 import { fetchTextUtf8 } from '@eternalheart/file-preview-core';
 import { useTranslator } from '../../i18n/LocaleContext';
+import 'katex/dist/katex.min.css';
 
 interface MarkdownRendererProps {
   url: string;
+  viewMode?: 'preview' | 'source';
 }
 
-const CopyButton = ({ text }: { text: string }) => {
-  const t = useTranslator();
+const useCopy = (text: string) => {
   const [copied, setCopied] = useState(false);
-
   const handleCopy = useCallback(async () => {
     try {
       await navigator.clipboard.writeText(text);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
     } catch {
-      // fallback
       const textarea = document.createElement('textarea');
       textarea.value = text;
       document.body.appendChild(textarea);
       textarea.select();
       document.execCommand('copy');
       document.body.removeChild(textarea);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
     }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   }, [text]);
+  return { copied, handleCopy };
+};
 
+/** 内联版复制按钮：放在代码块 header 行内，始终可见 */
+const InlineCopyButton = ({ text }: { text: string }) => {
+  const t = useTranslator();
+  const { copied, handleCopy } = useCopy(text);
   return (
     <button
       onClick={handleCopy}
-      className="rfp-absolute rfp-top-2 rfp-right-2 rfp-p-1.5 rfp-rounded-md rfp-bg-gray-100 hover:rfp-bg-gray-200 rfp-text-gray-500 hover:rfp-text-gray-700 rfp-transition-colors rfp-opacity-0 group-hover:rfp-opacity-100 rfp-border rfp-border-gray-200"
+      className="rfp-p-1 rfp-rounded rfp-text-white/40 hover:rfp-text-white/80 rfp-transition-colors rfp-flex rfp-items-center rfp-gap-1"
+      title={copied ? t('markdown.copied') : t('markdown.copy_code')}
+    >
+      {copied ? <Check size={13} /> : <Copy size={13} />}
+    </button>
+  );
+};
+
+/** 浮动版复制按钮：无 header 时绝对定位于代码块右上角（hover 显示） */
+const FloatingCopyButton = ({ text }: { text: string }) => {
+  const t = useTranslator();
+  const { copied, handleCopy } = useCopy(text);
+  return (
+    <button
+      onClick={handleCopy}
+      className="rfp-absolute rfp-top-2 rfp-right-2 rfp-p-1.5 rfp-rounded-md rfp-bg-white/10 hover:rfp-bg-white/20 rfp-text-white/50 hover:rfp-text-white/80 rfp-transition-colors rfp-opacity-0 group-hover:rfp-opacity-100 rfp-border rfp-border-white/15"
       title={copied ? t('markdown.copied') : t('markdown.copy_code')}
     >
       {copied ? <Check size={14} /> : <Copy size={14} />}
@@ -44,7 +65,7 @@ const CopyButton = ({ text }: { text: string }) => {
   );
 };
 
-export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ url }) => {
+export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ url, viewMode = 'preview' }) => {
   const t = useTranslator();
   const [content, setContent] = useState<string>('');
   const [loading, setLoading] = useState(true);
@@ -86,42 +107,89 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ url }) => {
     );
   }
 
+  // 源码视图
+  if (viewMode === 'source') {
+    return (
+      <div className="rfp-w-full rfp-h-full rfp-overflow-auto rfp-bg-[#1e1e1e]">
+        <SyntaxHighlighter
+          language="markdown"
+          style={vscDarkPlus}
+          showLineNumbers
+          customStyle={{
+            margin: 0,
+            padding: '1.5rem',
+            background: 'transparent',
+            fontSize: '0.875rem',
+          }}
+          lineNumberStyle={{
+            minWidth: '3em',
+            paddingRight: '1em',
+            color: 'rgba(255, 255, 255, 0.3)',
+            userSelect: 'none',
+          }}
+        >
+          {content}
+        </SyntaxHighlighter>
+      </div>
+    );
+  }
+
+  // 预览视图
   return (
-    <div className="rfp-w-full rfp-h-full rfp-overflow-auto rfp-p-4 md:rfp-p-8">
-      <div className="rfp-max-w-full md:rfp-max-w-4xl rfp-mx-auto rfp-bg-white">
-        <div className="rfp-p-6 md:rfp-p-10">
-          <ReactMarkdown
-            remarkPlugins={[remarkGfm]}
+    <div className="rfp-w-full rfp-h-full rfp-overflow-auto rfp-p-6 md:rfp-p-10">
+      <div className="rfp-max-w-full md:rfp-max-w-4xl rfp-mx-auto">
+        <ReactMarkdown
+            remarkPlugins={[remarkGfm, remarkMath]}
+            rehypePlugins={[rehypeRaw, rehypeKatex]}
             components={{
               code({ node, inline, className, children, ...props }: any) {
                 const match = /language-(\w+)/.exec(className || '');
                 const codeString = String(children).replace(/\n$/, '');
-                return !inline && match ? (
-                  <div className="rfp-relative rfp-group rfp-my-4">
-                    <div className="rfp-flex rfp-items-center rfp-px-4 rfp-py-2 rfp-bg-gray-100 rfp-border rfp-border-gray-200 rfp-rounded-t-md rfp-border-b-0">
-                      <span className="rfp-text-xs rfp-text-gray-500 rfp-font-mono">{match[1]}</span>
+                if (!inline && match) {
+                  // 有语言标注的代码块 - 语法高亮
+                  return (
+                    <div className="rfp-relative rfp-group rfp-my-4">
+                      <div className="rfp-flex rfp-items-center rfp-justify-between rfp-px-4 rfp-py-1.5 rfp-bg-white/[0.08] rfp-border rfp-border-white/10 rfp-rounded-t-md rfp-border-b-0">
+                        <span className="rfp-text-xs rfp-text-white/80 rfp-font-mono rfp-select-none">{match[1]}</span>
+                        <InlineCopyButton text={codeString} />
+                      </div>
+                      <SyntaxHighlighter
+                        style={vscDarkPlus}
+                        language={match[1]}
+                        PreTag="div"
+                        customStyle={{
+                          margin: 0,
+                          borderRadius: '0 0 6px 6px',
+                          border: '1px solid rgba(255,255,255,0.1)',
+                          borderTop: 'none',
+                          fontSize: '13px',
+                          lineHeight: '1.5',
+                        }}
+                        {...props}
+                      >
+                        {codeString}
+                      </SyntaxHighlighter>
                     </div>
-                    <CopyButton text={codeString} />
-                    <SyntaxHighlighter
-                      style={ghcolors}
-                      language={match[1]}
-                      PreTag="div"
-                      customStyle={{
-                        margin: 0,
-                        borderRadius: '0 0 6px 6px',
-                        border: '1px solid #d1d5db',
-                        borderTop: 'none',
-                        fontSize: '13px',
-                        lineHeight: '1.5',
-                      }}
-                      {...props}
-                    >
-                      {codeString}
-                    </SyntaxHighlighter>
-                  </div>
-                ) : (
+                  );
+                }
+                if (!inline) {
+                  // 无语言标注的代码块 - 纯文本暗色显示
+                  return (
+                    <div className="rfp-relative rfp-group rfp-my-4">
+                      <FloatingCopyButton text={codeString} />
+                      <pre
+                        className="rfp-m-0 rfp-rounded-md rfp-border rfp-border-white/10 rfp-overflow-x-auto rfp-p-4"
+                        style={{ background: '#1e1e1e', fontSize: '13px', lineHeight: '1.5' }}
+                      >
+                        <code className="rfp-font-mono rfp-text-white/85 rfp-text-sm">{children}</code>
+                      </pre>
+                    </div>
+                  );
+                }
+                // 行内代码
+                return (
                   <code
-                    className="rfp-bg-gray-100 rfp-px-1.5 rfp-py-0.5 rfp-rounded rfp-text-sm rfp-font-mono rfp-text-gray-800 rfp-border rfp-border-gray-200"
+                    className="rfp-bg-white/10 rfp-px-1.5 rfp-py-0.5 rfp-rounded rfp-text-sm rfp-font-mono rfp-text-white/85 rfp-border rfp-border-white/10"
                     {...props}
                   >
                     {children}
@@ -129,28 +197,28 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ url }) => {
                 );
               },
               h1: ({ children }) => (
-                <h1 className="rfp-text-3xl rfp-font-semibold rfp-mb-4 rfp-mt-6 rfp-text-gray-900 first:rfp-mt-0">
+                <h1 className="rfp-text-3xl rfp-font-semibold rfp-mb-4 rfp-mt-6 rfp-text-white/90 first:rfp-mt-0">
                   {children}
                 </h1>
               ),
               h2: ({ children }) => (
-                <h2 className="rfp-text-2xl rfp-font-semibold rfp-mb-3 rfp-mt-8 rfp-text-gray-900">
+                <h2 className="rfp-text-2xl rfp-font-semibold rfp-mb-3 rfp-mt-8 rfp-text-white/90">
                   {children}
                 </h2>
               ),
               h3: ({ children }) => (
-                <h3 className="rfp-text-xl rfp-font-semibold rfp-mb-2 rfp-mt-6 rfp-text-gray-900">{children}</h3>
+                <h3 className="rfp-text-xl rfp-font-semibold rfp-mb-2 rfp-mt-6 rfp-text-white/90">{children}</h3>
               ),
               h4: ({ children }) => (
-                <h4 className="rfp-text-lg rfp-font-semibold rfp-mb-2 rfp-mt-4 rfp-text-gray-900">{children}</h4>
+                <h4 className="rfp-text-lg rfp-font-semibold rfp-mb-2 rfp-mt-4 rfp-text-white/90">{children}</h4>
               ),
               p: ({ children }) => (
-                <p className="rfp-text-gray-700 rfp-mb-4 rfp-leading-7 rfp-text-base">{children}</p>
+                <p className="rfp-text-white/75 rfp-mb-4 rfp-leading-7 rfp-text-base">{children}</p>
               ),
               a: ({ href, children }) => (
                 <a
                   href={href}
-                  className="rfp-text-blue-600 hover:rfp-text-blue-800 rfp-underline rfp-decoration-blue-300 hover:rfp-decoration-blue-500"
+                  className="rfp-text-indigo-400 hover:rfp-text-indigo-300 rfp-underline rfp-decoration-indigo-600 hover:rfp-decoration-indigo-400"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
@@ -158,38 +226,38 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ url }) => {
                 </a>
               ),
               ul: ({ children }) => (
-                <ul className="rfp-list-disc rfp-pl-6 rfp-mb-4 rfp-text-gray-700 rfp-space-y-1">{children}</ul>
+                <ul className="rfp-list-disc rfp-pl-6 rfp-mb-4 rfp-text-white/75 rfp-space-y-1">{children}</ul>
               ),
               ol: ({ children }) => (
-                <ol className="rfp-list-decimal rfp-pl-6 rfp-mb-4 rfp-text-gray-700 rfp-space-y-1">{children}</ol>
+                <ol className="rfp-list-decimal rfp-pl-6 rfp-mb-4 rfp-text-white/75 rfp-space-y-1">{children}</ol>
               ),
               li: ({ children }) => <li className="rfp-leading-7">{children}</li>,
               blockquote: ({ children }) => (
-                <blockquote className="rfp-border-l-4 rfp-border-gray-300 rfp-pl-4 rfp-text-gray-600 rfp-my-4 rfp-italic">
+                <blockquote className="rfp-border-l-4 rfp-border-white/30 rfp-pl-4 rfp-text-white/60 rfp-my-4 rfp-italic">
                   {children}
                 </blockquote>
               ),
               table: ({ children }) => (
-                <div className="rfp-overflow-x-auto rfp-my-4 rfp-rounded-md rfp-border rfp-border-gray-200">
-                  <table className="rfp-min-w-full rfp-divide-y rfp-divide-gray-200">{children}</table>
+                <div className="rfp-overflow-x-auto rfp-my-4 rfp-rounded-md rfp-border rfp-border-white/15">
+                  <table className="rfp-min-w-full rfp-divide-y rfp-divide-white/15">{children}</table>
                 </div>
               ),
-              thead: ({ children }) => <thead className="rfp-bg-gray-50">{children}</thead>,
+              thead: ({ children }) => <thead className="rfp-bg-white/5">{children}</thead>,
               tbody: ({ children }) => (
-                <tbody className="rfp-divide-y rfp-divide-gray-200 rfp-bg-white">{children}</tbody>
+                <tbody className="rfp-divide-y rfp-divide-white/10 rfp-bg-transparent">{children}</tbody>
               ),
               tr: ({ children }) => (
-                <tr className="hover:rfp-bg-gray-50 rfp-transition-colors">{children}</tr>
+                <tr className="hover:rfp-bg-white/5 rfp-transition-colors">{children}</tr>
               ),
               th: ({ children }) => (
-                <th className="rfp-px-4 rfp-py-3 rfp-text-left rfp-text-xs rfp-font-semibold rfp-text-gray-600 rfp-uppercase rfp-tracking-wider">
+                <th className="rfp-px-4 rfp-py-3 rfp-text-left rfp-text-xs rfp-font-semibold rfp-text-white/60 rfp-uppercase rfp-tracking-wider">
                   {children}
                 </th>
               ),
               td: ({ children }) => (
-                <td className="rfp-px-4 rfp-py-3 rfp-text-sm rfp-text-gray-700">{children}</td>
+                <td className="rfp-px-4 rfp-py-3 rfp-text-sm rfp-text-white/75">{children}</td>
               ),
-              hr: () => <hr className="rfp-border-gray-200 rfp-my-6" />,
+              hr: () => <hr className="rfp-border-white/15 rfp-my-6" />,
               img: ({ src, alt }) => (
                 <img
                   src={src}
@@ -212,17 +280,16 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ url }) => {
                 return <input type={type} {...props} />;
               },
               strong: ({ children }) => (
-                <strong className="rfp-font-semibold rfp-text-gray-900">{children}</strong>
+                <strong className="rfp-font-semibold rfp-text-white/95">{children}</strong>
               ),
               em: ({ children }) => <em className="rfp-italic">{children}</em>,
               del: ({ children }) => (
-                <del className="rfp-text-gray-400 rfp-line-through">{children}</del>
+                <del className="rfp-text-white/40 rfp-line-through">{children}</del>
               ),
             }}
           >
             {content}
           </ReactMarkdown>
-        </div>
       </div>
     </div>
   );

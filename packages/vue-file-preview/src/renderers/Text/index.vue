@@ -90,13 +90,28 @@ watch(() => props.url, loadText, { immediate: true });
 <style scoped>
 .shiki-wrapper :deep(pre) {
   margin: 0;
-  padding: 1.5rem;
+  padding: 1.5rem 1.5rem 1.5rem 0;
   background: transparent !important;
   font-size: 0.875rem;
   overflow-x: auto;
 }
 .shiki-wrapper :deep(code) {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  counter-reset: line;
+}
+.shiki-wrapper :deep(code .line) {
+  counter-increment: line;
+}
+.shiki-wrapper :deep(code .line::before) {
+  content: counter(line);
+  display: inline-block;
+  width: 3em;
+  padding-right: 1em;
+  margin-right: 0.5em;
+  text-align: right;
+  color: rgba(255, 255, 255, 0.3);
+  user-select: none;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
 }
 .shiki-wrapper.no-wrap :deep(code) {
   white-space: pre;

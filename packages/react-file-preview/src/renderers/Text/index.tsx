@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { fetchTextUtf8 } from '@eternalheart/file-preview-core';
+import { fetchTextUtf8, getLanguageFromFileName } from '@eternalheart/file-preview-core';
 import { useTranslator } from '../../i18n/LocaleContext';
 
 interface TextRendererProps {
@@ -10,48 +10,6 @@ interface TextRendererProps {
   wordWrap?: boolean;
   htmlPreview?: boolean;
 }
-
-const getLanguageFromFileName = (fileName: string): string => {
-  const ext = fileName.split('.').pop()?.toLowerCase() || '';
-  const languageMap: Record<string, string> = {
-    js: 'javascript',
-    jsx: 'jsx',
-    ts: 'typescript',
-    tsx: 'tsx',
-    py: 'python',
-    java: 'java',
-    cpp: 'cpp',
-    c: 'c',
-    cs: 'csharp',
-    php: 'php',
-    rb: 'ruby',
-    go: 'go',
-    rs: 'rust',
-    swift: 'swift',
-    kt: 'kotlin',
-    scala: 'scala',
-    sh: 'bash',
-    bash: 'bash',
-    zsh: 'bash',
-    json: 'json',
-    xml: 'xml',
-    html: 'html',
-    htm: 'html',
-    css: 'css',
-    scss: 'scss',
-    sass: 'sass',
-    less: 'less',
-    sql: 'sql',
-    yaml: 'yaml',
-    yml: 'yaml',
-    toml: 'toml',
-    ini: 'ini',
-    conf: 'nginx',
-    md: 'markdown',
-    txt: 'text',
-  };
-  return languageMap[ext] || 'text';
-};
 
 export const TextRenderer: React.FC<TextRendererProps> = ({
   url,

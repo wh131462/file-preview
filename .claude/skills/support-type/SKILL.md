@@ -433,6 +433,7 @@ Grep: "XxxRenderer" in packages/vue-file-preview/src
 - ❌ **禁止**跳过 `FilePreviewContent` 的接入步骤（新增 renderer 不接入等于没做）
 - ❌ **禁止**假设用户"之后会补 Vue"，同步实现是本 skill 的核心价值
 - ❌ **禁止**在 renderer / toolbar 中硬编码中文或英文文案 — 必须走 `t('xxx.key')`，字典只在 core 维护（详见 §3.7）
+- ❌ **禁止**把 `@eternalheart/file-preview-core` 加进 react / vue 两个发布包的 `vite.config.ts` 的 `rollupOptions.external` 数组 — core 是内部共享层，**永不发布到 npm**，必须内联打包进 react / vue 产物。若 external 列表里出现 core，消费者项目装包后会报 `Could not resolve "@eternalheart/file-preview-core"`。两个 vite.config.ts 里已经有警示注释「注意：@eternalheart/file-preview-core 未发布到 npm，必须内联打包」，不要删除
 
 ## 边界：什么时候 Vue 可以滞后
 

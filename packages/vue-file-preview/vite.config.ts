@@ -36,7 +36,6 @@ export default defineConfig({
     rollupOptions: {
       external: [
         'vue',
-        '@eternalheart/file-preview-core',
         '@kenjiuno/msgreader',
         '@likecoin/epub-ts',
         'jszip',

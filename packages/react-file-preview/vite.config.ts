@@ -36,11 +36,11 @@ export default defineConfig({
     },
     rollupOptions: {
       // 外部化依赖，不打包到库中
+      // 注意：@eternalheart/file-preview-core 未发布到 npm，必须内联打包
       external: [
         'react',
         'react-dom',
         'react/jsx-runtime',
-        '@eternalheart/file-preview-core',
         '@kenjiuno/msgreader',
         '@likecoin/epub-ts',
         'framer-motion',

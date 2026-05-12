@@ -160,6 +160,32 @@ const customRenderers: CustomRenderer[] = [
 />
 ```
 
+#### headless
+
+- **类型**: `boolean`
+- **必需**: 否
+- **默认值**: `false`
+- **描述**: 无头模式。设为 `true` 时隐藏工具栏和导航箭头，仅渲染文件内容区域。适用于需要自定义外壳或纯内容展示的场景。
+
+```tsx
+<FilePreviewModal headless .../>
+```
+
+#### theme
+
+- **类型**: `Theme`（`'auto' | 'dark' | 'light'`）
+- **必需**: 否
+- **默认值**: `'dark'`
+- **描述**: 主题模式。`'dark'` 为暗色主题（默认），`'light'` 为浅色主题，`'auto'` 跟随系统 `prefers-color-scheme` 自动切换。
+
+```tsx
+// 浅色主题
+<FilePreviewModal theme="light" .../>
+
+// 跟随系统
+<FilePreviewModal theme="auto" .../>
+```
+
 ### 完整示例
 
 ```tsx
@@ -243,6 +269,10 @@ function Panel() {
 | `height` | `number \| string` | ❌ | `'100%'` | 容器高度 |
 | `className` | `string` | ❌ | - | 根节点额外 className |
 | `style` | `CSSProperties` | ❌ | - | 根节点额外内联样式 |
+| `locale` | `Locale` | ❌ | `'zh-CN'` | 界面语言 |
+| `messages` | `Partial<Record<Locale, Partial<Messages>>>` | ❌ | - | 自定义翻译字典 |
+| `headless` | `boolean` | ❌ | `false` | 无头模式,隐藏工具栏和导航箭头 |
+| `theme` | `Theme` | ❌ | `'dark'` | 主题模式: `'auto' \| 'dark' \| 'light'` |
 
 ::: tip 尺寸说明
 `FilePreviewEmbed` 默认使用 `width: 100%; height: 100%` 填充父容器,因此 **父容器必须具有明确的高度**(如 `height: 520px` 或通过 flex/grid 布局给定高度),否则组件会塌陷为 0 高度。
@@ -322,6 +352,10 @@ function DetailPanel() {
 | `customRenderers` | `CustomRenderer[]` | ❌ | - | 自定义渲染器 |
 | `mode` | `'modal' \| 'embed'` | ❌ | `'modal'` | 运行模式,控制细节差异 |
 | `onClose` | `() => void` | ❌ | - | 关闭回调,仅在 `mode='modal'` 时显示关闭按钮 |
+| `headless` | `boolean` | ❌ | `false` | ���头模式,隐藏工具栏和导航箭头 |
+| `theme` | `Theme` | ❌ | `'dark'` | 主题模式: `'auto' \| 'dark' \| 'light'` |
+| `locale` | `Locale` | ❌ | `'zh-CN'` | 界面语言 |
+| `messages` | `Partial<Record<Locale, Partial<Messages>>>` | ❌ | - | 自定义翻译字典 |
 
 **mode 差异:**
 

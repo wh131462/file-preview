@@ -269,6 +269,8 @@ const files = [
 | `customRenderers` | `CustomRenderer[]` | ❌ | 自定义渲染器 |
 | `locale` | `Locale` | ❌ | 界面语言（默认 `'zh-CN'`，内置 `'en-US'`） |
 | `messages` | `Partial<Record<Locale, Partial<Messages>>>` | ❌ | 自定义翻译覆盖 |
+| `headless` | `boolean` | ❌ | 无头模式，隐藏工具栏和导航箭头 |
+| `theme` | `Theme` | ❌ | 主题模式: `'auto' \| 'dark' \| 'light'`（默认 `'dark'`） |
 
 ### FilePreviewModal 事件
 
@@ -288,6 +290,8 @@ const files = [
 | `height` | `number \| string` | ❌ | `'100%'` | 容器高度 |
 | `locale` | `Locale` | ❌ | `'zh-CN'` | 界面语言（`'zh-CN'` 或 `'en-US'`） |
 | `messages` | `Partial<Record<Locale, Partial<Messages>>>` | ❌ | - | 自定义翻译覆盖 |
+| `headless` | `boolean` | ❌ | `false` | 无头模式，隐藏工具栏和导航箭头 |
+| `theme` | `Theme` | ❌ | `'dark'` | 主题模式: `'auto' \| 'dark' \| 'light'` |
 
 ### FilePreviewEmbed 事件
 

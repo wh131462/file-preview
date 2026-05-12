@@ -343,6 +343,8 @@ const files = [
 | `customRenderers` | `CustomRenderer[]` | ❌ | Custom renderers for specific file types |
 | `locale` | `Locale` | ❌ | UI language (`'zh-CN'` default, `'en-US'` built-in) |
 | `messages` | `Partial<Record<Locale, Partial<Messages>>>` | ❌ | Custom translation overrides |
+| `headless` | `boolean` | ❌ | Headless mode — hides toolbar and navigation arrows |
+| `theme` | `Theme` | ❌ | Theme mode: `'auto' \| 'dark' \| 'light'` (default `'dark'`) |
 
 ### FilePreviewEmbed Props
 
@@ -358,6 +360,8 @@ const files = [
 | `style` | `CSSProperties` | ❌ | - | Extra inline style on the root wrapper |
 | `locale` | `Locale` | ❌ | `'zh-CN'` | UI language (`'zh-CN'` or `'en-US'`) |
 | `messages` | `Partial<Record<Locale, Partial<Messages>>>` | ❌ | - | Custom translation overrides |
+| `headless` | `boolean` | ❌ | `false` | Headless mode — hides toolbar and navigation arrows |
+| `theme` | `Theme` | ❌ | `'dark'` | Theme mode: `'auto' \| 'dark' \| 'light'` |
 
 > `FilePreviewEmbed` has no `isOpen` / `onClose`. To hide/show it, conditionally render it from the parent. It also hides the close button in the toolbar.
 

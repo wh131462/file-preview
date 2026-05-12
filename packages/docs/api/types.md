@@ -130,6 +130,18 @@ interface PreviewState {
 }
 ```
 
+## Theme
+
+主题模式类型：
+
+```typescript
+type Theme = 'auto' | 'dark' | 'light'
+```
+
+- `'dark'` — 暗色主题（默认）
+- `'light'` — 浅色主题
+- `'auto'` — 跟随系统 `prefers-color-scheme` 自动切换
+
 ## CustomRenderer
 
 自定义渲染器接口，用于扩展或覆盖默认的文件渲染逻辑：

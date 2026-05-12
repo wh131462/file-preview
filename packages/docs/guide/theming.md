@@ -1,222 +1,88 @@
 # 主题定制
 
-React File Preview 提供了灵活的样式定制选项。
+## 内置主题
 
-## CSS 变量
+组件通过 `theme` prop 提供三种内置主题模式：
 
-组件使用 CSS 变量来定义主题颜色和样式，你可以通过覆盖这些变量来自定义主题。
+| 值 | 说明 |
+|------|------|
+| `'dark'` | 暗色主题（默认） |
+| `'light'` | 浅色主题 |
+| `'auto'` | 跟随系统 `prefers-color-scheme` 自动切换 |
 
-### 默认变量
+### 基本用法
 
-```css
-:root {
-  --rfp-bg-color: rgba(0, 0, 0, 0.95);
-  --rfp-text-color: #ffffff;
-  --rfp-border-color: rgba(255, 255, 255, 0.1);
-  --rfp-button-bg: rgba(255, 255, 255, 0.1);
-  --rfp-button-hover-bg: rgba(255, 255, 255, 0.2);
-  --rfp-button-active-bg: rgba(255, 255, 255, 0.3);
-  --rfp-overlay-bg: rgba(0, 0, 0, 0.8);
-}
+::: code-group
+
+```tsx [React]
+import { FilePreviewModal } from '@eternalheart/react-file-preview'
+
+// 浅色主题
+<FilePreviewModal theme="light" files={files} ... />
+
+// 跟随系统
+<FilePreviewModal theme="auto" files={files} ... />
+
+// 嵌入模式同样支持
+<FilePreviewEmbed theme="light" files={files} />
 ```
 
-### 自定义主题
+```vue [Vue]
+<!-- 浅色主��� -->
+<FilePreviewModal theme="light" :files="files" ... />
 
-创建一个自定义主题：
+<!-- 跟随系统 -->
+<FilePreviewModal theme="auto" :files="files" ... />
 
-```css
-/* 亮色主题 */
-.light-theme {
-  --rfp-bg-color: rgba(255, 255, 255, 0.98);
-  --rfp-text-color: #000000;
-  --rfp-border-color: rgba(0, 0, 0, 0.1);
-  --rfp-button-bg: rgba(0, 0, 0, 0.05);
-  --rfp-button-hover-bg: rgba(0, 0, 0, 0.1);
-  --rfp-button-active-bg: rgba(0, 0, 0, 0.15);
-  --rfp-overlay-bg: rgba(255, 255, 255, 0.9);
-}
-
-/* 蓝色主题 */
-.blue-theme {
-  --rfp-bg-color: #1a1f3a;
-  --rfp-text-color: #e0e6ff;
-  --rfp-border-color: rgba(96, 165, 250, 0.2);
-  --rfp-button-bg: rgba(96, 165, 250, 0.1);
-  --rfp-button-hover-bg: rgba(96, 165, 250, 0.2);
-  --rfp-button-active-bg: rgba(96, 165, 250, 0.3);
-  --rfp-overlay-bg: rgba(26, 31, 58, 0.9);
-}
+<!-- 嵌入模式同样支持 -->
+<FilePreviewEmbed theme="light" :files="files" />
 ```
 
-应用主题：
+:::
 
-```tsx
-<div className="light-theme">
-  <FilePreviewModal
-    isOpen={isOpen}
-    onClose={() => setIsOpen(false)}
-    files={files}
-    currentIndex={0}
-  />
-</div>
+### auto 模式
+
+当 `theme="auto"` 时，组件会监听 `window.matchMedia('(prefers-color-scheme: dark)')` 的变化，实时跟随系统主题切换。
+
+## 无头模式
+
+通过 `headless` prop 可以隐藏所有 UI 外壳（工具栏、导航箭头），仅渲染文件内容。适用于需要自定义外壳或纯内容展示的场景。
+
+::: code-group
+
+```tsx [React]
+<FilePreviewEmbed headless files={files} />
 ```
 
-## 自定义样式类
+```vue [Vue]
+<FilePreviewEmbed headless :files="files" />
+```
 
-你可以通过 CSS 覆盖组件的默认样式：
+:::
+
+## CSS 变量覆盖
+
+除了内置主题，你还可以通过 CSS 变量进一步定制样式。组件根元素会添加 `data-theme="dark"` 或 `data-theme="light"` 属性，可以基于此选择器覆盖样式：
 
 ```css
-/* 自定义模态框样式 */
-.file-preview-modal {
-  border-radius: 12px;
+/* 自定义 light 主题的滚动条 */
+.rfp-root[data-theme="light"] ::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.3);
 }
 
-/* 自定义工具栏 */
-.file-preview-toolbar {
-  background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);
-  padding: 1rem;
-}
-
-/* 自定义按钮 */
-.file-preview-button {
-  border-radius: 8px;
-  transition: all 0.2s ease;
-}
-
-.file-preview-button:hover {
-  transform: scale(1.1);
-}
-
-/* 自定义导航按钮 */
-.file-preview-nav-button {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
+/* 自定义 dark 主题的滚动条 */
+.rfp-root[data-theme="dark"] ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
 }
 ```
 
 ## Tailwind CSS 集成
 
-如果你使用 Tailwind CSS，可以使用 `@apply` 指令：
-
-```css
-.file-preview-modal {
-  @apply rounded-xl shadow-2xl;
-}
-
-.file-preview-toolbar {
-  @apply bg-gradient-to-b from-black/80 to-transparent p-4;
-}
-
-.file-preview-button {
-  @apply rounded-lg transition-all duration-200 hover:scale-110;
-}
-```
+组件内部使用带前缀的 Tailwind 类（`rfp-` / `vfp-`），不会与你项目中的 Tailwind 冲突。如需进一步定制，可通过 `data-theme` 属性选择器配合你自己的 Tailwind 类。
 
 ## 响应式设计
 
-组件已经内置了响应式设计，但你可以进一步自定义：
-
-```css
-/* 移动设备 */
-@media (max-width: 768px) {
-  .file-preview-toolbar {
-    padding: 0.5rem;
-  }
-  
-  .file-preview-button {
-    width: 36px;
-    height: 36px;
-  }
-}
-
-/* 平板设备 */
-@media (min-width: 769px) and (max-width: 1024px) {
-  .file-preview-toolbar {
-    padding: 0.75rem;
-  }
-}
-
-/* 桌面设备 */
-@media (min-width: 1025px) {
-  .file-preview-toolbar {
-    padding: 1rem;
-  }
-}
-```
-
-## 动画定制
-
-自定义动画效果：
-
-```css
-/* 自定义淡入动画 */
-.file-preview-modal {
-  animation: customFadeIn 0.3s ease-out;
-}
-
-@keyframes customFadeIn {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-/* 自定义滑动动画 */
-.file-preview-content {
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-```
-
-## 暗色模式支持
-
-支持系统暗色模式：
-
-```css
-@media (prefers-color-scheme: dark) {
-  :root {
-    --rfp-bg-color: rgba(0, 0, 0, 0.95);
-    --rfp-text-color: #ffffff;
-  }
-}
-
-@media (prefers-color-scheme: light) {
-  :root {
-    --rfp-bg-color: rgba(255, 255, 255, 0.98);
-    --rfp-text-color: #000000;
-  }
-}
-```
-
-## 完整示例
-
-```tsx
-import { FilePreviewModal } from '@eternalheart/react-file-preview'
-import '@eternalheart/react-file-preview/style.css'
-import './custom-theme.css'
-
-function App() {
-  const [theme, setTheme] = useState('dark')
-
-  return (
-    <div className={theme === 'light' ? 'light-theme' : 'dark-theme'}>
-      <button onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}>
-        切换主题
-      </button>
-      <FilePreviewModal
-        isOpen={isOpen}
-        onClose={() => setIsOpen(false)}
-        files={files}
-        currentIndex={0}
-      />
-    </div>
-  )
-}
-```
+组件已内置响应式设计，桌面端显示完整工具栏，移动端自动简化 UI 并支持触摸手势。
 
 ## 下一步
 

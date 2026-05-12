@@ -341,6 +341,8 @@ const files = [
 | `customRenderers` | `CustomRenderer[]` | ❌ | 自定义渲染器 |
 | `locale` | `Locale` | ❌ | 界面语言（默认 `'zh-CN'`，内置 `'en-US'`） |
 | `messages` | `Partial<Record<Locale, Partial<Messages>>>` | ❌ | 自定义翻译覆盖 |
+| `headless` | `boolean` | ❌ | 无头模式，隐藏工具栏和导航箭头 |
+| `theme` | `Theme` | ❌ | 主题模式: `'auto' \| 'dark' \| 'light'`（默认 `'dark'`） |
 
 ### FilePreviewEmbed Props
 
@@ -356,6 +358,8 @@ const files = [
 | `style` | `CSSProperties` | ❌ | - | 根节点额外内联样式 |
 | `locale` | `Locale` | ❌ | `'zh-CN'` | 界面语言（`'zh-CN'` 或 `'en-US'`） |
 | `messages` | `Partial<Record<Locale, Partial<Messages>>>` | ❌ | - | 自定义翻译覆盖 |
+| `headless` | `boolean` | ❌ | `false` | 无头模式，隐藏工具栏和导航箭头 |
+| `theme` | `Theme` | ❌ | `'dark'` | 主题模式: `'auto' \| 'dark' \| 'light'` |
 
 > `FilePreviewEmbed` 没有 `isOpen` / `onClose`,若要显示/隐藏,请在父组件中条件渲染。同时它不会显示工具栏上的关闭按钮。
 

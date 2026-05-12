@@ -40,5 +40,6 @@ export type {
   Translator,
   TranslateParams,
   CreateTranslatorOptions,
+  Theme,
 } from '@eternalheart/file-preview-core';
 

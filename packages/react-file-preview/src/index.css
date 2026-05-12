@@ -184,6 +184,19 @@
   background: rgba(255, 255, 255, 0.5);
 }
 
+/* Light 主题滚动条 */
+.rfp-root[data-theme="light"] ::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.rfp-root[data-theme="light"] ::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.rfp-root[data-theme="light"] ::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.35);
+}
+
 /* PDF 渲染样式优化 */
 .rfp-root .react-pdf__Page {
   max-width: 100%;
@@ -486,6 +499,16 @@
 .rfp-root .xlsx-spreadsheet-container .x-spreadsheet-scrollbar.vertical > div,
 .rfp-root .xlsx-spreadsheet-container .x-spreadsheet-scrollbar.horizontal > div {
   background: rgba(255, 255, 255, 0.15);
+}
+
+/* Light 主题 xlsx 滚动条 */
+.rfp-root[data-theme="light"] .xlsx-spreadsheet-container .x-spreadsheet-scrollbar {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.rfp-root[data-theme="light"] .xlsx-spreadsheet-container .x-spreadsheet-scrollbar.vertical > div,
+.rfp-root[data-theme="light"] .xlsx-spreadsheet-container .x-spreadsheet-scrollbar.horizontal > div {
+  background: rgba(0, 0, 0, 0.2);
 }
 
 /* 移动端优化 */

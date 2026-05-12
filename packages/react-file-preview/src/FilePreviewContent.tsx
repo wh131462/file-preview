@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { X, Download, ChevronLeft, ChevronRight } from 'lucide-react';
-import { getFileType, createTranslator, type Locale, type Messages, type Translator } from '@eternalheart/file-preview-core';
+import { getFileType, createTranslator, type Locale, type Messages, type Translator, type Theme } from '@eternalheart/file-preview-core';
 import { LocaleProvider } from './i18n/LocaleContext';
 import type { ToolbarGroup } from './renderers/toolbar.types';
 import { getImageToolbarGroups } from './renderers/Image/toolbar';
@@ -52,6 +52,10 @@ export interface FilePreviewContentProps {
   locale?: Locale;
   /** 用户自定义翻译字典，浅合并到内置字典之上 */
   messages?: Partial<Record<Locale, Partial<Messages>>>;
+  /** 无头模式：隐藏工具栏和导航箭头，仅渲染文件内容 */
+  headless?: boolean;
+  /** 主题模式，默认 'dark' */
+  theme?: Theme;
 }
 
 export const FilePreviewContent: React.FC<FilePreviewContentProps> = ({
@@ -64,11 +68,31 @@ export const FilePreviewContent: React.FC<FilePreviewContentProps> = ({
   zipNestingDepth = 0,
   locale = 'zh-CN',
   messages: userMessages,
+  headless = false,
+  theme = 'dark',
 }) => {
   const t: Translator = useMemo(
     () => createTranslator({ locale, messages: userMessages }),
     [locale, userMessages],
   );
+
+  const [systemDark, setSystemDark] = useState(() =>
+    typeof window !== 'undefined'
+      ? window.matchMedia('(prefers-color-scheme: dark)').matches
+      : true,
+  );
+
+  useEffect(() => {
+    if (theme !== 'auto') return;
+    const mql = window.matchMedia('(prefers-color-scheme: dark)');
+    const handler = (e: MediaQueryListEvent) => setSystemDark(e.matches);
+    mql.addEventListener('change', handler);
+    return () => mql.removeEventListener('change', handler);
+  }, [theme]);
+
+  const resolvedTheme = theme === 'auto' ? (systemDark ? 'dark' : 'light') : theme;
+  const isLight = resolvedTheme === 'light';
+
   const [zoom, setZoom] = useState(1);
   const [rotation, setRotation] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
@@ -350,18 +374,19 @@ export const FilePreviewContent: React.FC<FilePreviewContentProps> = ({
               label={item.tooltip}
               onClick={item.action}
               disabled={item.disabled}
+              isLight={isLight}
             />
           ) : (
             <span
               key={`${gi}-${ii}`}
-              className="rfp-text-white/60 rfp-text-xs rfp-text-center rfp-font-medium rfp-tabular-nums"
+              className={`rfp-text-xs rfp-text-center rfp-font-medium rfp-tabular-nums ${isLight ? 'rfp-text-gray-500' : 'rfp-text-white/60'}`}
               style={{ minWidth: item.minWidth || 'auto' }}
             >
               {item.content}
             </span>
           )
         )}
-        {gi < arr.length - 1 && <div className={`rfp-w-px rfp-h-4 rfp-bg-white/10 ${dividerClass}`} />}
+        {gi < arr.length - 1 && <div className={`rfp-w-px rfp-h-4 ${isLight ? 'rfp-bg-gray-200' : 'rfp-bg-white/10'} ${dividerClass}`} />}
       </React.Fragment>
     ));
 
@@ -370,24 +395,26 @@ export const FilePreviewContent: React.FC<FilePreviewContentProps> = ({
     <div
       ref={rootRef}
       tabIndex={mode === 'embed' ? 0 : -1}
+      data-theme={resolvedTheme}
       className="rfp-relative rfp-w-full rfp-h-full rfp-flex rfp-flex-col rfp-overflow-hidden rfp-outline-none"
     >
       {/* 顶部工具栏 - 全屏融合式 */}
+      {!headless && (
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="rfp-flex-shrink-0 rfp-z-10 rfp-bg-black/50 rfp-backdrop-blur-md rfp-border-b rfp-border-white/10"
+        className={`rfp-flex-shrink-0 rfp-z-10 rfp-backdrop-blur-md rfp-border-b ${isLight ? 'rfp-bg-white/80 rfp-border-gray-200' : 'rfp-bg-black/50 rfp-border-white/10'}`}
         style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
       >
         {/* 第一行:文件名 + 分页 + 关闭/下载(移动端右侧)/ 全部按钮(桌面端) */}
         <div className="rfp-flex rfp-items-center rfp-justify-between rfp-px-3 md:rfp-px-5 rfp-py-1.5 md:rfp-py-2.5">
           {/* 左侧:文件名 + 分页 */}
           <div className="rfp-flex rfp-items-center rfp-flex-1 rfp-min-w-0 rfp-mr-2 md:rfp-mr-3">
-            <h2 className="rfp-text-white/90 rfp-font-medium rfp-text-xs md:rfp-text-sm rfp-truncate">
+            <h2 className={`rfp-font-medium rfp-text-xs md:rfp-text-sm rfp-truncate ${isLight ? 'rfp-text-gray-800' : 'rfp-text-white/90'}`}>
               {currentFile.name}
             </h2>
-            <span className="rfp-text-white/40 rfp-text-xs rfp-ml-2 rfp-flex-shrink-0">
+            <span className={`rfp-text-xs rfp-ml-2 rfp-flex-shrink-0 ${isLight ? 'rfp-text-gray-400' : 'rfp-text-white/40'}`}>
               {currentIndex + 1}/{normalizedFiles.length}
             </span>
           </div>
@@ -400,7 +427,7 @@ export const FilePreviewContent: React.FC<FilePreviewContentProps> = ({
           {/* 桌面端:所有工具按钮 */}
           <div className="rfp-hidden md:rfp-flex rfp-items-center rfp-gap-1 rfp-flex-shrink-0">
             {renderToolbarItems(toolGroups, 'rfp-mx-1')}
-            {toolGroups.length > 0 && <div className="rfp-w-px rfp-h-4 rfp-bg-white/10 rfp-mx-1" />}
+            {toolGroups.length > 0 && <div className={`rfp-w-px rfp-h-4 rfp-mx-1 ${isLight ? 'rfp-bg-gray-200' : 'rfp-bg-white/10'}`} />}
             {renderToolbarItems(actionGroups, 'rfp-mx-1')}
           </div>
         </div>
@@ -412,6 +439,7 @@ export const FilePreviewContent: React.FC<FilePreviewContentProps> = ({
           </div>
         )}
       </motion.div>
+      )}
 
       {/* 内容区域 */}
       <div
@@ -513,7 +541,7 @@ export const FilePreviewContent: React.FC<FilePreviewContentProps> = ({
       </div>
 
       {/* 左右导航箭头 - 自动隐藏 */}
-      {normalizedFiles.length > 1 && (
+      {!headless && normalizedFiles.length > 1 && (
         <>
           {currentIndex > 0 && (
             <motion.button
@@ -523,7 +551,7 @@ export const FilePreviewContent: React.FC<FilePreviewContentProps> = ({
               onClick={() => onNavigate?.(currentIndex - 1)}
               onMouseEnter={() => setNavVisible(true)}
               style={{ pointerEvents: navVisible ? 'auto' : 'none' }}
-              className="rfp-absolute rfp-z-20 rfp-left-2 md:rfp-left-4 rfp-top-1/2 -rfp-translate-y-1/2 rfp-w-10 rfp-h-10 md:rfp-w-12 md:rfp-h-12 rfp-rounded-full rfp-bg-black/40 rfp-backdrop-blur-xl rfp-border rfp-border-white/10 rfp-flex rfp-items-center rfp-justify-center rfp-text-white hover:rfp-bg-black/60 rfp-transition-colors rfp-shadow-2xl"
+              className={`rfp-absolute rfp-z-20 rfp-left-2 md:rfp-left-4 rfp-top-1/2 -rfp-translate-y-1/2 rfp-w-10 rfp-h-10 md:rfp-w-12 md:rfp-h-12 rfp-rounded-full rfp-backdrop-blur-xl rfp-border rfp-flex rfp-items-center rfp-justify-center rfp-transition-colors rfp-shadow-2xl ${isLight ? 'rfp-bg-white/70 rfp-border-gray-200 rfp-text-gray-700 hover:rfp-bg-white/90' : 'rfp-bg-black/40 rfp-border-white/10 rfp-text-white hover:rfp-bg-black/60'}`}
             >
               <ChevronLeft className="rfp-w-5 rfp-h-5 md:rfp-w-6 md:rfp-h-6" />
             </motion.button>
@@ -537,7 +565,7 @@ export const FilePreviewContent: React.FC<FilePreviewContentProps> = ({
               onClick={() => onNavigate?.(currentIndex + 1)}
               onMouseEnter={() => setNavVisible(true)}
               style={{ pointerEvents: navVisible ? 'auto' : 'none' }}
-              className="rfp-absolute rfp-z-20 rfp-right-2 md:rfp-right-4 rfp-top-1/2 -rfp-translate-y-1/2 rfp-w-10 rfp-h-10 md:rfp-w-12 md:rfp-h-12 rfp-rounded-full rfp-bg-black/40 rfp-backdrop-blur-xl rfp-border rfp-border-white/10 rfp-flex rfp-items-center rfp-justify-center rfp-text-white hover:rfp-bg-black/60 rfp-transition-colors rfp-shadow-2xl"
+              className={`rfp-absolute rfp-z-20 rfp-right-2 md:rfp-right-4 rfp-top-1/2 -rfp-translate-y-1/2 rfp-w-10 rfp-h-10 md:rfp-w-12 md:rfp-h-12 rfp-rounded-full rfp-backdrop-blur-xl rfp-border rfp-flex rfp-items-center rfp-justify-center rfp-transition-colors rfp-shadow-2xl ${isLight ? 'rfp-bg-white/70 rfp-border-gray-200 rfp-text-gray-700 hover:rfp-bg-white/90' : 'rfp-bg-black/40 rfp-border-white/10 rfp-text-white hover:rfp-bg-black/60'}`}
             >
               <ChevronRight className="rfp-w-5 rfp-h-5 md:rfp-w-6 md:rfp-h-6" />
             </motion.button>
@@ -555,21 +583,22 @@ interface ToolbarButtonProps {
   label: string;
   onClick: () => void;
   disabled?: boolean;
+  isLight?: boolean;
 }
 
-const ToolbarButton: React.FC<ToolbarButtonProps> = ({ icon, label, onClick, disabled }) => {
+const ToolbarButton: React.FC<ToolbarButtonProps> = ({ icon, label, onClick, disabled, isLight }) => {
   return (
     <button
       onClick={onClick}
       disabled={disabled}
       className={`rfp-relative rfp-group rfp-p-2 md:rfp-p-1.5 rfp-rounded-md rfp-transition-all rfp-select-none ${disabled
-        ? 'rfp-text-white/30 rfp-cursor-not-allowed'
-        : 'rfp-text-white hover:rfp-bg-white/10 active:rfp-bg-white/20'
+        ? (isLight ? 'rfp-text-gray-300 rfp-cursor-not-allowed' : 'rfp-text-white/30 rfp-cursor-not-allowed')
+        : (isLight ? 'rfp-text-gray-700 hover:rfp-bg-black/5 active:rfp-bg-black/10' : 'rfp-text-white hover:rfp-bg-white/10 active:rfp-bg-white/20')
         }`}
     >
       {icon}
-      <span className="rfp-absolute rfp-left-1/2 -rfp-translate-x-1/2 rfp-top-full rfp-mt-1.5 rfp-px-2 rfp-py-1 rfp-bg-[rgba(0,0,0,0.85)] rfp-text-white rfp-text-xs rfp-rounded rfp-whitespace-nowrap rfp-pointer-events-none rfp-opacity-0 rfp-invisible group-hover:rfp-opacity-100 group-hover:rfp-visible rfp-transition-opacity rfp-duration-200 rfp-z-50">
-        <span className="rfp-absolute rfp-left-1/2 -rfp-translate-x-1/2 -rfp-top-1 rfp-w-2 rfp-h-2 rfp-bg-[rgba(0,0,0,0.85)] rfp-rotate-45" />
+      <span className={`rfp-absolute rfp-left-1/2 -rfp-translate-x-1/2 rfp-top-full rfp-mt-1.5 rfp-px-2 rfp-py-1 rfp-text-xs rfp-rounded rfp-whitespace-nowrap rfp-pointer-events-none rfp-opacity-0 rfp-invisible group-hover:rfp-opacity-100 group-hover:rfp-visible rfp-transition-opacity rfp-duration-200 rfp-z-50 ${isLight ? 'rfp-bg-gray-800 rfp-text-white' : 'rfp-bg-[rgba(0,0,0,0.85)] rfp-text-white'}`}>
+        <span className={`rfp-absolute rfp-left-1/2 -rfp-translate-x-1/2 -rfp-top-1 rfp-w-2 rfp-h-2 rfp-rotate-45 ${isLight ? 'rfp-bg-gray-800' : 'rfp-bg-[rgba(0,0,0,0.85)]'}`} />
         <span className="rfp-relative">{label}</span>
       </span>
     </button>

@@ -184,6 +184,19 @@
   background: rgba(255, 255, 255, 0.5);
 }
 
+/* Light 主题滚动条 */
+.vfp-root[data-theme="light"] ::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.vfp-root[data-theme="light"] ::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.vfp-root[data-theme="light"] ::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.35);
+}
+
 /* 唱片旋转动画 */
 @keyframes vfp-vinyl-spin {
   from { transform: rotate(0deg); }
@@ -385,6 +398,16 @@
 .vfp-root .xlsx-spreadsheet-container .x-spreadsheet-scrollbar.vertical > div,
 .vfp-root .xlsx-spreadsheet-container .x-spreadsheet-scrollbar.horizontal > div {
   background: rgba(255, 255, 255, 0.15);
+}
+
+/* Light 主题 xlsx 滚动条 */
+.vfp-root[data-theme="light"] .xlsx-spreadsheet-container .x-spreadsheet-scrollbar {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.vfp-root[data-theme="light"] .xlsx-spreadsheet-container .x-spreadsheet-scrollbar.vertical > div,
+.vfp-root[data-theme="light"] .xlsx-spreadsheet-container .x-spreadsheet-scrollbar.horizontal > div {
+  background: rgba(0, 0, 0, 0.2);
 }
 
 @media (max-width: 640px) {

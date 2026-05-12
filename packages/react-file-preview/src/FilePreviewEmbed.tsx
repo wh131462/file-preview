@@ -1,6 +1,7 @@
+import { useEffect, useState } from 'react';
 import { PreviewFileInput, CustomRenderer } from './types';
 import { FilePreviewContent } from './FilePreviewContent';
-import type { Locale, Messages } from '@eternalheart/file-preview-core';
+import type { Locale, Messages, Theme } from '@eternalheart/file-preview-core';
 
 interface FilePreviewEmbedProps {
   files: PreviewFileInput[];
@@ -17,6 +18,10 @@ interface FilePreviewEmbedProps {
   locale?: Locale;
   /** 用户自定义翻译字典 */
   messages?: Partial<Record<Locale, Partial<Messages>>>;
+  /** 无头模式：隐藏工具栏和导航箭头 */
+  headless?: boolean;
+  /** 主题模式，默认 'dark' */
+  theme?: Theme;
 }
 
 export const FilePreviewEmbed: React.FC<FilePreviewEmbedProps> = ({
@@ -30,13 +35,33 @@ export const FilePreviewEmbed: React.FC<FilePreviewEmbedProps> = ({
   style,
   locale,
   messages,
+  headless,
+  theme = 'dark',
 }) => {
+  const [systemDark, setSystemDark] = useState(() =>
+    typeof window !== 'undefined'
+      ? window.matchMedia('(prefers-color-scheme: dark)').matches
+      : true,
+  );
+
+  useEffect(() => {
+    if (theme !== 'auto') return;
+    const mql = window.matchMedia('(prefers-color-scheme: dark)');
+    const handler = (e: MediaQueryListEvent) => setSystemDark(e.matches);
+    mql.addEventListener('change', handler);
+    return () => mql.removeEventListener('change', handler);
+  }, [theme]);
+
+  const resolvedTheme = theme === 'auto' ? (systemDark ? 'dark' : 'light') : theme;
+  const isLight = resolvedTheme === 'light';
+
   return (
     <div
       className={`rfp-root ${className ?? ''}`}
       style={{ width, height, ...style }}
+      data-theme={resolvedTheme}
     >
-      <div className="rfp-relative rfp-w-full rfp-h-full rfp-overflow-hidden rfp-bg-black/80">
+      <div className={`rfp-relative rfp-w-full rfp-h-full rfp-overflow-hidden ${isLight ? 'rfp-bg-gray-100' : 'rfp-bg-black/80'}`}>
         <FilePreviewContent
           mode="embed"
           files={files}
@@ -45,6 +70,8 @@ export const FilePreviewEmbed: React.FC<FilePreviewEmbedProps> = ({
           customRenderers={customRenderers}
           locale={locale}
           messages={messages}
+          headless={headless}
+          theme={theme}
         />
       </div>
     </div>

@@ -1,6 +1,7 @@
 <script setup lang="ts">
+import { ref, watch, onBeforeUnmount, computed } from 'vue';
 import type { CSSProperties } from 'vue';
-import type { PreviewFileInput, Locale, Messages } from '@eternalheart/file-preview-core';
+import type { PreviewFileInput, Locale, Messages, Theme } from '@eternalheart/file-preview-core';
 import type { CustomRenderer } from './types';
 import FilePreviewContent from './FilePreviewContent.vue';
 
@@ -16,6 +17,10 @@ interface Props {
   locale?: Locale;
   /** 自定义翻译字典 */
   messages?: Partial<Record<Locale, Partial<Messages>>>;
+  /** 无头模式：隐藏工具栏和导航箭头 */
+  headless?: boolean;
+  /** 主题模式，默认 'dark' */
+  theme?: Theme;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -25,11 +30,47 @@ const props = withDefaults(defineProps<Props>(), {
   height: '100%',
   locale: undefined,
   messages: undefined,
+  headless: false,
+  theme: 'dark',
 });
 
 const emit = defineEmits<{
   (e: 'navigate', index: number): void;
 }>();
+
+const systemDark = ref(
+  typeof window !== 'undefined'
+    ? window.matchMedia('(prefers-color-scheme: dark)').matches
+    : true,
+);
+
+let mediaQueryCleanup: (() => void) | null = null;
+
+watch(
+  () => props.theme,
+  (theme) => {
+    if (mediaQueryCleanup) {
+      mediaQueryCleanup();
+      mediaQueryCleanup = null;
+    }
+    if (theme === 'auto') {
+      const mql = window.matchMedia('(prefers-color-scheme: dark)');
+      const handler = (e: MediaQueryListEvent) => { systemDark.value = e.matches; };
+      mql.addEventListener('change', handler);
+      mediaQueryCleanup = () => mql.removeEventListener('change', handler);
+    }
+  },
+  { immediate: true },
+);
+
+onBeforeUnmount(() => {
+  if (mediaQueryCleanup) mediaQueryCleanup();
+});
+
+const resolvedTheme = computed(() =>
+  props.theme === 'auto' ? (systemDark.value ? 'dark' : 'light') : props.theme,
+);
+const isLight = computed(() => resolvedTheme.value === 'light');
 
 const wrapperStyle: CSSProperties = {
   width: typeof props.width === 'number' ? `${props.width}px` : props.width,
@@ -38,8 +79,8 @@ const wrapperStyle: CSSProperties = {
 </script>
 
 <template>
-  <div class="vfp-root" :style="wrapperStyle">
-    <div class="vfp-relative vfp-w-full vfp-h-full vfp-overflow-hidden vfp-bg-black/80">
+  <div class="vfp-root" :style="wrapperStyle" :data-theme="resolvedTheme">
+    <div :class="['vfp-relative vfp-w-full vfp-h-full vfp-overflow-hidden', isLight ? 'vfp-bg-gray-100' : 'vfp-bg-black/80']">
       <FilePreviewContent
         mode="embed"
         :files="files"
@@ -47,6 +88,8 @@ const wrapperStyle: CSSProperties = {
         :custom-renderers="customRenderers"
         :locale="locale"
         :messages="messages"
+        :headless="headless"
+        :theme="theme"
         @navigate="(i) => emit('navigate', i)"
       />
     </div>

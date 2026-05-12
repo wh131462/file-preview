@@ -5,6 +5,7 @@ export type {
   PreviewFileInput,
   FileType,
   PreviewState,
+  Theme,
 } from './types';
 
 // 导出文件标准化工具

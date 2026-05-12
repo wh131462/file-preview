@@ -45,3 +45,5 @@ export interface PreviewState {
   currentPage: number;
   totalPages: number;
 }
+
+export type Theme = 'auto' | 'dark' | 'light';

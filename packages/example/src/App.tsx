@@ -1,8 +1,9 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { FilePreviewModal, FilePreviewEmbed, VERSION } from '@eternalheart/react-file-preview';
-import type { PreviewFile, PreviewFileInput } from '@eternalheart/react-file-preview';
+import type { PreviewFile, PreviewFileInput, Theme } from '@eternalheart/react-file-preview';
+import type { Locale } from '@eternalheart/react-file-preview';
 import '@eternalheart/react-file-preview/style.css';
-import { FileText, Image, FileSpreadsheet, Video, Music, Upload, X, Package, BookOpen, Code } from 'lucide-react';
+import { FileText, Image, FileSpreadsheet, Video, Music, Upload, X, Package, BookOpen, Code, Settings } from 'lucide-react';
 import iconSvg from './assets/icon.svg';
 
 // 环境检测：开发环境和生产环境的 URL
@@ -22,6 +23,37 @@ function App() {
   const [allFiles, setAllFiles] = useState<PreviewFileInput[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [theme, setTheme] = useState<Theme>('dark');
+  const [headless, setHeadless] = useState(false);
+  const [locale, setLocale] = useState<Locale>('zh-CN');
+  const [panelOpen, setPanelOpen] = useState(false);
+  const [ballPos, setBallPos] = useState({ x: 20, y: 200 });
+  const draggingRef = useRef(false);
+  const dragStartRef = useRef({ x: 0, y: 0, bx: 0, by: 0 });
+  const hasMoved = useRef(false);
+
+  const handleBallPointerDown = useCallback((e: React.PointerEvent) => {
+    draggingRef.current = true;
+    hasMoved.current = false;
+    dragStartRef.current = { x: e.clientX, y: e.clientY, bx: ballPos.x, by: ballPos.y };
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+  }, [ballPos]);
+
+  const handleBallPointerMove = useCallback((e: React.PointerEvent) => {
+    if (!draggingRef.current) return;
+    const dx = e.clientX - dragStartRef.current.x;
+    const dy = e.clientY - dragStartRef.current.y;
+    if (Math.abs(dx) > 3 || Math.abs(dy) > 3) hasMoved.current = true;
+    setBallPos({
+      x: Math.max(0, Math.min(window.innerWidth - 48, dragStartRef.current.bx + dx)),
+      y: Math.max(0, Math.min(window.innerHeight - 48, dragStartRef.current.by + dy)),
+    });
+  }, []);
+
+  const handleBallPointerUp = useCallback(() => {
+    draggingRef.current = false;
+    if (!hasMoved.current) setPanelOpen((v) => !v);
+  }, []);
 
   const handleFileClick = (index: number) => {
     setCurrentFileIndex(index);
@@ -302,6 +334,9 @@ function App() {
                 files={allFiles}
                 currentIndex={embedIndex}
                 onNavigate={setEmbedIndex}
+                theme={theme}
+                headless={headless}
+                locale={locale}
               />
             </div>
           </div>
@@ -362,12 +397,74 @@ function App() {
         </div>
       </footer>
 
+      {/* 悬浮精灵球 + 控制面板 */}
+      <div
+        className="fixed z-50 select-none"
+        style={{ left: ballPos.x, top: ballPos.y }}
+      >
+        <button
+          onPointerDown={handleBallPointerDown}
+          onPointerMove={handleBallPointerMove}
+          onPointerUp={handleBallPointerUp}
+          className={`w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 shadow-lg shadow-purple-500/30 flex items-center justify-center text-white cursor-grab active:cursor-grabbing transition-transform hover:scale-110 ${panelOpen ? 'ring-2 ring-white/30' : ''}`}
+        >
+          <Settings className={`w-5 h-5 transition-transform duration-300 ${panelOpen ? 'rotate-90' : ''}`} />
+        </button>
+
+        {panelOpen && (
+          <div className="absolute left-14 top-0 w-64 bg-gray-900/95 backdrop-blur-xl rounded-xl border border-white/10 shadow-2xl p-4 space-y-3 animate-in fade-in slide-in-from-left-2">
+            <h3 className="text-white text-sm font-medium">预览设置</h3>
+            <div className="flex items-center gap-3">
+              <span className="text-gray-400 text-xs w-10 flex-shrink-0">主题</span>
+              <div className="flex items-center gap-1 p-0.5 rounded-lg bg-white/5 border border-white/10">
+                {(['auto', 'dark', 'light'] as Theme[]).map((t) => (
+                  <button
+                    key={t}
+                    onClick={() => setTheme(t)}
+                    className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all ${theme === t ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-md' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
+                  >
+                    {t === 'auto' ? 'Auto' : t === 'dark' ? 'Dark' : 'Light'}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="text-gray-400 text-xs w-10 flex-shrink-0">无头</span>
+              <button
+                onClick={() => setHeadless(!headless)}
+                className={`relative w-10 h-5 rounded-full transition-colors ${headless ? 'bg-blue-500' : 'bg-white/20'}`}
+              >
+                <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${headless ? 'translate-x-5' : ''}`} />
+              </button>
+              <span className="text-gray-500 text-xs">{headless ? '开启' : '关闭'}</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="text-gray-400 text-xs w-10 flex-shrink-0">语言</span>
+              <div className="flex items-center gap-1 p-0.5 rounded-lg bg-white/5 border border-white/10">
+                {([['zh-CN', '中文'], ['en-US', 'EN']] as [Locale, string][]).map(([l, label]) => (
+                  <button
+                    key={l}
+                    onClick={() => setLocale(l)}
+                    className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all ${locale === l ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-md' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
       <FilePreviewModal
         files={allFiles}
         currentIndex={currentFileIndex}
         isOpen={isPreviewOpen}
         onClose={() => setIsPreviewOpen(false)}
         onNavigate={setCurrentFileIndex}
+        theme={theme}
+        headless={headless}
+        locale={locale}
       />
     </div>
   );

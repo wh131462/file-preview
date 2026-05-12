@@ -6,6 +6,8 @@ import {
   VERSION,
   type PreviewFile,
   type PreviewFileInput,
+  type Theme,
+  type Locale,
 } from '@eternalheart/vue-file-preview';
 import '@eternalheart/vue-file-preview/style.css';
 import {
@@ -19,6 +21,7 @@ import {
   Package,
   BookOpen,
   Code,
+  Settings,
 } from 'lucide-vue-next';
 import iconSvg from './assets/icon.svg';
 
@@ -38,6 +41,37 @@ const uploadedFiles = ref<PreviewFile[]>([]);
 const allFiles = ref<PreviewFileInput[]>([]);
 const isDragging = ref(false);
 const fileInputRef = ref<HTMLInputElement | null>(null);
+const theme = ref<Theme>('dark');
+const headless = ref(false);
+const locale = ref<Locale>('zh-CN');
+const panelOpen = ref(false);
+const ballPos = ref({ x: 20, y: 200 });
+let dragging = false;
+let dragStart = { x: 0, y: 0, bx: 0, by: 0 };
+let hasMoved = false;
+
+const handleBallPointerDown = (e: PointerEvent) => {
+  dragging = true;
+  hasMoved = false;
+  dragStart = { x: e.clientX, y: e.clientY, bx: ballPos.value.x, by: ballPos.value.y };
+  (e.target as HTMLElement).setPointerCapture(e.pointerId);
+};
+
+const handleBallPointerMove = (e: PointerEvent) => {
+  if (!dragging) return;
+  const dx = e.clientX - dragStart.x;
+  const dy = e.clientY - dragStart.y;
+  if (Math.abs(dx) > 3 || Math.abs(dy) > 3) hasMoved = true;
+  ballPos.value = {
+    x: Math.max(0, Math.min(window.innerWidth - 48, dragStart.bx + dx)),
+    y: Math.max(0, Math.min(window.innerHeight - 48, dragStart.by + dy)),
+  };
+};
+
+const handleBallPointerUp = () => {
+  dragging = false;
+  if (!hasMoved) panelOpen.value = !panelOpen.value;
+};
 
 const getFileIcon = (type: string) => {
   if (type.startsWith('image/')) return ImageIcon;
@@ -293,6 +327,7 @@ onUnmounted(() => {
         <p class="text-gray-400 text-sm mb-4 sm:mb-6">
           将预览组件直接嵌入到页面的 div 容器中,无需弹窗。下方容器高度固定为 520px。
         </p>
+
         <div
           class="bg-white/5 backdrop-blur-sm rounded-xl sm:rounded-2xl border border-white/10 overflow-hidden"
           :style="{ height: '520px' }"
@@ -300,6 +335,9 @@ onUnmounted(() => {
           <FilePreviewEmbed
             :files="allFiles"
             :current-index="embedIndex"
+            :theme="theme"
+            :headless="headless"
+            :locale="locale"
             @navigate="(i: number) => (embedIndex = i)"
           />
         </div>
@@ -360,10 +398,71 @@ onUnmounted(() => {
       </div>
     </footer>
 
+    <!-- 悬浮精灵球 + 控制面板 -->
+    <div
+      class="fixed z-50 select-none"
+      :style="{ left: ballPos.x + 'px', top: ballPos.y + 'px' }"
+    >
+      <button
+        :class="['w-12 h-12 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 shadow-lg shadow-emerald-500/30 flex items-center justify-center text-white cursor-grab active:cursor-grabbing transition-transform hover:scale-110', panelOpen ? 'ring-2 ring-white/30' : '']"
+        @pointerdown="handleBallPointerDown"
+        @pointermove="handleBallPointerMove"
+        @pointerup="handleBallPointerUp"
+      >
+        <Settings :class="['w-5 h-5 transition-transform duration-300', panelOpen ? 'rotate-90' : '']" />
+      </button>
+
+      <div
+        v-if="panelOpen"
+        class="absolute left-14 top-0 w-64 bg-gray-900/95 backdrop-blur-xl rounded-xl border border-white/10 shadow-2xl p-4 space-y-3"
+      >
+        <h3 class="text-white text-sm font-medium">预览设置</h3>
+        <div class="flex items-center gap-3">
+          <span class="text-gray-400 text-xs w-10 flex-shrink-0">主题</span>
+          <div class="flex items-center gap-1 p-0.5 rounded-lg bg-white/5 border border-white/10">
+            <button
+              v-for="t in (['auto', 'dark', 'light'] as Theme[])"
+              :key="t"
+              :class="['px-2.5 py-1 rounded-md text-xs font-medium transition-all', theme === t ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-md' : 'text-gray-400 hover:text-white hover:bg-white/5']"
+              @click="theme = t"
+            >
+              {{ t === 'auto' ? 'Auto' : t === 'dark' ? 'Dark' : 'Light' }}
+            </button>
+          </div>
+        </div>
+        <div class="flex items-center gap-3">
+          <span class="text-gray-400 text-xs w-10 flex-shrink-0">无头</span>
+          <button
+            :class="['relative w-10 h-5 rounded-full transition-colors', headless ? 'bg-emerald-500' : 'bg-white/20']"
+            @click="headless = !headless"
+          >
+            <span :class="['absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform', headless ? 'translate-x-5' : '']" />
+          </button>
+          <span class="text-gray-500 text-xs">{{ headless ? '开启' : '关闭' }}</span>
+        </div>
+        <div class="flex items-center gap-3">
+          <span class="text-gray-400 text-xs w-10 flex-shrink-0">语言</span>
+          <div class="flex items-center gap-1 p-0.5 rounded-lg bg-white/5 border border-white/10">
+            <button
+              v-for="[l, label] in ([['zh-CN', '中文'], ['en-US', 'EN']] as [Locale, string][])"
+              :key="l"
+              :class="['px-2.5 py-1 rounded-md text-xs font-medium transition-all', locale === l ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-md' : 'text-gray-400 hover:text-white hover:bg-white/5']"
+              @click="locale = l"
+            >
+              {{ label }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <FilePreviewModal
       :files="allFiles"
       :current-index="currentFileIndex"
       :is-open="isPreviewOpen"
+      :theme="theme"
+      :headless="headless"
+      :locale="locale"
       @close="isPreviewOpen = false"
       @navigate="(i: number) => (currentFileIndex = i)"
     />

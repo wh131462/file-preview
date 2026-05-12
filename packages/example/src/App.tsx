@@ -31,6 +31,48 @@ function App() {
   const draggingRef = useRef(false);
   const dragStartRef = useRef({ x: 0, y: 0, bx: 0, by: 0 });
   const hasMoved = useRef(false);
+  const BALL_SIZE = 48;
+  const PANEL_W = 256;
+  const PANEL_H = 160;
+  const PANEL_GAP = 8;
+
+  const getPanelPosition = useCallback(() => {
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const spaceRight = vw - (ballPos.x + BALL_SIZE);
+    const spaceLeft = ballPos.x;
+    const spaceBottom = vh - (ballPos.y + BALL_SIZE);
+
+    let left: number | undefined;
+    let right: number | undefined;
+    let top: number | undefined;
+    let bottom: number | undefined;
+
+    if (spaceRight >= PANEL_W + PANEL_GAP) {
+      left = BALL_SIZE + PANEL_GAP;
+    } else if (spaceLeft >= PANEL_W + PANEL_GAP) {
+      right = BALL_SIZE + PANEL_GAP;
+    } else if (spaceBottom >= PANEL_H + PANEL_GAP) {
+      top = BALL_SIZE + PANEL_GAP;
+      left = Math.min(0, vw - ballPos.x - PANEL_W);
+    } else {
+      bottom = BALL_SIZE + PANEL_GAP;
+      left = Math.min(0, vw - ballPos.x - PANEL_W);
+    }
+
+    if (left !== undefined && right === undefined) {
+      if (top === undefined && bottom === undefined) {
+        top = Math.min(0, vh - ballPos.y - PANEL_H);
+      }
+    }
+
+    return {
+      ...(left !== undefined ? { left } : {}),
+      ...(right !== undefined ? { right } : {}),
+      ...(top !== undefined ? { top } : {}),
+      ...(bottom !== undefined ? { bottom } : {}),
+    };
+  }, [ballPos]);
 
   const handleBallPointerDown = useCallback((e: React.PointerEvent) => {
     draggingRef.current = true;
@@ -45,8 +87,8 @@ function App() {
     const dy = e.clientY - dragStartRef.current.y;
     if (Math.abs(dx) > 3 || Math.abs(dy) > 3) hasMoved.current = true;
     setBallPos({
-      x: Math.max(0, Math.min(window.innerWidth - 48, dragStartRef.current.bx + dx)),
-      y: Math.max(0, Math.min(window.innerHeight - 48, dragStartRef.current.by + dy)),
+      x: Math.max(0, Math.min(window.innerWidth - BALL_SIZE, dragStartRef.current.bx + dx)),
+      y: Math.max(0, Math.min(window.innerHeight - BALL_SIZE, dragStartRef.current.by + dy)),
     });
   }, []);
 
@@ -412,7 +454,10 @@ function App() {
         </button>
 
         {panelOpen && (
-          <div className="absolute left-14 top-0 w-64 bg-gray-900/95 backdrop-blur-xl rounded-xl border border-white/10 shadow-2xl p-4 space-y-3 animate-in fade-in slide-in-from-left-2">
+          <div
+            className="absolute w-64 bg-gray-900/95 backdrop-blur-xl rounded-xl border border-white/10 shadow-2xl p-4 space-y-3"
+            style={getPanelPosition()}
+          >
             <h3 className="text-white text-sm font-medium">预览设置</h3>
             <div className="flex items-center gap-3">
               <span className="text-gray-400 text-xs w-10 flex-shrink-0">主题</span>

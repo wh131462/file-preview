@@ -49,6 +49,38 @@ const ballPos = ref({ x: 20, y: 200 });
 let dragging = false;
 let dragStart = { x: 0, y: 0, bx: 0, by: 0 };
 let hasMoved = false;
+const BALL_SIZE = 48;
+const PANEL_W = 256;
+const PANEL_H = 160;
+const PANEL_GAP = 8;
+
+const getPanelStyle = () => {
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  const bx = ballPos.value.x;
+  const by = ballPos.value.y;
+  const spaceRight = vw - (bx + BALL_SIZE);
+  const spaceLeft = bx;
+  const spaceBottom = vh - (by + BALL_SIZE);
+
+  const style: Record<string, string> = {};
+
+  if (spaceRight >= PANEL_W + PANEL_GAP) {
+    style.left = `${BALL_SIZE + PANEL_GAP}px`;
+    style.top = `${Math.min(0, vh - by - PANEL_H)}px`;
+  } else if (spaceLeft >= PANEL_W + PANEL_GAP) {
+    style.right = `${BALL_SIZE + PANEL_GAP}px`;
+    style.top = `${Math.min(0, vh - by - PANEL_H)}px`;
+  } else if (spaceBottom >= PANEL_H + PANEL_GAP) {
+    style.top = `${BALL_SIZE + PANEL_GAP}px`;
+    style.left = `${Math.min(0, vw - bx - PANEL_W)}px`;
+  } else {
+    style.bottom = `${BALL_SIZE + PANEL_GAP}px`;
+    style.left = `${Math.min(0, vw - bx - PANEL_W)}px`;
+  }
+
+  return style;
+};
 
 const handleBallPointerDown = (e: PointerEvent) => {
   dragging = true;
@@ -63,8 +95,8 @@ const handleBallPointerMove = (e: PointerEvent) => {
   const dy = e.clientY - dragStart.y;
   if (Math.abs(dx) > 3 || Math.abs(dy) > 3) hasMoved = true;
   ballPos.value = {
-    x: Math.max(0, Math.min(window.innerWidth - 48, dragStart.bx + dx)),
-    y: Math.max(0, Math.min(window.innerHeight - 48, dragStart.by + dy)),
+    x: Math.max(0, Math.min(window.innerWidth - BALL_SIZE, dragStart.bx + dx)),
+    y: Math.max(0, Math.min(window.innerHeight - BALL_SIZE, dragStart.by + dy)),
   };
 };
 
@@ -414,7 +446,8 @@ onUnmounted(() => {
 
       <div
         v-if="panelOpen"
-        class="absolute left-14 top-0 w-64 bg-gray-900/95 backdrop-blur-xl rounded-xl border border-white/10 shadow-2xl p-4 space-y-3"
+        class="absolute w-64 bg-gray-900/95 backdrop-blur-xl rounded-xl border border-white/10 shadow-2xl p-4 space-y-3"
+        :style="getPanelStyle()"
       >
         <h3 class="text-white text-sm font-medium">预览设置</h3>
         <div class="flex items-center gap-3">

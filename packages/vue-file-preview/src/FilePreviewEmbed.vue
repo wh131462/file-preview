@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, watch, onBeforeUnmount, computed } from 'vue';
 import type { CSSProperties } from 'vue';
-import type { PreviewFileInput, Locale, Messages, Theme } from '@eternalheart/file-preview-core';
+import type { PreviewFileInput, Locale, Messages, Theme, CustomRendererEventPayload } from '@eternalheart/file-preview-core';
 import type { CustomRenderer } from './types';
 import FilePreviewContent from './FilePreviewContent.vue';
 
@@ -36,6 +36,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<{
   (e: 'navigate', index: number): void;
+  (e: 'custom-event', payload: CustomRendererEventPayload): void;
 }>();
 
 const systemDark = ref(
@@ -91,6 +92,7 @@ const wrapperStyle: CSSProperties = {
         :headless="headless"
         :theme="theme"
         @navigate="(i) => emit('navigate', i)"
+        @custom-event="(p) => emit('custom-event', p)"
       />
     </div>
   </div>

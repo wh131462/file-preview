@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onBeforeUnmount, toRef } from 'vue';
+import { ref, computed, watch, onMounted, onBeforeUnmount, toRef, provide } from 'vue';
 import { X, Download, ChevronLeft, ChevronRight } from 'lucide-vue-next';
 import {
   normalizeFiles,
@@ -8,8 +8,9 @@ import {
   type Locale,
   type Messages,
   type Theme,
+  type CustomRendererEventPayload,
 } from '@eternalheart/file-preview-core';
-import type { CustomRenderer } from './types';
+import type { CustomRenderer, CustomRendererContext } from './types';
 import { provideLocale, useTranslator } from './composables/useTranslator';
 import type { ToolbarGroup, ToolbarButtonItem, ToolbarTextItem } from './renderers/toolbar.types';
 import { getImageToolbarGroups } from './renderers/Image/toolbar';
@@ -71,6 +72,7 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits<{
   (e: 'navigate', index: number): void;
   (e: 'close'): void;
+  (e: 'custom-event', payload: CustomRendererEventPayload): void;
 }>();
 
 provideLocale(toRef(props, 'locale'), toRef(props, 'messages'));
@@ -151,10 +153,28 @@ const customRenderer = computed(() => {
 
 const customRendererComponent = computed(() => {
   if (!customRenderer.value || !currentFile.value) return null;
-  return customRenderer.value.render(currentFile.value);
+  return customRenderer.value.render(currentFile.value, customCtx.value);
 });
 
 const fileType = computed(() => (currentFile.value ? getFileType(currentFile.value) : 'unsupported'));
+
+// 自定义渲染器事件派发器：未绑定 @custom-event 时仍调用 emit（Vue 会安全忽略未声明监听）
+const emitCustom = (name: string, payload?: unknown) => {
+  if (!currentFile.value) return;
+  const ev: CustomRendererEventPayload = { name, payload, file: currentFile.value };
+  emit('custom-event', ev);
+};
+
+// 自定义渲染器上下文
+const customCtx = computed<CustomRendererContext>(() => ({
+  emit: emitCustom,
+  t: t.value,
+  theme: resolvedTheme.value,
+  locale: (props.locale ?? 'zh-CN') as Locale,
+}));
+
+// 通过 provide 暴露给深层子组件 inject 使用
+provide('file-preview:custom-ctx', customCtx);
 
 // 重置状态当文件改变时
 watch(
@@ -313,8 +333,13 @@ const textWordWrap = ref(true);
 const textHtmlPreview = ref(false);
 const markdownViewMode = ref<'preview' | 'source'>('preview');
 
-// 工具栏配置 — 各 Renderer 自行声明
+// 工具栏配置 — 各 Renderer 自行声明。命中自定义渲染器时优先使用其 getToolbarGroups
 const toolGroups = computed(() => {
+  if (customRenderer.value) {
+    return (
+      customRenderer.value.getToolbarGroups?.(currentFile.value!, customCtx.value) ?? []
+    );
+  }
   if (fileType.value === 'image') {
     return getImageToolbarGroups({
       zoom: zoom.value,
@@ -518,7 +543,7 @@ const hasToolGroups = computed(() => toolGroups.value.length > 0);
       @mousemove="handleMouseMove"
     >
       <template v-if="currentFile">
-        <component :is="customRendererComponent" v-if="customRendererComponent" :file="currentFile" />
+        <component :is="customRendererComponent" v-if="customRendererComponent" :file="currentFile" :ctx="customCtx" />
         <template v-else>
           <ImageRenderer
             v-if="fileType === 'image'"

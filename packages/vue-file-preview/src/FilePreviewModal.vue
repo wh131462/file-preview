@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { watch, ref, onBeforeUnmount, computed } from 'vue';
-import type { PreviewFileInput, Locale, Messages, Theme } from '@eternalheart/file-preview-core';
+import type { PreviewFileInput, Locale, Messages, Theme, CustomRendererEventPayload } from '@eternalheart/file-preview-core';
 import type { CustomRenderer } from './types';
 import FilePreviewContent from './FilePreviewContent.vue';
 import { useScrollLock } from './composables/useScrollLock';
@@ -31,6 +31,7 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits<{
   (e: 'close'): void;
   (e: 'navigate', index: number): void;
+  (e: 'custom-event', payload: CustomRendererEventPayload): void;
 }>();
 
 const { lock, unlock } = useScrollLock(() => props.isOpen);
@@ -103,6 +104,7 @@ const handleWheel = (e: WheelEvent) => e.stopPropagation();
               :theme="theme"
               @close="emit('close')"
               @navigate="(i) => emit('navigate', i)"
+              @custom-event="(p) => emit('custom-event', p)"
             />
           </div>
         </div>

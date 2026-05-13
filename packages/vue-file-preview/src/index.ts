@@ -21,6 +21,8 @@ export type {
   PreviewState,
   ToolbarAction,
   CustomRenderer,
+  CustomRendererContext,
+  CustomRendererEventPayload,
 } from './types';
 
 // 导出工具函数

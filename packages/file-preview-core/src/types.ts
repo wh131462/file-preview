@@ -47,3 +47,10 @@ export interface PreviewState {
 }
 
 export type Theme = 'auto' | 'dark' | 'light';
+
+// 自定义渲染器事件载荷（框架无关，React / Vue 两端共用）
+export interface CustomRendererEventPayload<T = unknown> {
+  name: string;
+  payload?: T;
+  file: PreviewFile;
+}

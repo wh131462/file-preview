@@ -6,6 +6,7 @@ export type {
   FileType,
   PreviewState,
   Theme,
+  CustomRendererEventPayload,
 } from './types';
 
 // 导出文件标准化工具

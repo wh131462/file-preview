@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { PreviewFileInput, CustomRenderer } from './types';
 import { FilePreviewContent } from './FilePreviewContent';
-import type { Locale, Messages, Theme } from '@eternalheart/file-preview-core';
+import type { Locale, Messages, Theme, CustomRendererEventPayload } from '@eternalheart/file-preview-core';
 
 interface FilePreviewEmbedProps {
   files: PreviewFileInput[];
@@ -22,6 +22,8 @@ interface FilePreviewEmbedProps {
   headless?: boolean;
   /** 主题模式，默认 'dark' */
   theme?: Theme;
+  /** 自定义渲染器派发的事件出口 */
+  onCustomEvent?: (event: CustomRendererEventPayload) => void;
 }
 
 export const FilePreviewEmbed: React.FC<FilePreviewEmbedProps> = ({
@@ -37,6 +39,7 @@ export const FilePreviewEmbed: React.FC<FilePreviewEmbedProps> = ({
   messages,
   headless,
   theme = 'dark',
+  onCustomEvent,
 }) => {
   const [systemDark, setSystemDark] = useState(() =>
     typeof window !== 'undefined'
@@ -72,6 +75,7 @@ export const FilePreviewEmbed: React.FC<FilePreviewEmbedProps> = ({
           messages={messages}
           headless={headless}
           theme={theme}
+          onCustomEvent={onCustomEvent}
         />
       </div>
     </div>

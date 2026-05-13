@@ -12,7 +12,8 @@ import { getZipToolbarGroups, type ZipToolbarStats } from './renderers/Zip/toolb
 import { getTextToolbarGroups } from './renderers/Text/toolbar';
 import { getMarkdownToolbarGroups } from './renderers/Markdown/toolbar';
 
-import { PreviewFileInput, CustomRenderer } from './types';
+import { PreviewFileInput, CustomRenderer, CustomRendererContext } from './types';
+import type { CustomRendererEventPayload } from '@eternalheart/file-preview-core';
 import { normalizeFiles } from './utils/fileNormalizer';
 import { ImageRenderer } from './renderers/Image';
 import { PdfRenderer } from './renderers/Pdf';
@@ -56,6 +57,8 @@ export interface FilePreviewContentProps {
   headless?: boolean;
   /** 主题模式，默认 'dark' */
   theme?: Theme;
+  /** 自定义渲染器派发的事件出口，载荷为 `{ name, payload, file }` */
+  onCustomEvent?: (event: CustomRendererEventPayload) => void;
 }
 
 export const FilePreviewContent: React.FC<FilePreviewContentProps> = ({
@@ -70,6 +73,7 @@ export const FilePreviewContent: React.FC<FilePreviewContentProps> = ({
   messages: userMessages,
   headless = false,
   theme = 'dark',
+  onCustomEvent,
 }) => {
   const t: Translator = useMemo(
     () => createTranslator({ locale, messages: userMessages }),
@@ -146,6 +150,26 @@ export const FilePreviewContent: React.FC<FilePreviewContentProps> = ({
   }, [currentFile, customRenderers]);
 
   const fileType = currentFile ? getFileType(currentFile) : 'unsupported';
+
+  // 自定义渲染器事件派发器：未绑定 onCustomEvent 时静默忽略
+  const emitCustom = useCallback(
+    (name: string, payload?: unknown) => {
+      if (!currentFile) return;
+      onCustomEvent?.({ name, payload, file: currentFile });
+    },
+    [currentFile, onCustomEvent],
+  );
+
+  // 自定义渲染器上下文：注入给 render / getToolbarGroups
+  const customCtx = useMemo<CustomRendererContext>(
+    () => ({
+      emit: emitCustom,
+      t,
+      theme: resolvedTheme,
+      locale,
+    }),
+    [emitCustom, t, resolvedTheme, locale],
+  );
 
   // 重置状态当文件改变时
   useEffect(() => {
@@ -283,8 +307,11 @@ export const FilePreviewContent: React.FC<FilePreviewContentProps> = ({
 
   const showCloseButton = mode === 'modal' && !!onClose;
 
-  // 工具栏配置 — 各 Renderer 自行声明
+  // 工具栏配置 — 各 Renderer 自行声明。命中自定义渲染器时优先使用其 getToolbarGroups
   const toolGroups: ToolbarGroup[] = (() => {
+    if (customRenderer) {
+      return customRenderer.getToolbarGroups?.(currentFile, customCtx) ?? [];
+    }
     if (fileType === 'image') {
       return getImageToolbarGroups({
         zoom,
@@ -448,7 +475,7 @@ export const FilePreviewContent: React.FC<FilePreviewContentProps> = ({
         onMouseMove={handleMouseMove}
       >
         {customRenderer ? (
-          customRenderer.render(currentFile)
+          customRenderer.render(currentFile, customCtx)
         ) : (
           <>
             {fileType === 'image' && (

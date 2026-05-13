@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PreviewFileInput, CustomRenderer } from './types';
 import { FilePreviewContent } from './FilePreviewContent';
-import type { Locale, Messages, Theme } from '@eternalheart/file-preview-core';
+import type { Locale, Messages, Theme, CustomRendererEventPayload } from '@eternalheart/file-preview-core';
 
 interface FilePreviewModalProps {
   files: PreviewFileInput[];
@@ -20,6 +20,8 @@ interface FilePreviewModalProps {
   headless?: boolean;
   /** 主题模式，默认 'dark' */
   theme?: Theme;
+  /** 自定义渲染器派发的事件出口 */
+  onCustomEvent?: (event: CustomRendererEventPayload) => void;
 }
 
 export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
@@ -33,6 +35,7 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
   messages,
   headless,
   theme = 'dark',
+  onCustomEvent,
 }) => {
   const [systemDark, setSystemDark] = useState(() =>
     typeof window !== 'undefined'
@@ -100,6 +103,7 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
                 messages={messages}
                 headless={headless}
                 theme={theme}
+                onCustomEvent={onCustomEvent}
               />
             </div>
           </motion.div>

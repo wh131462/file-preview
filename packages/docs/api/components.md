@@ -102,35 +102,42 @@ const files4 = [
 - **描述**: 自定义渲染器数组，用于扩展或覆盖默认的文件渲染逻辑
 
 每个 `CustomRenderer` 对象包含：
-- `test: (file: PreviewFile) => boolean` - 文件匹配函数，返回 `true` 表示使用此渲染器
-- `render: (file: PreviewFile) => React.ReactNode` - 渲染函数，返回要显示的 React 组件
+- `test: (file: PreviewFile) => boolean` — 文件匹配函数，返回 `true` 表示使用此渲染器
+- `render: (file: PreviewFile, ctx?: CustomRendererContext) => React.ReactNode` — 渲染函数；`ctx` 可选，旧版 `render(file)` 仍兼容
+- `getToolbarGroups?: (file, ctx) => ToolbarGroup[]` — 可选；声明自定义工具组，命中时替代内置文件类型工具组
+- `events?: readonly string[]` — 可选；事件名白名单（仅用于 TS 与文档约定）
+
+`ctx` 提供 `emit(name, payload?)`、`t`、`theme`、`locale`。通过 `ctx.emit` 派发的事件会通过 `onCustomEvent` 转发到宿主。详见 [自定义渲染器指南](/guide/custom-renderers)。
 
 自定义渲染器会优先于内置渲染器执行。如果多个自定义渲染器匹配同一文件，将使用第一个匹配的渲染器。
 
 ```tsx
 import type { CustomRenderer } from '@eternalheart/react-file-preview'
+import { Sparkles } from 'lucide-react'
 
 const customRenderers: CustomRenderer[] = [
   {
-    // 为 JSON 文件添加格式化显示
-    test: (file) => file.name.endsWith('.json'),
-    render: (file) => (
-      <div className="p-8">
-        <pre className="bg-gray-900 text-white p-4 rounded">
-          <JsonViewer url={file.url} />
-        </pre>
-      </div>
-    ),
-  },
-  {
-    // 为特定 MIME 类型添加自定义渲染
-    test: (file) => file.type === 'application/x-custom',
-    render: (file) => <CustomFileViewer file={file} />,
+    test: (file) => file.name.endsWith('.demo'),
+    render: (file, ctx) => <DemoViewer file={file} ctx={ctx} />,
+    getToolbarGroups: (_file, ctx) => [
+      {
+        items: [
+          {
+            type: 'button',
+            icon: <Sparkles className="rfp-w-4 rfp-h-4" />,
+            tooltip: 'Say Hello',
+            action: () => ctx.emit('hello', { ok: true }),
+          },
+        ],
+      },
+    ],
+    events: ['hello'] as const,
   },
 ]
 
 <FilePreviewModal
   customRenderers={customRenderers}
+  onCustomEvent={(e) => console.log(e.name, e.payload, e.file)}
   ...
 />
 ```
@@ -184,6 +191,21 @@ const customRenderers: CustomRenderer[] = [
 
 // 跟随系统
 <FilePreviewModal theme="auto" .../>
+```
+
+#### onCustomEvent
+
+- **类型**: `(event: CustomRendererEventPayload) => void`
+- **必需**: 否
+- **描述**: 自定义渲染器通过 `ctx.emit(name, payload)` 派发的事件出口。载荷形状为 `{ name, payload, file }`。`FilePreviewModal` / `FilePreviewEmbed` 会自动透传。宿主未绑定时静默忽略，不抛错。
+
+```tsx
+<FilePreviewModal
+  onCustomEvent={(e) => {
+    if (e.name === 'hello') console.log('got hello from', e.file.name)
+  }}
+  ...
+/>
 ```
 
 ### 完整示例
@@ -273,6 +295,7 @@ function Panel() {
 | `messages` | `Partial<Record<Locale, Partial<Messages>>>` | ❌ | - | 自定义翻译字典 |
 | `headless` | `boolean` | ❌ | `false` | 无头模式,隐藏工具栏和导航箭头 |
 | `theme` | `Theme` | ❌ | `'dark'` | 主题模式: `'auto' \| 'dark' \| 'light'` |
+| `onCustomEvent` | `(e: CustomRendererEventPayload) => void` | ❌ | - | 自定义渲染器事件出口,载荷 `{ name, payload, file }` |
 
 ::: tip 尺寸说明
 `FilePreviewEmbed` 默认使用 `width: 100%; height: 100%` 填充父容器,因此 **父容器必须具有明确的高度**(如 `height: 520px` 或通过 flex/grid 布局给定高度),否则组件会塌陷为 0 高度。
@@ -356,6 +379,7 @@ function DetailPanel() {
 | `theme` | `Theme` | ❌ | `'dark'` | 主题模式: `'auto' \| 'dark' \| 'light'` |
 | `locale` | `Locale` | ❌ | `'zh-CN'` | 界面语言 |
 | `messages` | `Partial<Record<Locale, Partial<Messages>>>` | ❌ | - | 自定义翻译字典 |
+| `onCustomEvent` | `(e: CustomRendererEventPayload) => void` | ❌ | - | 自定义渲染器事件出口 |
 
 **mode 差异:**
 

@@ -144,63 +144,103 @@ type Theme = 'auto' | 'dark' | 'light'
 
 ## CustomRenderer
 
-自定义渲染器接口，用于扩展或覆盖默认的文件渲染逻辑：
+自定义渲染器接口，用于扩展或覆盖默认的文件渲染逻辑。从 v1.4 起新增工具组声明与事件派发能力。
 
 ```typescript
 interface CustomRenderer {
-  test: (file: PreviewFile) => boolean      // 文件匹配函数
-  render: (file: PreviewFile) => React.ReactNode  // 渲染函数
+  /** 文件匹配函数；返回 true 表示使用此渲染器 */
+  test: (file: PreviewFile) => boolean
+  /** 渲染函数；ctx 可选，旧版 render(file) 仍兼容 */
+  render: (file: PreviewFile, ctx?: CustomRendererContext) => React.ReactNode
+  /** 可选：声明自定义工具组，命中此渲染器时替代内置工具组 */
+  getToolbarGroups?: (
+    file: PreviewFile,
+    ctx: CustomRendererContext,
+  ) => ToolbarGroup[]
+  /** 可选：事件名白名单，仅作 TS 与文档约定，运行时不拦截 */
+  events?: readonly string[]
+}
+```
+
+### CustomRendererContext
+
+`render` 与 `getToolbarGroups` 第二参数注入的上下文：
+
+```typescript
+interface CustomRendererContext {
+  /** 派发自定义事件，转发到顶层 onCustomEvent / @custom-event */
+  emit: (name: string, payload?: unknown) => void
+  /** 已构建的翻译器，与顶层 locale / messages 一致 */
+  t: Translator
+  /** 已解析的主题（'auto' 会被解析为 'dark' 或 'light'） */
+  theme: 'dark' | 'light'
+  /** 当前 locale */
+  locale: Locale
+}
+```
+
+### CustomRendererEventPayload
+
+顶层事件出口的载荷形状（React `onCustomEvent` / Vue `@custom-event`）：
+
+```typescript
+interface CustomRendererEventPayload<T = unknown> {
+  name: string
+  payload?: T
+  file: PreviewFile
 }
 ```
 
 ### 属性说明
 
-- `test`: 文件匹配函数，接收 `PreviewFile` 对象，返回 `true` 表示使用此渲染器
-- `render`: 渲染函数，接收 `PreviewFile` 对象，返回要显示的 React 组件
+- `test`：文件匹配函数，接收 `PreviewFile` 对象，返回 `true` 表示使用此渲染器
+- `render`：渲染函数，接收 `(file, ctx?)`；ctx 可选，旧版仅传 `file` 仍可用
+- `getToolbarGroups`：可选；返回 `ToolbarGroup[]`，命中时替代内置文件类型工具组；通用操作组（下载、关闭）保持不变
+- `events`：可选；事件名白名单（不强制运行时校验）
 
 ### 示例
 
 ```typescript
-import type { CustomRenderer } from '@eternalheart/react-file-preview'
+import type {
+  CustomRenderer,
+  CustomRendererEventPayload,
+} from '@eternalheart/react-file-preview'
+import { Sparkles } from 'lucide-react'
 
-// 示例 1: 为 JSON 文件添加格式化显示
-const jsonRenderer: CustomRenderer = {
-  test: (file) => file.name.endsWith('.json'),
-  render: (file) => (
-    <div className="p-8">
-      <pre className="bg-gray-900 text-white p-4 rounded">
-        {/* 加载并格式化 JSON */}
-      </pre>
+const demoRenderer: CustomRenderer = {
+  test: (file) => file.name.endsWith('.demo'),
+  render: (file, ctx) => (
+    <div style={{ color: ctx?.theme === 'light' ? '#111' : '#fff' }}>
+      {file.name}
     </div>
   ),
+  getToolbarGroups: (_file, ctx) => [
+    {
+      items: [
+        {
+          type: 'button',
+          icon: <Sparkles className="rfp-w-4 rfp-h-4" />,
+          tooltip: 'Say Hello',
+          action: () => ctx.emit('hello', { ok: true }),
+        },
+      ],
+    },
+  ],
+  events: ['hello'] as const,
 }
 
-// 示例 2: 根据 MIME 类型匹配
-const customTypeRenderer: CustomRenderer = {
-  test: (file) => file.type === 'application/x-custom',
-  render: (file) => <CustomViewer url={file.url} />,
+function onCustomEvent(e: CustomRendererEventPayload) {
+  console.log(e.name, e.payload, e.file)
 }
-
-// 示例 3: 根据文件名模式匹配
-const logRenderer: CustomRenderer = {
-  test: (file) => /\.(log|txt)$/i.test(file.name),
-  render: (file) => <LogViewer url={file.url} />,
-}
-
-// 使用多个自定义渲染器
-const customRenderers: CustomRenderer[] = [
-  jsonRenderer,
-  customTypeRenderer,
-  logRenderer,
-]
 ```
 
 ### 注意事项
 
-1. **优先级**: 自定义渲染器优先于内置渲染器执行
-2. **匹配顺序**: 如果多个自定义渲染器匹配同一文件，使用第一个匹配的
-3. **性能**: `test` 函数应该尽可能快速，避免复杂的异步操作
-4. **样式**: 自定义渲染器应该自行处理样式和布局
+1. **优先级**：自定义渲染器优先于内置渲染器执行
+2. **匹配顺序**：多个自定义渲染器匹配同一文件时，使用第一个匹配的
+3. **性能**：`test` 函数应当尽可能快速，避免异步操作
+4. **工具组覆盖**：命中自定义渲染器时，内置文件类型相关工具组不再装配；`actionGroups`（下载、关闭）保持
+5. **事件未绑定**：宿主未传 `onCustomEvent` / `@custom-event` 时 `ctx.emit` 静默忽略，不抛错
 
 ## PdfConfigOptions
 

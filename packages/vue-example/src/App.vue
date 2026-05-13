@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onUnmounted } from 'vue';
+import { ref, onUnmounted, h, defineComponent } from 'vue';
 import {
   FilePreviewModal,
   FilePreviewEmbed,
@@ -8,6 +8,9 @@ import {
   type PreviewFileInput,
   type Theme,
   type Locale,
+  type CustomRenderer,
+  type CustomRendererContext,
+  type CustomRendererEventPayload,
 } from '@eternalheart/vue-file-preview';
 import '@eternalheart/vue-file-preview/style.css';
 import {
@@ -22,6 +25,7 @@ import {
   BookOpen,
   Code,
   Settings,
+  Sparkles,
 } from 'lucide-vue-next';
 import iconSvg from './assets/icon.svg';
 
@@ -37,6 +41,60 @@ const REACT_EXAMPLE_URL = isDev
 const isPreviewOpen = ref(false);
 const currentFileIndex = ref(0);
 const embedIndex = ref(0);
+
+// 演示用自定义渲染器：命中文件名以 .demo 结尾的文件
+const DemoRenderer = defineComponent({
+  name: 'DemoRenderer',
+  props: {
+    file: { type: Object as () => PreviewFile, required: true },
+    ctx: { type: Object as () => CustomRendererContext | undefined, default: undefined },
+  },
+  setup(props) {
+    return () =>
+      h(
+        'div',
+        { style: { padding: '24px', color: props.ctx?.theme === 'light' ? '#111' : '#fff' } },
+        [
+          h('h3', { style: { fontWeight: 600, marginBottom: '8px' } }, 'Custom Renderer Demo'),
+          h('div', { style: { fontSize: '13px', opacity: 0.7 } }, `file: ${props.file.name}`),
+          h('div', { style: { fontSize: '13px', opacity: 0.7 } }, `locale: ${props.ctx?.locale} · theme: ${props.ctx?.theme}`),
+          h(
+            'button',
+            {
+              style: { marginTop: '16px', padding: '6px 12px', borderRadius: '6px', background: '#2563eb', color: '#fff' },
+              onClick: () => props.ctx?.emit('hello', { ok: true }),
+            },
+            "emit('hello', { ok: true })",
+          ),
+        ],
+      );
+  },
+});
+
+const demoCustomRenderers: CustomRenderer[] = [
+  {
+    test: (file) => file.name.toLowerCase().endsWith('.demo'),
+    render: () => DemoRenderer,
+    getToolbarGroups: (_file, ctx) => [
+      {
+        items: [
+          {
+            type: 'button',
+            icon: Sparkles,
+            tooltip: 'Say Hello',
+            action: () => ctx.emit('hello', { ok: true }),
+          },
+        ],
+      },
+    ],
+    events: ['hello'] as const,
+  },
+];
+
+const handleCustomEvent = (e: CustomRendererEventPayload) => {
+  // eslint-disable-next-line no-console
+  console.log('[FilePreview custom-event]', e);
+};
 const uploadedFiles = ref<PreviewFile[]>([]);
 const allFiles = ref<PreviewFileInput[]>([]);
 const isDragging = ref(false);
@@ -370,7 +428,9 @@ onUnmounted(() => {
             :theme="theme"
             :headless="headless"
             :locale="locale"
+            :custom-renderers="demoCustomRenderers"
             @navigate="(i: number) => (embedIndex = i)"
+            @custom-event="handleCustomEvent"
           />
         </div>
       </div>
@@ -496,8 +556,10 @@ onUnmounted(() => {
       :theme="theme"
       :headless="headless"
       :locale="locale"
+      :custom-renderers="demoCustomRenderers"
       @close="isPreviewOpen = false"
       @navigate="(i: number) => (currentFileIndex = i)"
+      @custom-event="handleCustomEvent"
     />
   </div>
 </template>

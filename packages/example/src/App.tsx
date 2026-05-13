@@ -1,10 +1,50 @@
 import { useState, useRef, useCallback } from 'react';
 import { FilePreviewModal, FilePreviewEmbed, VERSION } from '@eternalheart/react-file-preview';
-import type { PreviewFile, PreviewFileInput, Theme } from '@eternalheart/react-file-preview';
+import type { PreviewFile, PreviewFileInput, Theme, CustomRenderer, CustomRendererEventPayload } from '@eternalheart/react-file-preview';
 import type { Locale } from '@eternalheart/react-file-preview';
 import '@eternalheart/react-file-preview/style.css';
-import { FileText, Image, FileSpreadsheet, Video, Music, Upload, X, Package, BookOpen, Code, Settings } from 'lucide-react';
+import { FileText, Image, FileSpreadsheet, Video, Music, Upload, X, Package, BookOpen, Code, Settings, Sparkles } from 'lucide-react';
 import iconSvg from './assets/icon.svg';
+
+// 演示用自定义渲染器：命中文件名以 .demo 结尾的文件
+// - 声明自定义工具组（1 个按钮）
+// - 按钮点击 ctx.emit('hello', { ok: true })
+const demoCustomRenderers: CustomRenderer[] = [
+  {
+    test: (file) => file.name.toLowerCase().endsWith('.demo'),
+    render: (file, ctx) => (
+      <div style={{ padding: 24, color: ctx?.theme === 'light' ? '#111' : '#fff' }}>
+        <h3 style={{ fontWeight: 600, marginBottom: 8 }}>Custom Renderer Demo</h3>
+        <div style={{ fontSize: 13, opacity: 0.7 }}>file: {file.name}</div>
+        <div style={{ fontSize: 13, opacity: 0.7 }}>locale: {ctx?.locale} · theme: {ctx?.theme}</div>
+        <button
+          onClick={() => ctx?.emit('hello', { ok: true })}
+          style={{ marginTop: 16, padding: '6px 12px', borderRadius: 6, background: '#2563eb', color: '#fff' }}
+        >
+          emit('hello', {'{'} ok: true {'}'})
+        </button>
+      </div>
+    ),
+    getToolbarGroups: (_file, ctx) => [
+      {
+        items: [
+          {
+            type: 'button',
+            icon: <Sparkles className="rfp-w-4 rfp-h-4" />,
+            tooltip: 'Say Hello',
+            action: () => ctx.emit('hello', { ok: true }),
+          },
+        ],
+      },
+    ],
+    events: ['hello'] as const,
+  },
+];
+
+const handleCustomEvent = (e: CustomRendererEventPayload) => {
+  // eslint-disable-next-line no-console
+  console.log('[FilePreview custom-event]', e);
+};
 
 // 环境检测：开发环境和生产环境的 URL
 const isDev = import.meta.env.DEV;
@@ -379,6 +419,8 @@ function App() {
                 theme={theme}
                 headless={headless}
                 locale={locale}
+                customRenderers={demoCustomRenderers}
+                onCustomEvent={handleCustomEvent}
               />
             </div>
           </div>
@@ -510,6 +552,8 @@ function App() {
         theme={theme}
         headless={headless}
         locale={locale}
+        customRenderers={demoCustomRenderers}
+        onCustomEvent={handleCustomEvent}
       />
     </div>
   );

@@ -1,0 +1,32 @@
+
+=== @eternalheart/react-file-preview (packages/react-file-preview/lib) ===
+
+  [entry]
+    index.cjs                                             1.31 MB  gzip  398.95 KB
+    index.mjs                                             1.86 MB  gzip  448.05 KB
+
+  [css]
+    index.css                                             1.55 MB  gzip  955.30 KB
+
+  [other]
+    pdfjs/pdf.worker.min.mjs                              1.31 MB  gzip  390.82 KB
+
+  TOTAL: raw 6.02 MB  gzip 2.14 MB  files 4
+
+=== @eternalheart/vue-file-preview (packages/vue-file-preview/lib) ===
+
+  [entry]
+    index.cjs                                             1.47 MB  gzip  446.70 KB
+    index.mjs                                             2.16 MB  gzip  509.22 KB
+
+  [css]
+    index.css                                             1.53 MB  gzip  952.04 KB
+
+  [other]
+    pdfjs/pdf.worker.min.mjs                              1.31 MB  gzip  390.82 KB
+
+  TOTAL: raw 6.47 MB  gzip 2.24 MB  files 4
+
+=== Summary ===
+@eternalheart/react-file-preview          raw    6.02 MB  gzip    2.14 MB  files 4
+@eternalheart/vue-file-preview            raw    6.47 MB  gzip    2.24 MB  files 4

@@ -75,7 +75,6 @@
   "dependencies": {
     "@kenjiuno/msgreader": "^1.28.0",
     "@likecoin/epub-ts": "^0.6.0",
-    "@types/react-syntax-highlighter": "^15.5.13",
     "@videojs-player/react": "^1.0.0",
     "docx-preview": "^0.3.2",
     "foliate-js": "1.0.1",
@@ -88,11 +87,11 @@
     "pptx-preview": "^1.0.7",
     "react-markdown": "^10.1.0",
     "react-pdf": "9.2.1",
-    "react-syntax-highlighter": "^16.1.0",
     "rehype-katex": "^7.0.1",
     "rehype-raw": "^7.0.0",
     "remark-gfm": "^4.0.1",
     "remark-math": "^6.0.0",
+    "shiki": "^1.29.2",
     "video.js": "^8.23.4"
   },
   "devDependencies": {

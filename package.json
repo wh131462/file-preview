@@ -19,7 +19,7 @@
     "preview:example": "pnpm --filter @eternalheart/react-file-preview-example preview",
     "preview:example:vue": "pnpm --filter @eternalheart/vue-file-preview-example preview",
     "preview:docs": "pnpm --filter @eternalheart/react-file-preview-docs preview",
-    "clean": "pnpm -r exec rm -rf dist lib .vitepress/dist node_modules && rm -rf node_modules dist-deploy",
+    "clean": "find packages -type d \\( -name dist -o -name lib -o -name .vitepress/dist \\) -prune -exec rm -rf {} + && find packages -type d -name node_modules -prune -exec rm -rf {} + && rm -rf node_modules dist-deploy",
     "lint": "eslint packages --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "gh": "bash scripts/deploy.sh",
     "version:patch:react": "pnpm --filter @eternalheart/react-file-preview version:patch",

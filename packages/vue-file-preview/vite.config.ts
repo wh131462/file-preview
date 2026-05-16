@@ -57,7 +57,6 @@ export default defineConfig({
         /^pdfjs-dist(\/.*)?$/,
         // Office / 电子书 / 压缩
         'mammoth',
-        'docx-preview',
         'pptx-preview',
         'exceljs',
         /^exceljs(\/.*)?$/,

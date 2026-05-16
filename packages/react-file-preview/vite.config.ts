@@ -49,9 +49,6 @@ export default defineConfig({
         'react/jsx-runtime',
         'react-pdf',
         'react-markdown',
-        'react-syntax-highlighter',
-        // 同时匹配 `react-syntax-highlighter` 与其子路径
-        /^react-syntax-highlighter(\/.*)?$/,
         // UI / 动画
         'framer-motion',
         'lucide-react',
@@ -81,6 +78,8 @@ export default defineConfig({
         // 视频
         '@videojs-player/react',
         'video.js',
+        // 电子表格
+        'x-data-spreadsheet',
       ],
       output: [
         {

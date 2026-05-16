@@ -1,0 +1,39 @@
+name: bundle-size
+
+on:
+  pull_request:
+    branches: [master]
+    paths:
+      - 'packages/**'
+      - 'pnpm-lock.yaml'
+      - '.size-limit.cjs'
+      - '.github/workflows/size.yml'
+  push:
+    branches: [master]
+
+jobs:
+  size:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.15.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build libraries
+        run: pnpm build:lib
+
+      - name: Measure bundle
+        run: pnpm measure
+
+      - name: Enforce size budget
+        run: pnpm size

@@ -121,8 +121,8 @@ onBeforeUnmount(() => {
           />
         </svg>
       </div>
-      <p class="vfp-text-lg vfp-font-medium vfp-text-white/90 vfp-mb-2">{{ t('video.load_failed') }}</p>
-      <p class="vfp-text-sm vfp-text-white/60">{{ error }}</p>
+      <p class="vfp-text-lg vfp-font-medium vfp-text-fg-primary vfp-mb-2">{{ t('video.load_failed') }}</p>
+      <p class="vfp-text-sm vfp-text-fg-tertiary">{{ error }}</p>
     </div>
   </div>
 
@@ -130,13 +130,13 @@ onBeforeUnmount(() => {
     <div class="vfp-w-full vfp-h-full vfp-relative">
       <div
         v-if="isLoading"
-        class="vfp-absolute vfp-inset-0 vfp-flex vfp-items-center vfp-justify-center vfp-bg-black/20 vfp-backdrop-blur-sm vfp-rounded-2xl vfp-z-10"
+        class="vfp-absolute vfp-inset-0 vfp-flex vfp-items-center vfp-justify-center vfp-bg-surface-3 vfp-backdrop-blur-sm vfp-z-10"
       >
         <div class="vfp-text-center">
           <div
-            class="vfp-w-12 vfp-h-12 vfp-mx-auto vfp-mb-3 vfp-border-4 vfp-border-white/20 vfp-border-t-white vfp-rounded-full vfp-animate-spin"
+            class="vfp-w-12 vfp-h-12 vfp-mx-auto vfp-mb-3 vfp-border-4 vfp-border-line-strong vfp-border-t-spinner-head vfp-rounded-full vfp-animate-spin"
           />
-          <p class="vfp-text-sm vfp-text-white/70 vfp-font-medium">{{ t('video.loading') }}</p>
+          <p class="vfp-text-sm vfp-text-fg-secondary vfp-font-medium">{{ t('video.loading') }}</p>
         </div>
       </div>
 

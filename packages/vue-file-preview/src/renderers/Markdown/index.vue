@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { ref, watch, nextTick } from 'vue';
+import { ref, computed, watch, nextTick } from 'vue';
 import MarkdownIt from 'markdown-it';
 import MarkdownItKatex from '@traptitech/markdown-it-katex';
 import { codeToHtml } from 'shiki';
 import { fetchTextUtf8 } from '@eternalheart/file-preview-core';
 import { useTranslator } from '../../composables/useTranslator';
+import { useResolvedTheme } from '../../composables/useResolvedTheme';
 import 'katex/dist/katex.min.css';
 
 const props = defineProps<{
@@ -13,6 +14,8 @@ const props = defineProps<{
 }>();
 
 const { t } = useTranslator();
+const resolvedTheme = useResolvedTheme();
+const shikiTheme = computed(() => (resolvedTheme.value === 'light' ? 'github-light' : 'github-dark'));
 
 const content = ref('');
 const html = ref('');
@@ -82,7 +85,7 @@ const loadMarkdown = async () => {
     loading.value = false;
     // 异步生成源码高亮（不阻塞预览渲染）
     try {
-      highlightedSource.value = await codeToHtml(text, { lang: 'markdown', theme: 'github-dark' });
+      highlightedSource.value = await codeToHtml(text, { lang: 'markdown', theme: shikiTheme.value });
     } catch {
       highlightedSource.value = '';
     }
@@ -135,13 +138,13 @@ const highlightAndInjectCopyButtons = async () => {
     const lang = pre.getAttribute('data-lang') || 'text';
     const code = pre.querySelector('code')?.textContent || '';
     try {
-      const highlighted = await codeToHtml(code, { lang, theme: 'github-dark' });
+      const highlighted = await codeToHtml(code, { lang, theme: shikiTheme.value });
       const tmp = document.createElement('div');
       tmp.innerHTML = highlighted;
       const newPre = tmp.firstElementChild as HTMLElement;
       if (newPre) pre.replaceWith(newPre);
     } catch {
-      pre.style.backgroundColor = '#1e1e1e';
+      pre.style.backgroundColor = 'var(--fp-code-bg)';
       pre.removeAttribute('data-shiki-pending');
     }
   }
@@ -170,26 +173,31 @@ watch(html, async () => {
   await nextTick();
   highlightAndInjectCopyButtons();
 });
+
+// 主题切换时重新加载（让 shiki 用新主题重新高亮）
+watch(shikiTheme, () => {
+  if (content.value) loadMarkdown();
+});
 </script>
 
 <template>
   <div v-if="loading" class="vfp-flex vfp-items-center vfp-justify-center vfp-w-full vfp-h-full">
     <div
-      class="vfp-w-12 vfp-h-12 vfp-border-4 vfp-border-white/20 vfp-border-t-white vfp-rounded-full vfp-animate-spin"
+      class="vfp-w-12 vfp-h-12 vfp-border-4 vfp-border-line-strong vfp-border-t-spinner-head vfp-rounded-full vfp-animate-spin"
     />
   </div>
 
   <div v-else-if="error" class="vfp-flex vfp-items-center vfp-justify-center vfp-w-full vfp-h-full">
-    <div class="vfp-text-white/70 vfp-text-center">
+    <div class="vfp-text-fg-secondary vfp-text-center">
       <p class="vfp-text-lg">{{ error }}</p>
     </div>
   </div>
 
   <!-- 源码视图 -->
-  <div v-else-if="viewMode === 'source'" class="vfp-w-full vfp-h-full vfp-overflow-auto" style="background: #1e1e1e;">
+  <div v-else-if="viewMode === 'source'" class="vfp-w-full vfp-h-full vfp-overflow-auto" style="background: var(--fp-code-bg);">
     <pre
       v-if="!highlightedSource"
-      class="vfp-p-6 vfp-text-white/90 vfp-font-mono vfp-text-sm vfp-whitespace-pre-wrap vfp-break-words"
+      class="vfp-p-6 vfp-text-fg-primary vfp-font-mono vfp-text-sm vfp-whitespace-pre-wrap vfp-break-words"
       >{{ content }}</pre
     >
     <div v-else class="shiki-wrapper" v-html="highlightedSource" />
@@ -208,7 +216,7 @@ watch(html, async () => {
   overflow-x: auto;
   margin: 1rem 0;
   border-radius: 0.375rem;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  border: 1px solid var(--fp-surface-3);
 }
 .markdown-body :deep(.table-wrapper > table) {
   margin: 0;
@@ -233,16 +241,16 @@ watch(html, async () => {
 .markdown-body :deep(.no-lang-pre) {
   margin: 0;
   padding: 1rem;
-  background: #1e1e1e;
+  background: var(--fp-code-bg);
   border-radius: 0.375rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--fp-line);
 }
 .markdown-body :deep(.no-lang-pre code) {
   display: block;
   font-size: 0.8125rem;
   line-height: 1.5;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  color: rgba(255, 255, 255, 0.85);
+  color: var(--fp-fg-primary);
   white-space: pre;
   overflow-x: auto;
 }
@@ -257,7 +265,7 @@ watch(html, async () => {
 }
 /* KaTeX 公式颜色适配暗色背景 */
 .markdown-body :deep(.katex) {
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--fp-fg-primary);
 }
 .markdown-body :deep(.katex-display) {
   margin: 1.25rem 0;

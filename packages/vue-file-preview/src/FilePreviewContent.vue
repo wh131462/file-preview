@@ -12,6 +12,7 @@ import {
 } from '@eternalheart/file-preview-core';
 import type { CustomRenderer, CustomRendererContext } from './types';
 import { provideLocale, useTranslator } from './composables/useTranslator';
+import { provideResolvedTheme } from './composables/useResolvedTheme';
 import type { ToolbarGroup, ToolbarButtonItem, ToolbarTextItem } from './renderers/toolbar.types';
 import { getImageToolbarGroups } from './renderers/Image/toolbar';
 import { getPdfToolbarGroups } from './renderers/Pdf/toolbar';
@@ -110,7 +111,7 @@ onBeforeUnmount(() => {
 const resolvedTheme = computed(() =>
   props.theme === 'auto' ? (systemDark.value ? 'dark' : 'light') : props.theme,
 );
-const isLight = computed(() => resolvedTheme.value === 'light');
+provideResolvedTheme(resolvedTheme);
 
 const zoom = ref(1);
 const rotation = ref(0);
@@ -436,17 +437,17 @@ const hasToolGroups = computed(() => toolGroups.value.length > 0);
     <!-- 顶部工具栏 -->
     <div
       v-if="!headless"
-      :class="['vfp-flex-shrink-0 vfp-z-10 vfp-backdrop-blur-md vfp-border-b', isLight ? 'vfp-bg-white/80 vfp-border-gray-200' : 'vfp-bg-black/50 vfp-border-white/10']"
+      class="vfp-flex-shrink-0 vfp-z-10 vfp-backdrop-blur-md vfp-border-b vfp-bg-surface-toolbar vfp-border-line"
       style="padding-top: env(safe-area-inset-top, 0px)"
     >
       <!-- 第一行: 文件名 + 桌面端工具按钮 -->
       <div class="vfp-flex vfp-items-center vfp-justify-between vfp-px-3 md:vfp-px-5 vfp-py-1.5 md:vfp-py-2.5">
         <!-- 左侧: 文件名 + 分页 -->
         <div class="vfp-flex vfp-items-center vfp-flex-1 vfp-min-w-0 vfp-mr-2 md:vfp-mr-3">
-          <h2 :class="['vfp-font-medium vfp-text-xs md:vfp-text-sm vfp-truncate', isLight ? 'vfp-text-gray-800' : 'vfp-text-white/90']">
+          <h2 class="vfp-font-medium vfp-text-xs md:vfp-text-sm vfp-truncate vfp-text-fg-primary">
             {{ currentFile?.name }}
           </h2>
-          <span :class="['vfp-text-xs vfp-ml-2 vfp-flex-shrink-0', isLight ? 'vfp-text-gray-400' : 'vfp-text-white/40']">
+          <span class="vfp-text-xs vfp-ml-2 vfp-flex-shrink-0 vfp-text-fg-muted">
             {{ currentIndex + 1 }}/{{ normalizedFiles.length }}
           </span>
         </div>
@@ -457,7 +458,7 @@ const hasToolGroups = computed(() => toolGroups.value.length > 0);
             <template v-for="(item, ii) in group.items" :key="'m-action-' + gi + '-' + ii">
               <button
                 v-if="item.type === 'button'"
-                :class="['toolbar-btn', { 'toolbar-btn-light': isLight }]"
+                class="toolbar-btn"
                 :data-tooltip="(item as ToolbarButtonItem).tooltip"
                 :disabled="(item as ToolbarButtonItem).disabled"
                 @click="(item as ToolbarButtonItem).action"
@@ -474,7 +475,7 @@ const hasToolGroups = computed(() => toolGroups.value.length > 0);
             <template v-for="(item, ii) in group.items" :key="'d-tool-' + gi + '-' + ii">
               <button
                 v-if="item.type === 'button'"
-                :class="['toolbar-btn', { 'toolbar-btn-light': isLight }]"
+                class="toolbar-btn"
                 :data-tooltip="(item as ToolbarButtonItem).tooltip"
                 :disabled="(item as ToolbarButtonItem).disabled"
                 @click="(item as ToolbarButtonItem).action"
@@ -483,19 +484,19 @@ const hasToolGroups = computed(() => toolGroups.value.length > 0);
               </button>
               <span
                 v-else-if="item.type === 'text'"
-                :class="['vfp-text-xs vfp-text-center vfp-font-medium vfp-tabular-nums', isLight ? 'vfp-text-gray-500' : 'vfp-text-white/60']"
+                class="vfp-text-xs vfp-text-center vfp-font-medium vfp-tabular-nums vfp-text-fg-tertiary"
                 :style="{ minWidth: (item as ToolbarTextItem).minWidth || 'auto' }"
               >
                 {{ (item as ToolbarTextItem).content }}
               </span>
             </template>
-            <div :class="['vfp-w-px vfp-h-4 vfp-mx-1', isLight ? 'vfp-bg-gray-200' : 'vfp-bg-white/10']" />
+            <div class="vfp-w-px vfp-h-4 vfp-mx-1 vfp-bg-divide" />
           </template>
           <template v-for="(group, gi) in actionGroups" :key="'d-action-' + gi">
             <template v-for="(item, ii) in group.items" :key="'d-action-' + gi + '-' + ii">
               <button
                 v-if="item.type === 'button'"
-                :class="['toolbar-btn', { 'toolbar-btn-light': isLight }]"
+                class="toolbar-btn"
                 :data-tooltip="(item as ToolbarButtonItem).tooltip"
                 :disabled="(item as ToolbarButtonItem).disabled"
                 @click="(item as ToolbarButtonItem).action"
@@ -513,11 +514,11 @@ const hasToolGroups = computed(() => toolGroups.value.length > 0);
         class="vfp-flex vfp-items-center vfp-gap-1 vfp-px-3 vfp-pb-1.5 vfp-overflow-x-auto scrollbar-hide md:vfp-hidden"
       >
         <template v-for="(group, gi) in toolGroups" :key="'m-tool-' + gi">
-          <div v-if="gi > 0" :class="['vfp-w-px vfp-h-4 vfp-mx-0.5', isLight ? 'vfp-bg-gray-200' : 'vfp-bg-white/10']" />
+          <div v-if="gi > 0" class="vfp-w-px vfp-h-4 vfp-mx-0.5 vfp-bg-divide" />
           <template v-for="(item, ii) in group.items" :key="'m-tool-' + gi + '-' + ii">
             <button
               v-if="item.type === 'button'"
-              :class="['toolbar-btn', { 'toolbar-btn-light': isLight }]"
+              class="toolbar-btn"
               :data-tooltip="(item as ToolbarButtonItem).tooltip"
               :disabled="(item as ToolbarButtonItem).disabled"
               @click="(item as ToolbarButtonItem).action"
@@ -526,7 +527,7 @@ const hasToolGroups = computed(() => toolGroups.value.length > 0);
             </button>
             <span
               v-else-if="item.type === 'text'"
-              :class="['vfp-text-xs vfp-text-center vfp-font-medium vfp-tabular-nums', isLight ? 'vfp-text-gray-500' : 'vfp-text-white/60']"
+              class="vfp-text-xs vfp-text-center vfp-font-medium vfp-tabular-nums vfp-text-fg-tertiary"
               :style="{ minWidth: (item as ToolbarTextItem).minWidth || 'auto' }"
             >
               {{ (item as ToolbarTextItem).content }}
@@ -650,7 +651,7 @@ const hasToolGroups = computed(() => toolGroups.value.length > 0);
           pointerEvents: navVisible ? 'auto' : 'none',
           transition: 'opacity 0.2s, transform 0.2s',
         }"
-        :class="['vfp-absolute vfp-z-20 vfp-left-2 md:vfp-left-4 vfp-top-1/2 vfp-w-10 vfp-h-10 md:vfp-w-12 md:vfp-h-12 vfp-rounded-full vfp-backdrop-blur-xl vfp-border vfp-flex vfp-items-center vfp-justify-center vfp-transition-colors vfp-shadow-2xl', isLight ? 'vfp-bg-white/70 vfp-border-gray-200 vfp-text-gray-700 hover:vfp-bg-white/90' : 'vfp-bg-black/40 vfp-border-white/10 vfp-text-white hover:vfp-bg-black/60']"
+        class="vfp-absolute vfp-z-20 vfp-left-2 md:vfp-left-4 vfp-top-1/2 vfp-w-10 vfp-h-10 md:vfp-w-12 md:vfp-h-12 vfp-rounded-full vfp-backdrop-blur-xl vfp-border vfp-flex vfp-items-center vfp-justify-center vfp-transition-colors vfp-shadow-2xl vfp-bg-surface-nav vfp-border-line hover:vfp-bg-surface-nav-hover vfp-text-fg-primary"
         @click="emit('navigate', currentIndex - 1)"
         @mouseenter="navVisible = true"
       >
@@ -665,7 +666,7 @@ const hasToolGroups = computed(() => toolGroups.value.length > 0);
           pointerEvents: navVisible ? 'auto' : 'none',
           transition: 'opacity 0.2s, transform 0.2s',
         }"
-        :class="['vfp-absolute vfp-z-20 vfp-right-2 md:vfp-right-4 vfp-top-1/2 vfp-w-10 vfp-h-10 md:vfp-w-12 md:vfp-h-12 vfp-rounded-full vfp-backdrop-blur-xl vfp-border vfp-flex vfp-items-center vfp-justify-center vfp-transition-colors vfp-shadow-2xl', isLight ? 'vfp-bg-white/70 vfp-border-gray-200 vfp-text-gray-700 hover:vfp-bg-white/90' : 'vfp-bg-black/40 vfp-border-white/10 vfp-text-white hover:vfp-bg-black/60']"
+        class="vfp-absolute vfp-z-20 vfp-right-2 md:vfp-right-4 vfp-top-1/2 vfp-w-10 vfp-h-10 md:vfp-w-12 md:vfp-h-12 vfp-rounded-full vfp-backdrop-blur-xl vfp-border vfp-flex vfp-items-center vfp-justify-center vfp-transition-colors vfp-shadow-2xl vfp-bg-surface-nav vfp-border-line hover:vfp-bg-surface-nav-hover vfp-text-fg-primary"
         @click="emit('navigate', currentIndex + 1)"
         @mouseenter="navVisible = true"
       >
@@ -682,7 +683,7 @@ const hasToolGroups = computed(() => toolGroups.value.length > 0);
   border-radius: 0.375rem;
   transition: all 0.15s;
   user-select: none;
-  color: white;
+  color: var(--fp-fg-primary);
   background: transparent;
   border: 0;
   cursor: pointer;
@@ -693,26 +694,13 @@ const hasToolGroups = computed(() => toolGroups.value.length > 0);
   }
 }
 .toolbar-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--fp-surface-2);
 }
 .toolbar-btn:active {
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--fp-surface-3);
 }
 .toolbar-btn:disabled {
-  color: rgba(255, 255, 255, 0.3);
-  cursor: not-allowed;
-}
-.toolbar-btn-light {
-  color: #374151;
-}
-.toolbar-btn-light:hover {
-  background: rgba(0, 0, 0, 0.05);
-}
-.toolbar-btn-light:active {
-  background: rgba(0, 0, 0, 0.1);
-}
-.toolbar-btn-light:disabled {
-  color: #d1d5db;
+  color: var(--fp-fg-disabled);
   cursor: not-allowed;
 }
 /* Tooltip */
@@ -724,8 +712,8 @@ const hasToolGroups = computed(() => toolGroups.value.length > 0);
   transform: translateX(-50%);
   margin-top: 6px;
   padding: 4px 8px;
-  background: rgba(0, 0, 0, 0.85);
-  color: #fff;
+  background: var(--fp-fg-primary);
+  color: var(--fp-fg-inverse);
   font-size: 12px;
   line-height: 1.5;
   border-radius: 4px;
@@ -744,7 +732,7 @@ const hasToolGroups = computed(() => toolGroups.value.length > 0);
   transform: translateX(-50%);
   margin-top: 2px;
   border: 4px solid transparent;
-  border-bottom-color: rgba(0, 0, 0, 0.85);
+  border-bottom-color: var(--fp-fg-primary);
   pointer-events: none;
   opacity: 0;
   visibility: hidden;

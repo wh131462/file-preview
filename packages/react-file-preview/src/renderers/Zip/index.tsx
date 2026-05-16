@@ -102,7 +102,7 @@ const TreeItem: React.FC<TreeItemProps> = ({
           onClick={() => onToggle(node.path)}
           onMouseEnter={handleEnter}
           onMouseLeave={onLeave}
-          className="rfp-w-full rfp-flex rfp-items-center rfp-gap-1.5 rfp-py-1.5 rfp-pr-2 rfp-text-left rfp-text-white/80 hover:rfp-bg-white/5 rfp-text-sm"
+          className="rfp-w-full rfp-flex rfp-items-center rfp-gap-1.5 rfp-py-1.5 rfp-pr-2 rfp-text-left rfp-text-fg-secondary hover:rfp-bg-surface-1 rfp-text-sm"
           style={pad}
         >
           <ChevronRight
@@ -144,14 +144,14 @@ const TreeItem: React.FC<TreeItemProps> = ({
       onMouseEnter={handleEnter}
       onMouseLeave={onLeave}
       className={`rfp-w-full rfp-flex rfp-items-center rfp-gap-1.5 rfp-py-1.5 rfp-pr-2 rfp-text-left rfp-text-sm ${
-        isSelected ? 'rfp-bg-white/10 rfp-text-white' : 'rfp-text-white/70 hover:rfp-bg-white/5'
+        isSelected ? 'rfp-bg-surface-2 rfp-text-fg-primary' : 'rfp-text-fg-secondary hover:rfp-bg-surface-1'
       }`}
       style={pad}
     >
       <span className="rfp-w-3.5 rfp-h-3.5 rfp-flex-shrink-0" />
-      <Icon className="rfp-w-4 rfp-h-4 rfp-flex-shrink-0 rfp-text-white/50" />
+      <Icon className="rfp-w-4 rfp-h-4 rfp-flex-shrink-0 rfp-text-fg-tertiary" />
       <span className="rfp-flex-1 rfp-truncate rfp-min-w-0">{node.name}</span>
-      <span className="rfp-text-xs rfp-text-white/30 rfp-flex-shrink-0 rfp-ml-2">
+      <span className="rfp-text-xs rfp-text-fg-disabled rfp-flex-shrink-0 rfp-ml-2">
         {formatFileSize(node.size)}
       </span>
     </button>
@@ -289,7 +289,7 @@ export const ZipRenderer: React.FC<ZipRendererProps> = ({ url, nestingDepth = 0,
   if (loading) {
     return (
       <div className="rfp-flex rfp-items-center rfp-justify-center rfp-w-full rfp-h-full">
-        <div className="rfp-w-12 rfp-h-12 rfp-border-4 rfp-border-white/20 rfp-border-t-white rfp-rounded-full rfp-animate-spin" />
+        <div className="rfp-w-12 rfp-h-12 rfp-border-4 rfp-border-line-strong rfp-border-t-spinner-head rfp-rounded-full rfp-animate-spin" />
       </div>
     );
   }
@@ -297,7 +297,7 @@ export const ZipRenderer: React.FC<ZipRendererProps> = ({ url, nestingDepth = 0,
   if (error || !tree) {
     return (
       <div className="rfp-flex rfp-items-center rfp-justify-center rfp-w-full rfp-h-full">
-        <div className="rfp-text-white/70 rfp-text-center">
+        <div className="rfp-text-fg-secondary rfp-text-center">
           <p className="rfp-text-lg">{error || t('zip.parse_failed')}</p>
         </div>
       </div>
@@ -327,27 +327,27 @@ export const ZipRenderer: React.FC<ZipRendererProps> = ({ url, nestingDepth = 0,
   const rightPane = (
     <div className="rfp-w-full rfp-h-full rfp-flex rfp-flex-col">
       {!selected && (
-        <div className="rfp-flex-1 rfp-flex rfp-items-center rfp-justify-center rfp-text-white/40 rfp-text-sm rfp-p-6">
+        <div className="rfp-flex-1 rfp-flex rfp-items-center rfp-justify-center rfp-text-fg-muted rfp-text-sm rfp-p-6">
           从左侧选择一个文件以预览
         </div>
       )}
       {selected && previewLoading && (
         <div className="rfp-flex-1 rfp-flex rfp-items-center rfp-justify-center">
-          <div className="rfp-w-8 rfp-h-8 rfp-border-4 rfp-border-white/20 rfp-border-t-white rfp-rounded-full rfp-animate-spin" />
+          <div className="rfp-w-8 rfp-h-8 rfp-border-4 rfp-border-line-strong rfp-border-t-spinner-head rfp-rounded-full rfp-animate-spin" />
         </div>
       )}
       {selected && !previewLoading && previewError && (
-        <div className="rfp-flex-1 rfp-flex rfp-items-center rfp-justify-center rfp-text-white/70">
+        <div className="rfp-flex-1 rfp-flex rfp-items-center rfp-justify-center rfp-text-fg-secondary">
           {previewError}
         </div>
       )}
       {selected && !previewLoading && !previewError && (
         <>
-          <div className="rfp-flex-1 rfp-min-h-0 rfp-overflow-hidden rfp-flex">
+          <div className="rfp-flex-1 rfp-min-h-0 rfp-overflow-hidden rfp-flex rfp-relative rfp-z-0">
             <Suspense
               fallback={
                 <div className="rfp-flex-1 rfp-flex rfp-items-center rfp-justify-center">
-                  <div className="rfp-w-8 rfp-h-8 rfp-border-4 rfp-border-white/20 rfp-border-t-white rfp-rounded-full rfp-animate-spin" />
+                  <div className="rfp-w-8 rfp-h-8 rfp-border-4 rfp-border-line-strong rfp-border-t-spinner-head rfp-rounded-full rfp-animate-spin" />
                 </div>
               }
             >
@@ -379,7 +379,7 @@ export const ZipRenderer: React.FC<ZipRendererProps> = ({ url, nestingDepth = 0,
         typeof document !== 'undefined' &&
         createPortal(
           <div
-            className="rfp-fixed rfp-z-[9999] rfp-pointer-events-none rfp-px-2 rfp-py-1 rfp-bg-[rgba(0,0,0,0.85)] rfp-text-white rfp-text-xs rfp-rounded rfp-whitespace-nowrap rfp-shadow-lg"
+            className="rfp-fixed rfp-z-[9999] rfp-pointer-events-none rfp-px-2 rfp-py-1 rfp-bg-[rgba(0,0,0,0.85)] rfp-text-fg-primary rfp-text-xs rfp-rounded rfp-whitespace-nowrap rfp-shadow-lg"
             style={{
               left: `${hoverTip.x}px`,
               top: `${hoverTip.y}px`,

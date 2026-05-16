@@ -118,7 +118,7 @@ export const ResizableSplit: React.FC<ResizableSplitProps> = ({
         aria-orientation="vertical"
         onMouseDown={handleDividerDown}
         className={`rfp-hidden md:rfp-block rfp-relative rfp-w-1.5 rfp-flex-shrink-0 rfp-cursor-col-resize rfp-transition-colors ${
-          dragging ? 'rfp-bg-white/40' : 'rfp-bg-white/10 hover:rfp-bg-white/30'
+          dragging ? 'rfp-bg-surface-toolbar' : 'rfp-bg-surface-2 hover:rfp-bg-surface-3'
         }`}
       >
         {/* 加宽命中区，改善拖动体验 */}

@@ -256,7 +256,7 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="vfp-relative vfp-w-full vfp-h-full vfp-flex vfp-justify-center vfp-overflow-hidden" style="background: #f5f5f0">
-    <div v-if="error" class="vfp-absolute vfp-inset-0 vfp-flex vfp-items-center vfp-justify-center vfp-text-white/70 vfp-text-center">
+    <div v-if="error" class="vfp-absolute vfp-inset-0 vfp-flex vfp-items-center vfp-justify-center vfp-text-fg-secondary vfp-text-center">
       <p class="vfp-text-lg">{{ error }}</p>
     </div>
 
@@ -264,7 +264,7 @@ onBeforeUnmount(() => {
       v-if="loading && !error"
       class="vfp-absolute vfp-inset-0 vfp-flex vfp-items-center vfp-justify-center vfp-z-10"
     >
-      <div class="vfp-w-12 vfp-h-12 vfp-border-4 vfp-border-white/20 vfp-border-t-white vfp-rounded-full vfp-animate-spin" />
+      <div class="vfp-w-12 vfp-h-12 vfp-border-4 vfp-border-line-strong vfp-border-t-spinner-head vfp-rounded-full vfp-animate-spin" />
     </div>
 
     <!-- 目录侧栏 - 滑入动画 -->
@@ -344,7 +344,7 @@ onBeforeUnmount(() => {
     <div
       v-if="!error"
       ref="viewerRef"
-      class="vfp-h-full vfp-bg-white"
+      class="vfp-h-full vfp-bg-surface-toolbar"
       :style="{
         width: isFullWidth ? '100%' : `${A4_WIDTH}px`,
         maxWidth: '100%',

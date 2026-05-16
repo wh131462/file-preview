@@ -229,15 +229,15 @@ export const MobiRenderer = forwardRef<MobiRendererHandle, MobiRendererProps>(
                 onClick={() => handleTocClick(item.href!)}
                 className={`rfp-w-full rfp-text-left rfp-py-2 rfp-px-3 rfp-text-sm rfp-rounded rfp-transition-all rfp-truncate ${
                   isActive(item.href)
-                    ? 'rfp-text-white rfp-bg-white/15 rfp-font-medium'
-                    : 'rfp-text-white/70 hover:rfp-text-white hover:rfp-bg-white/10'
+                    ? 'rfp-text-fg-primary rfp-bg-surface-3 rfp-font-medium'
+                    : 'rfp-text-fg-secondary hover:rfp-text-fg-primary hover:rfp-bg-surface-2'
                 }`}
                 title={item.label}
               >
                 {item.label?.trim()}
               </button>
             ) : (
-              <div className="rfp-w-full rfp-py-2 rfp-px-3 rfp-text-sm rfp-text-white/50 rfp-truncate">
+              <div className="rfp-w-full rfp-py-2 rfp-px-3 rfp-text-sm rfp-text-fg-tertiary rfp-truncate">
                 {item.label?.trim()}
               </div>
             )}
@@ -250,14 +250,14 @@ export const MobiRenderer = forwardRef<MobiRendererHandle, MobiRendererProps>(
     return (
       <div className="rfp-relative rfp-w-full rfp-h-full rfp-flex rfp-justify-center rfp-bg-[#f5f5f0] rfp-overflow-hidden">
         {error && (
-          <div className="rfp-absolute rfp-inset-0 rfp-flex rfp-items-center rfp-justify-center rfp-text-white/70 rfp-text-center rfp-p-6">
+          <div className="rfp-absolute rfp-inset-0 rfp-flex rfp-items-center rfp-justify-center rfp-text-fg-secondary rfp-text-center rfp-p-6">
             <p className="rfp-text-lg">{error}</p>
           </div>
         )}
 
         {loading && !error && (
           <div className="rfp-absolute rfp-inset-0 rfp-flex rfp-items-center rfp-justify-center rfp-z-10">
-            <div className="rfp-w-12 rfp-h-12 rfp-border-4 rfp-border-white/20 rfp-border-t-white rfp-rounded-full rfp-animate-spin" />
+            <div className="rfp-w-12 rfp-h-12 rfp-border-4 rfp-border-line-strong rfp-border-t-spinner-head rfp-rounded-full rfp-animate-spin" />
           </div>
         )}
 
@@ -268,14 +268,14 @@ export const MobiRenderer = forwardRef<MobiRendererHandle, MobiRendererProps>(
             style={{ opacity: showToc ? 1 : 0, pointerEvents: showToc ? 'auto' : 'none' }}
           >
             <div
-              className="rfp-w-72 rfp-max-w-[80%] rfp-h-full rfp-bg-black/90 rfp-backdrop-blur-xl rfp-border-r rfp-border-white/10 rfp-flex rfp-flex-col rfp-shadow-2xl rfp-transition-transform rfp-duration-300"
+              className="rfp-w-72 rfp-max-w-[80%] rfp-h-full rfp-bg-surface-overlay rfp-backdrop-blur-xl rfp-border-r rfp-border-line-weak rfp-flex rfp-flex-col rfp-shadow-2xl rfp-transition-transform rfp-duration-300"
               style={{ transform: showToc ? 'translateX(0)' : 'translateX(-100%)' }}
             >
-              <div className="rfp-flex rfp-items-center rfp-justify-between rfp-px-4 rfp-py-3 rfp-border-b rfp-border-white/10 rfp-flex-shrink-0">
-                <span className="rfp-text-white rfp-font-medium rfp-text-sm">{t('toolbar.toc')}</span>
+              <div className="rfp-flex rfp-items-center rfp-justify-between rfp-px-4 rfp-py-3 rfp-border-b rfp-border-line-weak rfp-flex-shrink-0">
+                <span className="rfp-text-fg-primary rfp-font-medium rfp-text-sm">{t('toolbar.toc')}</span>
                 <button
                   onClick={() => setShowToc(false)}
-                  className="rfp-text-white/60 hover:rfp-text-white rfp-transition-colors"
+                  className="rfp-text-fg-tertiary hover:rfp-text-fg-primary rfp-transition-colors"
                 >
                   <X className="rfp-w-4 rfp-h-4" />
                 </button>
@@ -295,7 +295,7 @@ export const MobiRenderer = forwardRef<MobiRendererHandle, MobiRendererProps>(
         {!error && (
           <div
             ref={hostRef}
-            className="rfp-h-full rfp-bg-white rfp-shadow-lg"
+            className="rfp-h-full rfp-bg-surface-toolbar rfp-shadow-lg"
             style={{
               width: isFullWidth ? '100%' : `${A4_WIDTH}px`,
               maxWidth: '100%',

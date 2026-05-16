@@ -92,9 +92,9 @@ const handleLeave = () => emit('leave');
     @mouseleave="handleLeave"
   >
     <span class="vfp-w-3.5 vfp-h-3.5 vfp-flex-shrink-0" />
-    <component :is="fileIcon" class="vfp-w-4 vfp-h-4 vfp-flex-shrink-0 vfp-text-white/50" />
+    <component :is="fileIcon" class="vfp-w-4 vfp-h-4 vfp-flex-shrink-0 vfp-text-fg-tertiary" />
     <span class="vfp-flex-1 vfp-truncate vfp-min-w-0">{{ node.name }}</span>
-    <span class="vfp-text-xs vfp-text-white/30 vfp-flex-shrink-0 vfp-ml-2">{{ formatFileSize(node.size) }}</span>
+    <span class="vfp-text-xs vfp-text-fg-disabled vfp-flex-shrink-0 vfp-ml-2">{{ formatFileSize(node.size) }}</span>
   </button>
 </template>
 
@@ -118,16 +118,16 @@ export default { name: 'ZipTreeItem' };
   cursor: pointer;
 }
 .dir-row {
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--fp-fg-secondary);
 }
 .file-row {
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--fp-fg-secondary);
 }
 .tree-row:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--fp-surface-1);
 }
 .file-row.selected {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--fp-line);
   color: #fff;
 }
 </style>

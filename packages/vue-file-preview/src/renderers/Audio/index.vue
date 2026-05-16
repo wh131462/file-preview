@@ -72,7 +72,7 @@ const handleVolumeLeave = () => {
 
 <template>
   <div v-if="error" class="vfp-flex vfp-items-center vfp-justify-center vfp-w-full vfp-h-full">
-    <div class="vfp-text-white/70 vfp-text-center">
+    <div class="vfp-text-fg-secondary vfp-text-center">
       <p class="vfp-text-lg">{{ error }}</p>
     </div>
   </div>
@@ -204,33 +204,28 @@ const handleVolumeLeave = () => {
 
     <!-- 文件名 -->
     <div class="vfp-text-center vfp-max-w-sm md:vfp-max-w-md vfp-px-4">
-      <div class="vfp-text-lg md:vfp-text-xl vfp-font-medium vfp-mb-1 vfp-truncate" style="color: #e0dff0">
+      <div class="vfp-text-lg md:vfp-text-xl vfp-font-medium vfp-mb-1 vfp-truncate vfp-text-fg-primary">
         {{ fileName }}
       </div>
-      <p class="vfp-text-xs vfp-tracking-widest vfp-uppercase" style="color: rgba(129,140,248,0.5)">Audio</p>
+      <p class="vfp-text-xs vfp-tracking-widest vfp-uppercase vfp-text-accent">Audio</p>
     </div>
 
     <!-- 控制面板 -->
     <div
-      class="vfp-w-full vfp-max-w-sm md:vfp-max-w-md vfp-rounded-2xl vfp-p-4 md:vfp-p-6 vfp-border"
-      :style="{
-        background: 'rgba(255,255,255,0.04)',
-        backdropFilter: 'blur(16px)',
-        borderColor: 'rgba(129,140,248,0.12)',
-      }"
+      class="vfp-w-full vfp-max-w-sm md:vfp-max-w-md vfp-rounded-2xl vfp-p-4 md:vfp-p-6 vfp-border vfp-bg-surface-1 vfp-border-line-weak"
+      :style="{ backdropFilter: 'blur(16px)' }"
     >
       <!-- 进度条 -->
       <div class="vfp-mb-5">
         <div class="vfp-relative vfp-h-4 vfp-flex vfp-items-center">
           <div
-            class="vfp-absolute vfp-w-full vfp-h-[5px] vfp-rounded-full"
-            style="background: rgba(255,255,255,0.08)"
+            class="vfp-absolute vfp-w-full vfp-h-[5px] vfp-rounded-full vfp-bg-surface-2"
           />
           <div
             class="vfp-absolute vfp-h-[5px] vfp-rounded-full vfp-pointer-events-none"
             :style="{
               width: `${progress * 100}%`,
-              background: 'linear-gradient(90deg, #6366f1, #818cf8)',
+              background: 'linear-gradient(90deg, var(--fp-accent), var(--fp-accent-hover))',
               boxShadow: isPlaying ? '0 0 8px rgba(129,140,248,0.4)' : 'none',
               transition: 'width 0.1s linear',
             }"
@@ -248,8 +243,7 @@ const handleVolumeLeave = () => {
           />
         </div>
         <div
-          class="vfp-flex vfp-justify-between vfp-text-xs vfp-mt-2.5"
-          style="color: rgba(129,140,248,0.5)"
+          class="vfp-flex vfp-justify-between vfp-text-xs vfp-mt-2.5 vfp-text-fg-tertiary"
         >
           <span style="font-variant-numeric: tabular-nums">{{ formatTime(currentTime) }}</span>
           <span style="font-variant-numeric: tabular-nums">{{ duration > 0 ? formatTime(duration) : '--:--' }}</span>
@@ -260,13 +254,10 @@ const handleVolumeLeave = () => {
       <div class="vfp-flex vfp-items-center vfp-justify-center vfp-gap-3">
         <!-- 循环 -->
         <button
-          class="vfp-w-9 vfp-h-9 vfp-rounded-full vfp-flex vfp-items-center vfp-justify-center vfp-transition-colors"
-          :style="{
-            background: isLoop ? 'rgba(129,140,248,0.15)' : 'rgba(255,255,255,0.06)',
-            color: isLoop ? '#818cf8' : 'rgba(224,223,240,0.4)',
-            border: 0,
-            cursor: 'pointer',
-          }"
+          :class="[
+            'vfp-w-9 vfp-h-9 vfp-rounded-full vfp-flex vfp-items-center vfp-justify-center vfp-transition-colors audio-ctrl-btn',
+            isLoop ? 'vfp-bg-accent-soft vfp-text-accent' : 'vfp-bg-surface-2 vfp-text-fg-tertiary',
+          ]"
           :aria-label="isLoop ? t('audio.aria.loop_off') : t('audio.aria.loop_on')"
           @click="toggleLoop"
         >
@@ -275,8 +266,7 @@ const handleVolumeLeave = () => {
 
         <!-- 后退 -->
         <button
-          class="vfp-w-10 vfp-h-10 vfp-rounded-full vfp-flex vfp-items-center vfp-justify-center vfp-transition-colors"
-          :style="{ background: 'rgba(255,255,255,0.06)', color: 'rgba(224,223,240,0.7)', border: 0, cursor: 'pointer' }"
+          class="vfp-w-10 vfp-h-10 vfp-rounded-full vfp-flex vfp-items-center vfp-justify-center vfp-transition-colors audio-ctrl-btn vfp-bg-surface-2 vfp-text-fg-secondary"
           :aria-label="t('audio.aria.backward_10')"
           @click="skip(-10)"
         >
@@ -285,13 +275,11 @@ const handleVolumeLeave = () => {
 
         <!-- 播放/暂停 -->
         <button
-          class="vfp-w-14 vfp-h-14 vfp-rounded-full vfp-flex vfp-items-center vfp-justify-center"
+          class="vfp-w-14 vfp-h-14 vfp-rounded-full vfp-flex vfp-items-center vfp-justify-center audio-ctrl-btn"
           :style="{
-            background: 'linear-gradient(135deg, #818cf8, #6366f1)',
+            background: 'linear-gradient(135deg, var(--fp-accent-hover), var(--fp-accent))',
             color: '#fff',
             boxShadow: '0 4px 20px rgba(99,102,241,0.35)',
-            border: 0,
-            cursor: 'pointer',
           }"
           :aria-label="isPlaying ? t('audio.aria.pause') : t('audio.aria.play')"
           @click="togglePlay"
@@ -302,8 +290,7 @@ const handleVolumeLeave = () => {
 
         <!-- 前进 -->
         <button
-          class="vfp-w-10 vfp-h-10 vfp-rounded-full vfp-flex vfp-items-center vfp-justify-center vfp-transition-colors"
-          :style="{ background: 'rgba(255,255,255,0.06)', color: 'rgba(224,223,240,0.7)', border: 0, cursor: 'pointer' }"
+          class="vfp-w-10 vfp-h-10 vfp-rounded-full vfp-flex vfp-items-center vfp-justify-center vfp-transition-colors audio-ctrl-btn vfp-bg-surface-2 vfp-text-fg-secondary"
           :aria-label="t('audio.aria.forward_10')"
           @click="skip(10)"
         >
@@ -313,13 +300,10 @@ const handleVolumeLeave = () => {
         <!-- 音量 -->
         <div ref="volumeRef" class="vfp-relative" @mouseenter="handleVolumeEnter" @mouseleave="handleVolumeLeave">
           <button
-            class="vfp-w-9 vfp-h-9 vfp-rounded-full vfp-flex vfp-items-center vfp-justify-center vfp-transition-colors"
-            :style="{
-              background: showVolume ? 'rgba(129,140,248,0.15)' : 'rgba(255,255,255,0.06)',
-              color: 'rgba(129,140,248,0.6)',
-              border: 0,
-              cursor: 'pointer',
-            }"
+            :class="[
+              'vfp-w-9 vfp-h-9 vfp-rounded-full vfp-flex vfp-items-center vfp-justify-center vfp-transition-colors audio-ctrl-btn',
+              showVolume ? 'vfp-bg-accent-soft vfp-text-accent' : 'vfp-bg-surface-2 vfp-text-fg-secondary',
+            ]"
             :aria-label="isMuted ? t('audio.aria.unmute') : t('audio.aria.mute')"
             @click="toggleMute"
           >
@@ -329,13 +313,11 @@ const handleVolumeLeave = () => {
           <Transition name="vfp-fade">
             <div
               v-if="showVolume"
-              class="vfp-absolute vfp-bottom-full vfp-mb-2 vfp-rounded-xl vfp-p-3 vfp-border"
+              class="vfp-absolute vfp-bottom-full vfp-mb-2 vfp-rounded-xl vfp-p-3 vfp-border vfp-bg-surface-3 vfp-border-line"
               :style="{
                 left: '50%',
                 marginLeft: '-27px',
-                background: 'rgba(20,20,20,0.95)',
                 backdropFilter: 'blur(16px)',
-                borderColor: 'rgba(129,140,248,0.15)',
               }"
               @mouseenter="handleVolumeEnter"
               @mouseleave="handleVolumeLeave"
@@ -346,15 +328,15 @@ const handleVolumeLeave = () => {
                   style="width: 24px; height: 80px"
                 >
                   <div
-                    class="vfp-absolute vfp-rounded-full"
-                    style="width: 3px; height: 100%; background: rgba(255,255,255,0.1)"
+                    class="vfp-absolute vfp-rounded-full vfp-bg-surface-2"
+                    style="width: 3px; height: 100%"
                   />
                   <div
                     class="vfp-absolute vfp-bottom-0 vfp-rounded-full vfp-pointer-events-none"
                     :style="{
                       width: '3px',
                       height: `${(isMuted ? 0 : volume) * 100}%`,
-                      background: '#818cf8',
+                      background: 'var(--fp-accent-hover)',
                       transition: 'height 0.1s linear',
                     }"
                   />
@@ -370,7 +352,7 @@ const handleVolumeLeave = () => {
                     @input="(e) => setVolume(parseFloat((e.target as HTMLInputElement).value))"
                   />
                 </div>
-                <span class="vfp-text-[10px] vfp-tabular-nums" style="color: rgba(129,140,248,0.5)">
+                <span class="vfp-text-[10px] vfp-tabular-nums vfp-text-fg-tertiary">
                   {{ Math.round((isMuted ? 0 : volume) * 100) }}
                 </span>
               </div>
@@ -383,3 +365,10 @@ const handleVolumeLeave = () => {
     <audio ref="audioRef" :src="url" class="vfp-hidden" />
   </div>
 </template>
+
+<style scoped>
+.audio-ctrl-btn {
+  border: 0;
+  cursor: pointer;
+}
+</style>

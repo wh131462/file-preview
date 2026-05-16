@@ -141,30 +141,30 @@ onBeforeUnmount(() => {
   <div class="vfp-relative vfp-flex vfp-flex-col vfp-items-center vfp-w-full vfp-h-full">
     <div
       v-if="loading"
-      class="vfp-absolute vfp-inset-0 vfp-flex vfp-items-center vfp-justify-center vfp-bg-black/50 vfp-backdrop-blur-sm vfp-z-10 vfp-rounded-xl md:vfp-rounded-2xl"
+      class="vfp-absolute vfp-inset-0 vfp-flex vfp-items-center vfp-justify-center vfp-bg-surface-toolbar vfp-backdrop-blur-sm vfp-z-10"
     >
       <div class="vfp-text-center">
         <div
-          class="vfp-w-10 vfp-h-10 md:vfp-w-12 md:vfp-h-12 vfp-mx-auto vfp-mb-3 vfp-border-4 vfp-border-white/20 vfp-border-t-white vfp-rounded-full vfp-animate-spin"
+          class="vfp-w-10 vfp-h-10 md:vfp-w-12 md:vfp-h-12 vfp-mx-auto vfp-mb-3 vfp-border-4 vfp-border-line-strong vfp-border-t-spinner-head vfp-rounded-full vfp-animate-spin"
         />
-        <p class="vfp-text-xs md:vfp-text-sm vfp-text-white/70 vfp-font-medium">{{ t('csv.loading') }}</p>
+        <p class="vfp-text-xs md:vfp-text-sm vfp-text-fg-secondary vfp-font-medium">{{ t('csv.loading') }}</p>
       </div>
     </div>
 
     <div
       v-if="error && !loading"
-      class="vfp-absolute vfp-inset-0 vfp-flex vfp-items-center vfp-justify-center vfp-bg-black/50 vfp-backdrop-blur-sm vfp-z-10 vfp-rounded-xl md:vfp-rounded-2xl"
+      class="vfp-absolute vfp-inset-0 vfp-flex vfp-items-center vfp-justify-center vfp-bg-surface-toolbar vfp-backdrop-blur-sm vfp-z-10"
     >
       <div class="vfp-text-center vfp-max-w-sm md:vfp-max-w-md vfp-px-4">
         <div
           class="vfp-w-24 vfp-h-24 md:vfp-w-32 md:vfp-h-32 vfp-mx-auto vfp-mb-4 md:vfp-mb-6 vfp-rounded-2xl md:vfp-rounded-3xl vfp-bg-gradient-to-br vfp-from-green-500 vfp-via-emerald-500 vfp-to-teal-500 vfp-flex vfp-items-center vfp-justify-center vfp-shadow-2xl"
         >
-          <FileSpreadsheet class="vfp-w-12 vfp-h-12 md:vfp-w-16 md:vfp-h-16 vfp-text-white" />
+          <FileSpreadsheet class="vfp-w-12 vfp-h-12 md:vfp-w-16 md:vfp-h-16 vfp-text-fg-primary" />
         </div>
-        <p class="vfp-text-lg md:vfp-text-xl vfp-text-white/90 vfp-mb-2 md:vfp-mb-3 vfp-font-medium">
+        <p class="vfp-text-lg md:vfp-text-xl vfp-text-fg-primary vfp-mb-2 md:vfp-mb-3 vfp-font-medium">
           {{ t('csv.load_failed') }}
         </p>
-        <p class="vfp-text-xs md:vfp-text-sm vfp-text-white/60 vfp-mb-4 md:vfp-mb-6">{{ error }}</p>
+        <p class="vfp-text-xs md:vfp-text-sm vfp-text-fg-tertiary vfp-mb-4 md:vfp-mb-6">{{ error }}</p>
       </div>
     </div>
 

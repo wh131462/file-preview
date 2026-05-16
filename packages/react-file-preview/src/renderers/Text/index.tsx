@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { fetchTextUtf8, getLanguageFromFileName } from '@eternalheart/file-preview-core';
 import { useTranslator } from '../../i18n/LocaleContext';
+import { useShikiHighlight } from '../../hooks/useShikiHighlight';
 
 interface TextRendererProps {
   url: string;
@@ -22,6 +21,10 @@ export const TextRenderer: React.FC<TextRendererProps> = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const language = getLanguageFromFileName(fileName);
+  const { html: highlighted } = useShikiHighlight(
+    language !== 'text' ? content : '',
+    language,
+  );
 
   useEffect(() => {
     const loadText = async () => {
@@ -44,7 +47,7 @@ export const TextRenderer: React.FC<TextRendererProps> = ({
   if (loading) {
     return (
       <div className="rfp-flex rfp-items-center rfp-justify-center rfp-w-full rfp-h-full">
-        <div className="rfp-w-12 rfp-h-12 rfp-border-4 rfp-border-white/20 rfp-border-t-white rfp-rounded-full rfp-animate-spin" />
+        <div className="rfp-w-12 rfp-h-12 rfp-border-4 rfp-border-line-strong rfp-border-t-spinner-head rfp-rounded-full rfp-animate-spin" />
       </div>
     );
   }
@@ -52,7 +55,7 @@ export const TextRenderer: React.FC<TextRendererProps> = ({
   if (error) {
     return (
       <div className="rfp-flex rfp-items-center rfp-justify-center rfp-w-full rfp-h-full">
-        <div className="rfp-text-white/70 rfp-text-center">
+        <div className="rfp-text-fg-secondary rfp-text-center">
           <p className="rfp-text-lg">{error}</p>
         </div>
       </div>
@@ -62,7 +65,7 @@ export const TextRenderer: React.FC<TextRendererProps> = ({
   // HTML 预览模式
   if (htmlPreview && (language === 'html')) {
     return (
-      <div className="rfp-w-full rfp-h-full rfp-bg-white">
+      <div className="rfp-w-full rfp-h-full rfp-bg-surface-toolbar">
         <iframe
           srcDoc={content}
           sandbox="allow-same-origin"
@@ -75,36 +78,20 @@ export const TextRenderer: React.FC<TextRendererProps> = ({
 
   // 源码模式
   return (
-    <div className="rfp-w-full rfp-h-full rfp-overflow-auto rfp-bg-[#1e1e1e]">
-      {language === 'text' ? (
+    <div className="rfp-w-full rfp-h-full rfp-overflow-auto rfp-bg-code-bg">
+      {language === 'text' || !highlighted ? (
         <pre
-          className={`rfp-p-6 rfp-text-white/90 rfp-font-mono rfp-text-sm ${
+          className={`rfp-p-6 rfp-text-fg-primary rfp-font-mono rfp-text-sm ${
             wordWrap ? 'rfp-whitespace-pre-wrap rfp-break-words' : 'rfp-whitespace-pre'
           }`}
         >
           {content}
         </pre>
       ) : (
-        <SyntaxHighlighter
-          language={language}
-          style={vscDarkPlus}
-          showLineNumbers
-          wrapLongLines={wordWrap}
-          customStyle={{
-            margin: 0,
-            padding: '1.5rem',
-            background: 'transparent',
-            fontSize: '0.875rem',
-          }}
-          lineNumberStyle={{
-            minWidth: '3em',
-            paddingRight: '1em',
-            color: 'rgba(255, 255, 255, 0.3)',
-            userSelect: 'none',
-          }}
-        >
-          {content}
-        </SyntaxHighlighter>
+        <div
+          className={`rfp-shiki-wrapper with-line-numbers ${wordWrap ? '' : 'no-wrap'}`}
+          dangerouslySetInnerHTML={{ __html: highlighted }}
+        />
       )}
     </div>
   );

@@ -52,7 +52,6 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
   }, [theme]);
 
   const resolvedTheme = theme === 'auto' ? (systemDark ? 'dark' : 'light') : theme;
-  const isLight = resolvedTheme === 'light';
 
   // 锁定 body 滚动
   useEffect(() => {
@@ -84,7 +83,7 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className={`rfp-fixed rfp-inset-0 rfp-z-[9999] rfp-flex rfp-items-center rfp-justify-center rfp-backdrop-blur-md rfp-overflow-hidden ${isLight ? 'rfp-bg-white/60' : 'rfp-bg-black/80'}`}
+            className="rfp-fixed rfp-inset-0 rfp-z-[9999] rfp-flex rfp-items-center rfp-justify-center rfp-backdrop-blur-md rfp-overflow-hidden rfp-bg-surface-overlay"
             onClick={onClose}
             onWheel={(e) => e.stopPropagation()}
           >

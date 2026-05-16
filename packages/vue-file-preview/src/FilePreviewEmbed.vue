@@ -71,7 +71,6 @@ onBeforeUnmount(() => {
 const resolvedTheme = computed(() =>
   props.theme === 'auto' ? (systemDark.value ? 'dark' : 'light') : props.theme,
 );
-const isLight = computed(() => resolvedTheme.value === 'light');
 
 const wrapperStyle: CSSProperties = {
   width: typeof props.width === 'number' ? `${props.width}px` : props.width,
@@ -81,7 +80,7 @@ const wrapperStyle: CSSProperties = {
 
 <template>
   <div class="vfp-root" :style="wrapperStyle" :data-theme="resolvedTheme">
-    <div :class="['vfp-relative vfp-w-full vfp-h-full vfp-overflow-hidden', isLight ? 'vfp-bg-gray-100' : 'vfp-bg-black/80']">
+    <div class="vfp-relative vfp-w-full vfp-h-full vfp-overflow-hidden vfp-bg-surface-overlay">
       <FilePreviewContent
         mode="embed"
         :files="files"

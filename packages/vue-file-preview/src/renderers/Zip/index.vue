@@ -142,11 +142,11 @@ const previewFiles = computed(() => {
 
 <template>
   <div v-if="loading" class="vfp-flex vfp-items-center vfp-justify-center vfp-w-full vfp-h-full">
-    <div class="vfp-w-12 vfp-h-12 vfp-border-4 vfp-border-white/20 vfp-border-t-white vfp-rounded-full vfp-animate-spin" />
+    <div class="vfp-w-12 vfp-h-12 vfp-border-4 vfp-border-line-strong vfp-border-t-spinner-head vfp-rounded-full vfp-animate-spin" />
   </div>
 
   <div v-else-if="error || !tree" class="vfp-flex vfp-items-center vfp-justify-center vfp-w-full vfp-h-full">
-    <div class="vfp-text-white/70 vfp-text-center"><p class="vfp-text-lg">{{ error || t('zip.parse_failed') }}</p></div>
+    <div class="vfp-text-fg-secondary vfp-text-center"><p class="vfp-text-lg">{{ error || t('zip.parse_failed') }}</p></div>
   </div>
 
   <template v-else>
@@ -175,15 +175,15 @@ const previewFiles = computed(() => {
 
       <template #right>
         <div class="vfp-w-full vfp-h-full vfp-flex vfp-flex-col">
-          <div v-if="!selected" class="vfp-flex-1 vfp-flex vfp-items-center vfp-justify-center vfp-text-white/40 vfp-text-sm vfp-p-6">
+          <div v-if="!selected" class="vfp-flex-1 vfp-flex vfp-items-center vfp-justify-center vfp-text-fg-muted vfp-text-sm vfp-p-6">
             从左侧选择一个文件以预览
           </div>
           <div v-else-if="previewLoading" class="vfp-flex-1 vfp-flex vfp-items-center vfp-justify-center">
-            <div class="vfp-w-8 vfp-h-8 vfp-border-4 vfp-border-white/20 vfp-border-t-white vfp-rounded-full vfp-animate-spin" />
+            <div class="vfp-w-8 vfp-h-8 vfp-border-4 vfp-border-line-strong vfp-border-t-spinner-head vfp-rounded-full vfp-animate-spin" />
           </div>
-          <div v-else-if="previewError" class="vfp-flex-1 vfp-flex vfp-items-center vfp-justify-center vfp-text-white/70">{{ previewError }}</div>
+          <div v-else-if="previewError" class="vfp-flex-1 vfp-flex vfp-items-center vfp-justify-center vfp-text-fg-secondary">{{ previewError }}</div>
           <template v-else>
-            <div class="vfp-flex-1 vfp-min-h-0 vfp-overflow-hidden vfp-flex">
+            <div class="vfp-flex-1 vfp-min-h-0 vfp-overflow-hidden vfp-flex vfp-relative vfp-z-0">
               <LazyFilePreviewContent
                 mode="embed"
                 :files="previewFiles"

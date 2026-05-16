@@ -96,7 +96,7 @@ export const DocxRenderer: React.FC<DocxRendererProps> = ({ url }) => {
   if (loading) {
     return (
       <div className="rfp-flex rfp-items-center rfp-justify-center rfp-w-full rfp-h-full">
-        <div className="rfp-w-12 rfp-h-12 rfp-border-4 rfp-border-white/20 rfp-border-t-white rfp-rounded-full rfp-animate-spin" />
+        <div className="rfp-w-12 rfp-h-12 rfp-border-4 rfp-border-line-strong rfp-border-t-spinner-head rfp-rounded-full rfp-animate-spin" />
       </div>
     );
   }
@@ -104,7 +104,7 @@ export const DocxRenderer: React.FC<DocxRendererProps> = ({ url }) => {
   if (error) {
     return (
       <div className="rfp-flex rfp-items-center rfp-justify-center rfp-w-full rfp-h-full">
-        <div className="rfp-text-white/70 rfp-text-center">
+        <div className="rfp-text-fg-secondary rfp-text-center">
           <p className="rfp-text-lg">{error}</p>
         </div>
       </div>

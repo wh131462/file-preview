@@ -184,11 +184,11 @@ const sizeText = computed(() => {
   >
     <div v-if="!loaded && !error" class="vfp-flex vfp-items-center vfp-justify-center">
       <div
-        class="vfp-w-12 vfp-h-12 vfp-border-4 vfp-border-white/20 vfp-border-t-white vfp-rounded-full vfp-animate-spin"
+        class="vfp-w-12 vfp-h-12 vfp-border-4 vfp-border-line-strong vfp-border-t-spinner-head vfp-rounded-full vfp-animate-spin"
       />
     </div>
 
-    <div v-if="error" class="vfp-text-white/70 vfp-text-center">
+    <div v-if="error" class="vfp-text-fg-secondary vfp-text-center">
       <p class="vfp-text-lg">{{ error }}</p>
     </div>
 
@@ -206,7 +206,7 @@ const sizeText = computed(() => {
 
     <div
       v-if="loaded && !error && naturalSize.width > 0"
-      class="vfp-absolute vfp-bottom-2 vfp-right-3 vfp-text-[10px] vfp-text-white/30 hover:vfp-text-white/80 vfp-transition-colors vfp-pointer-events-auto vfp-select-none vfp-cursor-default"
+      class="vfp-absolute vfp-bottom-2 vfp-right-3 vfp-text-[10px] vfp-text-fg-disabled hover:vfp-text-fg-secondary vfp-transition-colors vfp-pointer-events-auto vfp-select-none vfp-cursor-default"
     >
       {{ naturalSize.width }} × {{ naturalSize.height }}{{ sizeText }}
     </div>

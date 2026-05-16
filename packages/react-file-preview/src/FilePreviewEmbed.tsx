@@ -56,7 +56,6 @@ export const FilePreviewEmbed: React.FC<FilePreviewEmbedProps> = ({
   }, [theme]);
 
   const resolvedTheme = theme === 'auto' ? (systemDark ? 'dark' : 'light') : theme;
-  const isLight = resolvedTheme === 'light';
 
   return (
     <div
@@ -64,7 +63,7 @@ export const FilePreviewEmbed: React.FC<FilePreviewEmbedProps> = ({
       style={{ width, height, ...style }}
       data-theme={resolvedTheme}
     >
-      <div className={`rfp-relative rfp-w-full rfp-h-full rfp-overflow-hidden ${isLight ? 'rfp-bg-gray-100' : 'rfp-bg-black/80'}`}>
+      <div className="rfp-relative rfp-w-full rfp-h-full rfp-overflow-hidden rfp-bg-surface-overlay">
         <FilePreviewContent
           mode="embed"
           files={files}

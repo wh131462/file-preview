@@ -204,7 +204,7 @@ export const AudioRenderer: React.FC<AudioRendererProps> = ({ url, fileName }) =
   if (error) {
     return (
       <div className="rfp-flex rfp-items-center rfp-justify-center rfp-w-full rfp-h-full">
-        <div className="rfp-text-white/70 rfp-text-center">
+        <div className="rfp-text-fg-secondary rfp-text-center">
           <p className="rfp-text-lg">{error}</p>
         </div>
       </div>
@@ -308,30 +308,29 @@ export const AudioRenderer: React.FC<AudioRendererProps> = ({ url, fileName }) =
 
       {/* 文件名 */}
       <div className="rfp-text-center rfp-max-w-sm md:rfp-max-w-md rfp-px-4">
-        <MarqueeText text={fileName} className="rfp-text-lg md:rfp-text-xl rfp-font-medium rfp-mb-1" style={{ color: '#e0dff0' }} />
-        <p className="rfp-text-xs rfp-tracking-widest rfp-uppercase" style={{ color: 'rgba(129,140,248,0.5)' }}>
+        <MarqueeText
+          text={fileName}
+          className="rfp-text-lg md:rfp-text-xl rfp-font-medium rfp-mb-1 rfp-text-fg-primary"
+        />
+        <p className="rfp-text-xs rfp-tracking-widest rfp-uppercase rfp-text-accent">
           Audio
         </p>
       </div>
 
       {/* 控制面板 */}
       <div
-        className="rfp-w-full rfp-max-w-sm md:rfp-max-w-md rfp-rounded-2xl rfp-p-4 md:rfp-p-6 rfp-border"
-        style={{
-          background: 'rgba(255,255,255,0.04)',
-          backdropFilter: 'blur(16px)',
-          borderColor: 'rgba(129,140,248,0.12)',
-        }}
+        className="rfp-w-full rfp-max-w-sm md:rfp-max-w-md rfp-rounded-2xl rfp-p-4 md:rfp-p-6 rfp-border rfp-bg-surface-1 rfp-border-line-weak"
+        style={{ backdropFilter: 'blur(16px)' }}
       >
         {/* 进度条 */}
         <div className="rfp-mb-5">
           <div className="rfp-relative rfp-h-4 rfp-flex rfp-items-center">
-            <div className="rfp-absolute rfp-w-full rfp-h-[5px] rfp-rounded-full" style={{ background: 'rgba(255,255,255,0.08)' }} />
+            <div className="rfp-absolute rfp-w-full rfp-h-[5px] rfp-rounded-full rfp-bg-surface-2" />
             <div
               className="rfp-absolute rfp-h-[5px] rfp-rounded-full rfp-pointer-events-none"
               style={{
                 width: `${progress * 100}%`,
-                background: 'linear-gradient(90deg, #6366f1, #818cf8)',
+                background: 'linear-gradient(90deg, var(--fp-accent), var(--fp-accent-hover))',
                 boxShadow: isPlaying ? '0 0 8px rgba(129,140,248,0.4)' : 'none',
                 transition: 'width 0.1s linear',
               }}
@@ -348,7 +347,7 @@ export const AudioRenderer: React.FC<AudioRendererProps> = ({ url, fileName }) =
               className="audio-slider rfp-absolute rfp-w-full"
             />
           </div>
-          <div className="rfp-flex rfp-justify-between rfp-text-xs rfp-mt-2.5" style={{ color: 'rgba(129,140,248,0.5)' }}>
+          <div className="rfp-flex rfp-justify-between rfp-text-xs rfp-mt-2.5 rfp-text-fg-tertiary">
             <span style={{ fontVariantNumeric: 'tabular-nums' }}>{formatTime(currentTime)}</span>
             <span style={{ fontVariantNumeric: 'tabular-nums' }}>{duration > 0 ? formatTime(duration) : '--:--'}</span>
           </div>
@@ -362,11 +361,11 @@ export const AudioRenderer: React.FC<AudioRendererProps> = ({ url, fileName }) =
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.92 }}
             aria-label={isLoop ? t('audio.aria.loop_off') : t('audio.aria.loop_on')}
-            className="rfp-w-9 rfp-h-9 rfp-rounded-full rfp-flex rfp-items-center rfp-justify-center rfp-transition-colors"
-            style={{
-              background: isLoop ? 'rgba(129,140,248,0.15)' : 'rgba(255,255,255,0.06)',
-              color: isLoop ? '#818cf8' : 'rgba(224,223,240,0.4)',
-            }}
+            className={`rfp-w-9 rfp-h-9 rfp-rounded-full rfp-flex rfp-items-center rfp-justify-center rfp-transition-colors ${
+              isLoop
+                ? 'rfp-bg-accent-soft rfp-text-accent'
+                : 'rfp-bg-surface-2 rfp-text-fg-tertiary'
+            }`}
           >
             <Repeat className="rfp-w-4 rfp-h-4" />
           </motion.button>
@@ -377,8 +376,7 @@ export const AudioRenderer: React.FC<AudioRendererProps> = ({ url, fileName }) =
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.92 }}
             aria-label={t('audio.aria.backward_10')}
-            className="rfp-w-10 rfp-h-10 rfp-rounded-full rfp-flex rfp-items-center rfp-justify-center rfp-transition-colors"
-            style={{ background: 'rgba(255,255,255,0.06)', color: 'rgba(224,223,240,0.7)' }}
+            className="rfp-w-10 rfp-h-10 rfp-rounded-full rfp-flex rfp-items-center rfp-justify-center rfp-transition-colors rfp-bg-surface-2 rfp-text-fg-secondary"
           >
             <SkipBack className="rfp-w-[18px] rfp-h-[18px]" />
           </motion.button>
@@ -391,7 +389,7 @@ export const AudioRenderer: React.FC<AudioRendererProps> = ({ url, fileName }) =
             aria-label={isPlaying ? t('audio.aria.pause') : t('audio.aria.play')}
             className="rfp-w-14 rfp-h-14 rfp-rounded-full rfp-flex rfp-items-center rfp-justify-center"
             style={{
-              background: 'linear-gradient(135deg, #818cf8, #6366f1)',
+              background: 'linear-gradient(135deg, var(--fp-accent-hover), var(--fp-accent))',
               color: '#fff',
               boxShadow: '0 4px 20px rgba(99,102,241,0.35)',
             }}
@@ -409,8 +407,7 @@ export const AudioRenderer: React.FC<AudioRendererProps> = ({ url, fileName }) =
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.92 }}
             aria-label={t('audio.aria.forward_10')}
-            className="rfp-w-10 rfp-h-10 rfp-rounded-full rfp-flex rfp-items-center rfp-justify-center rfp-transition-colors"
-            style={{ background: 'rgba(255,255,255,0.06)', color: 'rgba(224,223,240,0.7)' }}
+            className="rfp-w-10 rfp-h-10 rfp-rounded-full rfp-flex rfp-items-center rfp-justify-center rfp-transition-colors rfp-bg-surface-2 rfp-text-fg-secondary"
           >
             <SkipForward className="rfp-w-[18px] rfp-h-[18px]" />
           </motion.button>
@@ -427,11 +424,11 @@ export const AudioRenderer: React.FC<AudioRendererProps> = ({ url, fileName }) =
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.92 }}
               aria-label={isMuted ? t('audio.aria.unmute') : t('audio.aria.mute')}
-              className="rfp-w-9 rfp-h-9 rfp-rounded-full rfp-flex rfp-items-center rfp-justify-center rfp-transition-colors"
-              style={{
-                background: showVolume ? 'rgba(129,140,248,0.15)' : 'rgba(255,255,255,0.06)',
-                color: 'rgba(129,140,248,0.6)',
-              }}
+              className={`rfp-w-9 rfp-h-9 rfp-rounded-full rfp-flex rfp-items-center rfp-justify-center rfp-transition-colors ${
+                showVolume
+                  ? 'rfp-bg-accent-soft rfp-text-accent'
+                  : 'rfp-bg-surface-2 rfp-text-fg-secondary'
+              }`}
             >
               <VolumeIcon className="rfp-w-4 rfp-h-4" />
             </motion.button>
@@ -443,13 +440,11 @@ export const AudioRenderer: React.FC<AudioRendererProps> = ({ url, fileName }) =
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.95 }}
                   transition={{ duration: 0.12 }}
-                  className="rfp-absolute rfp-bottom-full rfp-mb-2 rfp-rounded-xl rfp-p-3 rfp-border"
+                  className="rfp-absolute rfp-bottom-full rfp-mb-2 rfp-rounded-xl rfp-p-3 rfp-border rfp-bg-surface-3 rfp-border-line"
                   style={{
                     left: '50%',
                     marginLeft: '-27px',
-                    background: 'rgba(20,20,20,0.95)',
                     backdropFilter: 'blur(16px)',
-                    borderColor: 'rgba(129,140,248,0.15)',
                   }}
                   onMouseEnter={handleVolumeEnter}
                   onMouseLeave={handleVolumeLeave}
@@ -457,15 +452,15 @@ export const AudioRenderer: React.FC<AudioRendererProps> = ({ url, fileName }) =
                   <div className="rfp-flex rfp-flex-col rfp-items-center rfp-gap-2" style={{ height: '100px' }}>
                     <div className="rfp-relative rfp-flex rfp-items-center rfp-justify-center" style={{ width: '24px', height: '80px' }}>
                       <div
-                        className="rfp-absolute rfp-rounded-full"
-                        style={{ width: '3px', height: '100%', background: 'rgba(255,255,255,0.1)' }}
+                        className="rfp-absolute rfp-rounded-full rfp-bg-surface-2"
+                        style={{ width: '3px', height: '100%' }}
                       />
                       <div
                         className="rfp-absolute rfp-bottom-0 rfp-rounded-full rfp-pointer-events-none"
                         style={{
                           width: '3px',
                           height: `${(isMuted ? 0 : volume) * 100}%`,
-                          background: '#818cf8',
+                          background: 'var(--fp-accent-hover)',
                           transition: 'height 0.1s linear',
                         }}
                       />
@@ -486,7 +481,7 @@ export const AudioRenderer: React.FC<AudioRendererProps> = ({ url, fileName }) =
                         }}
                       />
                     </div>
-                    <span className="rfp-text-[10px] rfp-tabular-nums" style={{ color: 'rgba(129,140,248,0.5)' }}>
+                    <span className="rfp-text-[10px] rfp-tabular-nums rfp-text-fg-tertiary">
                       {Math.round((isMuted ? 0 : volume) * 100)}
                     </span>
                   </div>

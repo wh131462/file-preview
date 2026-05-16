@@ -3,6 +3,7 @@ import { ref, watch } from 'vue';
 import { fetchTextUtf8 } from '@eternalheart/file-preview-core';
 import { codeToHtml } from 'shiki';
 import { useTranslator } from '../../composables/useTranslator';
+import { useResolvedTheme } from '../../composables/useResolvedTheme';
 
 const props = defineProps<{
   url: string;
@@ -10,6 +11,7 @@ const props = defineProps<{
 }>();
 
 const { t } = useTranslator();
+const resolvedTheme = useResolvedTheme();
 
 const content = ref<string>('');
 const highlighted = ref<string>('');
@@ -59,7 +61,7 @@ const load = async () => {
     try {
       highlighted.value = await codeToHtml(content.value, {
         lang: 'xml',
-        theme: 'dark-plus',
+        theme: resolvedTheme.value === 'light' ? 'github-light' : 'dark-plus',
       });
     } catch {
       highlighted.value = '';
@@ -73,25 +75,28 @@ const load = async () => {
 };
 
 watch(() => props.url, load, { immediate: true });
+watch(resolvedTheme, () => {
+  if (content.value) load();
+});
 </script>
 
 <template>
   <div v-if="loading" class="vfp-flex vfp-items-center vfp-justify-center vfp-w-full vfp-h-full">
     <div
-      class="vfp-w-12 vfp-h-12 vfp-border-4 vfp-border-white/20 vfp-border-t-white vfp-rounded-full vfp-animate-spin"
+      class="vfp-w-12 vfp-h-12 vfp-border-4 vfp-border-line-strong vfp-border-t-spinner-head vfp-rounded-full vfp-animate-spin"
     />
   </div>
 
   <div v-else-if="error" class="vfp-flex vfp-items-center vfp-justify-center vfp-w-full vfp-h-full">
-    <div class="vfp-text-white/70 vfp-text-center">
+    <div class="vfp-text-fg-secondary vfp-text-center">
       <p class="vfp-text-lg">{{ error }}</p>
     </div>
   </div>
 
-  <div v-else class="vfp-w-full vfp-h-full vfp-overflow-auto" style="background: #1e1e1e;">
+  <div v-else class="vfp-w-full vfp-h-full vfp-overflow-auto" style="background: var(--fp-code-bg);">
     <pre
       v-if="!highlighted"
-      class="vfp-p-6 vfp-text-white/90 vfp-font-mono vfp-text-sm vfp-whitespace-pre-wrap vfp-break-words"
+      class="vfp-p-6 vfp-text-fg-primary vfp-font-mono vfp-text-sm vfp-whitespace-pre-wrap vfp-break-words"
       >{{ content }}</pre
     >
     <div v-else class="shiki-wrapper" v-html="highlighted" />

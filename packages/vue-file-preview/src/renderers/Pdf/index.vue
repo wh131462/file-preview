@@ -190,13 +190,13 @@ onBeforeUnmount(() => {
     ref="containerRef"
     class="vfp-flex vfp-flex-col vfp-items-center vfp-w-full vfp-h-full vfp-overflow-auto vfp-py-4 md:vfp-py-8 vfp-px-2 md:vfp-px-4"
   >
-    <div v-if="error" class="vfp-text-white/70 vfp-text-center">
+    <div v-if="error" class="vfp-text-fg-secondary vfp-text-center">
       <p class="vfp-text-lg">{{ error }}</p>
     </div>
 
     <div v-if="!error && numPages === 0" class="vfp-flex vfp-items-center vfp-justify-center vfp-min-h-screen">
       <div
-        class="vfp-w-12 vfp-h-12 vfp-border-4 vfp-border-white/20 vfp-border-t-white vfp-rounded-full vfp-animate-spin"
+        class="vfp-w-12 vfp-h-12 vfp-border-4 vfp-border-line-strong vfp-border-t-spinner-head vfp-rounded-full vfp-animate-spin"
       />
     </div>
 
@@ -204,7 +204,7 @@ onBeforeUnmount(() => {
 
     <div
       v-if="numPages > 0"
-      class="vfp-sticky vfp-bottom-2 md:vfp-bottom-4 vfp-mt-4 md:vfp-mt-8 vfp-bg-black/60 vfp-backdrop-blur-xl vfp-text-white vfp-px-4 vfp-py-2 md:vfp-px-6 md:vfp-py-3 vfp-rounded-full vfp-text-xs md:vfp-text-sm vfp-font-medium vfp-shadow-2xl vfp-border vfp-border-white/10"
+      class="vfp-sticky vfp-bottom-2 md:vfp-bottom-4 vfp-mt-4 md:vfp-mt-8 vfp-bg-surface-nav-hover vfp-backdrop-blur-xl vfp-text-fg-primary vfp-px-4 vfp-py-2 md:vfp-px-6 md:vfp-py-3 vfp-rounded-full vfp-text-xs md:vfp-text-sm vfp-font-medium vfp-shadow-2xl vfp-border vfp-border-line-weak"
     >
       第 {{ currentPage }} 页 / 共 {{ numPages }} 页
     </div>

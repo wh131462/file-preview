@@ -19,18 +19,18 @@ const emit = defineEmits<{
     class="vfp-flex vfp-flex-col vfp-items-center vfp-justify-center vfp-w-full vfp-h-full vfp-p-8 vfp-gap-6"
   >
     <div
-      class="vfp-w-32 vfp-h-32 vfp-rounded-full vfp-bg-white/10 vfp-flex vfp-items-center vfp-justify-center"
+      class="vfp-w-32 vfp-h-32 vfp-rounded-full vfp-bg-surface-2 vfp-flex vfp-items-center vfp-justify-center"
     >
-      <FileQuestion class="vfp-w-16 vfp-h-16 vfp-text-white/70" />
+      <FileQuestion class="vfp-w-16 vfp-h-16 vfp-text-fg-secondary" />
     </div>
 
-    <div class="vfp-text-white vfp-text-center">
+    <div class="vfp-text-fg-primary vfp-text-center">
       <p class="vfp-text-xl vfp-font-medium vfp-mb-2">{{ fileName }}</p>
-      <p class="vfp-text-white/70">{{ t('common.unsupported_preview', { type: fileType }) }}</p>
+      <p class="vfp-text-fg-secondary">{{ t('common.unsupported_preview', { type: fileType }) }}</p>
     </div>
 
     <button
-      class="vfp-flex vfp-items-center vfp-gap-2 vfp-px-6 vfp-py-3 vfp-bg-white/10 hover:vfp-bg-white/20 vfp-backdrop-blur-sm vfp-rounded-lg vfp-text-white vfp-font-medium vfp-transition-all"
+      class="vfp-flex vfp-items-center vfp-gap-2 vfp-px-6 vfp-py-3 vfp-bg-surface-2 hover:vfp-bg-surface-3 vfp-backdrop-blur-sm vfp-rounded-lg vfp-text-fg-primary vfp-font-medium vfp-transition-all"
       @click="emit('download')"
     >
       <Download class="vfp-w-5 vfp-h-5" />

@@ -76,7 +76,6 @@ onBeforeUnmount(() => {
 const resolvedTheme = computed(() =>
   props.theme === 'auto' ? (systemDark.value ? 'dark' : 'light') : props.theme,
 );
-const isLight = computed(() => resolvedTheme.value === 'light');
 
 const handleBackdropClick = () => emit('close');
 const handleContentClick = (e: MouseEvent) => e.stopPropagation();
@@ -88,7 +87,7 @@ const handleWheel = (e: WheelEvent) => e.stopPropagation();
     <Transition name="vfp-fade">
       <div v-if="isOpen" class="vfp-root" :data-theme="resolvedTheme">
         <div
-          :class="['vfp-fixed vfp-inset-0 vfp-z-[9999] vfp-flex vfp-items-center vfp-justify-center vfp-backdrop-blur-md vfp-overflow-hidden', isLight ? 'vfp-bg-white/60' : 'vfp-bg-black/80']"
+          class="vfp-fixed vfp-inset-0 vfp-z-[9999] vfp-flex vfp-items-center vfp-justify-center vfp-backdrop-blur-md vfp-overflow-hidden vfp-bg-surface-overlay"
           @click="handleBackdropClick"
           @wheel="handleWheel"
         >

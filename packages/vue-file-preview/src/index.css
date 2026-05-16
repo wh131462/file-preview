@@ -424,12 +424,88 @@
   }
 }
 
-/* Markdown 内容样式（暗色全屏风格） */
+/* ============================================================
+ * 语义化主题 token (CSS 变量) — 与 react-file-preview 同结构
+ * 详见 packages/react-file-preview/src/index.css 顶部注释
+ * ============================================================ */
+
+.vfp-root {
+  /* 文字前景 */
+  --fp-fg-primary:    rgb(255 255 255 / 0.9);
+  --fp-fg-secondary:  rgb(255 255 255 / 0.75);
+  --fp-fg-tertiary:   rgb(255 255 255 / 0.6);
+  --fp-fg-muted:      rgb(255 255 255 / 0.4);
+  --fp-fg-disabled:   rgb(255 255 255 / 0.3);
+  --fp-fg-inverse:    rgb(23 23 23);
+
+  /* 表面背景层级 */
+  --fp-surface-1:        rgb(255 255 255 / 0.05);
+  --fp-surface-2:        rgb(255 255 255 / 0.1);
+  --fp-surface-3:        rgb(255 255 255 / 0.15);
+  --fp-surface-toolbar:  rgb(0 0 0 / 0.5);
+  --fp-surface-overlay:  rgb(0 0 0 / 0.8);
+  --fp-surface-nav:      rgb(0 0 0 / 0.4);
+  --fp-surface-nav-hover: rgb(0 0 0 / 0.6);
+
+  /* 边框 / 分隔 */
+  --fp-line-weak:    rgb(255 255 255 / 0.08);
+  --fp-line:         rgb(255 255 255 / 0.1);
+  --fp-line-strong:  rgb(255 255 255 / 0.2);
+  --fp-divide:       rgb(255 255 255 / 0.1);
+
+  /* 品牌强调色 */
+  --fp-accent:        rgb(99 102 241);
+  --fp-accent-hover:  rgb(129 140 248);
+  --fp-accent-soft:   rgb(99 102 241 / 0.15);
+
+  /* 代码块（跟随主题切换） */
+  --fp-code-bg:       #1e1e1e;
+  --fp-code-fg:       rgb(255 255 255 / 0.85);
+  --fp-code-header:   rgb(255 255 255 / 0.08);
+  --fp-media-bg:      #000;
+
+  /* loading spinner */
+  --fp-spinner-track: rgb(255 255 255 / 0.2);
+  --fp-spinner-head:  rgb(255 255 255 / 0.85);
+}
+
+.vfp-root[data-theme="light"] {
+  --fp-fg-primary:    rgb(23 23 23 / 0.9);
+  --fp-fg-secondary:  rgb(23 23 23 / 0.78);
+  --fp-fg-tertiary:   rgb(23 23 23 / 0.6);
+  --fp-fg-muted:      rgb(23 23 23 / 0.45);
+  --fp-fg-disabled:   rgb(23 23 23 / 0.3);
+  --fp-fg-inverse:    rgb(255 255 255);
+
+  --fp-surface-1:        rgb(0 0 0 / 0.04);
+  --fp-surface-2:        rgb(0 0 0 / 0.06);
+  --fp-surface-3:        rgb(0 0 0 / 0.1);
+  --fp-surface-toolbar:  rgb(255 255 255 / 0.8);
+  --fp-surface-overlay:  rgb(255 255 255 / 0.6);
+  --fp-surface-nav:      rgb(255 255 255 / 0.7);
+  --fp-surface-nav-hover: rgb(255 255 255 / 0.9);
+
+  --fp-line-weak:    rgb(0 0 0 / 0.06);
+  --fp-line:         rgb(0 0 0 / 0.1);
+  --fp-line-strong:  rgb(0 0 0 / 0.18);
+  --fp-divide:       rgb(0 0 0 / 0.08);
+
+  --fp-spinner-track: rgb(0 0 0 / 0.1);
+  --fp-spinner-head:  rgb(23 23 23 / 0.85);
+
+  /* 代码块在 light 下取 GitHub Light 风格 */
+  --fp-code-bg:       #f6f8fa;
+  --fp-code-fg:       rgb(36 41 47 / 0.95);
+  --fp-code-header:   rgb(0 0 0 / 0.04);
+  /* media-bg 仍保持 #000（视频/音频画布天然黑底，不切换） */
+}
+
+/* Markdown 内容样式 — 全部走语义 token，主题切换由变量驱动 */
 .vfp-root .markdown-body h1 {
   font-size: 1.875rem;
   font-weight: 600;
   margin: 1.5rem 0 1rem 0;
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--fp-fg-primary);
 }
 .vfp-root .markdown-body h1:first-child { margin-top: 0; }
 
@@ -437,51 +513,51 @@
   font-size: 1.5rem;
   font-weight: 600;
   margin: 2rem 0 0.75rem 0;
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--fp-fg-primary);
 }
 
 .vfp-root .markdown-body h3 {
   font-size: 1.25rem;
   font-weight: 600;
   margin: 1.5rem 0 0.5rem 0;
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--fp-fg-primary);
 }
 
 .vfp-root .markdown-body h4 {
   font-size: 1.125rem;
   font-weight: 600;
   margin: 1rem 0 0.5rem 0;
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--fp-fg-primary);
 }
 
 .vfp-root .markdown-body p {
-  color: rgba(255, 255, 255, 0.75);
+  color: var(--fp-fg-secondary);
   margin-bottom: 1rem;
   line-height: 1.75;
 }
 
 .vfp-root .markdown-body a {
-  color: #818cf8;
+  color: var(--fp-accent-hover);
   text-decoration: underline;
-  text-decoration-color: #4338ca;
+  text-decoration-color: var(--fp-accent);
 }
 
 .vfp-root .markdown-body a:hover {
-  color: #a5b4fc;
+  color: var(--fp-accent);
 }
 
 .vfp-root .markdown-body ul {
   list-style: disc;
   padding-left: 1.5rem;
   margin-bottom: 1rem;
-  color: rgba(255, 255, 255, 0.75);
+  color: var(--fp-fg-secondary);
 }
 
 .vfp-root .markdown-body ol {
   list-style: decimal;
   padding-left: 1.5rem;
   margin-bottom: 1rem;
-  color: rgba(255, 255, 255, 0.75);
+  color: var(--fp-fg-secondary);
 }
 
 .vfp-root .markdown-body li {
@@ -490,9 +566,9 @@
 }
 
 .vfp-root .markdown-body blockquote {
-  border-left: 4px solid rgba(255, 255, 255, 0.3);
+  border-left: 4px solid var(--fp-line-strong);
   padding-left: 1rem;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--fp-fg-tertiary);
   margin: 1rem 0;
   font-style: italic;
 }
@@ -501,13 +577,13 @@
   width: 100%;
   border-collapse: collapse;
   margin: 1rem 0;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  border: 1px solid var(--fp-line);
   border-radius: 0.375rem;
   overflow: hidden;
 }
 
 .vfp-root .markdown-body thead {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--fp-surface-1);
 }
 
 .vfp-root .markdown-body th {
@@ -515,25 +591,25 @@
   text-align: left;
   font-size: 0.75rem;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--fp-fg-tertiary);
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  border-bottom: 1px solid var(--fp-line);
 }
 
 .vfp-root .markdown-body td {
   padding: 0.75rem 1rem;
   font-size: 0.875rem;
-  color: rgba(255, 255, 255, 0.75);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--fp-fg-secondary);
+  border-bottom: 1px solid var(--fp-line-weak);
 }
 
 .vfp-root .markdown-body tbody tr:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--fp-surface-1);
 }
 
 .vfp-root .markdown-body hr {
-  border-color: rgba(255, 255, 255, 0.15);
+  border-color: var(--fp-line);
   margin: 1.5rem 0;
 }
 
@@ -548,7 +624,7 @@
 
 .vfp-root .markdown-body strong {
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.95);
+  color: var(--fp-fg-primary);
 }
 
 .vfp-root .markdown-body em {
@@ -557,26 +633,26 @@
 
 .vfp-root .markdown-body del {
   text-decoration: line-through;
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--fp-fg-muted);
 }
 
 .vfp-root .markdown-body code:not(pre code) {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--fp-surface-2);
   padding: 0.125rem 0.375rem;
   border-radius: 0.25rem;
   font-size: 0.875rem;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  color: rgba(255, 255, 255, 0.85);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: var(--fp-fg-primary);
+  border: 1px solid var(--fp-line);
 }
 
 .vfp-root .markdown-body pre {
   margin: 1rem 0;
   border-radius: 0.375rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--fp-line-weak);
   overflow: auto;
   position: relative;
-  background-color: #1e1e1e;
+  background-color: var(--fp-code-bg);
 }
 
 .vfp-root .markdown-body pre code {
@@ -586,7 +662,7 @@
   line-height: 1.5;
   overflow-x: auto;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  color: rgba(255, 255, 255, 0.85);
+  color: var(--fp-code-fg);
 }
 
 .vfp-root .markdown-body .code-block-wrapper {
@@ -599,8 +675,8 @@
   align-items: center;
   justify-content: space-between;
   padding: 0.375rem 1rem;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--fp-code-header);
+  border: 1px solid var(--fp-line-weak);
   border-bottom: 0;
   border-top-left-radius: 0.375rem;
   border-top-right-radius: 0.375rem;
@@ -609,7 +685,9 @@
 }
 
 .vfp-root .markdown-body .code-block-header > span {
-  color: rgba(255, 255, 255, 0.8);
+  /* header 在 light 主题下底色仍是 code-header (浅白半透明在浅底上显示)，
+     为保证对比度，header 字色固定走 code-fg（亮色） */
+  color: var(--fp-code-fg);
   user-select: none;
 }
 
@@ -624,17 +702,18 @@
   background: transparent;
   border: 0;
   padding: 0.25rem;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--fp-code-fg);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   border-radius: 0.25rem;
   transition: all 0.15s ease;
+  opacity: 0.6;
 }
 
 .vfp-root .markdown-body .code-copy-btn:hover {
-  color: rgba(255, 255, 255, 0.9);
-  background: rgba(255, 255, 255, 0.1);
+  opacity: 1;
+  background: var(--fp-surface-2);
 }
 
 .vfp-root .markdown-body .code-copy-float {
@@ -644,10 +723,10 @@
   opacity: 0;
   transition: opacity 0.15s ease;
   z-index: 2;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: var(--fp-surface-2);
+  border: 1px solid var(--fp-line);
 }
 
 .vfp-root .markdown-body .code-block-wrapper:hover .code-copy-float {
-  opacity: 1;
+  opacity: 0.85;
 }

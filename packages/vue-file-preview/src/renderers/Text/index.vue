@@ -3,6 +3,7 @@ import { ref, computed, watch } from 'vue';
 import { getLanguageFromFileName, fetchTextUtf8 } from '@eternalheart/file-preview-core';
 import { codeToHtml } from 'shiki';
 import { useTranslator } from '../../composables/useTranslator';
+import { useResolvedTheme } from '../../composables/useResolvedTheme';
 
 const props = withDefaults(defineProps<{
   url: string;
@@ -15,6 +16,7 @@ const props = withDefaults(defineProps<{
 });
 
 const { t } = useTranslator();
+const resolvedTheme = useResolvedTheme();
 
 const content = ref<string>('');
 const highlighted = ref<string>('');
@@ -34,7 +36,7 @@ const loadText = async () => {
       try {
         highlighted.value = await codeToHtml(text, {
           lang: language.value,
-          theme: 'dark-plus',
+          theme: resolvedTheme.value === 'light' ? 'github-light' : 'dark-plus',
         });
       } catch {
         highlighted.value = '';
@@ -51,23 +53,29 @@ const loadText = async () => {
 };
 
 watch(() => props.url, loadText, { immediate: true });
+watch(resolvedTheme, () => {
+  // 主题切换时重新高亮
+  if (content.value && language.value !== 'text') {
+    loadText();
+  }
+});
 </script>
 
 <template>
   <div v-if="loading" class="vfp-flex vfp-items-center vfp-justify-center vfp-w-full vfp-h-full">
     <div
-      class="vfp-w-12 vfp-h-12 vfp-border-4 vfp-border-white/20 vfp-border-t-white vfp-rounded-full vfp-animate-spin"
+      class="vfp-w-12 vfp-h-12 vfp-border-4 vfp-border-line-strong vfp-border-t-spinner-head vfp-rounded-full vfp-animate-spin"
     />
   </div>
 
   <div v-else-if="error" class="vfp-flex vfp-items-center vfp-justify-center vfp-w-full vfp-h-full">
-    <div class="vfp-text-white/70 vfp-text-center">
+    <div class="vfp-text-fg-secondary vfp-text-center">
       <p class="vfp-text-lg">{{ error }}</p>
     </div>
   </div>
 
   <!-- HTML 预览模式 -->
-  <div v-else-if="htmlPreview && language === 'html'" class="vfp-w-full vfp-h-full vfp-bg-white">
+  <div v-else-if="htmlPreview && language === 'html'" class="vfp-w-full vfp-h-full vfp-bg-surface-toolbar">
     <iframe
       :srcdoc="content"
       sandbox="allow-same-origin"
@@ -77,10 +85,10 @@ watch(() => props.url, loadText, { immediate: true });
   </div>
 
   <!-- 源码模式 -->
-  <div v-else class="vfp-w-full vfp-h-full vfp-overflow-auto" style="background: #1e1e1e;">
+  <div v-else class="vfp-w-full vfp-h-full vfp-overflow-auto" style="background: var(--fp-code-bg);">
     <pre
       v-if="!highlighted"
-      class="vfp-p-6 vfp-text-white/90 vfp-font-mono vfp-text-sm"
+      class="vfp-p-6 vfp-text-fg-primary vfp-font-mono vfp-text-sm"
       :class="wordWrap ? 'vfp-whitespace-pre-wrap vfp-break-words' : 'vfp-whitespace-pre'"
     >{{ content }}</pre>
     <div v-else class="shiki-wrapper" :class="{ 'no-wrap': !wordWrap }" v-html="highlighted" />
@@ -109,9 +117,9 @@ watch(() => props.url, loadText, { immediate: true });
   padding-right: 1em;
   margin-right: 0.5em;
   text-align: right;
-  color: rgba(255, 255, 255, 0.3);
+  color: var(--fp-fg-disabled);
   user-select: none;
-  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  border-right: 1px solid var(--fp-line);
 }
 .shiki-wrapper.no-wrap :deep(code) {
   white-space: pre;

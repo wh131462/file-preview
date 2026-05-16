@@ -124,8 +124,8 @@ export const VideoRenderer: React.FC<VideoRendererProps> = ({ url }) => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
           </div>
-          <p className="rfp-text-lg rfp-font-medium rfp-text-white/90 rfp-mb-2">{t('video.load_failed')}</p>
-          <p className="rfp-text-sm rfp-text-white/60">{error}</p>
+          <p className="rfp-text-lg rfp-font-medium rfp-text-fg-primary rfp-mb-2">{t('video.load_failed')}</p>
+          <p className="rfp-text-sm rfp-text-fg-tertiary">{error}</p>
         </div>
       </div>
     );
@@ -136,10 +136,10 @@ export const VideoRenderer: React.FC<VideoRendererProps> = ({ url }) => {
       <div className="rfp-w-full rfp-h-full rfp-relative">
         {/* 加载状态 */}
         {isLoading && (
-          <div className="rfp-absolute rfp-inset-0 rfp-flex rfp-items-center rfp-justify-center rfp-bg-black/20 rfp-backdrop-blur-sm rfp-rounded-2xl rfp-z-10">
+          <div className="rfp-absolute rfp-inset-0 rfp-flex rfp-items-center rfp-justify-center rfp-bg-surface-3 rfp-backdrop-blur-sm rfp-z-10">
             <div className="rfp-text-center">
-              <div className="rfp-w-12 rfp-h-12 rfp-mx-auto rfp-mb-3 rfp-border-3 rfp-border-white/20 rfp-border-t-white rfp-rounded-full rfp-animate-spin" />
-              <p className="rfp-text-sm rfp-text-white/70 rfp-font-medium">{t('video.loading')}</p>
+              <div className="rfp-w-12 rfp-h-12 rfp-mx-auto rfp-mb-3 rfp-border-3 rfp-border-line-strong rfp-border-t-spinner-head rfp-rounded-full rfp-animate-spin" />
+              <p className="rfp-text-sm rfp-text-fg-secondary rfp-font-medium">{t('video.loading')}</p>
             </div>
           </div>
         )}

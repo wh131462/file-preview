@@ -33,16 +33,16 @@ watch(() => props.url, loadJson, { immediate: true });
 
 <template>
   <div v-if="loading" class="vfp-flex vfp-items-center vfp-justify-center vfp-w-full vfp-h-full">
-    <div class="vfp-w-12 vfp-h-12 vfp-border-4 vfp-border-white/20 vfp-border-t-white vfp-rounded-full vfp-animate-spin" />
+    <div class="vfp-w-12 vfp-h-12 vfp-border-4 vfp-border-line-strong vfp-border-t-spinner-head vfp-rounded-full vfp-animate-spin" />
   </div>
 
   <div v-else-if="error" class="vfp-flex vfp-items-center vfp-justify-center vfp-w-full vfp-h-full">
-    <div class="vfp-text-white/70 vfp-text-center">
+    <div class="vfp-text-fg-secondary vfp-text-center">
       <p class="vfp-text-lg">{{ error }}</p>
     </div>
   </div>
 
-  <div v-else class="vfp-w-full vfp-h-full vfp-overflow-auto vfp-py-3 vfp-pr-4" style="background: #1e1e1e;">
+  <div v-else class="vfp-w-full vfp-h-full vfp-overflow-auto vfp-bg-code-bg vfp-py-3 vfp-pr-4">
     <JsonNode :value="data" :depth="0" :default-expanded="true" />
   </div>
 </template>
@@ -53,30 +53,75 @@ import { defineComponent, h, inject, computed, type PropType } from 'vue';
 import { ChevronRight, ChevronDown } from 'lucide-vue-next';
 import { createTranslator, type Translator } from '@eternalheart/file-preview-core';
 import { LOCALE_KEY } from '../../i18n/localeKey';
+import { useResolvedTheme, type ResolvedTheme } from '../../composables/useResolvedTheme';
 
 export default defineComponent({ name: 'JsonRenderer' });
 
-function renderValue(value: unknown) {
-  if (value === null) return h('span', { class: 'json-null' }, 'null');
-  if (value === undefined) return h('span', { class: 'json-null' }, 'undefined');
-  if (typeof value === 'boolean') return h('span', { class: 'json-bool' }, String(value));
-  if (typeof value === 'number') return h('span', { class: 'json-number' }, String(value));
-  if (typeof value === 'string') return h('span', { class: 'json-string' }, `"${value}"`);
-  return h('span', { class: 'json-bracket' }, String(value));
+interface JsonColors {
+  key: string;
+  string: string;
+  number: string;
+  keyword: string;
+  bracket: string;   // { } [ ]
+  colon: string;     // :
+  collapsed: string; // "N items / N keys" 折叠提示
+  arrow: string;     // 折叠箭头
 }
 
-function renderPrimitiveLine(keyName: string | undefined, value: unknown, indent: number, override?: string) {
+// VSCode Dark Plus / GitHub Light 两套配色，与 shiki 的 dark-plus / github-light 主题保持一致
+const DARK_COLORS: JsonColors = {
+  key: '#9cdcfe',
+  string: '#ce9178',
+  number: '#b5cea8',
+  keyword: '#569cd6',
+  bracket: '#d4d4d4',
+  colon: 'rgb(255 255 255 / 0.6)',
+  collapsed: 'rgb(255 255 255 / 0.4)',
+  arrow: 'rgb(255 255 255 / 0.5)',
+};
+
+const LIGHT_COLORS: JsonColors = {
+  key: '#005cc5',
+  string: '#032f62',
+  number: '#005cc5',
+  keyword: '#d73a49',
+  bracket: '#24292e',
+  colon: 'rgb(23 23 23 / 0.6)',
+  collapsed: 'rgb(23 23 23 / 0.45)',
+  arrow: 'rgb(23 23 23 / 0.55)',
+};
+
+function pickColors(theme: ResolvedTheme): JsonColors {
+  return theme === 'light' ? LIGHT_COLORS : DARK_COLORS;
+}
+
+function renderValue(value: unknown, colors: JsonColors) {
+  if (value === null) return h('span', { class: 'json-null', style: { color: colors.keyword } }, 'null');
+  if (value === undefined) return h('span', { class: 'json-null', style: { color: colors.keyword } }, 'undefined');
+  if (typeof value === 'boolean') return h('span', { style: { color: colors.keyword } }, String(value));
+  if (typeof value === 'number') return h('span', { style: { color: colors.number } }, String(value));
+  if (typeof value === 'string') return h('span', { style: { color: colors.string } }, `"${value}"`);
+  return h('span', { style: { color: colors.bracket } }, String(value));
+}
+
+function renderPrimitiveLine(
+  keyName: string | undefined,
+  value: unknown,
+  indent: number,
+  colors: JsonColors,
+  override?: string,
+) {
   return h('div', { class: 'json-row', style: { paddingLeft: `${indent}px` } }, [
     h('span', { class: 'json-arrow-placeholder' }),
     keyName !== undefined
-      ? h('span', { class: 'json-key' }, [
+      ? h('span', { class: 'json-key', style: { color: colors.key } }, [
           `"${keyName}"`,
-          h('span', { class: 'json-colon' }, ': '),
+          h('span', { style: { color: colors.colon } }, ': '),
         ])
       : null,
     override
-      ? h('span', { class: 'json-bracket' }, override)
-      : renderValue(value),
+      ? h('span', { style: { color: colors.bracket } }, override)
+      : renderValue(value, colors),
   ]);
 }
 
@@ -93,15 +138,17 @@ const JsonNode = defineComponent({
     const toggle = () => { expanded.value = !expanded.value; };
     const injected = inject(LOCALE_KEY, null);
     const tFunc = computed<Translator>(() => injected?.t.value ?? createTranslator({ locale: 'zh-CN' }));
-    return { expanded, toggle, tFunc };
+    const resolvedTheme = useResolvedTheme();
+    const colors = computed<JsonColors>(() => pickColors(resolvedTheme.value));
+    return { expanded, toggle, tFunc, colors };
   },
   render() {
-    const { keyName, value, depth, expanded, toggle, tFunc } = this;
+    const { keyName, value, depth, expanded, toggle, tFunc, colors } = this;
     const indent = depth * 20;
 
     // 基本类型
     if (value === null || value === undefined || typeof value !== 'object') {
-      return renderPrimitiveLine(keyName, value, indent);
+      return renderPrimitiveLine(keyName, value, indent, colors);
     }
 
     const isArr = Array.isArray(value);
@@ -112,7 +159,7 @@ const JsonNode = defineComponent({
 
     // 空对象/数组
     if (count === 0) {
-      return renderPrimitiveLine(keyName, null, indent, `${open}${close}`);
+      return renderPrimitiveLine(keyName, null, indent, colors, `${open}${close}`);
     }
 
     const children = [];
@@ -124,20 +171,20 @@ const JsonNode = defineComponent({
         style: { paddingLeft: `${indent}px` },
         onClick: toggle,
       }, [
-        h('span', { class: 'json-arrow' }, [
+        h('span', { class: 'json-arrow', style: { color: colors.arrow } }, [
           h(expanded ? ChevronDown : ChevronRight, { class: 'vfp-w-3.5 vfp-h-3.5' }),
         ]),
         keyName !== undefined
-          ? h('span', { class: 'json-key' }, [
+          ? h('span', { class: 'json-key', style: { color: colors.key } }, [
               `"${keyName}"`,
-              h('span', { class: 'json-colon' }, ': '),
+              h('span', { style: { color: colors.colon } }, ': '),
             ])
           : null,
-        h('span', { class: 'json-bracket' }, open),
+        h('span', { style: { color: colors.bracket } }, open),
         !expanded
-          ? h('span', { class: 'json-collapsed' }, [
+          ? h('span', { class: 'json-collapsed', style: { color: colors.collapsed } }, [
               isArr ? `${count} ${tFunc('json.items')}` : `${count} ${tFunc('json.keys')}`,
-              h('span', { class: 'json-bracket' }, ` ${close}`),
+              h('span', { style: { color: colors.bracket } }, ` ${close}`),
             ])
           : null,
       ])
@@ -160,7 +207,7 @@ const JsonNode = defineComponent({
       }
       children.push(
         h('div', { class: 'json-row', style: { paddingLeft: `${indent + 20}px` } }, [
-          h('span', { class: 'json-bracket' }, close),
+          h('span', { style: { color: colors.bracket } }, close),
         ])
       );
     }
@@ -170,8 +217,8 @@ const JsonNode = defineComponent({
 });
 </script>
 
-<style scoped>
-.json-row {
+<style>
+.vfp-root .json-row {
   display: flex;
   align-items: flex-start;
   padding-top: 1px;
@@ -180,52 +227,33 @@ const JsonNode = defineComponent({
   font-size: 0.875rem;
   line-height: 1.4;
 }
-.json-toggle {
+.vfp-root .json-toggle {
   cursor: pointer;
   user-select: none;
 }
-.json-toggle:hover {
-  background: rgba(255, 255, 255, 0.05);
+.vfp-root .json-toggle:hover {
+  background: var(--fp-surface-1);
 }
-.json-arrow {
+.vfp-root .json-arrow {
   width: 16px;
   height: 20px;
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: rgba(255, 255, 255, 0.4);
 }
-.json-arrow-placeholder {
+.vfp-root .json-arrow-placeholder {
   width: 16px;
   height: 20px;
   flex-shrink: 0;
 }
-.json-key {
-  color: #9cdcfe;
+.vfp-root .json-key {
   flex-shrink: 0;
 }
-.json-colon {
-  color: rgba(255, 255, 255, 0.5);
-}
-.json-bracket {
-  color: rgba(255, 255, 255, 0.7);
-}
-.json-collapsed {
-  color: rgba(255, 255, 255, 0.3);
+.vfp-root .json-collapsed {
   margin-left: 4px;
 }
-.json-string {
-  color: #ce9178;
-}
-.json-number {
-  color: #b5cea8;
-}
-.json-bool,
-.json-null {
-  color: #569cd6;
-}
-.json-null {
+.vfp-root .json-null {
   font-style: italic;
 }
 </style>

@@ -162,12 +162,12 @@ export const ImageRenderer: React.FC<ImageRendererProps> = ({
     >
       {!loaded && !error && (
         <div className="rfp-flex rfp-items-center rfp-justify-center">
-          <div className="rfp-w-12 rfp-h-12 rfp-border-4 rfp-border-white/20 rfp-border-t-white rfp-rounded-full rfp-animate-spin" />
+          <div className="rfp-w-12 rfp-h-12 rfp-border-4 rfp-border-line-strong rfp-border-t-spinner-head rfp-rounded-full rfp-animate-spin" />
         </div>
       )}
 
       {error && (
-        <div className="rfp-text-white/70 rfp-text-center">
+        <div className="rfp-text-fg-secondary rfp-text-center">
           <p className="rfp-text-lg">{error}</p>
         </div>
       )}
@@ -193,7 +193,7 @@ export const ImageRenderer: React.FC<ImageRendererProps> = ({
 
       {/* 右下角分辨率 */}
       {loaded && !error && naturalSize.width > 0 && (
-        <div className="rfp-absolute rfp-bottom-2 rfp-right-3 rfp-text-[10px] rfp-text-white/30 hover:rfp-text-white/80 rfp-transition-colors rfp-pointer-events-auto rfp-select-none rfp-cursor-default">
+        <div className="rfp-absolute rfp-bottom-2 rfp-right-3 rfp-text-[10px] rfp-text-fg-disabled hover:rfp-text-fg-secondary rfp-transition-colors rfp-pointer-events-auto rfp-select-none rfp-cursor-default">
           {naturalSize.width} × {naturalSize.height}{fileSize != null && ` · ${fileSize < 1024 ? `${fileSize} B` : fileSize < 1024 * 1024 ? `${(fileSize / 1024).toFixed(1)} KB` : `${(fileSize / (1024 * 1024)).toFixed(1)} MB`}`}
         </div>
       )}

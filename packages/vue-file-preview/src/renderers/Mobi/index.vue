@@ -179,7 +179,7 @@ onBeforeUnmount(() => {
   >
     <div
       v-if="error"
-      class="vfp-absolute vfp-inset-0 vfp-flex vfp-items-center vfp-justify-center vfp-text-white/70 vfp-text-center vfp-p-6"
+      class="vfp-absolute vfp-inset-0 vfp-flex vfp-items-center vfp-justify-center vfp-text-fg-secondary vfp-text-center vfp-p-6"
     >
       <p class="vfp-text-lg">{{ error }}</p>
     </div>
@@ -188,7 +188,7 @@ onBeforeUnmount(() => {
       v-if="loading && !error"
       class="vfp-absolute vfp-inset-0 vfp-flex vfp-items-center vfp-justify-center vfp-z-10"
     >
-      <div class="vfp-w-12 vfp-h-12 vfp-border-4 vfp-border-white/20 vfp-border-t-white vfp-rounded-full vfp-animate-spin" />
+      <div class="vfp-w-12 vfp-h-12 vfp-border-4 vfp-border-line-strong vfp-border-t-spinner-head vfp-rounded-full vfp-animate-spin" />
     </div>
 
     <!-- 目录侧栏 -->
@@ -198,11 +198,11 @@ onBeforeUnmount(() => {
       :style="{ opacity: showToc ? 1 : 0, pointerEvents: showToc ? 'auto' : 'none' }"
     >
       <div
-        class="vfp-w-72 vfp-max-w-[80%] vfp-h-full vfp-bg-black/90 vfp-backdrop-blur-xl vfp-border-r vfp-border-white/10 vfp-flex vfp-flex-col vfp-shadow-2xl vfp-transition-transform vfp-duration-300"
+        class="vfp-w-72 vfp-max-w-[80%] vfp-h-full vfp-bg-surface-overlay vfp-backdrop-blur-xl vfp-border-r vfp-border-line-weak vfp-flex vfp-flex-col vfp-shadow-2xl vfp-transition-transform vfp-duration-300"
         :style="{ transform: showToc ? 'translateX(0)' : 'translateX(-100%)' }"
       >
-        <div class="vfp-flex vfp-items-center vfp-justify-between vfp-px-4 vfp-py-3 vfp-border-b vfp-border-white/10 vfp-flex-shrink-0">
-          <span class="vfp-text-white vfp-font-medium vfp-text-sm">{{ t('toolbar.toc') }}</span>
+        <div class="vfp-flex vfp-items-center vfp-justify-between vfp-px-4 vfp-py-3 vfp-border-b vfp-border-line-weak vfp-flex-shrink-0">
+          <span class="vfp-text-fg-primary vfp-font-medium vfp-text-sm">{{ t('toolbar.toc') }}</span>
           <button class="toc-close-btn" @click="showToc = false">
             <X class="vfp-w-4 vfp-h-4" />
           </button>
@@ -221,7 +221,7 @@ onBeforeUnmount(() => {
     <div
       v-if="!error"
       ref="hostRef"
-      class="vfp-h-full vfp-bg-white vfp-shadow-lg"
+      class="vfp-h-full vfp-bg-surface-toolbar vfp-shadow-lg"
       :style="{ width: isFullWidth ? '100%' : A4_WIDTH + 'px', maxWidth: '100%', transition: 'width 0.3s ease' }"
     />
   </div>
@@ -256,8 +256,8 @@ const MobiTocList = defineComponent({
                   class: [
                     'vfp-w-full vfp-text-left vfp-py-2 vfp-px-3 vfp-text-sm vfp-rounded vfp-transition-all vfp-truncate',
                     this.activeHref === item.href
-                      ? 'vfp-text-white vfp-bg-white/15 vfp-font-medium'
-                      : 'vfp-text-white/70 hover:vfp-text-white hover:vfp-bg-white/10',
+                      ? 'vfp-text-fg-primary vfp-bg-surface-3 vfp-font-medium'
+                      : 'vfp-text-fg-secondary hover:vfp-text-fg-primary hover:vfp-bg-surface-2',
                   ],
                   title: item.label,
                   style: 'background: none; border: none; cursor: pointer',
@@ -266,7 +266,7 @@ const MobiTocList = defineComponent({
               )
             : h(
                 'div',
-                { class: 'vfp-w-full vfp-py-2 vfp-px-3 vfp-text-sm vfp-text-white/50 vfp-truncate' },
+                { class: 'vfp-w-full vfp-py-2 vfp-px-3 vfp-text-sm vfp-text-fg-tertiary vfp-truncate' },
                 item.label?.trim()
               ),
           item.subitems?.length
@@ -288,7 +288,7 @@ export default { name: 'MobiRenderer' };
 
 <style scoped>
 .toc-close-btn {
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--fp-fg-tertiary);
   background: none;
   border: none;
   cursor: pointer;

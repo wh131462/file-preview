@@ -165,22 +165,22 @@ export const CsvRenderer: React.FC<CsvRendererProps> = ({ url, fileName }) => {
   return (
     <div className="rfp-relative rfp-flex rfp-flex-col rfp-items-center rfp-w-full rfp-h-full">
       {loading && (
-        <div className="rfp-absolute rfp-inset-0 rfp-flex rfp-items-center rfp-justify-center rfp-bg-black/50 rfp-backdrop-blur-sm rfp-z-10 rfp-rounded-xl md:rfp-rounded-2xl">
+        <div className="rfp-absolute rfp-inset-0 rfp-flex rfp-items-center rfp-justify-center rfp-bg-surface-toolbar rfp-backdrop-blur-sm rfp-z-10">
           <div className="rfp-text-center">
-            <div className="rfp-w-10 rfp-h-10 md:rfp-w-12 md:rfp-h-12 rfp-mx-auto rfp-mb-3 rfp-border-4 rfp-border-white/20 rfp-border-t-white rfp-rounded-full rfp-animate-spin" />
-            <p className="rfp-text-xs md:rfp-text-sm rfp-text-white/70 rfp-font-medium">{t('csv.loading')}</p>
+            <div className="rfp-w-10 rfp-h-10 md:rfp-w-12 md:rfp-h-12 rfp-mx-auto rfp-mb-3 rfp-border-4 rfp-border-line-strong rfp-border-t-spinner-head rfp-rounded-full rfp-animate-spin" />
+            <p className="rfp-text-xs md:rfp-text-sm rfp-text-fg-secondary rfp-font-medium">{t('csv.loading')}</p>
           </div>
         </div>
       )}
 
       {error && !loading && (
-        <div className="rfp-absolute rfp-inset-0 rfp-flex rfp-items-center rfp-justify-center rfp-bg-black/50 rfp-backdrop-blur-sm rfp-z-10 rfp-rounded-xl md:rfp-rounded-2xl">
+        <div className="rfp-absolute rfp-inset-0 rfp-flex rfp-items-center rfp-justify-center rfp-bg-surface-toolbar rfp-backdrop-blur-sm rfp-z-10">
           <div className="rfp-text-center rfp-max-w-sm md:rfp-max-w-md rfp-px-4">
             <div className="rfp-w-24 rfp-h-24 md:rfp-w-32 md:rfp-h-32 rfp-mx-auto rfp-mb-4 md:rfp-mb-6 rfp-rounded-2xl md:rfp-rounded-3xl rfp-bg-gradient-to-br rfp-from-green-500 rfp-via-emerald-500 rfp-to-teal-500 rfp-flex rfp-items-center rfp-justify-center rfp-shadow-2xl">
-              <FileSpreadsheet className="rfp-w-12 rfp-h-12 md:rfp-w-16 md:rfp-h-16 rfp-text-white" />
+              <FileSpreadsheet className="rfp-w-12 rfp-h-12 md:rfp-w-16 md:rfp-h-16 rfp-text-fg-primary" />
             </div>
-            <p className="rfp-text-lg md:rfp-text-xl rfp-text-white/90 rfp-mb-2 md:rfp-mb-3 rfp-font-medium">{t('csv.load_failed')}</p>
-            <p className="rfp-text-xs md:rfp-text-sm rfp-text-white/60 rfp-mb-4 md:rfp-mb-6">{error}</p>
+            <p className="rfp-text-lg md:rfp-text-xl rfp-text-fg-primary rfp-mb-2 md:rfp-mb-3 rfp-font-medium">{t('csv.load_failed')}</p>
+            <p className="rfp-text-xs md:rfp-text-sm rfp-text-fg-tertiary rfp-mb-4 md:rfp-mb-6">{error}</p>
           </div>
         </div>
       )}

@@ -74,7 +74,7 @@ const wordTimeShort = (t: number) => formatSubtitleTime(t).slice(3, 8);
     class="vfp-flex vfp-items-center vfp-justify-center vfp-w-full vfp-h-full vfp-bg-[#0f0f12]"
   >
     <div
-      class="vfp-w-12 vfp-h-12 vfp-border-4 vfp-border-white/20 vfp-border-t-white vfp-rounded-full vfp-animate-spin"
+      class="vfp-w-12 vfp-h-12 vfp-border-4 vfp-border-line-strong vfp-border-t-spinner-head vfp-rounded-full vfp-animate-spin"
     />
   </div>
 
@@ -82,7 +82,7 @@ const wordTimeShort = (t: number) => formatSubtitleTime(t).slice(3, 8);
     v-else-if="error || !parsed"
     class="vfp-flex vfp-items-center vfp-justify-center vfp-w-full vfp-h-full vfp-bg-[#0f0f12]"
   >
-    <div class="vfp-text-white/70 vfp-text-center">
+    <div class="vfp-text-fg-secondary vfp-text-center">
       <p class="vfp-text-lg">{{ error || t('subtitle.parse_failed') }}</p>
     </div>
   </div>
@@ -158,9 +158,9 @@ const wordTimeShort = (t: number) => formatSubtitleTime(t).slice(3, 8);
   border-radius: 9999px;
   background: rgba(0, 0, 0, 0.4);
   backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--fp-line);
   font-size: 0.625rem;
-  color: rgba(255, 255, 255, 0.55);
+  color: var(--fp-fg-tertiary);
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-variant-numeric: tabular-nums;
 }
@@ -171,7 +171,7 @@ const wordTimeShort = (t: number) => formatSubtitleTime(t).slice(3, 8);
   }
 }
 .dot {
-  color: rgba(255, 255, 255, 0.2);
+  color: var(--fp-fg-disabled);
 }
 
 .timeline {
@@ -185,7 +185,7 @@ const wordTimeShort = (t: number) => formatSubtitleTime(t).slice(3, 8);
   top: 0.5rem;
   bottom: 0.5rem;
   width: 1px;
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--fp-line-weak);
 }
 @media (min-width: 768px) {
   .timeline-line {
@@ -221,7 +221,7 @@ const wordTimeShort = (t: number) => formatSubtitleTime(t).slice(3, 8);
   width: 0.75rem;
   height: 0.75rem;
   border-radius: 9999px;
-  background: rgba(255, 255, 255, 0.15);
+  background: var(--fp-surface-3);
   border: 2px solid #0f0f12;
   transition: background-color 0.2s;
 }
@@ -241,35 +241,35 @@ const wordTimeShort = (t: number) => formatSubtitleTime(t).slice(3, 8);
 .cue-time {
   font-size: 0.6875rem;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  color: rgba(255, 255, 255, 0.45);
+  color: var(--fp-fg-muted);
   font-variant-numeric: tabular-nums;
 }
 .cue-arrow {
   font-size: 0.6875rem;
-  color: rgba(255, 255, 255, 0.25);
+  color: var(--fp-fg-disabled);
 }
 .cue-id {
   font-size: 0.625rem;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  color: rgba(255, 255, 255, 0.25);
+  color: var(--fp-fg-disabled);
   font-variant-numeric: tabular-nums;
 }
 .cue-style {
   font-size: 0.5625rem;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: rgba(255, 255, 255, 0.55);
+  color: var(--fp-fg-tertiary);
   padding: 0.125rem 0.375rem;
   border-radius: 0.25rem;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--fp-line-weak);
+  border: 1px solid var(--fp-line);
 }
 .cue-text {
   margin: 0;
   white-space: pre-wrap;
   word-break: break-word;
   line-height: 1.625;
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--fp-fg-primary);
   font-size: 0.875rem;
   transition: color 0.2s;
 }
@@ -295,7 +295,7 @@ const wordTimeShort = (t: number) => formatSubtitleTime(t).slice(3, 8);
   flex-wrap: wrap;
   gap: 0.25rem 0.375rem;
   font-size: 1rem;
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--fp-fg-primary);
   line-height: 1.625;
   transition: color 0.2s;
 }
@@ -314,7 +314,7 @@ const wordTimeShort = (t: number) => formatSubtitleTime(t).slice(3, 8);
 }
 .cue-word-time {
   font-size: 0.5625rem;
-  color: rgba(255, 255, 255, 0.3);
+  color: var(--fp-fg-disabled);
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   line-height: 1;
   font-variant-numeric: tabular-nums;

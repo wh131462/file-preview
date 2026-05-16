@@ -525,3 +525,177 @@
     white-space: nowrap;
   }
 }
+
+/* ============================================================
+ * 语义化主题 token (CSS 变量)
+ *
+ * 设计原则：renderer 不直接用 white / black / gray 字面色，
+ * 而是用 Tailwind 暴露的语义类（text-fg-primary、bg-surface-1 等），
+ * 这些语义类的真实颜色由下方变量定义。
+ *
+ * 主题切换只需替换 :root（这里是 .rfp-root）上的变量值，
+ * class 不变。
+ *
+ * 命名约定：
+ *   --fp-fg-*       文字前景（primary > secondary > tertiary > muted > disabled）
+ *   --fp-surface-*  背景表面（数字越大越突出）
+ *   --fp-line-*     边框 / 分隔线
+ *   --fp-accent-*   品牌强调色
+ *   --fp-code-*     代码块（固定暗底，豁免主题切换）
+ *   --fp-media-bg   媒体画布（固定黑底，豁免主题切换）
+ *   --fp-spinner-*  加载指示器
+ * ============================================================ */
+
+/* 默认值（dark 主题 + 未指定主题时） */
+.rfp-root {
+  /* 文字前景 */
+  --fp-fg-primary:    rgb(255 255 255 / 0.9);
+  --fp-fg-secondary:  rgb(255 255 255 / 0.75);
+  --fp-fg-tertiary:   rgb(255 255 255 / 0.6);
+  --fp-fg-muted:      rgb(255 255 255 / 0.4);
+  --fp-fg-disabled:   rgb(255 255 255 / 0.3);
+  --fp-fg-inverse:    rgb(23 23 23);
+
+  /* 表面背景层级 */
+  --fp-surface-1:        rgb(255 255 255 / 0.05);
+  --fp-surface-2:        rgb(255 255 255 / 0.1);
+  --fp-surface-3:        rgb(255 255 255 / 0.15);
+  --fp-surface-toolbar:  rgb(0 0 0 / 0.5);
+  --fp-surface-overlay:  rgb(0 0 0 / 0.8);
+  --fp-surface-nav:      rgb(0 0 0 / 0.4);
+  --fp-surface-nav-hover: rgb(0 0 0 / 0.6);
+
+  /* 边框 / 分隔 */
+  --fp-line-weak:    rgb(255 255 255 / 0.08);
+  --fp-line:         rgb(255 255 255 / 0.1);
+  --fp-line-strong:  rgb(255 255 255 / 0.2);
+  --fp-divide:       rgb(255 255 255 / 0.1);
+
+  /* 品牌强调色 */
+  --fp-accent:        rgb(99 102 241);
+  --fp-accent-hover:  rgb(129 140 248);
+  --fp-accent-soft:   rgb(99 102 241 / 0.15);
+
+  /* 代码块（跟随主题切换）
+   * Dark：VSCode Dark Plus 风格（#1e1e1e）
+   * Light：GitHub Light 风格（#f6f8fa）
+   * 同时代码高亮主题（vscDarkPlus / vs）也需在 renderer 中切换 */
+  --fp-code-bg:       #1e1e1e;
+  --fp-code-fg:       rgb(255 255 255 / 0.85);
+  --fp-code-header:   rgb(255 255 255 / 0.08);
+  --fp-media-bg:      #000;
+
+  /* loading spinner */
+  --fp-spinner-track: rgb(255 255 255 / 0.2);
+  --fp-spinner-head:  rgb(255 255 255 / 0.85);
+}
+
+/* Light 主题覆盖 */
+.rfp-root[data-theme="light"] {
+  --fp-fg-primary:    rgb(23 23 23 / 0.9);
+  --fp-fg-secondary:  rgb(23 23 23 / 0.78);
+  --fp-fg-tertiary:   rgb(23 23 23 / 0.6);
+  --fp-fg-muted:      rgb(23 23 23 / 0.45);
+  --fp-fg-disabled:   rgb(23 23 23 / 0.3);
+  --fp-fg-inverse:    rgb(255 255 255);
+
+  --fp-surface-1:        rgb(0 0 0 / 0.04);
+  --fp-surface-2:        rgb(0 0 0 / 0.06);
+  --fp-surface-3:        rgb(0 0 0 / 0.1);
+  --fp-surface-toolbar:  rgb(255 255 255 / 0.8);
+  --fp-surface-overlay:  rgb(255 255 255 / 0.6);
+  --fp-surface-nav:      rgb(255 255 255 / 0.7);
+  --fp-surface-nav-hover: rgb(255 255 255 / 0.9);
+
+  --fp-line-weak:    rgb(0 0 0 / 0.06);
+  --fp-line:         rgb(0 0 0 / 0.1);
+  --fp-line-strong:  rgb(0 0 0 / 0.18);
+  --fp-divide:       rgb(0 0 0 / 0.08);
+
+  --fp-spinner-track: rgb(0 0 0 / 0.1);
+  --fp-spinner-head:  rgb(23 23 23 / 0.85);
+
+  /* 代码块在 light 下取 GitHub Light 风格 */
+  --fp-code-bg:       #f6f8fa;
+  --fp-code-fg:       rgb(36 41 47 / 0.95);
+  --fp-code-header:   rgb(0 0 0 / 0.04);
+  /* media-bg 仍保持 #000（视频/音频画布天然黑底，不切换） */
+}
+
+/* Markdown 行内代码 / KaTeX 在 light 主题下取语义色 */
+.rfp-root[data-theme="light"] .markdown-body :where(code:not(pre code)) {
+  background: var(--fp-surface-2);
+  color: var(--fp-fg-primary);
+  border-color: var(--fp-line);
+}
+
+.rfp-root[data-theme="light"] .markdown-body :where(.katex) {
+  color: var(--fp-fg-primary);
+}
+
+/* ============================================================
+ * Shiki 代码高亮通用样式（与 vue-file-preview 同结构）
+ *
+ * 用法：renderer 把 shiki 输出包在 <div class="rfp-shiki-wrapper"> 里。
+ * 加上 .with-line-numbers 时会用 CSS counter 自动渲染行号 +
+ * 1px 右侧分隔线。
+ * 加上 .no-wrap 强制不换行（横向滚动）。
+ * ============================================================ */
+
+.rfp-root .rfp-shiki-wrapper pre {
+  margin: 0;
+  padding: 1.5rem;
+  background: transparent !important;
+  font-size: 0.875rem;
+  overflow-x: auto;
+}
+
+.rfp-root .rfp-shiki-wrapper code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+/* 行号（仅 .with-line-numbers 启用） */
+.rfp-root .rfp-shiki-wrapper.with-line-numbers pre {
+  padding-left: 0;
+  padding-right: 1.5rem;
+}
+
+.rfp-root .rfp-shiki-wrapper.with-line-numbers code {
+  counter-reset: line;
+}
+
+.rfp-root .rfp-shiki-wrapper.with-line-numbers code .line {
+  counter-increment: line;
+}
+
+.rfp-root .rfp-shiki-wrapper.with-line-numbers code .line::before {
+  content: counter(line);
+  display: inline-block;
+  width: 3em;
+  padding-right: 1em;
+  margin-right: 0.5em;
+  text-align: right;
+  color: var(--fp-fg-disabled);
+  user-select: none;
+  border-right: 1px solid var(--fp-line);
+}
+
+/* 换行模式 */
+.rfp-root .rfp-shiki-wrapper.no-wrap code {
+  white-space: pre;
+  word-break: normal;
+  overflow-wrap: normal;
+}
+
+.rfp-root .rfp-shiki-wrapper:not(.no-wrap) code {
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+/* Markdown 内代码块（无行号场景）保持紧凑 padding */
+.rfp-root .markdown-body .rfp-shiki-wrapper pre {
+  padding: 1rem;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}

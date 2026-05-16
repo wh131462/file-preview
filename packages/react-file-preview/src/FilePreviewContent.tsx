@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { X, Download, ChevronLeft, ChevronRight } from 'lucide-react';
 import { getFileType, createTranslator, type Locale, type Messages, type Translator, type Theme } from '@eternalheart/file-preview-core';
 import { LocaleProvider } from './i18n/LocaleContext';
+import { ThemeProvider } from './ThemeContext';
 import type { ToolbarGroup } from './renderers/toolbar.types';
 import { getImageToolbarGroups } from './renderers/Image/toolbar';
 import { getPdfToolbarGroups } from './renderers/Pdf/toolbar';
@@ -95,7 +96,6 @@ export const FilePreviewContent: React.FC<FilePreviewContentProps> = ({
   }, [theme]);
 
   const resolvedTheme = theme === 'auto' ? (systemDark ? 'dark' : 'light') : theme;
-  const isLight = resolvedTheme === 'light';
 
   const [zoom, setZoom] = useState(1);
   const [rotation, setRotation] = useState(0);
@@ -401,24 +401,24 @@ export const FilePreviewContent: React.FC<FilePreviewContentProps> = ({
               label={item.tooltip}
               onClick={item.action}
               disabled={item.disabled}
-              isLight={isLight}
             />
           ) : (
             <span
               key={`${gi}-${ii}`}
-              className={`rfp-text-xs rfp-text-center rfp-font-medium rfp-tabular-nums ${isLight ? 'rfp-text-gray-500' : 'rfp-text-white/60'}`}
+              className="rfp-text-xs rfp-text-center rfp-font-medium rfp-tabular-nums rfp-text-fg-tertiary"
               style={{ minWidth: item.minWidth || 'auto' }}
             >
               {item.content}
             </span>
           )
         )}
-        {gi < arr.length - 1 && <div className={`rfp-w-px rfp-h-4 ${isLight ? 'rfp-bg-gray-200' : 'rfp-bg-white/10'} ${dividerClass}`} />}
+        {gi < arr.length - 1 && <div className={`rfp-w-px rfp-h-4 rfp-bg-divide ${dividerClass}`} />}
       </React.Fragment>
     ));
 
   return (
     <LocaleProvider locale={locale} messages={userMessages}>
+    <ThemeProvider theme={resolvedTheme}>
     <div
       ref={rootRef}
       tabIndex={mode === 'embed' ? 0 : -1}
@@ -431,17 +431,17 @@ export const FilePreviewContent: React.FC<FilePreviewContentProps> = ({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className={`rfp-flex-shrink-0 rfp-z-10 rfp-backdrop-blur-md rfp-border-b ${isLight ? 'rfp-bg-white/80 rfp-border-gray-200' : 'rfp-bg-black/50 rfp-border-white/10'}`}
+        className="rfp-flex-shrink-0 rfp-z-10 rfp-backdrop-blur-md rfp-border-b rfp-bg-surface-toolbar rfp-border-line"
         style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
       >
         {/* 第一行:文件名 + 分页 + 关闭/下载(移动端右侧)/ 全部按钮(桌面端) */}
         <div className="rfp-flex rfp-items-center rfp-justify-between rfp-px-3 md:rfp-px-5 rfp-py-1.5 md:rfp-py-2.5">
           {/* 左侧:文件名 + 分页 */}
           <div className="rfp-flex rfp-items-center rfp-flex-1 rfp-min-w-0 rfp-mr-2 md:rfp-mr-3">
-            <h2 className={`rfp-font-medium rfp-text-xs md:rfp-text-sm rfp-truncate ${isLight ? 'rfp-text-gray-800' : 'rfp-text-white/90'}`}>
+            <h2 className="rfp-font-medium rfp-text-xs md:rfp-text-sm rfp-truncate rfp-text-fg-primary">
               {currentFile.name}
             </h2>
-            <span className={`rfp-text-xs rfp-ml-2 rfp-flex-shrink-0 ${isLight ? 'rfp-text-gray-400' : 'rfp-text-white/40'}`}>
+            <span className="rfp-text-xs rfp-ml-2 rfp-flex-shrink-0 rfp-text-fg-muted">
               {currentIndex + 1}/{normalizedFiles.length}
             </span>
           </div>
@@ -454,7 +454,7 @@ export const FilePreviewContent: React.FC<FilePreviewContentProps> = ({
           {/* 桌面端:所有工具按钮 */}
           <div className="rfp-hidden md:rfp-flex rfp-items-center rfp-gap-1 rfp-flex-shrink-0">
             {renderToolbarItems(toolGroups, 'rfp-mx-1')}
-            {toolGroups.length > 0 && <div className={`rfp-w-px rfp-h-4 rfp-mx-1 ${isLight ? 'rfp-bg-gray-200' : 'rfp-bg-white/10'}`} />}
+            {toolGroups.length > 0 && <div className="rfp-w-px rfp-h-4 rfp-mx-1 rfp-bg-divide" />}
             {renderToolbarItems(actionGroups, 'rfp-mx-1')}
           </div>
         </div>
@@ -578,7 +578,7 @@ export const FilePreviewContent: React.FC<FilePreviewContentProps> = ({
               onClick={() => onNavigate?.(currentIndex - 1)}
               onMouseEnter={() => setNavVisible(true)}
               style={{ pointerEvents: navVisible ? 'auto' : 'none' }}
-              className={`rfp-absolute rfp-z-20 rfp-left-2 md:rfp-left-4 rfp-top-1/2 -rfp-translate-y-1/2 rfp-w-10 rfp-h-10 md:rfp-w-12 md:rfp-h-12 rfp-rounded-full rfp-backdrop-blur-xl rfp-border rfp-flex rfp-items-center rfp-justify-center rfp-transition-colors rfp-shadow-2xl ${isLight ? 'rfp-bg-white/70 rfp-border-gray-200 rfp-text-gray-700 hover:rfp-bg-white/90' : 'rfp-bg-black/40 rfp-border-white/10 rfp-text-white hover:rfp-bg-black/60'}`}
+              className="rfp-absolute rfp-z-20 rfp-left-2 md:rfp-left-4 rfp-top-1/2 -rfp-translate-y-1/2 rfp-w-10 rfp-h-10 md:rfp-w-12 md:rfp-h-12 rfp-rounded-full rfp-backdrop-blur-xl rfp-border rfp-flex rfp-items-center rfp-justify-center rfp-transition-colors rfp-shadow-2xl rfp-bg-surface-nav rfp-border-line hover:rfp-bg-surface-nav-hover rfp-text-fg-primary"
             >
               <ChevronLeft className="rfp-w-5 rfp-h-5 md:rfp-w-6 md:rfp-h-6" />
             </motion.button>
@@ -592,7 +592,7 @@ export const FilePreviewContent: React.FC<FilePreviewContentProps> = ({
               onClick={() => onNavigate?.(currentIndex + 1)}
               onMouseEnter={() => setNavVisible(true)}
               style={{ pointerEvents: navVisible ? 'auto' : 'none' }}
-              className={`rfp-absolute rfp-z-20 rfp-right-2 md:rfp-right-4 rfp-top-1/2 -rfp-translate-y-1/2 rfp-w-10 rfp-h-10 md:rfp-w-12 md:rfp-h-12 rfp-rounded-full rfp-backdrop-blur-xl rfp-border rfp-flex rfp-items-center rfp-justify-center rfp-transition-colors rfp-shadow-2xl ${isLight ? 'rfp-bg-white/70 rfp-border-gray-200 rfp-text-gray-700 hover:rfp-bg-white/90' : 'rfp-bg-black/40 rfp-border-white/10 rfp-text-white hover:rfp-bg-black/60'}`}
+              className="rfp-absolute rfp-z-20 rfp-right-2 md:rfp-right-4 rfp-top-1/2 -rfp-translate-y-1/2 rfp-w-10 rfp-h-10 md:rfp-w-12 md:rfp-h-12 rfp-rounded-full rfp-backdrop-blur-xl rfp-border rfp-flex rfp-items-center rfp-justify-center rfp-transition-colors rfp-shadow-2xl rfp-bg-surface-nav rfp-border-line hover:rfp-bg-surface-nav-hover rfp-text-fg-primary"
             >
               <ChevronRight className="rfp-w-5 rfp-h-5 md:rfp-w-6 md:rfp-h-6" />
             </motion.button>
@@ -600,6 +600,7 @@ export const FilePreviewContent: React.FC<FilePreviewContentProps> = ({
         </>
       )}
     </div>
+    </ThemeProvider>
     </LocaleProvider>
   );
 };
@@ -610,22 +611,22 @@ interface ToolbarButtonProps {
   label: string;
   onClick: () => void;
   disabled?: boolean;
-  isLight?: boolean;
 }
 
-const ToolbarButton: React.FC<ToolbarButtonProps> = ({ icon, label, onClick, disabled, isLight }) => {
+const ToolbarButton: React.FC<ToolbarButtonProps> = ({ icon, label, onClick, disabled }) => {
   return (
     <button
       onClick={onClick}
       disabled={disabled}
-      className={`rfp-relative rfp-group rfp-p-2 md:rfp-p-1.5 rfp-rounded-md rfp-transition-all rfp-select-none ${disabled
-        ? (isLight ? 'rfp-text-gray-300 rfp-cursor-not-allowed' : 'rfp-text-white/30 rfp-cursor-not-allowed')
-        : (isLight ? 'rfp-text-gray-700 hover:rfp-bg-black/5 active:rfp-bg-black/10' : 'rfp-text-white hover:rfp-bg-white/10 active:rfp-bg-white/20')
-        }`}
+      className={`rfp-relative rfp-group rfp-p-2 md:rfp-p-1.5 rfp-rounded-md rfp-transition-all rfp-select-none ${
+        disabled
+          ? 'rfp-text-fg-disabled rfp-cursor-not-allowed'
+          : 'rfp-text-fg-primary hover:rfp-bg-surface-2 active:rfp-bg-surface-3'
+      }`}
     >
       {icon}
-      <span className={`rfp-absolute rfp-left-1/2 -rfp-translate-x-1/2 rfp-top-full rfp-mt-1.5 rfp-px-2 rfp-py-1 rfp-text-xs rfp-rounded rfp-whitespace-nowrap rfp-pointer-events-none rfp-opacity-0 rfp-invisible group-hover:rfp-opacity-100 group-hover:rfp-visible rfp-transition-opacity rfp-duration-200 rfp-z-50 ${isLight ? 'rfp-bg-gray-800 rfp-text-white' : 'rfp-bg-[rgba(0,0,0,0.85)] rfp-text-white'}`}>
-        <span className={`rfp-absolute rfp-left-1/2 -rfp-translate-x-1/2 -rfp-top-1 rfp-w-2 rfp-h-2 rfp-rotate-45 ${isLight ? 'rfp-bg-gray-800' : 'rfp-bg-[rgba(0,0,0,0.85)]'}`} />
+      <span className="rfp-absolute rfp-left-1/2 -rfp-translate-x-1/2 rfp-top-full rfp-mt-1.5 rfp-px-2 rfp-py-1 rfp-text-xs rfp-rounded rfp-whitespace-nowrap rfp-pointer-events-none rfp-opacity-0 rfp-invisible group-hover:rfp-opacity-100 group-hover:rfp-visible rfp-transition-opacity rfp-duration-200 rfp-z-50 rfp-bg-fg-primary rfp-text-fg-inverse">
+        <span className="rfp-absolute rfp-left-1/2 -rfp-translate-x-1/2 -rfp-top-1 rfp-w-2 rfp-h-2 rfp-rotate-45 rfp-bg-fg-primary" />
         <span className="rfp-relative">{label}</span>
       </span>
     </button>

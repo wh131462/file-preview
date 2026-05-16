@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef, Suspense } from 'react';
 import { motion } from 'framer-motion';
 import { X, Download, ChevronLeft, ChevronRight } from 'lucide-react';
 import { getFileType, createTranslator, type Locale, type Messages, type Translator, type Theme } from '@eternalheart/file-preview-core';
@@ -16,26 +16,31 @@ import { getMarkdownToolbarGroups } from './renderers/Markdown/toolbar';
 import { PreviewFileInput, CustomRenderer, CustomRendererContext } from './types';
 import type { CustomRendererEventPayload } from '@eternalheart/file-preview-core';
 import { normalizeFiles } from './utils/fileNormalizer';
-import { ImageRenderer } from './renderers/Image';
-import { PdfRenderer } from './renderers/Pdf';
-import { DocxRenderer } from './renderers/Docx';
-import { XlsxRenderer } from './renderers/Xlsx';
-import { PptxRenderer } from './renderers/Pptx';
-import { MsgRenderer } from './renderers/Msg';
-import { EpubRenderer } from './renderers/Epub';
+// Renderer 通过 React.lazy 动态加载，运行时按需下载对应 chunk
+import {
+  ImageRenderer,
+  PdfRenderer,
+  DocxRenderer,
+  XlsxRenderer,
+  PptxRenderer,
+  MsgRenderer,
+  EpubRenderer,
+  MobiRenderer,
+  VideoRenderer,
+  AudioRenderer,
+  MarkdownRenderer,
+  JsonRenderer,
+  CsvRenderer,
+  XmlRenderer,
+  SubtitleRenderer,
+  ZipRenderer,
+  TextRenderer,
+} from './renderers/lazy';
 import type { EpubRendererHandle } from './renderers/Epub';
-import { MobiRenderer } from './renderers/Mobi';
 import type { MobiRendererHandle } from './renderers/Mobi';
-import { VideoRenderer } from './renderers/Video';
-import { AudioRenderer } from './renderers/Audio';
-import { MarkdownRenderer } from './renderers/Markdown';
-import { JsonRenderer } from './renderers/Json';
-import { CsvRenderer } from './renderers/Csv';
-import { XmlRenderer } from './renderers/Xml';
-import { SubtitleRenderer } from './renderers/Subtitle';
-import { ZipRenderer } from './renderers/Zip';
-import { TextRenderer } from './renderers/Text';
+// 不支持类型回退；体积极小，仍静态打包到主入口
 import { UnsupportedRenderer } from './renderers/Unsupported';
+import { RendererLoading } from './renderers/RendererLoading';
 
 const MAX_ZIP_NESTING_DEPTH = 3;
 
@@ -477,7 +482,7 @@ export const FilePreviewContent: React.FC<FilePreviewContentProps> = ({
         {customRenderer ? (
           customRenderer.render(currentFile, customCtx)
         ) : (
-          <>
+          <Suspense fallback={<RendererLoading />}>
             {fileType === 'image' && (
               <ImageRenderer
                 url={currentFile.url}
@@ -563,7 +568,7 @@ export const FilePreviewContent: React.FC<FilePreviewContentProps> = ({
                 onDownload={handleDownload}
               />
             )}
-          </>
+          </Suspense>
         )}
       </div>
 

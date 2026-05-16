@@ -8,6 +8,11 @@ import { viteStaticCopy } from 'vite-plugin-static-copy';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+const assetFileNames = (assetInfo: { names?: string[] }) => {
+  if (assetInfo.names && assetInfo.names[0] === 'style.css') return 'index.css';
+  return assetInfo.names?.[0] || 'assets/[name]-[hash][extname]';
+};
+
 // 库构建配置（用于 npm 发布）
 export default defineConfig({
   plugins: [
@@ -35,46 +40,70 @@ export default defineConfig({
       fileName: (format) => `index.${format === 'es' ? 'mjs' : 'cjs'}`,
     },
     rollupOptions: {
-      // 外部化依赖，不打包到库中
-      // 注意：@eternalheart/file-preview-core 未发布到 npm，必须内联打包
+      // 外部化依赖，不打包到库中。
+      // 注意：@eternalheart/file-preview-core 未发布到 npm，必须内联打包，故不出现在此列表。
       external: [
+        // React 生态
         'react',
         'react-dom',
         'react/jsx-runtime',
-        '@kenjiuno/msgreader',
-        '@likecoin/epub-ts',
-        'framer-motion',
-        'jszip',
-        'lucide-react',
-        'pdfjs-dist',
         'react-pdf',
+        'react-markdown',
+        'react-syntax-highlighter',
+        // 同时匹配 `react-syntax-highlighter` 与其子路径
+        /^react-syntax-highlighter(\/.*)?$/,
+        // UI / 动画
+        'framer-motion',
+        'lucide-react',
+        // PDF.js 全部子路径
+        /^pdfjs-dist(\/.*)?$/,
+        // Office / 电子书 / 压缩
         'mammoth',
         'docx-preview',
         'pptx-preview',
-        'react-markdown',
+        'exceljs',
+        /^exceljs(\/.*)?$/,
+        'foliate-js',
+        /^foliate-js(\/.*)?$/,
+        '@kenjiuno/msgreader',
+        '@likecoin/epub-ts',
+        'jszip',
+        // Markdown / 数学公式
         'remark-gfm',
         'remark-math',
         'rehype-katex',
         'rehype-raw',
+        'katex',
+        /^katex(\/.*)?$/,
+        // 代码高亮
         'shiki',
+        /^shiki(\/.*)?$/,
+        // 视频
         '@videojs-player/react',
         'video.js',
       ],
-      output: {
-        // 强制所有动态 import 内联到主 chunk（避免 foliate-js 等库内部的动态 import 导致 code splitting）
-        inlineDynamicImports: true,
-        // 为外部依赖提供全局变量
-        globals: {
-          react: 'React',
-          'react-dom': 'ReactDOM',
-          'react/jsx-runtime': 'jsxRuntime',
+      output: [
+        {
+          format: 'es',
+          entryFileNames: 'index.mjs',
+          chunkFileNames: 'chunks/[name]-[hash].mjs',
+          // ESM 启用代码分割，让重型 renderer 与其依赖按需异步加载
+          inlineDynamicImports: false,
+          assetFileNames,
         },
-        // 保留 CSS
-        assetFileNames: (assetInfo) => {
-          if (assetInfo.names && assetInfo.names[0] === 'style.css') return 'index.css';
-          return assetInfo.names?.[0] || 'assets/[name]-[hash][extname]';
+        {
+          format: 'cjs',
+          entryFileNames: 'index.cjs',
+          // CJS 不支持顶层 await，继续内联以保证兼容性
+          inlineDynamicImports: true,
+          globals: {
+            react: 'React',
+            'react-dom': 'ReactDOM',
+            'react/jsx-runtime': 'jsxRuntime',
+          },
+          assetFileNames,
         },
-      },
+      ],
     },
     // 生成源码映射
     sourcemap: true,

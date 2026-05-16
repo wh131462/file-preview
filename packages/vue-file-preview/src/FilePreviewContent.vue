@@ -21,23 +21,27 @@ import { getMobiToolbarGroups } from './renderers/Mobi/toolbar';
 import { getZipToolbarGroups, type ZipToolbarStats } from './renderers/Zip/toolbar';
 import { getTextToolbarGroups } from './renderers/Text/toolbar';
 import { getMarkdownToolbarGroups } from './renderers/Markdown/toolbar';
-import ImageRenderer from './renderers/Image/index.vue';
-import PdfRenderer from './renderers/Pdf/index.vue';
-import DocxRenderer from './renderers/Docx/index.vue';
-import XlsxRenderer from './renderers/Xlsx/index.vue';
-import PptxRenderer from './renderers/Pptx/index.vue';
-import MsgRenderer from './renderers/Msg/index.vue';
-import EpubRenderer from './renderers/Epub/index.vue';
-import MobiRenderer from './renderers/Mobi/index.vue';
-import VideoRenderer from './renderers/Video/index.vue';
-import AudioRenderer from './renderers/Audio/index.vue';
-import MarkdownRenderer from './renderers/Markdown/index.vue';
-import JsonRenderer from './renderers/Json/index.vue';
-import CsvRenderer from './renderers/Csv/index.vue';
-import XmlRenderer from './renderers/Xml/index.vue';
-import SubtitleRenderer from './renderers/Subtitle/index.vue';
-import ZipRenderer from './renderers/Zip/index.vue';
-import TextRenderer from './renderers/Text/index.vue';
+// Renderer 通过 defineAsyncComponent 动态加载，运行时按需下载对应 chunk
+import {
+  ImageRenderer,
+  PdfRenderer,
+  DocxRenderer,
+  XlsxRenderer,
+  PptxRenderer,
+  MsgRenderer,
+  EpubRenderer,
+  MobiRenderer,
+  VideoRenderer,
+  AudioRenderer,
+  MarkdownRenderer,
+  JsonRenderer,
+  CsvRenderer,
+  XmlRenderer,
+  SubtitleRenderer,
+  ZipRenderer,
+  TextRenderer,
+} from './renderers/lazy';
+// Unsupported 体量极小且每次回退都用，直接静态打包到主入口
 import UnsupportedRenderer from './renderers/Unsupported/index.vue';
 
 const MAX_ZIP_NESTING_DEPTH = 3;

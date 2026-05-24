@@ -7,6 +7,11 @@ export type {
   PreviewState,
   Theme,
   CustomRendererEventPayload,
+  RequestHandler,
+  RequestInitFactory,
+  RequestOptions,
+  Fetcher,
+  ShouldFetchAsBlob,
 } from './types';
 
 // 导出文件标准化工具
@@ -32,6 +37,10 @@ export type { CsvParseOptions, CsvParseResult } from './utils/csvParser';
 
 // 导出文本编码工具
 export { decodeText, decodeUtf8, fetchTextUtf8 } from './utils/textDecoder';
+export type { FetchTextOptions } from './utils/textDecoder';
+
+// 导出请求/鉴权工具
+export { createFetcher, fetchAsBlobUrl, downloadFileWithFetcher } from './utils/request';
 
 // 导出字幕 / 歌词解析
 export { parseSubtitle, formatSubtitleTime } from './utils/subtitleParser';

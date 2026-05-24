@@ -1,3 +1,5 @@
+import type { Fetcher } from '../types';
+
 /**
  * 文本编码解码工具
  * 自动检测 BOM → 严格 UTF-8 → GBK 降级，覆盖绝大多数中文文本场景
@@ -47,11 +49,33 @@ export function decodeText(buffer: ArrayBuffer | Uint8Array): string {
 /** @deprecated 请使用 decodeText，此别名保留兼容 */
 export const decodeUtf8 = decodeText;
 
+export interface FetchTextOptions {
+  fetcher?: Fetcher;
+  init?: RequestInit;
+}
+
 /**
- * 从 URL fetch 文本资源，自动检测编码
+ * 从 URL fetch 文本资源，自动检测编码。
+ *
+ * 兼容两种调用方式：
+ * - `fetchTextUtf8(url, init)` —— 兼容旧 API
+ * - `fetchTextUtf8(url, { fetcher, init })` —— 注入自定义 fetcher（鉴权场景）
  */
-export async function fetchTextUtf8(url: string, init?: RequestInit): Promise<string> {
-  const res = await fetch(url, init);
+export async function fetchTextUtf8(
+  url: string,
+  optionsOrInit?: FetchTextOptions | RequestInit,
+): Promise<string> {
+  const isOptions =
+    !!optionsOrInit &&
+    ('fetcher' in (optionsOrInit as FetchTextOptions) ||
+      'init' in (optionsOrInit as FetchTextOptions));
+  const fetcher = isOptions
+    ? (optionsOrInit as FetchTextOptions).fetcher ?? fetch
+    : fetch;
+  const init = isOptions
+    ? (optionsOrInit as FetchTextOptions).init
+    : (optionsOrInit as RequestInit | undefined);
+  const res = await fetcher(url, init);
   if (!res.ok) throw new Error(`请求失败: ${res.status}`);
   const buf = await res.arrayBuffer();
   return decodeText(buf);

@@ -5,6 +5,7 @@ import MarkdownItKatex from '@traptitech/markdown-it-katex';
 import { codeToHtml } from 'shiki';
 import { fetchTextUtf8 } from '@eternalheart/file-preview-core';
 import { useTranslator } from '../../composables/useTranslator';
+import { useFetcher } from '../../composables/useRequest';
 import { useResolvedTheme } from '../../composables/useResolvedTheme';
 import 'katex/dist/katex.min.css';
 
@@ -14,6 +15,7 @@ const props = defineProps<{
 }>();
 
 const { t } = useTranslator();
+const fetcher = useFetcher();
 const resolvedTheme = useResolvedTheme();
 const shikiTheme = computed(() => (resolvedTheme.value === 'light' ? 'github-light' : 'github-dark'));
 
@@ -79,7 +81,7 @@ const loadMarkdown = async () => {
   loading.value = true;
   error.value = null;
   try {
-    const text = await fetchTextUtf8(props.url);
+    const text = await fetchTextUtf8(props.url, { fetcher: fetcher.value });
     content.value = text;
     html.value = md.render(text);
     loading.value = false;

@@ -6,6 +6,11 @@ export type {
   FileType,
   PreviewState,
   CustomRendererEventPayload,
+  RequestHandler,
+  RequestInitFactory,
+  RequestOptions,
+  Fetcher,
+  ShouldFetchAsBlob,
 } from '@eternalheart/file-preview-core';
 
 import type {

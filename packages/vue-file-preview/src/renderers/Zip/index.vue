@@ -13,6 +13,7 @@ import ResizableSplit from '../../components/ResizableSplit.vue';
 import TreeItem from './TreeItem.vue';
 import type { ZipToolbarStats } from './toolbar';
 import { useTranslator } from '../../composables/useTranslator';
+import { useFetcher } from '../../composables/useRequest';
 
 // 懒加载 FilePreviewContent 以打破循环依赖
 const LazyFilePreviewContent = defineAsyncComponent(
@@ -32,6 +33,7 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useTranslator();
+const fetcher = useFetcher();
 
 interface SelectedPreview {
   path: string;
@@ -66,7 +68,7 @@ const load = async () => {
   loading.value = true;
   error.value = null;
   try {
-    const res = await fetch(props.url);
+    const res = await fetcher.value(props.url);
     if (!res.ok) throw new Error('加载失败');
     const buf = await res.arrayBuffer();
     const z = await loadZip(buf);

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { watch, ref, onBeforeUnmount, computed } from 'vue';
-import type { PreviewFileInput, Locale, Messages, Theme, CustomRendererEventPayload } from '@eternalheart/file-preview-core';
+import type { PreviewFile, PreviewFileInput, Locale, Messages, Theme, CustomRendererEventPayload, RequestHandler, RequestInitFactory, ShouldFetchAsBlob } from '@eternalheart/file-preview-core';
 import type { CustomRenderer } from './types';
 import FilePreviewContent from './FilePreviewContent.vue';
 import { useScrollLock } from './composables/useScrollLock';
@@ -18,6 +18,14 @@ interface Props {
   headless?: boolean;
   /** 主题模式，默认 'dark' */
   theme?: Theme;
+  /** 自定义 RequestInit（或工厂函数）：注入 Authorization 等鉴权头 */
+  requestInit?: RequestInitFactory;
+  /** 自定义请求处理器：完全接管库内 fetch */
+  requestHandler?: RequestHandler;
+  /** 返回 true 时，对应文件先 fetcher→blob URL 后喂给 image/video/audio/pdf 等 renderer */
+  shouldFetchAsBlob?: ShouldFetchAsBlob;
+  /** 自定义下载回调；不传时库内默认通过 fetcher 拉 Blob 触发下载 */
+  onDownload?: (file: PreviewFile) => void | Promise<void>;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -26,6 +34,10 @@ const props = withDefaults(defineProps<Props>(), {
   messages: undefined,
   headless: false,
   theme: 'dark',
+  requestInit: undefined,
+  requestHandler: undefined,
+  shouldFetchAsBlob: undefined,
+  onDownload: undefined,
 });
 
 const emit = defineEmits<{
@@ -101,6 +113,10 @@ const handleWheel = (e: WheelEvent) => e.stopPropagation();
               :messages="messages"
               :headless="headless"
               :theme="theme"
+              :request-init="requestInit"
+              :request-handler="requestHandler"
+              :should-fetch-as-blob="shouldFetchAsBlob"
+              :on-download="onDownload"
               @close="emit('close')"
               @navigate="(i) => emit('navigate', i)"
               @custom-event="(p) => emit('custom-event', p)"

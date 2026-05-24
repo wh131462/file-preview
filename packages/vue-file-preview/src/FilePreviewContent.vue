@@ -4,15 +4,21 @@ import { X, Download, ChevronLeft, ChevronRight } from 'lucide-vue-next';
 import {
   normalizeFiles,
   getFileType,
+  downloadFileWithFetcher,
+  type PreviewFile,
   type PreviewFileInput,
   type Locale,
   type Messages,
   type Theme,
   type CustomRendererEventPayload,
+  type RequestHandler,
+  type RequestInitFactory,
+  type ShouldFetchAsBlob,
 } from '@eternalheart/file-preview-core';
 import type { CustomRenderer, CustomRendererContext } from './types';
 import { provideLocale, useTranslator } from './composables/useTranslator';
 import { provideResolvedTheme } from './composables/useResolvedTheme';
+import { provideRequestContext, useResolvedUrl, useFetcher } from './composables/useRequest';
 import type { ToolbarGroup, ToolbarButtonItem, ToolbarTextItem } from './renderers/toolbar.types';
 import { getImageToolbarGroups } from './renderers/Image/toolbar';
 import { getPdfToolbarGroups } from './renderers/Pdf/toolbar';
@@ -62,6 +68,14 @@ interface Props {
   headless?: boolean;
   /** 主题模式，默认 'dark' */
   theme?: Theme;
+  /** 自定义 RequestInit（或工厂函数）：注入 Authorization 等鉴权头 */
+  requestInit?: RequestInitFactory;
+  /** 自定义请求处理器：完全接管库内 fetch */
+  requestHandler?: RequestHandler;
+  /** 返回 true 时，对应文件先 fetcher→blob URL 后喂给 image/video/audio/pdf 等 renderer */
+  shouldFetchAsBlob?: ShouldFetchAsBlob;
+  /** 自定义下载回调；不传时库内默认通过 fetcher 拉 Blob 触发下载 */
+  onDownload?: (file: PreviewFile) => void | Promise<void>;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -72,7 +86,17 @@ const props = withDefaults(defineProps<Props>(), {
   messages: undefined,
   headless: false,
   theme: 'dark',
+  requestInit: undefined,
+  requestHandler: undefined,
+  shouldFetchAsBlob: undefined,
+  onDownload: undefined,
 });
+
+provideRequestContext(() => ({
+  requestInit: props.requestInit,
+  requestHandler: props.requestHandler,
+  shouldFetchAsBlob: props.shouldFetchAsBlob,
+}));
 
 const emit = defineEmits<{
   (e: 'navigate', index: number): void;
@@ -149,6 +173,9 @@ const handleMouseMove = () => resetNavTimer();
 const normalizedFiles = computed(() => normalizeFiles(props.files));
 
 const currentFile = computed(() => normalizedFiles.value[props.currentIndex]);
+
+// 命中 shouldFetchAsBlob 时，把 file.url 转成 blob: URL 喂给 src 类 renderer
+const resolvedUrl = useResolvedUrl(currentFile);
 
 // 自定义渲染器匹配
 const customRenderer = computed(() => {
@@ -299,12 +326,18 @@ const handleReset = () => {
   imageResetKey.value++;
 };
 
-const handleDownload = () => {
+const fetcher = useFetcher();
+const handleDownload = async () => {
   if (!currentFile.value) return;
-  const link = document.createElement('a');
-  link.href = currentFile.value.url;
-  link.download = currentFile.value.name;
-  link.click();
+  if (props.onDownload) {
+    await props.onDownload(currentFile.value);
+    return;
+  }
+  try {
+    await downloadFileWithFetcher(currentFile.value.url, currentFile.value.name, fetcher.value);
+  } catch (err) {
+    console.error('[file-preview] download failed:', err);
+  }
 };
 
 const showCloseButton = computed(() => props.mode === 'modal');
@@ -552,7 +585,7 @@ const hasToolGroups = computed(() => toolGroups.value.length > 0);
         <template v-else>
           <ImageRenderer
             v-if="fileType === 'image'"
-            :url="currentFile.url"
+            :url="resolvedUrl"
             :zoom="zoom"
             :rotation="rotation"
             :reset-key="imageResetKey"
@@ -563,56 +596,56 @@ const hasToolGroups = computed(() => toolGroups.value.length > 0);
           />
           <PdfRenderer
             v-else-if="fileType === 'pdf'"
-            :url="currentFile.url"
+            :url="resolvedUrl"
             :zoom="zoom"
             :current-page="currentPage"
             @page-change="(p: number) => (currentPage = p)"
             @total-pages-change="(t: number) => (totalPages = t)"
             @page-width-change="(w: number) => (contentNaturalWidth = w)"
           />
-          <DocxRenderer v-else-if="fileType === 'docx'" :url="currentFile.url" />
-          <XlsxRenderer v-else-if="fileType === 'xlsx'" :url="currentFile.url" />
-          <PptxRenderer v-else-if="fileType === 'pptx'" :url="currentFile.url" />
-          <MsgRenderer v-else-if="fileType === 'msg'" :url="currentFile.url" />
+          <DocxRenderer v-else-if="fileType === 'docx'" :url="resolvedUrl" />
+          <XlsxRenderer v-else-if="fileType === 'xlsx'" :url="resolvedUrl" />
+          <PptxRenderer v-else-if="fileType === 'pptx'" :url="resolvedUrl" />
+          <MsgRenderer v-else-if="fileType === 'msg'" :url="resolvedUrl" />
           <EpubRenderer
             v-else-if="fileType === 'epub'"
             ref="epubRef"
-            :url="currentFile.url"
+            :url="resolvedUrl"
             @chapter-change="handleEpubChapterChange"
             @full-width-change="(v: boolean) => (epubFullWidth = v)"
           />
           <MobiRenderer
             v-else-if="fileType === 'mobi'"
             ref="mobiRef"
-            :url="currentFile.url"
+            :url="resolvedUrl"
             @chapter-change="handleMobiChapterChange"
             @full-width-change="(v: boolean) => (mobiFullWidth = v)"
           />
-          <VideoRenderer v-else-if="fileType === 'video'" :url="currentFile.url" />
+          <VideoRenderer v-else-if="fileType === 'video'" :url="resolvedUrl" />
           <AudioRenderer
             v-else-if="fileType === 'audio'"
-            :url="currentFile.url"
+            :url="resolvedUrl"
             :file-name="currentFile.name"
           />
-          <MarkdownRenderer v-else-if="fileType === 'markdown'" :url="currentFile.url" :view-mode="markdownViewMode" />
+          <MarkdownRenderer v-else-if="fileType === 'markdown'" :url="resolvedUrl" :view-mode="markdownViewMode" />
           <JsonRenderer
             v-else-if="fileType === 'json'"
-            :url="currentFile.url"
+            :url="resolvedUrl"
             :file-name="currentFile.name"
           />
           <CsvRenderer
             v-else-if="fileType === 'csv'"
-            :url="currentFile.url"
+            :url="resolvedUrl"
             :file-name="currentFile.name"
           />
           <XmlRenderer
             v-else-if="fileType === 'xml'"
-            :url="currentFile.url"
+            :url="resolvedUrl"
             :file-name="currentFile.name"
           />
           <SubtitleRenderer
             v-else-if="fileType === 'subtitle'"
-            :url="currentFile.url"
+            :url="resolvedUrl"
             :file-name="currentFile.name"
           />
           <template v-else-if="fileType === 'zip' && props.zipNestingDepth >= MAX_ZIP_NESTING_DEPTH">
@@ -624,13 +657,13 @@ const hasToolGroups = computed(() => toolGroups.value.length > 0);
           </template>
           <ZipRenderer
             v-else-if="fileType === 'zip'"
-            :url="currentFile.url"
+            :url="resolvedUrl"
             :nesting-depth="props.zipNestingDepth"
             @stats-change="handleZipStatsChange"
           />
           <TextRenderer
             v-else-if="fileType === 'text'"
-            :url="currentFile.url"
+            :url="resolvedUrl"
             :file-name="currentFile.name"
             :word-wrap="textWordWrap"
             :html-preview="textHtmlPreview"

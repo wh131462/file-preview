@@ -6,12 +6,14 @@ import Spreadsheet from 'x-data-spreadsheet';
 import 'x-data-spreadsheet/dist/xspreadsheet.css';
 import { convertWorkbookToSpreadsheetData } from '@eternalheart/file-preview-core';
 import { useTranslator } from '../../composables/useTranslator';
+import { useFetcher } from '../../composables/useRequest';
 
 const props = defineProps<{
   url: string;
 }>();
 
 const { t } = useTranslator();
+const fetcher = useFetcher();
 
 const loading = ref(true);
 const error = ref<string | null>(null);
@@ -69,7 +71,7 @@ const loadExcel = async () => {
   error.value = null;
 
   try {
-    const response = await fetch(props.url, {
+    const response = await fetcher.value(props.url, {
       mode: 'cors',
       credentials: 'omit',
       redirect: 'follow',

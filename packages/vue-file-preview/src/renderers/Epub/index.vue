@@ -3,6 +3,7 @@ import { ref, watch, onMounted, onBeforeUnmount } from 'vue';
 import ePub from '@likecoin/epub-ts';
 import { X } from 'lucide-vue-next';
 import { useTranslator } from '../../composables/useTranslator';
+import { useFetcher } from '../../composables/useRequest';
 
 interface TocItem {
   label: string;
@@ -41,6 +42,7 @@ const A4_WIDTH = 794;
 const props = defineProps<{ url: string }>();
 
 const { t } = useTranslator();
+const fetcher = useFetcher();
 
 const emit = defineEmits<{
   (e: 'chapterChange', current: number, total: number): void;
@@ -111,7 +113,7 @@ const loadEpub = async () => {
   try {
     let bookInput: string | ArrayBuffer = props.url;
     if (props.url.startsWith('blob:')) {
-      const resp = await fetch(props.url);
+      const resp = await fetcher.value(props.url);
       bookInput = await resp.arrayBuffer();
     }
 

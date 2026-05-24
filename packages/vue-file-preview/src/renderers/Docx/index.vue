@@ -2,6 +2,7 @@
 import { ref, watch, nextTick } from 'vue';
 import mammoth from 'mammoth';
 import { useTranslator } from '../../composables/useTranslator';
+import { useFetcher } from '../../composables/useRequest';
 
 const PAGE_HEIGHT = 1123;
 const PAGE_PADDING_Y = 60;
@@ -14,6 +15,7 @@ const props = defineProps<{
 }>();
 
 const { t } = useTranslator();
+const fetcher = useFetcher();
 
 const html = ref('');
 const loading = ref(true);
@@ -28,7 +30,7 @@ const loadDocx = async () => {
   pages.value = [];
 
   try {
-    const response = await fetch(props.url);
+    const response = await fetcher.value(props.url);
     if (!response.ok) throw new Error('文件加载失败');
     const arrayBuffer = await response.arrayBuffer();
     const result = await mammoth.convertToHtml({ arrayBuffer });

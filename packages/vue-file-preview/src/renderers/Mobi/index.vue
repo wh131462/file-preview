@@ -3,6 +3,7 @@ import { ref, watch, onBeforeUnmount, defineComponent, h, type PropType } from '
 import { X } from 'lucide-vue-next';
 import 'foliate-js/view.js';
 import { useTranslator } from '../../composables/useTranslator';
+import { useFetcher } from '../../composables/useRequest';
 
 interface TocItem {
   label: string;
@@ -61,6 +62,7 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useTranslator();
+const fetcher = useFetcher();
 
 const hostRef = ref<HTMLDivElement | null>(null);
 let viewInstance: FoliateView | null = null;
@@ -131,7 +133,7 @@ const load = async () => {
       if (tocItem?.href) activeTocHref.value = tocItem.href;
     });
 
-    const res = await fetch(props.url);
+    const res = await fetcher.value(props.url);
     if (!res.ok) throw new Error(`请求失败: ${res.status}`);
     const blob = await res.blob();
     let name = 'book.mobi';

@@ -3,6 +3,7 @@ import { ref, watch } from 'vue';
 import { fetchTextUtf8 } from '@eternalheart/file-preview-core';
 import { codeToHtml } from 'shiki';
 import { useTranslator } from '../../composables/useTranslator';
+import { useFetcher } from '../../composables/useRequest';
 import { useResolvedTheme } from '../../composables/useResolvedTheme';
 
 const props = defineProps<{
@@ -11,6 +12,7 @@ const props = defineProps<{
 }>();
 
 const { t } = useTranslator();
+const fetcher = useFetcher();
 const resolvedTheme = useResolvedTheme();
 
 const content = ref<string>('');
@@ -56,7 +58,7 @@ const load = async () => {
   loading.value = true;
   error.value = null;
   try {
-    const raw = await fetchTextUtf8(props.url);
+    const raw = await fetchTextUtf8(props.url, { fetcher: fetcher.value });
     content.value = prettyPrintXml(raw);
     try {
       highlighted.value = await codeToHtml(content.value, {

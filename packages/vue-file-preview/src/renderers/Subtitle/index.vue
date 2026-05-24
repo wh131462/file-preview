@@ -8,6 +8,7 @@ import {
   type SubtitleFormat,
 } from '@eternalheart/file-preview-core';
 import { useTranslator } from '../../composables/useTranslator';
+import { useFetcher } from '../../composables/useRequest';
 
 const props = defineProps<{
   url: string;
@@ -15,6 +16,7 @@ const props = defineProps<{
 }>();
 
 const { t } = useTranslator();
+const fetcher = useFetcher();
 
 const text = ref<string>('');
 const loading = ref(true);
@@ -40,7 +42,7 @@ const load = async () => {
   loading.value = true;
   error.value = null;
   try {
-    text.value = await fetchTextUtf8(props.url);
+    text.value = await fetchTextUtf8(props.url, { fetcher: fetcher.value });
   } catch (err) {
     console.error(err);
     error.value = t.value('subtitle.load_failed');

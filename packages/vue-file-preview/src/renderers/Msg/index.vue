@@ -4,12 +4,14 @@ import MsgReader from '@kenjiuno/msgreader';
 import type { FieldsData } from '@kenjiuno/msgreader';
 import { User, Users, Paperclip, Calendar, Mail, Tag, Clock, Hash } from 'lucide-vue-next';
 import { useTranslator } from '../../composables/useTranslator';
+import { useFetcher } from '../../composables/useRequest';
 
 const props = defineProps<{
   url: string;
 }>();
 
 const { t } = useTranslator();
+const fetcher = useFetcher();
 
 const loading = ref(true);
 const error = ref<string | null>(null);
@@ -81,7 +83,7 @@ const loadMsg = async () => {
   fields.value = null;
 
   try {
-    const response = await fetch(props.url);
+    const response = await fetcher.value(props.url);
     if (!response.ok) throw new Error('文件加载失败');
     const arrayBuffer = await response.arrayBuffer();
     const msgReader = new MsgReader(arrayBuffer);

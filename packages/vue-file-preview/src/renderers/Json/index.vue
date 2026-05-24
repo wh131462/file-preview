@@ -2,6 +2,7 @@
 import { ref, watch } from 'vue';
 import { fetchTextUtf8 } from '@eternalheart/file-preview-core';
 import { useTranslator } from '../../composables/useTranslator';
+import { useFetcher } from '../../composables/useRequest';
 
 const props = defineProps<{
   url: string;
@@ -9,6 +10,7 @@ const props = defineProps<{
 }>();
 
 const { t } = useTranslator();
+const fetcher = useFetcher();
 
 const data = ref<unknown>(null);
 const loading = ref(true);
@@ -18,7 +20,7 @@ const loadJson = async () => {
   loading.value = true;
   error.value = null;
   try {
-    const text = await fetchTextUtf8(props.url);
+    const text = await fetchTextUtf8(props.url, { fetcher: fetcher.value });
     data.value = JSON.parse(text);
   } catch (err) {
     console.error(err);

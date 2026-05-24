@@ -10,6 +10,7 @@ import {
   convertCsvToSpreadsheetData,
 } from '@eternalheart/file-preview-core';
 import { useTranslator } from '../../composables/useTranslator';
+import { useFetcher } from '../../composables/useRequest';
 
 const props = defineProps<{
   url: string;
@@ -17,6 +18,7 @@ const props = defineProps<{
 }>();
 
 const { t } = useTranslator();
+const fetcher = useFetcher();
 
 const loading = ref(true);
 const error = ref<string | null>(null);
@@ -74,7 +76,7 @@ const loadCsv = async () => {
   error.value = null;
 
   try {
-    const text = await fetchTextUtf8(props.url);
+    const text = await fetchTextUtf8(props.url, { fetcher: fetcher.value });
     const parsed = parseCsv(text, { delimiter: guessCsvDelimiter(props.fileName) });
     const data = convertCsvToSpreadsheetData(parsed.header, parsed.rows, props.fileName);
 

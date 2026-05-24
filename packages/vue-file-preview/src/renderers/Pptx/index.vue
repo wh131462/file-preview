@@ -3,6 +3,7 @@ import { ref, watch, onMounted, onBeforeUnmount } from 'vue';
 import { Presentation } from 'lucide-vue-next';
 import { init } from 'pptx-preview';
 import { useTranslator } from '../../composables/useTranslator';
+import { useFetcher } from '../../composables/useRequest';
 
 const props = withDefaults(
   defineProps<{
@@ -13,6 +14,7 @@ const props = withDefaults(
 );
 
 const { t } = useTranslator();
+const fetcher = useFetcher();
 
 const loading = ref(true);
 const error = ref<string | null>(null);
@@ -72,7 +74,7 @@ const loadPptx = async () => {
   }, 30000);
 
   try {
-    const response = await fetch(props.url, {
+    const response = await fetcher.value(props.url, {
       mode: 'cors',
       credentials: 'omit',
       redirect: 'follow',

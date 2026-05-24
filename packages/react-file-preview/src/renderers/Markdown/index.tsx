@@ -7,6 +7,7 @@ import rehypeRaw from 'rehype-raw';
 import { Copy, Check } from 'lucide-react';
 import { fetchTextUtf8 } from '@eternalheart/file-preview-core';
 import { useTranslator } from '../../i18n/LocaleContext';
+import { useFetcher } from '../../RequestContext';
 import { useShikiHighlight } from '../../hooks/useShikiHighlight';
 import 'katex/dist/katex.min.css';
 
@@ -92,6 +93,7 @@ const ShikiCodeBlock = ({ code, lang }: { code: string; lang: string }) => {
 
 export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ url, viewMode = 'preview' }) => {
   const t = useTranslator();
+  const fetcher = useFetcher();
   const [content, setContent] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -105,7 +107,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ url, viewMod
       try {
         setLoading(true);
         setError(null);
-        const text = await fetchTextUtf8(url);
+        const text = await fetchTextUtf8(url, { fetcher });
         setContent(text);
       } catch (err) {
         setError(t('markdown.load_failed'));
@@ -116,7 +118,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ url, viewMod
     };
 
     loadMarkdown();
-  }, [url]);
+  }, [url, fetcher, t]);
 
   if (loading) {
     return (

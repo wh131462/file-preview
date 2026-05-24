@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { PreviewFileInput, CustomRenderer } from './types';
 import { FilePreviewContent } from './FilePreviewContent';
-import type { Locale, Messages, Theme, CustomRendererEventPayload } from '@eternalheart/file-preview-core';
+import type { Locale, Messages, Theme, CustomRendererEventPayload, PreviewFile, RequestHandler, RequestInitFactory, ShouldFetchAsBlob } from '@eternalheart/file-preview-core';
 
 interface FilePreviewEmbedProps {
   files: PreviewFileInput[];
@@ -24,6 +24,14 @@ interface FilePreviewEmbedProps {
   theme?: Theme;
   /** 自定义渲染器派发的事件出口 */
   onCustomEvent?: (event: CustomRendererEventPayload) => void;
+  /** 自定义 RequestInit（或工厂函数）：注入 Authorization 等鉴权头 */
+  requestInit?: RequestInitFactory;
+  /** 自定义请求处理器：完全接管库内 fetch */
+  requestHandler?: RequestHandler;
+  /** 返回 true 时，对应文件先 fetcher→blob URL 后喂给 image/video/audio/pdf 等 renderer */
+  shouldFetchAsBlob?: ShouldFetchAsBlob;
+  /** 自定义下载回调；不传时库内默认通过 fetcher 拉 Blob 触发下载 */
+  onDownload?: (file: PreviewFile) => void | Promise<void>;
 }
 
 export const FilePreviewEmbed: React.FC<FilePreviewEmbedProps> = ({
@@ -40,6 +48,10 @@ export const FilePreviewEmbed: React.FC<FilePreviewEmbedProps> = ({
   headless,
   theme = 'dark',
   onCustomEvent,
+  requestInit,
+  requestHandler,
+  shouldFetchAsBlob,
+  onDownload,
 }) => {
   const [systemDark, setSystemDark] = useState(() =>
     typeof window !== 'undefined'
@@ -75,6 +87,10 @@ export const FilePreviewEmbed: React.FC<FilePreviewEmbedProps> = ({
           headless={headless}
           theme={theme}
           onCustomEvent={onCustomEvent}
+          requestInit={requestInit}
+          requestHandler={requestHandler}
+          shouldFetchAsBlob={shouldFetchAsBlob}
+          onDownload={onDownload}
         />
       </div>
     </div>

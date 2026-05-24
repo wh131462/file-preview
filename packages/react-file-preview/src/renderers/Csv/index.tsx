@@ -9,6 +9,7 @@ import {
   convertCsvToSpreadsheetData,
 } from '@eternalheart/file-preview-core';
 import { useTranslator } from '../../i18n/LocaleContext';
+import { useFetcher } from '../../RequestContext';
 
 interface CsvRendererProps {
   url: string;
@@ -17,6 +18,7 @@ interface CsvRendererProps {
 
 export const CsvRenderer: React.FC<CsvRendererProps> = ({ url, fileName }) => {
   const t = useTranslator();
+  const fetcher = useFetcher();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -127,7 +129,7 @@ export const CsvRenderer: React.FC<CsvRendererProps> = ({ url, fileName }) => {
       setError(null);
 
       try {
-        const text = await fetchTextUtf8(url);
+        const text = await fetchTextUtf8(url, { fetcher });
         const parsed = parseCsv(text, { delimiter: guessCsvDelimiter(fileName) });
         const sheetData = convertCsvToSpreadsheetData(parsed.header, parsed.rows, fileName);
 

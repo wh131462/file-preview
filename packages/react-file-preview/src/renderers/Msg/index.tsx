@@ -3,6 +3,7 @@ import MsgReader from '@kenjiuno/msgreader';
 import type { FieldsData } from '@kenjiuno/msgreader';
 import { User, Users, Paperclip, Calendar, Mail, Tag, Clock, Hash } from 'lucide-react';
 import { useTranslator } from '../../i18n/LocaleContext';
+import { useFetcher } from '../../RequestContext';
 
 interface MsgRendererProps {
   url: string;
@@ -108,6 +109,7 @@ const valueStyle: React.CSSProperties = {
 
 export const MsgRenderer: React.FC<MsgRendererProps> = ({ url }) => {
   const t = useTranslator();
+  const fetcher = useFetcher();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [fields, setFields] = useState<FieldsData | null>(null);
@@ -119,7 +121,7 @@ export const MsgRenderer: React.FC<MsgRendererProps> = ({ url }) => {
       setFields(null);
 
       try {
-        const response = await fetch(url);
+        const response = await fetcher(url);
         if (!response.ok) {
           throw new Error('文件加载失败');
         }

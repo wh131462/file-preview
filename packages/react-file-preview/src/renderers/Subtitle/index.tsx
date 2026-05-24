@@ -7,6 +7,7 @@ import {
   type SubtitleFormat,
 } from '@eternalheart/file-preview-core';
 import { useTranslator } from '../../i18n/LocaleContext';
+import { useFetcher } from '../../RequestContext';
 
 interface SubtitleRendererProps {
   url: string;
@@ -31,6 +32,7 @@ const getFormat = (fileName: string): SubtitleFormat | undefined => {
 
 export const SubtitleRenderer: React.FC<SubtitleRendererProps> = ({ url, fileName }) => {
   const t = useTranslator();
+  const fetcher = useFetcher();
   const [text, setText] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -40,7 +42,7 @@ export const SubtitleRenderer: React.FC<SubtitleRendererProps> = ({ url, fileNam
       try {
         setLoading(true);
         setError(null);
-        setText(await fetchTextUtf8(url));
+        setText(await fetchTextUtf8(url, { fetcher }));
       } catch (err) {
         console.error(err);
         setError(t('subtitle.load_failed'));

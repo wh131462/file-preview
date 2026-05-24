@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { ChevronRight, ChevronDown } from 'lucide-react';
 import { fetchTextUtf8 } from '@eternalheart/file-preview-core';
 import { useTranslator } from '../../i18n/LocaleContext';
+import { useFetcher } from '../../RequestContext';
 import { useResolvedTheme, type ResolvedTheme } from '../../ThemeContext';
 
 interface JsonRendererProps {
@@ -161,6 +162,7 @@ function pickColors(theme: ResolvedTheme): JsonColors {
 
 export const JsonRenderer: React.FC<JsonRendererProps> = ({ url }) => {
   const t = useTranslator();
+  const fetcher = useFetcher();
   const resolvedTheme = useResolvedTheme();
   const colors = useMemo(() => pickColors(resolvedTheme), [resolvedTheme]);
   const [data, setData] = useState<unknown>(null);
@@ -172,7 +174,7 @@ export const JsonRenderer: React.FC<JsonRendererProps> = ({ url }) => {
       try {
         setLoading(true);
         setError(null);
-        const text = await fetchTextUtf8(url);
+        const text = await fetchTextUtf8(url, { fetcher });
         setData(JSON.parse(text));
       } catch (err) {
         setError(t('json.load_failed'));

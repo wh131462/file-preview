@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { fetchTextUtf8 } from '@eternalheart/file-preview-core';
 import { useTranslator } from '../../i18n/LocaleContext';
+import { useFetcher } from '../../RequestContext';
 import { useShikiHighlight } from '../../hooks/useShikiHighlight';
 
 interface XmlRendererProps {
@@ -51,6 +52,7 @@ const indentXml = (xml: string): string => {
 
 export const XmlRenderer: React.FC<XmlRendererProps> = ({ url }) => {
   const t = useTranslator();
+  const fetcher = useFetcher();
   const [content, setContent] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -61,7 +63,7 @@ export const XmlRenderer: React.FC<XmlRendererProps> = ({ url }) => {
       try {
         setLoading(true);
         setError(null);
-        const raw = await fetchTextUtf8(url);
+        const raw = await fetchTextUtf8(url, { fetcher });
         setContent(prettyPrintXml(raw));
       } catch (err) {
         console.error(err);

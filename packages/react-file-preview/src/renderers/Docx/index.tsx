@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import mammoth from 'mammoth';
 import { useTranslator } from '../../i18n/LocaleContext';
+import { useFetcher } from '../../RequestContext';
 
 interface DocxRendererProps {
   url: string;
@@ -21,6 +22,7 @@ const contentStyle: React.CSSProperties = {
 
 export const DocxRenderer: React.FC<DocxRendererProps> = ({ url }) => {
   const t = useTranslator();
+  const fetcher = useFetcher();
   const [html, setHtml] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -34,7 +36,7 @@ export const DocxRenderer: React.FC<DocxRendererProps> = ({ url }) => {
       setHtml('');
 
       try {
-        const response = await fetch(url);
+        const response = await fetcher(url);
         if (!response.ok) {
           throw new Error('文件加载失败');
         }
@@ -51,7 +53,7 @@ export const DocxRenderer: React.FC<DocxRendererProps> = ({ url }) => {
     };
 
     loadDocx();
-  }, [url]);
+  }, [url, fetcher, t]);
 
   const paginate = useCallback(() => {
     const container = measureRef.current;

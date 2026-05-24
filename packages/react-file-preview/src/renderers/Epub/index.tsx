@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useCallback, useImperativeHandle, forwardR
 import ePub from '@likecoin/epub-ts';
 import { X } from 'lucide-react';
 import { useTranslator } from '../../i18n/LocaleContext';
+import { useFetcher } from '../../RequestContext';
 
 // 全局注入 epubjs 容器样式（只注入一次）
 if (typeof document !== 'undefined' && !document.getElementById('rfp-epub-styles')) {
@@ -68,6 +69,7 @@ const A4_WIDTH = 794;
 export const EpubRenderer = forwardRef<EpubRendererHandle, EpubRendererProps>(
   ({ url, onChapterChange, onFullWidthChange }, ref) => {
     const t = useTranslator();
+    const fetcher = useFetcher();
     const viewerRef = useRef<HTMLDivElement>(null);
     const bookRef = useRef<BookLike | null>(null);
     const renditionRef = useRef<RenditionLike | null>(null);
@@ -196,7 +198,7 @@ export const EpubRenderer = forwardRef<EpubRendererHandle, EpubRendererProps>(
         try {
           let bookInput: string | ArrayBuffer = url;
           if (url.startsWith('blob:')) {
-            const resp = await fetch(url);
+            const resp = await fetcher(url);
             bookInput = await resp.arrayBuffer();
           }
 

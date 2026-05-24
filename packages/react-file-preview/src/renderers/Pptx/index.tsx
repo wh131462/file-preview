@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { Presentation } from 'lucide-react';
 import { init } from 'pptx-preview';
 import { useTranslator } from '../../i18n/LocaleContext';
+import { useFetcher } from '../../RequestContext';
 
 interface PptxRendererProps {
   url: string;
@@ -11,6 +12,7 @@ interface PptxRendererProps {
 
 export const PptxRenderer: React.FC<PptxRendererProps> = ({ url, tiled = true }) => {
   const t = useTranslator();
+  const fetcher = useFetcher();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [slideCount, setSlideCount] = useState(0);
@@ -147,7 +149,7 @@ export const PptxRenderer: React.FC<PptxRendererProps> = ({ url, tiled = true })
 
       try {
         // 获取文件，处理 CORS 和重定向
-        const response = await fetch(url, {
+        const response = await fetcher(url, {
           mode: 'cors',
           credentials: 'omit',
           redirect: 'follow',

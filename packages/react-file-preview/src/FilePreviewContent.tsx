@@ -14,8 +14,10 @@ import { getTextToolbarGroups } from './renderers/Text/toolbar';
 import { getMarkdownToolbarGroups } from './renderers/Markdown/toolbar';
 
 import { PreviewFileInput, CustomRenderer, CustomRendererContext } from './types';
-import type { CustomRendererEventPayload } from '@eternalheart/file-preview-core';
+import type { CustomRendererEventPayload, PreviewFile, RequestHandler, RequestInitFactory, ShouldFetchAsBlob } from '@eternalheart/file-preview-core';
+import { downloadFileWithFetcher } from '@eternalheart/file-preview-core';
 import { normalizeFiles } from './utils/fileNormalizer';
+import { RequestProvider, useResolvedUrl, useFetcher } from './RequestContext';
 // Renderer 通过 React.lazy 动态加载，运行时按需下载对应 chunk
 import {
   ImageRenderer,
@@ -65,9 +67,33 @@ export interface FilePreviewContentProps {
   theme?: Theme;
   /** 自定义渲染器派发的事件出口，载荷为 `{ name, payload, file }` */
   onCustomEvent?: (event: CustomRendererEventPayload) => void;
+  /** 自定义 RequestInit（或工厂函数）：用于注入 Authorization 等鉴权头 */
+  requestInit?: RequestInitFactory;
+  /** 自定义请求处理器：完全接管库内 fetch；与 requestInit 同时存在时 handler 接收已合并的 init */
+  requestHandler?: RequestHandler;
+  /** 返回 true 时，对应文件会先经 fetcher 拉成 blob: URL 再喂给 image/video/audio/pdf 等 renderer */
+  shouldFetchAsBlob?: ShouldFetchAsBlob;
+  /**
+   * 自定义下载回调。提供后完全接管下载行为；
+   * 不提供时，库内默认通过 fetcher 拉成 Blob 触发下载（鉴权 URL 场景自动可用）。
+   */
+  onDownload?: (file: PreviewFile) => void | Promise<void>;
 }
 
-export const FilePreviewContent: React.FC<FilePreviewContentProps> = ({
+export const FilePreviewContent: React.FC<FilePreviewContentProps> = (props) => {
+  const { requestInit, requestHandler, shouldFetchAsBlob } = props;
+  return (
+    <RequestProvider
+      requestInit={requestInit}
+      requestHandler={requestHandler}
+      shouldFetchAsBlob={shouldFetchAsBlob}
+    >
+      <FilePreviewContentInner {...props} />
+    </RequestProvider>
+  );
+};
+
+const FilePreviewContentInner: React.FC<FilePreviewContentProps> = ({
   files,
   currentIndex,
   onNavigate,
@@ -80,6 +106,11 @@ export const FilePreviewContent: React.FC<FilePreviewContentProps> = ({
   headless = false,
   theme = 'dark',
   onCustomEvent,
+  onDownload,
+  // 以下三项已由外层 RequestProvider 消费，Inner 内不再直接使用
+  requestInit: _requestInit,
+  requestHandler: _requestHandler,
+  shouldFetchAsBlob: _shouldFetchAsBlob,
 }) => {
   const t: Translator = useMemo(
     () => createTranslator({ locale, messages: userMessages }),
@@ -147,6 +178,9 @@ export const FilePreviewContent: React.FC<FilePreviewContentProps> = ({
   const normalizedFiles = useMemo(() => normalizeFiles(files), [files]);
 
   const currentFile = normalizedFiles[currentIndex];
+
+  // 命中 shouldFetchAsBlob 时，把 file.url 转成 blob: URL 喂给 src 类 renderer
+  const resolvedUrl = useResolvedUrl(currentFile);
 
   // 检查是否有自定义渲染器匹配当前文件
   const customRenderer = useMemo(() => {
@@ -286,13 +320,19 @@ export const FilePreviewContent: React.FC<FilePreviewContentProps> = ({
     setImageResetKey(k => k + 1);
   }, []);
 
-  const handleDownload = useCallback(() => {
+  const fetcher = useFetcher();
+  const handleDownload = useCallback(async () => {
     if (!currentFile) return;
-    const link = document.createElement('a');
-    link.href = currentFile.url;
-    link.download = currentFile.name;
-    link.click();
-  }, [currentFile]);
+    if (onDownload) {
+      await onDownload(currentFile);
+      return;
+    }
+    try {
+      await downloadFileWithFetcher(currentFile.url, currentFile.name, fetcher);
+    } catch (err) {
+      console.error('[file-preview] download failed:', err);
+    }
+  }, [currentFile, onDownload, fetcher]);
 
   const handleEpubChapterChange = useCallback((current: number, total: number) => {
     setEpubCurrent(current);
@@ -485,7 +525,7 @@ export const FilePreviewContent: React.FC<FilePreviewContentProps> = ({
           <Suspense fallback={<RendererLoading />}>
             {fileType === 'image' && (
               <ImageRenderer
-                url={currentFile.url}
+                url={resolvedUrl}
                 zoom={zoom}
                 rotation={rotation}
                 resetKey={imageResetKey}
@@ -497,7 +537,7 @@ export const FilePreviewContent: React.FC<FilePreviewContentProps> = ({
             )}
             {fileType === 'pdf' && (
               <PdfRenderer
-                url={currentFile.url}
+                url={resolvedUrl}
                 zoom={zoom}
                 currentPage={currentPage}
                 onPageChange={setCurrentPage}
@@ -505,14 +545,14 @@ export const FilePreviewContent: React.FC<FilePreviewContentProps> = ({
                 onPageWidthChange={setContentNaturalWidth}
               />
             )}
-            {fileType === 'docx' && <DocxRenderer url={currentFile.url} />}
-            {fileType === 'xlsx' && <XlsxRenderer url={currentFile.url} />}
-            {fileType === 'pptx' && <PptxRenderer url={currentFile.url} />}
-            {fileType === 'msg' && <MsgRenderer url={currentFile.url} />}
+            {fileType === 'docx' && <DocxRenderer url={resolvedUrl} />}
+            {fileType === 'xlsx' && <XlsxRenderer url={resolvedUrl} />}
+            {fileType === 'pptx' && <PptxRenderer url={resolvedUrl} />}
+            {fileType === 'msg' && <MsgRenderer url={resolvedUrl} />}
             {fileType === 'epub' && (
               <EpubRenderer
                 ref={epubRef}
-                url={currentFile.url}
+                url={resolvedUrl}
                 onChapterChange={handleEpubChapterChange}
                 onFullWidthChange={setEpubFullWidth}
               />
@@ -520,27 +560,27 @@ export const FilePreviewContent: React.FC<FilePreviewContentProps> = ({
             {fileType === 'mobi' && (
               <MobiRenderer
                 ref={mobiRef}
-                url={currentFile.url}
+                url={resolvedUrl}
                 onChapterChange={handleMobiChapterChange}
                 onFullWidthChange={setMobiFullWidth}
               />
             )}
-            {fileType === 'video' && <VideoRenderer url={currentFile.url} />}
+            {fileType === 'video' && <VideoRenderer url={resolvedUrl} />}
             {fileType === 'audio' && (
-              <AudioRenderer url={currentFile.url} fileName={currentFile.name} />
+              <AudioRenderer url={resolvedUrl} fileName={currentFile.name} />
             )}
-            {fileType === 'markdown' && <MarkdownRenderer url={currentFile.url} viewMode={markdownViewMode} />}
+            {fileType === 'markdown' && <MarkdownRenderer url={resolvedUrl} viewMode={markdownViewMode} />}
             {fileType === 'json' && (
-              <JsonRenderer url={currentFile.url} fileName={currentFile.name} />
+              <JsonRenderer url={resolvedUrl} fileName={currentFile.name} />
             )}
             {fileType === 'csv' && (
-              <CsvRenderer url={currentFile.url} fileName={currentFile.name} />
+              <CsvRenderer url={resolvedUrl} fileName={currentFile.name} />
             )}
             {fileType === 'xml' && (
-              <XmlRenderer url={currentFile.url} fileName={currentFile.name} />
+              <XmlRenderer url={resolvedUrl} fileName={currentFile.name} />
             )}
             {fileType === 'subtitle' && (
-              <SubtitleRenderer url={currentFile.url} fileName={currentFile.name} />
+              <SubtitleRenderer url={resolvedUrl} fileName={currentFile.name} />
             )}
             {fileType === 'zip' && (
               zipNestingDepth >= MAX_ZIP_NESTING_DEPTH ? (
@@ -550,12 +590,12 @@ export const FilePreviewContent: React.FC<FilePreviewContentProps> = ({
                   onDownload={handleDownload}
                 />
               ) : (
-                <ZipRenderer url={currentFile.url} onStatsChange={handleZipStatsChange} nestingDepth={zipNestingDepth} />
+                <ZipRenderer url={resolvedUrl} onStatsChange={handleZipStatsChange} nestingDepth={zipNestingDepth} />
               )
             )}
             {fileType === 'text' && (
               <TextRenderer
-                url={currentFile.url}
+                url={resolvedUrl}
                 fileName={currentFile.name}
                 wordWrap={textWordWrap}
                 htmlPreview={textHtmlPreview}

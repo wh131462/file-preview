@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { fetchTextUtf8, getLanguageFromFileName } from '@eternalheart/file-preview-core';
 import { useTranslator } from '../../i18n/LocaleContext';
+import { useFetcher } from '../../RequestContext';
 import { useShikiHighlight } from '../../hooks/useShikiHighlight';
 
 interface TextRendererProps {
@@ -17,6 +18,7 @@ export const TextRenderer: React.FC<TextRendererProps> = ({
   htmlPreview = false,
 }) => {
   const t = useTranslator();
+  const fetcher = useFetcher();
   const [content, setContent] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -31,7 +33,7 @@ export const TextRenderer: React.FC<TextRendererProps> = ({
       try {
         setLoading(true);
         setError(null);
-        const text = await fetchTextUtf8(url);
+        const text = await fetchTextUtf8(url, { fetcher });
         setContent(text);
       } catch (err) {
         setError(t('text.load_failed'));

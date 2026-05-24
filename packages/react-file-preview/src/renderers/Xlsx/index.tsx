@@ -5,6 +5,7 @@ import Spreadsheet from 'x-data-spreadsheet';
 import 'x-data-spreadsheet/dist/xspreadsheet.css';
 import { convertWorkbookToSpreadsheetData } from '../../utils/excelDataConverter';
 import { useTranslator } from '../../i18n/LocaleContext';
+import { useFetcher } from '../../RequestContext';
 
 interface XlsxRendererProps {
   url: string;
@@ -12,6 +13,7 @@ interface XlsxRendererProps {
 
 export const XlsxRenderer: React.FC<XlsxRendererProps> = ({ url }) => {
   const t = useTranslator();
+  const fetcher = useFetcher();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -124,7 +126,7 @@ export const XlsxRenderer: React.FC<XlsxRendererProps> = ({ url }) => {
       setError(null);
 
       try {
-        const response = await fetch(url, {
+        const response = await fetcher(url, {
           mode: 'cors',
           credentials: 'omit',
           redirect: 'follow',

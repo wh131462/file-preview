@@ -10,6 +10,7 @@ import { X } from 'lucide-react';
 import 'foliate-js/view.js';
 import type { FoliateView, TocItem } from 'foliate-js/view.js';
 import { useTranslator } from '../../i18n/LocaleContext';
+import { useFetcher } from '../../RequestContext';
 
 const READER_CSS = `
   @namespace epub "http://www.idpf.org/2007/ops";
@@ -53,6 +54,7 @@ interface MobiRendererProps {
 export const MobiRenderer = forwardRef<MobiRendererHandle, MobiRendererProps>(
   ({ url, onChapterChange, onFullWidthChange }, ref) => {
     const t = useTranslator();
+    const fetcher = useFetcher();
     const hostRef = useRef<HTMLDivElement>(null);
     const viewRef = useRef<FoliateView | null>(null);
     const onChapterChangeRef = useRef(onChapterChange);
@@ -162,7 +164,7 @@ export const MobiRenderer = forwardRef<MobiRendererHandle, MobiRendererProps>(
             }
           });
 
-          const res = await fetch(url);
+          const res = await fetcher(url);
           if (!res.ok) throw new Error(`请求失败: ${res.status}`);
           const blob = await res.blob();
           let name = 'book.mobi';

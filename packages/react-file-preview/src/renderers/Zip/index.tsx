@@ -24,6 +24,7 @@ import {
 import { ResizableSplit } from '../../components/ResizableSplit';
 import type { ZipToolbarStats } from './toolbar';
 import { useTranslator } from '../../i18n/LocaleContext';
+import { useFetcher } from '../../RequestContext';
 
 // 懒加载 FilePreviewContent 以打破循环依赖
 const LazyFilePreviewContent = lazy(() =>
@@ -162,6 +163,7 @@ const TreeItem: React.FC<TreeItemProps> = ({
 
 export const ZipRenderer: React.FC<ZipRendererProps> = ({ url, nestingDepth = 0, onStatsChange }) => {
   const t = useTranslator();
+  const fetcher = useFetcher();
   const [zip, setZip] = useState<JSZip | null>(null);
   const [tree, setTree] = useState<ZipTreeNode | null>(null);
   const [loading, setLoading] = useState(true);
@@ -183,7 +185,7 @@ export const ZipRenderer: React.FC<ZipRendererProps> = ({ url, nestingDepth = 0,
       try {
         setLoading(true);
         setError(null);
-        const res = await fetch(url);
+        const res = await fetcher(url);
         if (!res.ok) throw new Error('加载失败');
         const buf = await res.arrayBuffer();
         const z = await loadZip(buf);

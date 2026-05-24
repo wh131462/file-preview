@@ -242,6 +242,116 @@ function onCustomEvent(e: CustomRendererEventPayload) {
 4. **工具组覆盖**：命中自定义渲染器时，内置文件类型相关工具组不再装配；`actionGroups`（下载、关闭）保持
 5. **事件未绑定**：宿主未传 `onCustomEvent` / `@custom-event` 时 `ctx.emit` 静默忽略，不抛错
 
+## 请求与鉴权
+
+以下类型用于配置库内请求行为，详见 [鉴权与自定义请求](./components#鉴权与自定义请求)。
+
+### RequestInitFactory
+
+```typescript
+type RequestInitFactory =
+  | RequestInit
+  | ((url: string) => RequestInit | Promise<RequestInit>)
+```
+
+- 固定对象或按 URL 异步推导的工厂
+- 与库内传入的 init 合并，库内 init 优先；`headers` 走 `Headers` 合并语义
+
+### RequestHandler
+
+```typescript
+type RequestHandler = (
+  url: string,
+  init?: RequestInit,
+) => Promise<Response>
+```
+
+- 完全接管库内请求，返回标准 `Response`
+- 与 `requestInit` 同时存在时，handler 接收已合并的 init
+
+### Fetcher
+
+```typescript
+type Fetcher = (url: string, init?: RequestInit) => Promise<Response>
+```
+
+- 与原生 `fetch` 同签名；`createFetcher(options)` 的返回值
+- 内部 hook（`useFetcher` / 注入的 `fetcher`）也是此类型
+
+### RequestOptions
+
+```typescript
+interface RequestOptions {
+  requestInit?: RequestInitFactory
+  requestHandler?: RequestHandler
+}
+```
+
+传给 `createFetcher(options)` 的入参类型。
+
+### ShouldFetchAsBlob
+
+```typescript
+type ShouldFetchAsBlob = (file: PreviewFile) => boolean
+```
+
+返回 `true` 时，该文件会先经 fetcher 拉成 `blob:` URL 再喂给 image / video / audio / pdf renderer。命中后 blob URL 生命周期由库内自动管理。
+
+## 请求与鉴权
+
+以下类型用于配置库内请求行为，详见 [鉴权与自定义请求](./components#鉴权与自定义请求)。
+
+### RequestInitFactory
+
+```typescript
+type RequestInitFactory =
+  | RequestInit
+  | ((url: string) => RequestInit | Promise<RequestInit>)
+```
+
+- 固定对象或按 URL 异步推导的工厂
+- 与库内传入的 init 合并，库内 init 优先；`headers` 走 `Headers` 合并语义
+
+### RequestHandler
+
+```typescript
+type RequestHandler = (
+  url: string,
+  init?: RequestInit,
+) => Promise<Response>
+```
+
+- 完全接管库内请求，返回标准 `Response`
+- 与 `requestInit` 同时存在时，handler 接收已合并的 init
+
+### Fetcher
+
+```typescript
+type Fetcher = (url: string, init?: RequestInit) => Promise<Response>
+```
+
+- 与原生 `fetch` 同签名；`createFetcher(options)` 的返回值
+- 内部 hook（`useFetcher` / 注入的 `fetcher`）也是此类型
+
+### RequestOptions
+
+```typescript
+interface RequestOptions {
+  requestInit?: RequestInitFactory
+  requestHandler?: RequestHandler
+}
+```
+
+传给 `createFetcher(options)` 的入参类型。
+
+### ShouldFetchAsBlob
+
+```typescript
+type ShouldFetchAsBlob = (file: PreviewFile) => boolean
+```
+
+返回 `true` 时，该文件会先经 fetcher 拉成 `blob:` URL 再喂给 image / video / audio / pdf renderer。命中后 blob URL 生命周期由库内自动管理。
+
 ## PdfConfigOptions
 
 PDF.js 配置选项接口：
@@ -284,6 +394,9 @@ import type {
   PreviewState,
   CustomRenderer,
   PdfConfigOptions,
+  RequestInitFactory,
+  RequestHandler,
+  ShouldFetchAsBlob,
 } from '@eternalheart/react-file-preview'
 
 // 使用示例

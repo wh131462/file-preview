@@ -299,6 +299,112 @@ import { pdfjs } from '@eternalheart/react-file-preview'
 console.log(pdfjs.version)
 ```
 
+## createFetcher
+
+构造一个统一的 `fetcher`，库内 / 用户代码均可用它替代裸 `fetch` 以复用鉴权配置。组件层通常无需直接调用——`FilePreviewModal` / `Embed` / `Content` 的 `requestInit` / `requestHandler` props 会在内部调它。仅在你自己实现 `customRenderer` 且需要拉取远程资源时才需要它。
+
+### 签名
+
+```typescript
+function createFetcher(options?: RequestOptions): Fetcher
+
+type Fetcher = (url: string, init?: RequestInit) => Promise<Response>
+
+interface RequestOptions {
+  requestInit?: RequestInitFactory
+  requestHandler?: RequestHandler
+}
+```
+
+### 行为
+
+- 调用方 init 与 `requestInit`（或工厂函数返回值）合并，调用方 init 优先；`headers` 走 `Headers` 合并语义
+- 提供 `requestHandler` 时由它接管最终请求；否则走原生 `fetch`
+- 不传 `options` 时，返回值等价于原生 `fetch`
+
+### 示例
+
+在自定义 renderer 中复用顶层鉴权配置（React）：
+
+```tsx
+import { useFetcher } from '@eternalheart/react-file-preview' // 注：当前仅内部使用，未来视需要导出
+
+// 一般情况下用 createFetcher 自行组合：
+import { createFetcher } from '@eternalheart/file-preview-core'
+
+const fetcher = createFetcher({
+  requestInit: { headers: { Authorization: `Bearer ${token}` } },
+})
+const res = await fetcher('/api/file/123')
+```
+
+## fetchAsBlobUrl
+
+用 fetcher 把远程资源拉成 `blob:` URL，便于喂给 `<img src>` / `<Document file>` 等需要 URL 形态的组件。`shouldFetchAsBlob` 命中时，组件内部就是用它实现的。
+
+### 签名
+
+```typescript
+function fetchAsBlobUrl(
+  url: string,
+  fetcher?: Fetcher,
+  init?: RequestInit,
+): Promise<string>
+```
+
+### 注意
+
+返回的 blob URL 由**调用方**负责在不再需要时 `URL.revokeObjectURL` 回收，否则会造成内存泄漏。组件内部的 `useResolvedUrl` / `provideRequestContext` 会自动管理生命周期，无需手动处理。
+
+### 示例
+
+```typescript
+import { createFetcher, fetchAsBlobUrl } from '@eternalheart/file-preview-core'
+
+const fetcher = createFetcher({
+  requestInit: { headers: { Authorization: `Bearer ${token}` } },
+})
+
+const blobUrl = await fetchAsBlobUrl('/api/file/123', fetcher)
+// 使用…
+URL.revokeObjectURL(blobUrl)
+```
+
+## fetchTextUtf8
+
+从 URL 拉取文本资源并按 BOM → 严格 UTF-8 → GBK → 兜底 UTF-8 顺序自动解码。
+
+### 签名
+
+```typescript
+function fetchTextUtf8(
+  url: string,
+  optionsOrInit?: FetchTextOptions | RequestInit,
+): Promise<string>
+
+interface FetchTextOptions {
+  fetcher?: Fetcher
+  init?: RequestInit
+}
+```
+
+兼容两种调用：
+
+- `fetchTextUtf8(url, init)`：旧 API，等价于 `fetch(url, init)`
+- `fetchTextUtf8(url, { fetcher, init })`：注入自定义 fetcher（鉴权场景）
+
+### 示例
+
+```typescript
+import { createFetcher, fetchTextUtf8 } from '@eternalheart/file-preview-core'
+
+const fetcher = createFetcher({
+  requestInit: { headers: { Authorization: `Bearer ${token}` } },
+})
+
+const text = await fetchTextUtf8('/api/file/log.txt', { fetcher })
+```
+
 ## 下一步
 
 - [组件 API](./components) - 查看组件的完整 API

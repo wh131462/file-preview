@@ -65,6 +65,7 @@ export default defineConfig({
           items: [
             { text: '支持的文件类型', link: '/guide/supported-types' },
             { text: '自定义渲染器', link: '/guide/custom-renderers' },
+            { text: '鉴权与自定义请求', link: '/guide/authentication' },
             { text: '国际化 (i18n)', link: '/guide/i18n' },
             { text: '主题定制', link: '/guide/theming' }
           ]

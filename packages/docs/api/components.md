@@ -208,6 +208,75 @@ const customRenderers: CustomRenderer[] = [
 />
 ```
 
+#### requestInit
+
+- **类型**: `RequestInit | (url: string) => RequestInit | Promise<RequestInit>`
+- **必需**: 否
+- **描述**: 自定义 `RequestInit`（或工厂函数）。库内所有 `fetch` 调用都会带上它，用于注入 `Authorization` / `credentials` 等鉴权信息。详见 [鉴权与自定义请求](/guide/authentication)。
+
+```tsx
+<FilePreviewModal
+  requestInit={(url) => ({
+    headers: { Authorization: `Bearer ${token}` },
+    credentials: 'include',
+  })}
+  ...
+/>
+```
+
+#### requestHandler
+
+- **类型**: `(url: string, init?: RequestInit) => Promise<Response>`
+- **必需**: 否
+- **描述**: 完全接管库内 fetch。可用于把请求改走 axios / 你自己的 HTTP 客户端。与 `requestInit` 同时存在时，handler 接收已合并好的 init。
+
+```tsx
+<FilePreviewModal
+  requestHandler={async (url, init) => myHttpClient.fetch(url, init)}
+  ...
+/>
+```
+
+#### shouldFetchAsBlob
+
+- **类型**: `(file: PreviewFile) => boolean`
+- **必需**: 否
+- **描述**: 返回 `true` 时，对应文件先用 `requestInit` / `requestHandler` 请求转为 `blob:` URL，再喂给 image / video / audio / pdf 等 src 类 renderer。这是让 `<img src>` / `<video src>` 等也复用鉴权头的唯一方式。库内自动管理 blob URL 生命周期。
+
+```tsx
+<FilePreviewModal
+  // 仅图片和 PDF 走 blob 模式；audio/video 保留浏览器流式加载
+  shouldFetchAsBlob={(file) =>
+    file.type.startsWith('image/') || file.type === 'application/pdf'
+  }
+  ...
+/>
+```
+
+::: warning audio/video 注意事项
+命中 `shouldFetchAsBlob` 的 audio/video 会被整段下载后一次性渲染，**丢失浏览器原生的渐进式播放/边下边播能力**。仅在文件较小或必须鉴权时启用。
+:::
+
+#### onDownload
+
+- **类型**: `(file: PreviewFile) => void | Promise<void>`
+- **必需**: 否
+- **描述**: 自定义下载回调。
+  - **不传**：库内默认通过 `fetcher` 拉成 Blob 触发 `<a download>`，**自动复用 `requestInit` / `requestHandler` 中的鉴权头**——这是鉴权 URL 场景下能正确下载的关键，避免直接 `<a href={url} download>` 带不上 header 的问题。
+  - **传入**：完全接管下载行为，库内不再做任何 fetch / `<a>` 操作。可用于走自家下载中心、上报埋点等。
+
+```tsx
+<FilePreviewModal
+  onDownload={async (file) => {
+    await downloadCenter.enqueue(file.url, file.name)
+    notification.success(`${file.name} 已加入下载队列`)
+  }}
+  ...
+/>
+```
+
+详见 [鉴权与自定义请求 # 自定义下载行为](/guide/authentication#自定义下载行为)。
+
 ### 完整示例
 
 ```tsx
@@ -296,6 +365,10 @@ function Panel() {
 | `headless` | `boolean` | ❌ | `false` | 无头模式,隐藏工具栏和导航箭头 |
 | `theme` | `Theme` | ❌ | `'dark'` | 主题模式: `'auto' \| 'dark' \| 'light'` |
 | `onCustomEvent` | `(e: CustomRendererEventPayload) => void` | ❌ | - | 自定义渲染器事件出口,载荷 `{ name, payload, file }` |
+| `requestInit` | `RequestInit \| (url) => RequestInit \| Promise<RequestInit>` | ❌ | - | 自定义 RequestInit，注入鉴权头等 |
+| `requestHandler` | `(url, init?) => Promise<Response>` | ❌ | - | 完全接管库内 fetch |
+| `shouldFetchAsBlob` | `(file: PreviewFile) => boolean` | ❌ | - | 返回 true 时 src 类 renderer 也走 fetch→blob URL |
+| `onDownload` | `(file: PreviewFile) => void \| Promise<void>` | ❌ | - | 自定义下载回调；不传时默认走 fetcher 拉 Blob 下载 |
 
 ::: tip 尺寸说明
 `FilePreviewEmbed` 默认使用 `width: 100%; height: 100%` 填充父容器,因此 **父容器必须具有明确的高度**(如 `height: 520px` 或通过 flex/grid 布局给定高度),否则组件会塌陷为 0 高度。
@@ -380,6 +453,10 @@ function DetailPanel() {
 | `locale` | `Locale` | ❌ | `'zh-CN'` | 界面语言 |
 | `messages` | `Partial<Record<Locale, Partial<Messages>>>` | ❌ | - | 自定义翻译字典 |
 | `onCustomEvent` | `(e: CustomRendererEventPayload) => void` | ❌ | - | 自定义渲染器事件出口 |
+| `requestInit` | `RequestInit \| (url) => RequestInit \| Promise<RequestInit>` | ❌ | - | 自定义 RequestInit |
+| `requestHandler` | `(url, init?) => Promise<Response>` | ❌ | - | 完全接管库内 fetch |
+| `shouldFetchAsBlob` | `(file: PreviewFile) => boolean` | ❌ | - | src 类 renderer 走 fetch→blob URL |
+| `onDownload` | `(file: PreviewFile) => void \| Promise<void>` | ❌ | - | 自定义下载回调 |
 
 **mode 差异:**
 

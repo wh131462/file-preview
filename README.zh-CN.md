@@ -1,4 +1,5 @@
 # React File Preview
+
 [![npm version](https://img.shields.io/npm/v/@eternalheart/react-file-preview.svg)](https://www.npmjs.com/package/@eternalheart/react-file-preview)
 [![license](https://img.shields.io/npm/l/@eternalheart/react-file-preview.svg)](https://github.com/wh131462/file-preview/blob/master/LICENSE)
 [![react-file-preview downloads](https://img.shields.io/npm/dm/@eternalheart/react-file-preview.svg?label=@eternalheart/react-file-preview)](https://www.npmjs.com/package/@eternalheart/react-file-preview)
@@ -47,8 +48,6 @@ pnpm deploy           # 部署示例和文档到 GitHub Pages
 # 发布
 pnpm pub              # 发布库到 npm
 ```
-
-
 
 ## ✨ 特性
 
@@ -262,24 +261,29 @@ const files = [
 ## 📖 支持的文件格式
 
 ### 图片
+
 - **格式**: JPG, PNG, GIF, WebP, SVG, BMP, ICO
 - **功能**: 缩放 (0.1x - 10x)、旋转、拖拽、滚轮缩放、双击重置
 
 ### 视频
+
 - **格式**: MP4, WebM, OGG, MOV, AVI, MKV, M4V, 3GP, FLV
 - **功能**: 自定义播放器、进度控制、音量调节、全屏播放
 
 ### 音频
+
 - **格式**: MP3, WAV, OGG, M4A, AAC, FLAC
 - **功能**: 自定义播放器、进度条、音量控制、快进/快退
 
 ### 文档
+
 - **PDF**: 分页浏览、缩放
 - **Word**: DOCX 格式支持
 - **Excel**: XLSX 格式支持
 - **PowerPoint**: PPTX/PPT 格式支持、幻灯片预览
 
 ### 代码 & 文本
+
 - **Markdown**: GitHub Flavored Markdown，代码高亮
 - **代码文件**: JS, TS, Python, Java, C++, Go, Rust 等 40+ 种语言
 - **文本文件**: TXT, LOG, CSV, JSON, YAML, XML 等
@@ -288,27 +292,27 @@ const files = [
 
 ### FilePreviewModal Props
 
-| 属性 | 类型 | 必填 | 说明 |
-|------|------|------|------|
-| `files` | `PreviewFileInput[]` | ✅ | 文件列表（支持 File 对象、文件对象或 URL 字符串） |
-| `currentIndex` | `number` | ✅ | 当前文件索引 |
-| `isOpen` | `boolean` | ✅ | 是否打开预览 |
-| `onClose` | `() => void` | ✅ | 关闭回调 |
-| `onNavigate` | `(index: number) => void` | ❌ | 导航回调 |
-| `customRenderers` | `CustomRenderer[]` | ❌ | 自定义渲染器 |
+| 属性                | 类型                        | 必填 | 说明                                              |
+| ------------------- | --------------------------- | ---- | ------------------------------------------------- |
+| `files`           | `PreviewFileInput[]`      | ✅   | 文件列表（支持 File 对象、文件对象或 URL 字符串） |
+| `currentIndex`    | `number`                  | ✅   | 当前文件索引                                      |
+| `isOpen`          | `boolean`                 | ✅   | 是否打开预览                                      |
+| `onClose`         | `() => void`              | ✅   | 关闭回调                                          |
+| `onNavigate`      | `(index: number) => void` | ❌   | 导航回调                                          |
+| `customRenderers` | `CustomRenderer[]`        | ❌   | 自定义渲染器                                      |
 
 ### FilePreviewEmbed Props
 
-| 属性 | 类型 | 必填 | 默认值 | 说明 |
-|------|------|------|--------|------|
-| `files` | `PreviewFileInput[]` | ✅ | - | 文件列表 |
-| `currentIndex` | `number` | ❌ | `0` | 当前文件索引 |
-| `onNavigate` | `(index: number) => void` | ❌ | - | 导航回调 |
-| `customRenderers` | `CustomRenderer[]` | ❌ | - | 自定义渲染器 |
-| `width` | `number \| string` | ❌ | `'100%'` | 容器宽度 |
-| `height` | `number \| string` | ❌ | `'100%'` | 容器高度 |
-| `className` | `string` | ❌ | - | 根节点额外 className |
-| `style` | `CSSProperties` | ❌ | - | 根节点额外内联样式 |
+| 属性                | 类型                        | 必填 | 默认值     | 说明                 |
+| ------------------- | --------------------------- | ---- | ---------- | -------------------- |
+| `files`           | `PreviewFileInput[]`      | ✅   | -          | 文件列表             |
+| `currentIndex`    | `number`                  | ❌   | `0`      | 当前文件索引         |
+| `onNavigate`      | `(index: number) => void` | ❌   | -          | 导航回调             |
+| `customRenderers` | `CustomRenderer[]`        | ❌   | -          | 自定义渲染器         |
+| `width`           | `number \| string`         | ❌   | `'100%'` | 容器宽度             |
+| `height`          | `number \| string`         | ❌   | `'100%'` | 容器高度             |
+| `className`       | `string`                  | ❌   | -          | 根节点额外 className |
+| `style`           | `CSSProperties`           | ❌   | -          | 根节点额外内联样式   |
 
 > `FilePreviewEmbed` 没有 `isOpen` / `onClose`。若要显示/隐藏嵌入预览，请在父组件中条件渲染。同时它不会显示工具栏上的关闭按钮。
 
@@ -383,20 +387,24 @@ const files = [
 ### 支持的 MIME 类型
 
 #### Office 文档
+
 - **Word**: `application/vnd.openxmlformats-officedocument.wordprocessingml.document` (.docx)
 - **Excel**: `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet` (.xlsx)
 - **PowerPoint**: `application/vnd.openxmlformats-officedocument.presentationml.presentation` (.pptx)
 - **PowerPoint (旧版)**: `application/vnd.ms-powerpoint` (.ppt)
 
 #### 其他文档
+
 - **PDF**: `application/pdf`
 
 #### 媒体文件
+
 - **图片**: `image/jpeg`, `image/png`, `image/gif`, `image/webp`, `image/svg+xml` 等
 - **视频**: `video/mp4`, `video/webm`, `video/ogg` 等
 - **音频**: `audio/mpeg`, `audio/wav`, `audio/ogg` 等
 
 #### 文本文件
+
 - **Markdown**: 文件扩展名 `.md` 或 `.markdown`
 - **代码**: 根据文件扩展名自动识别 (`.js`, `.ts`, `.py`, `.java` 等)
 - **纯文本**: `text/plain`, `text/csv` 等
@@ -459,3 +467,4 @@ pnpm build:demo
 - [npm](https://www.npmjs.com/package/@eternalheart/react-file-preview)
 - [在线演示](https://wh131462.github.io/file-preview)
 - [问题反馈](https://github.com/wh131462/file-preview/issues)
+- [Linux.do 社区](https://linux.do/)

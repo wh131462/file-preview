@@ -1,4 +1,5 @@
-# File Preview 
+# File Preview
+
 [![npm version](https://img.shields.io/npm/v/@eternalheart/react-file-preview.svg)](https://www.npmjs.com/package/@eternalheart/react-file-preview)
 [![license](https://img.shields.io/npm/l/@eternalheart/react-file-preview.svg)](https://github.com/wh131462/file-preview/blob/master/LICENSE)
 [![react-file-preview downloads](https://img.shields.io/npm/dm/@eternalheart/react-file-preview.svg?label=@eternalheart/react-file-preview)](https://www.npmjs.com/package/@eternalheart/react-file-preview)
@@ -52,8 +53,6 @@ pnpm deploy           # Deploy example and docs to GitHub Pages
 # Publish
 pnpm pub              # Publish library to npm
 ```
-
-
 
 ## ✨ Features
 
@@ -278,24 +277,29 @@ const files = [
 ## 📖 Supported File Formats
 
 ### Images
+
 - **Formats**: JPG, PNG, GIF, WebP, SVG, BMP, ICO
 - **Features**: Zoom (0.1x - 10x), rotate, drag, mouse wheel zoom, double-click reset
 
 ### Videos
+
 - **Formats**: MP4, WebM, OGG, MOV, AVI, MKV, M4V, 3GP, FLV
 - **Features**: Custom player, progress control, volume adjustment, fullscreen
 
 ### Audio
+
 - **Formats**: MP3, WAV, OGG, M4A, AAC, FLAC
 - **Features**: Custom player, progress bar, volume control, skip forward/backward
 
 ### Documents
+
 - **PDF**: Pagination, zoom
 - **Word**: DOCX format support
 - **Excel**: XLSX format support
 - **PowerPoint**: PPTX/PPT format support, slide preview
 
 ### Code & Text
+
 - **Markdown**: GitHub Flavored Markdown, code highlighting
 - **Code Files**: JS, TS, Python, Java, C++, Go, Rust, and 40+ languages
 - **Text Files**: TXT, LOG, CSV, JSON, YAML, XML, etc.
@@ -304,27 +308,27 @@ const files = [
 
 ### FilePreviewModal Props
 
-| Prop | Type | Required | Description |
-|------|------|----------|-------------|
-| `files` | `PreviewFileInput[]` | ✅ | Array of files (supports File objects, file objects, or URL strings) |
-| `currentIndex` | `number` | ✅ | Current file index |
-| `isOpen` | `boolean` | ✅ | Whether the modal is open |
-| `onClose` | `() => void` | ✅ | Close callback |
-| `onNavigate` | `(index: number) => void` | ❌ | Navigation callback |
-| `customRenderers` | `CustomRenderer[]` | ❌ | Custom renderers for specific file types |
+| Prop                | Type                        | Required | Description                                                          |
+| ------------------- | --------------------------- | -------- | -------------------------------------------------------------------- |
+| `files`           | `PreviewFileInput[]`      | ✅       | Array of files (supports File objects, file objects, or URL strings) |
+| `currentIndex`    | `number`                  | ✅       | Current file index                                                   |
+| `isOpen`          | `boolean`                 | ✅       | Whether the modal is open                                            |
+| `onClose`         | `() => void`              | ✅       | Close callback                                                       |
+| `onNavigate`      | `(index: number) => void` | ❌       | Navigation callback                                                  |
+| `customRenderers` | `CustomRenderer[]`        | ❌       | Custom renderers for specific file types                             |
 
 ### FilePreviewEmbed Props
 
-| Prop | Type | Required | Default | Description |
-|------|------|----------|---------|-------------|
-| `files` | `PreviewFileInput[]` | ✅ | - | Array of files |
-| `currentIndex` | `number` | ❌ | `0` | Current file index |
-| `onNavigate` | `(index: number) => void` | ❌ | - | Navigation callback |
-| `customRenderers` | `CustomRenderer[]` | ❌ | - | Custom renderers |
-| `width` | `number \| string` | ❌ | `'100%'` | Container width |
-| `height` | `number \| string` | ❌ | `'100%'` | Container height |
-| `className` | `string` | ❌ | - | Extra class on the root wrapper |
-| `style` | `CSSProperties` | ❌ | - | Extra inline style on the root wrapper |
+| Prop                | Type                        | Required | Default    | Description                            |
+| ------------------- | --------------------------- | -------- | ---------- | -------------------------------------- |
+| `files`           | `PreviewFileInput[]`      | ✅       | -          | Array of files                         |
+| `currentIndex`    | `number`                  | ❌       | `0`      | Current file index                     |
+| `onNavigate`      | `(index: number) => void` | ❌       | -          | Navigation callback                    |
+| `customRenderers` | `CustomRenderer[]`        | ❌       | -          | Custom renderers                       |
+| `width`           | `number \| string`         | ❌       | `'100%'` | Container width                        |
+| `height`          | `number \| string`         | ❌       | `'100%'` | Container height                       |
+| `className`       | `string`                  | ❌       | -          | Extra class on the root wrapper        |
+| `style`           | `CSSProperties`           | ❌       | -          | Extra inline style on the root wrapper |
 
 > `FilePreviewEmbed` has no `isOpen` / `onClose`. To hide/show the embed, conditionally render it from the parent. It also hides the close button in the toolbar.
 
@@ -399,20 +403,24 @@ const files = [
 ### Supported MIME Types
 
 #### Office Documents
+
 - **Word**: `application/vnd.openxmlformats-officedocument.wordprocessingml.document` (.docx)
 - **Excel**: `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet` (.xlsx)
 - **PowerPoint**: `application/vnd.openxmlformats-officedocument.presentationml.presentation` (.pptx)
 - **PowerPoint (Legacy)**: `application/vnd.ms-powerpoint` (.ppt)
 
 #### Other Documents
+
 - **PDF**: `application/pdf`
 
 #### Media Files
+
 - **Images**: `image/jpeg`, `image/png`, `image/gif`, `image/webp`, `image/svg+xml`, etc.
 - **Videos**: `video/mp4`, `video/webm`, `video/ogg`, etc.
 - **Audio**: `audio/mpeg`, `audio/wav`, `audio/ogg`, etc.
 
 #### Text Files
+
 - **Markdown**: File extensions `.md` or `.markdown`
 - **Code**: Auto-detected by file extension (`.js`, `.ts`, `.py`, `.java`, etc.)
 - **Plain Text**: `text/plain`, `text/csv`, etc.
@@ -475,3 +483,4 @@ Issues and Pull Requests are welcome!
 - [npm](https://www.npmjs.com/package/@eternalheart/react-file-preview)
 - [Online Demo](https://wh131462.github.io/file-preview)
 - [Issue Tracker](https://github.com/wh131462/file-preview/issues)
+- [Linux.do Community](https://linux.do/)

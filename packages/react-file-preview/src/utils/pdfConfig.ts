@@ -1,4 +1,6 @@
-import { pdfjs } from 'react-pdf';
+// @ts-ignore - pdfjs-dist 类型路径
+import * as pdfjsLib from 'pdfjs-dist/build/pdf.mjs';
+import { configurePdfWorker } from '@eternalheart/file-preview-core';
 
 /**
  * PDF.js Worker 配置选项
@@ -9,13 +11,13 @@ export interface PdfConfigOptions {
    * 默认使用 CDN: `https://unpkg.com/pdfjs-dist@${version}/build/pdf.worker.min.mjs`
    */
   workerSrc?: string;
-  
+
   /**
    * CMap 文件目录路径
    * 默认使用 CDN: `https://unpkg.com/pdfjs-dist@${version}/cmaps/`
    */
   cMapUrl?: string;
-  
+
   /**
    * 是否使用压缩的 CMap 文件
    * 默认: true
@@ -43,23 +45,7 @@ export interface PdfConfigOptions {
  * ```
  */
 export function configurePdfjs(options?: PdfConfigOptions) {
-  if (typeof window === 'undefined') return;
-
-  const {
-    workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`,
-    cMapUrl = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/cmaps/`,
-    cMapPacked = true
-  } = options || {};
-
-  pdfjs.GlobalWorkerOptions.workerSrc = workerSrc;
-  // @ts-ignore - cMapUrl 和 cMapPacked 在 react-pdf 的类型定义中不存在，但在运行时可用
-  pdfjs.GlobalWorkerOptions.cMapUrl = cMapUrl;
-  // @ts-ignore
-  pdfjs.GlobalWorkerOptions.cMapPacked = cMapPacked;
+  configurePdfWorker(pdfjsLib, options);
 }
 
-// 默认使用 CDN 配置
-configurePdfjs();
-
-export { pdfjs };
-
+export { pdfjsLib as pdfjs };

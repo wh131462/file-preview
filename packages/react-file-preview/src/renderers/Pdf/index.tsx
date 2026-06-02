@@ -1,9 +1,20 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Document, Page } from 'react-pdf';
 import { useTranslator } from '../../i18n/LocaleContext';
+// @ts-ignore - pdfjs-dist 类型路径
+import * as pdfjsLib from 'pdfjs-dist/build/pdf.mjs';
 
-// 导入 PDF.js 配置
-import '../../utils/pdfConfig';
+interface PdfPageProxy {
+  getViewport(opts: { scale: number }): { width: number; height: number };
+  render(opts: { canvasContext: CanvasRenderingContext2D; viewport: { width: number; height: number } }): {
+    promise: Promise<void>;
+  };
+}
+
+interface PdfDocumentProxy {
+  numPages: number;
+  getPage(pageNumber: number): Promise<PdfPageProxy>;
+  destroy(): void;
+}
 
 interface PdfRendererProps {
   url: string;
@@ -25,25 +36,115 @@ export const PdfRenderer: React.FC<PdfRendererProps> = ({
   const t = useTranslator();
   const [numPages, setNumPages] = useState<number>(0);
   const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const containerRef = useRef<HTMLDivElement>(null);
-  const pageRefs = useRef<Map<number, HTMLDivElement>>(new Map());
+  const pdfDocRef = useRef<PdfDocumentProxy | null>(null);
+  const pageElementsRef = useRef<HTMLDivElement[]>([]);
 
-  useEffect(() => {
+  // 渲染单个页面
+  const renderPage = useCallback(async (pageNumber: number, scale: number, container: HTMLDivElement) => {
+    if (!pdfDocRef.current) return;
+
+    const page = await pdfDocRef.current.getPage(pageNumber);
+    const viewport = page.getViewport({ scale });
+
+    const canvas = document.createElement('canvas');
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+    canvas.style.maxWidth = '100%';
+    canvas.style.height = 'auto';
+    canvas.style.borderRadius = '0';
+    canvas.style.display = 'block';
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    await page.render({ canvasContext: ctx, viewport }).promise;
+
+    // 上报第一页原始宽度
+    if (pageNumber === 1 && onPageWidthChange) {
+      const baseViewport = page.getViewport({ scale: 1 });
+      onPageWidthChange(baseViewport.width);
+    }
+
+    container.innerHTML = '';
+    container.appendChild(canvas);
+
+    // 页码标签
+    const label = document.createElement('div');
+    label.textContent = String(pageNumber);
+    label.className = 'rfp-absolute rfp-top-2 rfp-right-2 rfp-bg-surface-nav-hover rfp-backdrop-blur-sm rfp-text-fg-primary rfp-text-xs rfp-px-3 rfp-py-1 rfp-rounded-full';
+    container.appendChild(label);
+  }, [onPageWidthChange]);
+
+  // 渲染所有页面
+  const renderAllPages = useCallback(async () => {
+    if (!pdfDocRef.current || !containerRef.current) return;
+
+    const wrapper = containerRef.current.querySelector('.pdf-pages') as HTMLDivElement | null;
+    if (!wrapper) return;
+
+    wrapper.innerHTML = '';
+    pageElementsRef.current = [];
+
+    for (let i = 1; i <= numPages; i++) {
+      const pageDiv = document.createElement('div');
+      pageDiv.className = 'rfp-relative rfp-flex rfp-justify-center';
+      wrapper.appendChild(pageDiv);
+      pageElementsRef.current.push(pageDiv);
+      await renderPage(i, zoom, pageDiv);
+    }
+  }, [numPages, zoom, renderPage]);
+
+  // 加载 PDF 文档
+  const loadPdf = useCallback(async () => {
     setError(null);
-  }, [url]);
+    setIsLoading(true);
+    setNumPages(0);
 
-  const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
-    setNumPages(numPages);
-    onTotalPagesChange(numPages);
-    onPageChange(1);
-  };
+    if (pdfDocRef.current) {
+      try {
+        pdfDocRef.current.destroy();
+      } catch {
+        // ignore
+      }
+      pdfDocRef.current = null;
+    }
 
-  const onDocumentLoadError = (error: Error) => {
-    console.error('PDF 加载错误:', error);
-    setError(t('pdf.load_failed'));
-  };
+    try {
+      const loadingTask = pdfjsLib.getDocument({ url });
+      pdfDocRef.current = (await loadingTask.promise) as PdfDocumentProxy;
+      const total = pdfDocRef.current.numPages;
 
-  // 滚动时更新当前页码
+      setNumPages(total);
+      onTotalPagesChange(total);
+      onPageChange(1);
+      setIsLoading(false);
+
+      // 等待 DOM 更新后渲染
+      setTimeout(() => {
+        renderAllPages();
+      }, 0);
+    } catch (err) {
+      console.error('PDF 加载错误:', err);
+      setError(t('pdf.load_failed'));
+      setIsLoading(false);
+    }
+  }, [url, onTotalPagesChange, onPageChange, renderAllPages, t]);
+
+  // 监听 URL 变化
+  useEffect(() => {
+    loadPdf();
+  }, [loadPdf]);
+
+  // 监听 zoom 变化
+  useEffect(() => {
+    if (numPages > 0) {
+      renderAllPages();
+    }
+  }, [zoom, numPages, renderAllPages]);
+
+  // 滚动处理
   const handleScroll = useCallback(() => {
     if (!containerRef.current) return;
 
@@ -52,12 +153,12 @@ export const PdfRenderer: React.FC<PdfRendererProps> = ({
     const containerHeight = container.clientHeight;
     const scrollCenter = scrollTop + containerHeight / 2;
 
-    // 找到当前可见的页面
     let currentVisiblePage = 1;
     let minDistance = Infinity;
 
-    pageRefs.current.forEach((pageElement, pageNumber) => {
-      const rect = pageElement.getBoundingClientRect();
+    pageElementsRef.current.forEach((pageEl, idx) => {
+      const pageNumber = idx + 1;
+      const rect = pageEl.getBoundingClientRect();
       const containerRect = container.getBoundingClientRect();
       const pageCenter = rect.top - containerRect.top + rect.height / 2 + scrollTop;
       const distance = Math.abs(pageCenter - scrollCenter);
@@ -82,13 +183,18 @@ export const PdfRenderer: React.FC<PdfRendererProps> = ({
     return () => container.removeEventListener('scroll', handleScroll);
   }, [handleScroll]);
 
-  // 设置页面引用
-  const setPageRef = useCallback((pageNumber: number, element: HTMLDivElement | null) => {
-    if (element) {
-      pageRefs.current.set(pageNumber, element);
-    } else {
-      pageRefs.current.delete(pageNumber);
-    }
+  // 清理
+  useEffect(() => {
+    return () => {
+      if (pdfDocRef.current) {
+        try {
+          pdfDocRef.current.destroy();
+        } catch {
+          // ignore
+        }
+        pdfDocRef.current = null;
+      }
+    };
   }, []);
 
   return (
@@ -102,53 +208,14 @@ export const PdfRenderer: React.FC<PdfRendererProps> = ({
         </div>
       )}
 
-      {!error && (
-        <Document
-          file={url}
-          onLoadSuccess={onDocumentLoadSuccess}
-          onLoadError={onDocumentLoadError}
-          loading={
-            <div className="rfp-flex rfp-items-center rfp-justify-center rfp-min-h-screen">
-              <div className="rfp-w-12 rfp-h-12 rfp-border-4 rfp-border-line-strong rfp-border-t-spinner-head rfp-rounded-full rfp-animate-spin" />
-            </div>
-          }
-        >
-          <div className="rfp-flex rfp-flex-col rfp-gap-4">
-            {Array.from(new Array(numPages), (_, index) => {
-              const pageNumber = index + 1;
-              return (
-                <div
-                  key={`page_${pageNumber}`}
-                  ref={(el) => setPageRef(pageNumber, el)}
-                  className="rfp-relative"
-                >
-                  <Page
-                    pageNumber={pageNumber}
-                    scale={zoom}
-                    loading={
-                      <div className="rfp-flex rfp-items-center rfp-justify-center rfp-p-8 rfp-bg-surface-1 rfp-rounded-lg rfp-min-h-[600px]">
-                        <div className="rfp-w-8 rfp-h-8 rfp-border-4 rfp-border-line-strong rfp-border-t-spinner-head rfp-rounded-full rfp-animate-spin" />
-                      </div>
-                    }
-                    renderTextLayer={false}
-                    renderAnnotationLayer={false}
-                    className="rfp-shadow-2xl"
-                    onRenderSuccess={(page) => {
-                      if (pageNumber === 1 && onPageWidthChange) {
-                        // 上报 scale=1 时的原始页面宽度
-                        onPageWidthChange(page.originalWidth || page.width / zoom);
-                      }
-                    }}
-                  />
-                  {/* 页码标签 */}
-                  <div className="rfp-absolute rfp-top-2 rfp-right-2 rfp-bg-surface-nav-hover rfp-backdrop-blur-sm rfp-text-fg-primary rfp-text-xs rfp-px-3 rfp-py-1 rfp-rounded-full">
-                    {pageNumber}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </Document>
+      {!error && isLoading && (
+        <div className="rfp-flex rfp-items-center rfp-justify-center rfp-min-h-screen">
+          <div className="rfp-w-12 rfp-h-12 rfp-border-4 rfp-border-line-strong rfp-border-t-spinner-head rfp-rounded-full rfp-animate-spin" />
+        </div>
+      )}
+
+      {!error && !isLoading && (
+        <div className="pdf-pages rfp-flex rfp-flex-col rfp-gap-4" />
       )}
 
       {/* 底部页码指示器 */}

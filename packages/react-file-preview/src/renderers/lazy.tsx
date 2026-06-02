@@ -19,6 +19,7 @@ import type { XmlRenderer as XmlRendererImpl } from './Xml';
 import type { SubtitleRenderer as SubtitleRendererImpl } from './Subtitle';
 import type { ZipRenderer as ZipRendererImpl } from './Zip';
 import type { TextRenderer as TextRendererImpl } from './Text';
+import type { FontRenderer as FontRendererImpl } from './Font';
 
 type Lazy<T> = LazyExoticComponent<T extends ComponentType<infer P> ? ComponentType<P> : never>;
 
@@ -88,4 +89,8 @@ export const ZipRenderer: Lazy<typeof ZipRendererImpl> = lazy(() =>
 
 export const TextRenderer: Lazy<typeof TextRendererImpl> = lazy(() =>
   import('./Text').then((m) => ({ default: m.TextRenderer })),
+);
+
+export const FontRenderer: Lazy<typeof FontRendererImpl> = lazy(() =>
+  import('./Font').then((m) => ({ default: m.FontRenderer })),
 );

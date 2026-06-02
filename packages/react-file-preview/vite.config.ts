@@ -65,6 +65,7 @@ export default defineConfig({
         '@kenjiuno/msgreader',
         '@likecoin/epub-ts',
         'jszip',
+        'opentype.js',
         // Markdown / 数学公式
         'remark-gfm',
         'remark-math',

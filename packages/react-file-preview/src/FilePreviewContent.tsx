@@ -37,6 +37,7 @@ import {
   SubtitleRenderer,
   ZipRenderer,
   TextRenderer,
+  FontRenderer,
 } from './renderers/lazy';
 import type { EpubRendererHandle } from './renderers/Epub';
 import type { MobiRendererHandle } from './renderers/Mobi';
@@ -601,6 +602,7 @@ const FilePreviewContentInner: React.FC<FilePreviewContentProps> = ({
                 htmlPreview={textHtmlPreview}
               />
             )}
+            {fileType === 'font' && <FontRenderer url={resolvedUrl} />}
             {fileType === 'unsupported' && (
               <UnsupportedRenderer
                 fileName={currentFile.name}

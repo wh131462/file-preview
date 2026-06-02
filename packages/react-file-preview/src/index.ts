@@ -25,8 +25,9 @@ export type {
   CustomRendererEventPayload,
 } from './types';
 
-// 导出工具函数
+// 导出工具函数和常量
 export { normalizeFile, normalizeFiles } from './utils/fileNormalizer';
+export { SUPPORTED_FILE_TYPES } from '@eternalheart/file-preview-core';
 
 // 导出 PDF.js 配置函数和类型
 export { configurePdfjs, pdfjs } from './utils/pdfConfig';

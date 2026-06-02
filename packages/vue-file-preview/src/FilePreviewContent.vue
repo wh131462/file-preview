@@ -46,6 +46,7 @@ import {
   SubtitleRenderer,
   ZipRenderer,
   TextRenderer,
+  FontRenderer,
 } from './renderers/lazy';
 // Unsupported 体量极小且每次回退都用，直接静态打包到主入口
 import UnsupportedRenderer from './renderers/Unsupported/index.vue';
@@ -668,6 +669,7 @@ const hasToolGroups = computed(() => toolGroups.value.length > 0);
             :word-wrap="textWordWrap"
             :html-preview="textHtmlPreview"
           />
+          <FontRenderer v-else-if="fileType === 'font'" :url="resolvedUrl" />
           <UnsupportedRenderer
             v-else
             :file-name="currentFile.name"

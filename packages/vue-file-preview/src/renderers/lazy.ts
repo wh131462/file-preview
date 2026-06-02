@@ -29,3 +29,4 @@ export const XmlRenderer = wrap(() => import('./Xml/index.vue'));
 export const SubtitleRenderer = wrap(() => import('./Subtitle/index.vue'));
 export const ZipRenderer = wrap(() => import('./Zip/index.vue'));
 export const TextRenderer = wrap(() => import('./Text/index.vue'));
+export const FontRenderer = wrap(() => import('./Font/index.vue'));

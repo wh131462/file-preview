@@ -25,12 +25,13 @@ export type {
   CustomRendererEventPayload,
 } from './types';
 
-// 导出工具函数
+// 导出工具函数和常量
 export {
   normalizeFile,
   normalizeFiles,
   getFileType,
   configurePdfWorker,
+  SUPPORTED_FILE_TYPES,
 } from '@eternalheart/file-preview-core';
 
 export type { PdfWorkerOptions } from '@eternalheart/file-preview-core';

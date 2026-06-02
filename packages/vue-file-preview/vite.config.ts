@@ -65,6 +65,7 @@ export default defineConfig({
         '@kenjiuno/msgreader',
         '@likecoin/epub-ts',
         'jszip',
+        'opentype.js',
         // 视频
         'video.js',
         // 电子表格

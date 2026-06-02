@@ -232,6 +232,10 @@ const files = [
 - **Excel**: XLSX 格式支持
 - **PowerPoint**: PPTX/PPT 格式支持、幻灯片预览
 
+### 字体
+- **格式**: TTF, OTF, WOFF, WOFF2
+- **功能**: 字体元数据（字体家族、设计师、版本）、字符集预览、自定义文本输入、多字号展示
+
 ### 代码 & 文本
 - **Markdown**: GitHub Flavored Markdown,代码高亮
 - **代码文件**: JS, TS, Python, Java, C++, Go, Rust 等 40+ 种语言

@@ -232,6 +232,10 @@ Differences from `FilePreviewModal`:
 - **Excel**: XLSX format support
 - **PowerPoint**: PPTX/PPT format support, slide preview
 
+### Fonts
+- **Formats**: TTF, OTF, WOFF, WOFF2
+- **Features**: Font metadata (family, designer, version), character set preview, custom text input, multi-size display
+
 ### Code & Text
 - **Markdown**: GitHub Flavored Markdown, code highlighting
 - **Code Files**: JS, TS, Python, Java, C++, Go, Rust, and 40+ languages

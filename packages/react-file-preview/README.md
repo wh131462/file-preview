@@ -304,6 +304,10 @@ const files = [
 - **Excel**: XLSX format support
 - **PowerPoint**: PPTX/PPT format support, slide preview
 
+### Fonts
+- **Formats**: TTF, OTF, WOFF, WOFF2
+- **Features**: Font metadata (family, designer, version), character set preview, custom text input, multi-size display
+
 ### Code & Text
 - **Markdown**: GitHub Flavored Markdown, code highlighting
 - **Code Files**: JS, TS, Python, Java, C++, Go, Rust, and 40+ languages
@@ -441,6 +445,12 @@ const files = [
 
 #### Other Documents
 - **PDF**: `application/pdf`
+
+#### Fonts
+- **TrueType**: `application/x-font-ttf`, `font/ttf` (.ttf)
+- **OpenType**: `application/x-font-otf`, `font/otf` (.otf)
+- **WOFF**: `application/font-woff`, `font/woff` (.woff)
+- **WOFF2**: `application/font-woff2`, `font/woff2` (.woff2)
 
 #### Media Files
 - **Images**: `image/jpeg`, `image/png`, `image/gif`, `image/webp`, `image/svg+xml`, etc.

@@ -1,6 +1,6 @@
 # 支持的文件类型
 
-React File Preview 支持多种常见的文件格式预览。
+File Preview 支持多种常见的文件格式预览（React 与 Vue 两个版本能力完全对齐）。
 
 ## 图片格式
 
@@ -107,14 +107,49 @@ React File Preview 支持多种常见的文件格式预览。
 
 ## 电子书
 
+### EPUB
+
 - **EPUB** - `.epub`
+
+#### 特性
+
+- 基于 foliate-js 渲染，零外部 CDN 依赖
+- 章节导航（目录侧栏）
+- 左右翻页（按钮 / 键盘方向键）
+- 章节自动分页与页码显示
+- 全屏宽度 / 阅读宽度切换
+- 自适应屏幕宽度
+
+### MOBI / AZW / KF8
+
+- **MOBI** - `.mobi`
+- **AZW / AZW3** - `.azw`, `.azw3`
+- **KF8** - `.kf8`
+
+#### 特性
+
+- 基于 foliate-js 解析与渲染（与 EPUB 共用底层）
+- 与 EPUB 一致的翻页 / 目录 / 全屏宽度交互
+- 不支持 DRM 保护文件，遇到 DRM 会给出明确提示
+
+## 字体文件
+
+- **TrueType** - `.ttf`
+- **OpenType** - `.otf`
+- **WOFF** - `.woff`
+- **WOFF2** - `.woff2`
 
 ### 特性
 
-- 基于 epub.js 渲染
-- 左右翻页（按钮 / 键盘方向键）
-- 章节自动分页与页码显示
-- 自适应屏幕宽度
+- 基于 opentype.js 解析字体内部结构
+- 展示完整元数据：字体家族、子系列、版本、设计师、字形数量、格式
+- 多字号梯度展示（72 / 48 / 36 / 24 / 18 px）
+- 自定义文本输入框，实时预览效果
+- 内置拉丁字母与中文常用字字符集样例
+- 双渲染策略
+  - 优先使用浏览器原生 FontFace API（性能最佳）
+  - 浏览器 OTS（OpenType Sanitizer）拒绝时自动降级到 Canvas 软渲染（opentype.js 容忍度更高，可显示部分浏览器原生不接受的字体）
+- 容器宽度固定，长文本自动按容器宽度断行
 
 ## Markdown 文档
 
@@ -252,6 +287,7 @@ React File Preview 支持多种常见的文件格式预览。
 - `pptx` - PowerPoint 演示文稿
 - `msg` - Outlook 邮件
 - `epub` - EPUB 电子书
+- `mobi` - MOBI / AZW / AZW3 / KF8 电子书
 - `video` - 视频文件
 - `audio` - 音频文件
 - `markdown` - Markdown 文件
@@ -261,5 +297,6 @@ React File Preview 支持多种常见的文件格式预览。
 - `subtitle` - SRT / VTT / LRC / ELRC / ASS / SSA / TTML 字幕与歌词文件
 - `zip` - ZIP 压缩包
 - `text` - 其他文本和代码文件
+- `font` - 字体文件（TTF / OTF / WOFF / WOFF2）
 - `unsupported` - 不支持的类型
 

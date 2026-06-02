@@ -4,7 +4,7 @@ layout: home
 hero:
   name: File Preview
   text: 现代化的文件预览组件
-  tagline: 同时支持 React 与 Vue 3 · 图片、视频、音频、PDF、Office 文档、Markdown 和代码文件
+  tagline: 同时支持 React 与 Vue 3 · 图片、视频、音频、PDF、Office 文档、电子书、字体、Markdown 与代码文件
   image:
     src: /icon.svg
     alt: File Preview
@@ -28,7 +28,7 @@ features:
       width: 48
       height: 48
     title: 多格式支持
-    details: 支持图片、视频、音频、PDF、Word、Excel、PowerPoint、Markdown 和代码文件等多种格式
+    details: 支持图片、视频、音频、PDF、Office 文档、EPUB / MOBI 电子书、字体文件、Markdown 与代码文件等多种格式
   - icon:
       src: /assets/icons/lightning.svg
       width: 48
@@ -183,11 +183,16 @@ const files = [
 
 ## 支持的文件类型
 
-- **图片**: JPG, PNG, GIF, WebP, SVG, BMP, ICO
-- **视频**: MP4, WebM, OGG, MOV, AVI, MKV, M4V, 3GP, FLV
-- **音频**: MP3, WAV, OGG, M4A, AAC, FLAC
-- **文档**: PDF, Word (DOCX), Excel (XLSX), PowerPoint (PPT/PPTX), Outlook (MSG)
-- **文本**: Markdown, 代码文件 (支持语法高亮)
+- **图片**：JPG, PNG, GIF, WebP, SVG, BMP, ICO
+- **视频**：MP4, WebM, OGG, MOV, AVI, MKV, M4V, 3GP, FLV
+- **音频**：MP3, WAV, OGG, M4A, AAC, FLAC
+- **文档**：PDF, Word (DOCX), Excel (XLSX), PowerPoint (PPT/PPTX), Outlook (MSG)
+- **电子书**：EPUB, MOBI, AZW, AZW3, KF8
+- **字体**：TTF, OTF, WOFF, WOFF2
+- **结构化数据**：JSON, CSV, TSV, XML
+- **字幕 / 歌词**：SRT, WebVTT, LRC, ELRC, ASS, SSA, TTML, DFXP
+- **压缩包**：ZIP
+- **文本**：Markdown, 代码文件（40+ 种语言语法高亮），各类纯文本
 
 ## 包架构
 

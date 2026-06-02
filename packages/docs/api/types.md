@@ -92,6 +92,7 @@ type FileType =
   | 'pptx'        // PowerPoint 演示文稿 (PPTX, PPT)
   | 'msg'         // Outlook 邮件 (MSG)
   | 'epub'        // EPUB 电子书
+  | 'mobi'        // MOBI / AZW / AZW3 / KF8 电子书
   | 'video'       // 视频 (MP4, WebM, OGG, MOV, AVI, MKV 等)
   | 'audio'       // 音频 (MP3, WAV, OGG, M4A, AAC, FLAC)
   | 'markdown'    // Markdown 文件 (MD)
@@ -101,6 +102,7 @@ type FileType =
   | 'subtitle'    // SRT / WebVTT / LRC / ELRC / ASS / SSA / TTML 字幕与歌词
   | 'zip'         // ZIP 压缩包
   | 'text'        // 其他文本和代码文件
+  | 'font'        // 字体文件 (TTF, OTF, WOFF, WOFF2)
   | 'unsupported' // 不支持的类型
 ```
 

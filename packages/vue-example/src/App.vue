@@ -4,6 +4,7 @@ import {
   FilePreviewModal,
   FilePreviewEmbed,
   VERSION,
+  SUPPORTED_FILE_TYPES,
   type PreviewFile,
   type PreviewFileInput,
   type Theme,
@@ -318,7 +319,18 @@ onUnmounted(() => {
     <div class="container mx-auto px-3 sm:px-4 py-8 sm:py-16">
       <div class="text-center mb-8 sm:mb-12">
         <h2 class="text-2xl sm:text-4xl font-bold text-white mb-2 sm:mb-4">文件预览演示</h2>
-        <p class="text-gray-400 text-sm sm:text-lg px-4">支持 20+ 种文件格式的现代化预览组件 · Vue 3 版本</p>
+        <p class="text-gray-400 text-sm sm:text-lg px-4">
+          支持
+          <a
+            :href="`${DOCS_URL}guide/supported-types`"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="font-semibold bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent hover:from-emerald-300 hover:to-teal-300 inline-block hover:scale-105 transition-all duration-200"
+          >
+            {{ SUPPORTED_FILE_TYPES.length }} 种文件格式
+          </a>
+          的现代化预览组件 · Vue 3 版本
+        </p>
       </div>
 
       <!-- 文件上传区域 -->

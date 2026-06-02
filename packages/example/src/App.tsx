@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from 'react';
-import { FilePreviewModal, FilePreviewEmbed, VERSION } from '@eternalheart/react-file-preview';
+import { FilePreviewModal, FilePreviewEmbed, VERSION, SUPPORTED_FILE_TYPES } from '@eternalheart/react-file-preview';
 import type { PreviewFile, PreviewFileInput, Theme, CustomRenderer, CustomRendererEventPayload } from '@eternalheart/react-file-preview';
 import type { Locale } from '@eternalheart/react-file-preview';
 import '@eternalheart/react-file-preview/style.css';
@@ -297,7 +297,16 @@ function App() {
             文件预览演示
           </h2>
           <p className="text-gray-400 text-sm sm:text-lg px-4">
-            支持 20+ 种文件格式的现代化预览组件
+            支持{' '}
+            <a
+              href={`${DOCS_URL}guide/supported-types`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent hover:from-blue-300 hover:to-purple-300 inline-block hover:scale-105 transition-all duration-200"
+            >
+              {SUPPORTED_FILE_TYPES.length} +种文件格式
+            </a>
+            {' '}的现代化预览组件
           </p>
         </div>
 

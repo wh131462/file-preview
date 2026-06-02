@@ -120,4 +120,16 @@ export const enUS: Messages = {
 
   // ─────── text ───────
   'text.load_failed': 'Failed to load text file',
+
+  // ─────── font ───────
+  'font.loading': 'Loading font...',
+  'font.load_failed': 'Failed to load font',
+  'font.parse_failed': 'Failed to parse font',
+  'font.meta.family': 'Family',
+  'font.meta.subfamily': 'Subfamily',
+  'font.meta.version': 'Version',
+  'font.meta.designer': 'Designer',
+  'font.meta.glyphs': 'Glyphs',
+  'font.meta.format': 'Format',
+  'font.sample_text_placeholder': 'Type custom text...',
 };

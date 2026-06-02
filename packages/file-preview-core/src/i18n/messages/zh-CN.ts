@@ -120,4 +120,16 @@ export const zhCN: Messages = {
 
   // ─────── text ───────
   'text.load_failed': '文本文件加载失败',
+
+  // ─────── font ───────
+  'font.loading': '加载字体中...',
+  'font.load_failed': '字体文件加载失败',
+  'font.parse_failed': '字体解析失败',
+  'font.meta.family': '字体家族',
+  'font.meta.subfamily': '子系列',
+  'font.meta.version': '版本',
+  'font.meta.designer': '设计师',
+  'font.meta.glyphs': '字形数量',
+  'font.meta.format': '格式',
+  'font.sample_text_placeholder': '输入自定义文本...',
 };

@@ -14,6 +14,9 @@ export type {
   ShouldFetchAsBlob,
 } from './types';
 
+// 导出常量
+export { SUPPORTED_FILE_TYPES } from './types';
+
 // 导出文件标准化工具
 export {
   normalizeFile,

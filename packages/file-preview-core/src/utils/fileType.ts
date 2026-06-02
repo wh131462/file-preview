@@ -52,6 +52,17 @@ export function getFileType(file: PreviewFile): FileType {
   if (ext === 'zip' || mimeType === 'application/zip' || mimeType === 'application/x-zip-compressed') {
     return 'zip';
   }
+  if (
+    ['ttf', 'otf', 'woff', 'woff2'].includes(ext) ||
+    mimeType.startsWith('font/') ||
+    mimeType === 'application/font-woff' ||
+    mimeType === 'application/font-woff2' ||
+    mimeType === 'application/x-font-ttf' ||
+    mimeType === 'application/x-font-otf' ||
+    mimeType === 'application/font-sfnt'
+  ) {
+    return 'font';
+  }
   if (mimeType.startsWith('video/') || ['mp4', 'webm', 'ogg', 'ogv', 'mov', 'avi', 'mkv', 'm4v', '3gp', 'flv'].includes(ext)) {
     return 'video';
   }

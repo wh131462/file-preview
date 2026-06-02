@@ -37,7 +37,32 @@ export type FileType =
   | 'subtitle'
   | 'zip'
   | 'text'
+  | 'font'
   | 'unsupported';
+
+/**
+ * 支持的文件类型列表（不包括 'unsupported'）
+ */
+export const SUPPORTED_FILE_TYPES: Exclude<FileType, 'unsupported'>[] = [
+  'image',
+  'pdf',
+  'docx',
+  'xlsx',
+  'pptx',
+  'msg',
+  'epub',
+  'mobi',
+  'video',
+  'audio',
+  'markdown',
+  'json',
+  'csv',
+  'xml',
+  'subtitle',
+  'zip',
+  'text',
+  'font',
+] as const;
 
 export interface PreviewState {
   zoom: number;

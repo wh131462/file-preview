@@ -1,0 +1,131 @@
+name: 🐛 Bug Report (English)
+description: Report a bug to help us improve file-preview
+title: "[Bug]: "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug! Please fill out the form as completely as possible to help us reproduce and fix the issue.
+
+        > Before submitting, please [search existing issues](https://github.com/wh131462/file-preview/issues?q=is%3Aissue) to make sure your bug hasn't been reported.
+
+  - type: dropdown
+    id: package
+    attributes:
+      label: Affected Package
+      description: Which package are you using?
+      options:
+        - "@eternalheart/react-file-preview"
+        - "@eternalheart/vue-file-preview"
+        - "@eternalheart/file-preview-core"
+        - Multiple packages / Not sure
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Package Version
+      placeholder: "e.g. 1.3.10"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+      description: A clear and concise description of the bug
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to Reproduce
+      description: Detailed steps to reproduce the bug
+      placeholder: |
+        1. Import the component ...
+        2. Pass in a file ...
+        3. Click ...
+        4. See error ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What did you expect to happen?
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      description: What actually happened? Include error messages and stack traces if any.
+      render: shell
+
+  - type: dropdown
+    id: browser
+    attributes:
+      label: Browser
+      multiple: true
+      options:
+        - Chrome
+        - Firefox
+        - Safari
+        - Edge
+        - Other Chromium-based
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: os
+    attributes:
+      label: Operating System
+      placeholder: "e.g. macOS 14.0, Windows 11, Ubuntu 22.04"
+    validations:
+      required: true
+
+  - type: input
+    id: framework-version
+    attributes:
+      label: Framework Version
+      description: React or Vue version
+      placeholder: "e.g. React 18.2.0 or Vue 3.4.0"
+
+  - type: textarea
+    id: file-info
+    attributes:
+      label: File Info (if applicable)
+      placeholder: |
+        - Type: PDF
+        - Size: 5MB
+        - Source: Local upload / URL / Blob
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots or Recording
+      description: Drag &amp; drop screenshots or GIF recordings here
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Any other information that might help
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Pre-submission Checklist
+      options:
+        - label: I have searched existing issues and confirmed no duplicates
+          required: true
+        - label: I have checked the [documentation](https://wh131462.github.io/file-preview)
+          required: true
+        - label: I am using the latest version, or have tried upgrading
+          required: false

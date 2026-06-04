@@ -1,0 +1,47 @@
+name: ❓ 疑问与讨论
+description: 提出使用上的疑问（如果是开放讨论建议使用 Discussions）
+title: "[Question]: "
+labels: ["question"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        如果你的问题是开放性讨论，建议先访问 [GitHub Discussions](https://github.com/wh131462/file-preview/discussions)。
+
+        > 提交前请先 [搜索现有 Issue](https://github.com/wh131462/file-preview/issues?q=is%3Aissue) 和 [Discussions](https://github.com/wh131462/file-preview/discussions)。
+
+  - type: dropdown
+    id: package
+    attributes:
+      label: 相关包
+      options:
+        - "@eternalheart/react-file-preview"
+        - "@eternalheart/vue-file-preview"
+        - "@eternalheart/file-preview-core"
+        - 不确定 / 其他
+    validations:
+      required: true
+
+  - type: textarea
+    id: question
+    attributes:
+      label: 你的问题
+      description: 清晰描述你想了解的内容
+    validations:
+      required: true
+
+  - type: textarea
+    id: tried
+    attributes:
+      label: 已尝试的方法
+      description: 简述你已尝试过的解决思路或查阅过的资料
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: 提交前确认
+      options:
+        - label: 我已查阅 [在线文档](https://wh131462.github.io/file-preview)
+          required: true
+        - label: 我已搜索现有 Issue 和 Discussions
+          required: true

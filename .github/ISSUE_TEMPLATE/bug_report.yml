@@ -1,0 +1,135 @@
+name: 🐛 Bug 报告
+description: 提交 Bug 反馈，帮助我们改进 file-preview
+title: "[Bug]: "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢你抽出时间报告 Bug！请尽可能完整地填写以下信息，这将帮助我们更快地定位并修复问题。
+
+        > 提交前请先 [搜索现有 Issue](https://github.com/wh131462/file-preview/issues?q=is%3Aissue) 确认问题尚未被报告。
+
+  - type: dropdown
+    id: package
+    attributes:
+      label: 受影响的包
+      description: 选择遇到问题的包
+      options:
+        - "@eternalheart/react-file-preview"
+        - "@eternalheart/vue-file-preview"
+        - "@eternalheart/file-preview-core"
+        - 多个包 / 不确定
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: 包版本
+      description: 出现问题的版本号
+      placeholder: "例如：1.3.10"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug 描述
+      description: 清晰简洁地描述遇到的问题
+      placeholder: 简要描述 Bug 现象...
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: 复现步骤
+      description: 详细列出复现该 Bug 的步骤
+      placeholder: |
+        1. 引入组件 ...
+        2. 传入文件 ...
+        3. 点击 ...
+        4. 出现错误 ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: 预期行为
+      description: 你期望发生什么
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: 实际行为
+      description: 实际发生了什么（包括错误信息、堆栈跟踪等）
+      render: shell
+
+  - type: dropdown
+    id: browser
+    attributes:
+      label: 浏览器
+      description: 在哪个浏览器中遇到此问题
+      multiple: true
+      options:
+        - Chrome
+        - Firefox
+        - Safari
+        - Edge
+        - 其他 Chromium 内核
+        - 其他
+    validations:
+      required: true
+
+  - type: input
+    id: os
+    attributes:
+      label: 操作系统
+      placeholder: "例如：macOS 14.0、Windows 11、Ubuntu 22.04"
+    validations:
+      required: true
+
+  - type: input
+    id: framework-version
+    attributes:
+      label: 框架版本
+      description: React 或 Vue 的版本号
+      placeholder: "例如：React 18.2.0 或 Vue 3.4.0"
+
+  - type: textarea
+    id: file-info
+    attributes:
+      label: 文件信息（如涉及）
+      description: 出现问题的文件类型、大小、来源等
+      placeholder: |
+        - 类型：PDF
+        - 大小：5MB
+        - 来源：本地上传 / URL / Blob
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: 截图或录屏
+      description: 如有可附上截图或 GIF 录屏（直接拖拽到此处即可）
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: 补充信息
+      description: 其他可能有帮助的信息
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: 提交前确认
+      options:
+        - label: 我已搜索现有 Issue 并确认没有重复
+          required: true
+        - label: 我已查阅 [在线文档](https://wh131462.github.io/file-preview)
+          required: true
+        - label: 我使用的是最新版本，或已尝试升级
+          required: false

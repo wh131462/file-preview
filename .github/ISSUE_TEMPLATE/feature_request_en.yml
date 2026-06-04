@@ -1,0 +1,86 @@
+name: ✨ Feature Request (English)
+description: Suggest a new feature or improvement
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to suggest a feature! Clear descriptions help us evaluate and implement your request.
+
+        > Before submitting, please [search existing issues](https://github.com/wh131462/file-preview/issues?q=is%3Aissue) to make sure your suggestion hasn't been proposed.
+
+  - type: dropdown
+    id: package
+    attributes:
+      label: Scope
+      description: Which packages should this feature apply to?
+      multiple: true
+      options:
+        - "@eternalheart/react-file-preview"
+        - "@eternalheart/vue-file-preview"
+        - "@eternalheart/file-preview-core"
+        - Docs / Examples
+    validations:
+      required: true
+
+  - type: textarea
+    id: scenario
+    attributes:
+      label: Use Case
+      description: Describe the real problem or scenario you're trying to solve
+      placeholder: I'm working on ... and I need to ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Desired Feature
+      description: What feature do you want? Be as specific as possible
+      placeholder: I would like to be able to ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Have you considered other solutions? Why didn't they work?
+
+  - type: textarea
+    id: example
+    attributes:
+      label: API Design Example (Optional)
+      description: If you have ideas, share an example of the expected API
+      render: tsx
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: How important is this feature to you?
+      options:
+        - Low - Nice to have
+        - Medium - Useful but I have a workaround
+        - High - Strongly needed
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Contribution Willingness
+      options:
+        - label: I'd be willing to submit a PR to implement this feature
+        - label: I'd be willing to help test this feature
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Pre-submission Checklist
+      options:
+        - label: I have searched existing issues and confirmed no duplicates
+          required: true
+        - label: I have checked the [documentation](https://wh131462.github.io/file-preview) and confirmed this feature does not exist
+          required: true

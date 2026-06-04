@@ -1,0 +1,47 @@
+name: ❓ Question (English)
+description: Ask a usage question (open-ended discussions should go to Discussions)
+title: "[Question]: "
+labels: ["question"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        For open-ended discussions, please use [GitHub Discussions](https://github.com/wh131462/file-preview/discussions) first.
+
+        > Before submitting, please [search existing issues](https://github.com/wh131462/file-preview/issues?q=is%3Aissue) and [discussions](https://github.com/wh131462/file-preview/discussions).
+
+  - type: dropdown
+    id: package
+    attributes:
+      label: Related Package
+      options:
+        - "@eternalheart/react-file-preview"
+        - "@eternalheart/vue-file-preview"
+        - "@eternalheart/file-preview-core"
+        - Not sure / Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: question
+    attributes:
+      label: Your Question
+      description: Clearly describe what you want to know
+    validations:
+      required: true
+
+  - type: textarea
+    id: tried
+    attributes:
+      label: What You've Tried
+      description: Briefly describe what you've already tried or read
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Pre-submission Checklist
+      options:
+        - label: I have checked the [documentation](https://wh131462.github.io/file-preview)
+          required: true
+        - label: I have searched existing issues and discussions
+          required: true

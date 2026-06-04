@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslator } from '../../i18n/LocaleContext';
+import { RendererError } from '../RendererError';
 // @ts-ignore - pdfjs-dist 类型路径
 import * as pdfjsLib from 'pdfjs-dist/build/pdf.mjs';
 
@@ -256,8 +257,11 @@ export const PdfRenderer: React.FC<PdfRendererProps> = ({
 
   // 监听 URL 变化
   useEffect(() => {
-    loadPdf();
-  }, [loadPdf]);
+    // 只有 URL 有效时才加载（避免空字符串或已 revoke 的 blob URL）
+    if (url) {
+      loadPdf();
+    }
+  }, [url, loadPdf]);
 
   // 监听 numPages 变化，初始化占位符
   useEffect(() => {
@@ -328,9 +332,7 @@ export const PdfRenderer: React.FC<PdfRendererProps> = ({
       className="rfp-flex rfp-flex-col rfp-items-center rfp-w-full rfp-h-full rfp-overflow-auto rfp-py-4 md:rfp-py-8 rfp-px-2 md:rfp-px-4"
     >
       {error && (
-        <div className="rfp-text-fg-secondary rfp-text-center">
-          <p className="rfp-text-lg">{error}</p>
-        </div>
+        <RendererError message={error} />
       )}
 
       {!error && isLoading && (

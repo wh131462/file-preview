@@ -5,6 +5,7 @@ import type { FieldsData } from '@kenjiuno/msgreader';
 import { User, Users, Paperclip, Calendar, Mail, Tag, Clock, Hash } from 'lucide-vue-next';
 import { useTranslator } from '../../composables/useTranslator';
 import { useFetcher } from '../../composables/useRequest';
+import RendererError from '../RendererError.vue';
 
 const props = defineProps<{
   url: string;
@@ -96,7 +97,10 @@ const loadMsg = async () => {
   }
 };
 
-watch(() => props.url, loadMsg, { immediate: true });
+watch(() => props.url, (newUrl) => {
+  // 只有 URL 有效时才加载（避免空字符串或已 revoke 的 blob URL）
+  if (newUrl) loadMsg();
+}, { immediate: true });
 
 const subject = computed(() => fields.value?.subject || '（无主题）');
 const sender = computed(() => {
@@ -159,11 +163,7 @@ const formatAttachmentSize = (size: number | undefined) => {
     />
   </div>
 
-  <div v-else-if="error || !fields" class="vfp-flex vfp-items-center vfp-justify-center vfp-w-full vfp-h-full">
-    <div class="vfp-text-fg-secondary vfp-text-center">
-      <p class="vfp-text-lg">{{ error || t('msg.parse_failed_short') }}</p>
-    </div>
-  </div>
+  <RendererError v-else-if="error || !fields" :message="error || t('msg.parse_failed_short')" />
 
   <div v-else class="vfp-w-full vfp-h-full vfp-overflow-auto" style="background: white">
     <div class="msg-container">

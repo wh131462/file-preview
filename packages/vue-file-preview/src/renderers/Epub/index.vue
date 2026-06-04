@@ -4,6 +4,7 @@ import ePub from '@likecoin/epub-ts';
 import { X } from 'lucide-vue-next';
 import { useTranslator } from '../../composables/useTranslator';
 import { useFetcher } from '../../composables/useRequest';
+import RendererError from '../RendererError.vue';
 
 interface TocItem {
   label: string;
@@ -247,7 +248,10 @@ onMounted(() => {
   reattachScrollListener();
 });
 
-watch(() => props.url, () => loadEpub());
+watch(() => props.url, (newUrl) => {
+  // 只有 URL 有效时才加载（避免空字符串或已 revoke 的 blob URL）
+  if (newUrl) loadEpub();
+});
 
 onBeforeUnmount(() => {
   window.removeEventListener('resize', onResize);
@@ -257,10 +261,8 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="vfp-relative vfp-w-full vfp-h-full vfp-flex vfp-justify-center vfp-overflow-hidden" style="background: #f5f5f0">
-    <div v-if="error" class="vfp-absolute vfp-inset-0 vfp-flex vfp-items-center vfp-justify-center vfp-text-fg-secondary vfp-text-center">
-      <p class="vfp-text-lg">{{ error }}</p>
-    </div>
+  <div class="vfp-relative vfp-w-full vfp-h-full vfp-flex vfp-justify-center vfp-bg-surface-1 vfp-overflow-hidden">
+    <RendererError v-if="error" :message="error" class="vfp-absolute vfp-inset-0" />
 
     <div
       v-if="loading && !error"

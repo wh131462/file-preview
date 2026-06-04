@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { ref, watch, onMounted, onBeforeUnmount } from 'vue';
-import { Presentation } from 'lucide-vue-next';
 import { init } from 'pptx-preview';
 import { useTranslator } from '../../composables/useTranslator';
 import { useFetcher } from '../../composables/useRequest';
+import RendererError from '../RendererError.vue';
 
 const props = withDefaults(
   defineProps<{
@@ -187,8 +187,11 @@ onMounted(() => {
 
 watch(
   () => props.url,
-  () => {
-    loadPptx();
+  (newUrl) => {
+    // 只有 URL 有效时才加载（避免空字符串或已 revoke 的 blob URL）
+    if (newUrl) {
+      loadPptx();
+    }
   }
 );
 
@@ -222,32 +225,12 @@ onBeforeUnmount(() => {
       </div>
     </div>
 
-    <div
+    <RendererError
       v-if="error && !loading"
-      class="vfp-absolute vfp-inset-0 vfp-flex vfp-items-center vfp-justify-center vfp-bg-surface-toolbar vfp-backdrop-blur-sm vfp-z-10"
-    >
-      <div class="vfp-text-center vfp-max-w-sm md:vfp-max-w-md vfp-px-4">
-        <div
-          class="vfp-w-24 vfp-h-24 md:vfp-w-32 md:vfp-h-32 vfp-mx-auto vfp-mb-4 md:vfp-mb-6 vfp-rounded-2xl md:vfp-rounded-3xl vfp-bg-gradient-to-br vfp-from-orange-500 vfp-via-red-500 vfp-to-pink-500 vfp-flex vfp-items-center vfp-justify-center vfp-shadow-2xl"
-        >
-          <Presentation class="vfp-w-12 vfp-h-12 md:vfp-w-16 md:vfp-h-16 vfp-text-fg-primary" />
-        </div>
-        <p class="vfp-text-lg md:vfp-text-xl vfp-text-fg-primary vfp-mb-2 md:vfp-mb-3 vfp-font-medium">
-          {{ t('pptx.load_failed') }}
-        </p>
-        <p class="vfp-text-xs md:vfp-text-sm vfp-text-fg-tertiary vfp-mb-4 md:vfp-mb-6">{{ error }}</p>
-        <a
-          :href="url"
-          download
-          class="vfp-inline-flex vfp-items-center vfp-gap-2 vfp-px-4 vfp-py-2 md:vfp-px-6 md:vfp-py-3 vfp-bg-gradient-to-r vfp-from-purple-500 vfp-to-pink-500 vfp-text-fg-primary vfp-text-sm md:vfp-text-base vfp-rounded-lg md:vfp-rounded-xl hover:vfp-scale-105 vfp-transition-all vfp-shadow-lg"
-        >
-          下载文件
-        </a>
-        <p class="vfp-text-xs vfp-text-fg-muted vfp-mt-3 md:vfp-mt-4">
-          提示：可以使用 Microsoft PowerPoint 或 WPS 打开
-        </p>
-      </div>
-    </div>
+      :message="t('pptx.load_failed')"
+      :detail="error"
+      class="vfp-absolute vfp-inset-0 vfp-bg-surface-toolbar vfp-backdrop-blur-sm vfp-z-10"
+    />
 
     <div
       v-if="!error"

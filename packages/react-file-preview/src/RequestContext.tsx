@@ -54,7 +54,7 @@ export function useFetcher(): Fetcher {
 
 /**
  * 解析 file 的可消费 URL：
- * - 未配置 shouldFetchAsBlob 或返回 false：直接返回 file.url
+ * - 未配置 shouldFetchAsBlob 或返回 false：同步返回 file.url（不入 state，避免切换文件时残留旧值）
  * - 返回 true：用 fetcher 拉成 blob: URL，组件卸载或 file 变化时 revoke
  *
  * 期间返回空字符串（表示 "还没准备好"），调用方应避免空 URL 时挂载到 <img src> 等。
@@ -62,38 +62,38 @@ export function useFetcher(): Fetcher {
 export function useResolvedUrl(file: PreviewFile | undefined): string {
   const { fetcher, shouldFetchAsBlob } = useContext(RequestContext);
   const needBlob = !!(file && shouldFetchAsBlob?.(file));
-  const [resolved, setResolved] = useState<string>(() =>
-    !file ? '' : needBlob ? '' : file.url,
-  );
+  // 仅在需要预取 blob 时才使用 state；其他场景下方法返回值由 file.url 派生，避免 state 跨文件切换时残留
+  const [blobUrl, setBlobUrl] = useState<string>('');
   const createdRef = useRef<string | null>(null);
 
   useEffect(() => {
-    if (!file) {
-      setResolved('');
-      return;
-    }
-    if (!needBlob) {
-      setResolved(file.url);
+    if (!file || !needBlob) {
+      // 离开 blob 模式：清掉上次缓存的 blob URL
+      if (createdRef.current) {
+        URL.revokeObjectURL(createdRef.current);
+        createdRef.current = null;
+      }
+      setBlobUrl('');
       return;
     }
     let cancelled = false;
-    setResolved('');
+    setBlobUrl('');
     fetchAsBlobUrl(file.url, fetcher)
-      .then((blobUrl) => {
+      .then((next) => {
         if (cancelled) {
-          URL.revokeObjectURL(blobUrl);
+          URL.revokeObjectURL(next);
           return;
         }
         if (createdRef.current) {
           URL.revokeObjectURL(createdRef.current);
         }
-        createdRef.current = blobUrl;
-        setResolved(blobUrl);
+        createdRef.current = next;
+        setBlobUrl(next);
       })
       .catch((err) => {
         if (!cancelled) {
           console.error('[file-preview] resolve blob url failed:', err);
-          setResolved(file.url);
+          setBlobUrl(file.url);
         }
       });
     return () => {
@@ -111,5 +111,7 @@ export function useResolvedUrl(file: PreviewFile | undefined): string {
     };
   }, []);
 
-  return resolved;
+  if (!file) return '';
+  if (!needBlob) return file.url;
+  return blobUrl;
 }

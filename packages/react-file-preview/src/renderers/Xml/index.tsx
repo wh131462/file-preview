@@ -3,6 +3,7 @@ import { fetchTextUtf8 } from '@eternalheart/file-preview-core';
 import { useTranslator } from '../../i18n/LocaleContext';
 import { useFetcher } from '../../RequestContext';
 import { useShikiHighlight } from '../../hooks/useShikiHighlight';
+import { RendererError } from '../RendererError';
 
 interface XmlRendererProps {
   url: string;
@@ -59,13 +60,15 @@ export const XmlRenderer: React.FC<XmlRendererProps> = ({ url }) => {
   const { html: highlighted } = useShikiHighlight(content, 'xml');
 
   useEffect(() => {
+    const controller = new AbortController();
     const load = async () => {
       try {
         setLoading(true);
         setError(null);
-        const raw = await fetchTextUtf8(url, { fetcher });
+        const raw = await fetchTextUtf8(url, { fetcher, signal: controller.signal });
         setContent(prettyPrintXml(raw));
-      } catch (err) {
+      } catch (err: any) {
+        if (err.name === 'AbortError') return;
         console.error(err);
         setError(t('xml.load_failed'));
       } finally {
@@ -73,6 +76,7 @@ export const XmlRenderer: React.FC<XmlRendererProps> = ({ url }) => {
       }
     };
     load();
+    return () => controller.abort();
   }, [url]);
 
   if (loading) {
@@ -84,13 +88,7 @@ export const XmlRenderer: React.FC<XmlRendererProps> = ({ url }) => {
   }
 
   if (error) {
-    return (
-      <div className="rfp-flex rfp-items-center rfp-justify-center rfp-w-full rfp-h-full">
-        <div className="rfp-text-fg-secondary rfp-text-center">
-          <p className="rfp-text-lg">{error}</p>
-        </div>
-      </div>
-    );
+    return <RendererError message={error} />;
   }
 
   return (

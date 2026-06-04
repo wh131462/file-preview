@@ -4,6 +4,26 @@ import type { Font as OpentypeFont } from 'opentype.js';
 import { useTranslator } from '../../i18n/LocaleContext';
 import { useFetcher } from '../../RequestContext';
 import { useResolvedTheme } from '../../ThemeContext';
+import { RendererError } from '../RendererError';
+
+// 字体文件魔数：用首 4 字节判断格式，比扩展名更可靠
+const MAGIC_WOFF2 = 0x774f4632; // 'wOF2'
+const MAGIC_WOFF = 0x774f4646;  // 'wOFF'
+const MAGIC_OTTO = 0x4f54544f;  // 'OTTO' (OTF/CFF)
+const MAGIC_TTF1 = 0x00010000;  // TTF
+const MAGIC_TRUE = 0x74727565;  // 'true' (TTF on macOS)
+
+type DetectedFormat = 'woff2' | 'woff' | 'otf' | 'ttf' | 'unknown';
+
+const detectMagic = (buf: ArrayBuffer): DetectedFormat => {
+  if (buf.byteLength < 4) return 'unknown';
+  const m = new DataView(buf).getUint32(0);
+  if (m === MAGIC_WOFF2) return 'woff2';
+  if (m === MAGIC_WOFF) return 'woff';
+  if (m === MAGIC_OTTO) return 'otf';
+  if (m === MAGIC_TTF1 || m === MAGIC_TRUE) return 'ttf';
+  return 'unknown';
+};
 
 export interface FontRendererProps {
   url: string;
@@ -42,6 +62,9 @@ export const FontRenderer: React.FC<FontRendererProps> = ({ url }) => {
   const fontFaceRef = useRef<FontFace | null>(null);
 
   useEffect(() => {
+    // 只有 URL 有效时才加载（避免空字符串或已 revoke 的 blob URL）
+    if (!url) return;
+
     let mounted = true;
 
     const loadFont = async () => {
@@ -61,23 +84,59 @@ export const FontRenderer: React.FC<FontRendererProps> = ({ url }) => {
         // 为 FontFace 克隆一份 ArrayBuffer，避免 opentype.js 的 parse 影响其状态
         const faceBuffer = arrayBuffer.slice(0);
 
+        // 用魔数检测真实格式
+        const magic = detectMagic(arrayBuffer);
+
+        // woff2 需先解压为 ttf 才能交给 opentype.js（opentype.js 不内置 Brotli）
+        // FontFace 那一路仍用原始 woff2 buffer，浏览器原生解压更快
+        let parseBuffer: ArrayBuffer = arrayBuffer;
+        if (magic === 'woff2') {
+          // 用变量包裹 import 说明符，绕开 Rollup 的静态分析，让 'wawoff2' 始终作为运行时 external
+          // （直接 import('wawoff2') 在 vite/rollup 多 output 模式下会被错误地内联打包并丢失 decompress 包装层）
+          const pkg = 'wawoff2';
+          const wawoff2 = (await import(/* @vite-ignore */ pkg)) as { decompress: (b: Uint8Array) => Promise<Uint8Array> };
+          const woff2Bytes = new Uint8Array(arrayBuffer);
+          const ttfBytes = await wawoff2.decompress(woff2Bytes);
+          // 显式拷贝到独立 ArrayBuffer，避开 TS 对 Uint8Array.buffer 的 SharedArrayBuffer 联合类型
+          const ttfArrayBuffer = new ArrayBuffer(ttfBytes.byteLength);
+          new Uint8Array(ttfArrayBuffer).set(ttfBytes);
+          parseBuffer = ttfArrayBuffer;
+          if (!mounted) return;
+        }
+
         // 解析字体文件（opentype.js 容忍度高于浏览器 OTS）
         // parse 返回值与官方 Font 类型存在不一致（opentype.js 类型定义瑕疵），用 unknown 二次转换
-        const fontData = parse(arrayBuffer) as unknown as OpentypeFont;
+        const fontData = parse(parseBuffer) as unknown as OpentypeFont;
 
         if (!fontData) {
           throw new Error('Font data is invalid');
         }
 
         // 提取元数据
-        const names = fontData.names || {};
+        // opentype.js 2.x 的 names 结构为 { windows: {...}, macintosh: {...}, unicode: {...} }，
+        // 字段被嵌在 platform 表下。优先 windows，其次 macintosh，再 unicode，最后回退到 1.x 平铺结构。
+        const rawNames = (fontData.names || {}) as unknown as Record<string, unknown>;
+        const platformTables = ['windows', 'macintosh', 'unicode']
+          .map((k) => rawNames[k])
+          .filter((t): t is Record<string, { en?: string; 'zh-Hans'?: string }> => !!t && typeof t === 'object');
+        const pickName = (key: string): string => {
+          for (const table of platformTables) {
+            const entry = table[key];
+            const val = entry?.en || entry?.['zh-Hans'];
+            if (val) return val;
+          }
+          // 1.x 兼容
+          const flat = rawNames[key] as { en?: string; 'zh-Hans'?: string } | undefined;
+          return flat?.en || flat?.['zh-Hans'] || '';
+        };
+
         const meta: FontMetadata = {
-          family: names.fontFamily?.en || names.fontFamily?.['zh-Hans'] || names.postScriptName?.en || 'Unknown',
-          subfamily: names.fontSubfamily?.en || names.fontSubfamily?.['zh-Hans'] || '',
-          version: names.version?.en || '',
-          designer: names.designer?.en || '',
+          family: pickName('fontFamily') || pickName('postScriptName') || 'Unknown',
+          subfamily: pickName('fontSubfamily'),
+          version: pickName('version'),
+          designer: pickName('designer'),
           glyphCount: fontData.numGlyphs || 0,
-          format: detectFormat(url),
+          format: formatLabel(magic, url),
         };
 
         if (!mounted) return;
@@ -103,12 +162,9 @@ export const FontRenderer: React.FC<FontRendererProps> = ({ url }) => {
         if (mounted) setLoading(false);
       } catch (err) {
         if (!mounted) return;
-        console.error('[FontRenderer] Error:', err);
-        let errorMsg = t('font.load_failed');
-        if (err instanceof Error) {
-          errorMsg = err.message;
-        }
-        setError(errorMsg);
+        // 字体解析错误通常是文件损坏或格式不支持，用 warn 级别记录
+        console.warn('[FontRenderer] Failed to load font:', err instanceof Error ? err.message : String(err));
+        setError(t('font.parse_failed'));
         setLoading(false);
       }
     };
@@ -135,6 +191,18 @@ export const FontRenderer: React.FC<FontRendererProps> = ({ url }) => {
     return formatMap[ext] || 'TTF';
   };
 
+  // 魔数能识别就用魔数标签，识别不出再回退到扩展名
+  const formatLabel = (magic: DetectedFormat, url: string): string => {
+    const labels: Record<DetectedFormat, string | null> = {
+      woff2: 'Web Open Font Format 2 (WOFF2)',
+      woff: 'Web Open Font Format (WOFF)',
+      otf: 'OpenType (OTF)',
+      ttf: 'TrueType (TTF)',
+      unknown: null,
+    };
+    return labels[magic] ?? detectFormat(url);
+  };
+
   if (loading) {
     return (
       <div className="rfp-flex rfp-items-center rfp-justify-center rfp-w-full rfp-h-full">
@@ -144,11 +212,7 @@ export const FontRenderer: React.FC<FontRendererProps> = ({ url }) => {
   }
 
   if (error || !font || !metadata) {
-    return (
-      <div className="rfp-flex rfp-items-center rfp-justify-center rfp-w-full rfp-h-full">
-        <div className="rfp-text-fg-secondary">{error || t('font.parse_failed')}</div>
-      </div>
-    );
+    return <RendererError message={error || t('font.parse_failed')} />;
   }
 
   const displayText = customText || DEFAULT_SAMPLES.mixed;

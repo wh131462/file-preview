@@ -14,6 +14,7 @@ import TreeItem from './TreeItem.vue';
 import type { ZipToolbarStats } from './toolbar';
 import { useTranslator } from '../../composables/useTranslator';
 import { useFetcher } from '../../composables/useRequest';
+import RendererError from '../RendererError.vue';
 
 // 懒加载 FilePreviewContent 以打破循环依赖
 const LazyFilePreviewContent = defineAsyncComponent(
@@ -87,7 +88,10 @@ const load = async () => {
   }
 };
 
-watch(() => props.url, load, { immediate: true });
+watch(() => props.url, (newUrl) => {
+  // 只有 URL 有效时才加载（避免空字符串或已 revoke 的 blob URL）
+  if (newUrl) load();
+}, { immediate: true });
 onBeforeUnmount(() => { revokeCurrent(); });
 
 const totalStats = computed<ZipToolbarStats | null>(() => {
@@ -147,9 +151,7 @@ const previewFiles = computed(() => {
     <div class="vfp-w-12 vfp-h-12 vfp-border-4 vfp-border-line-strong vfp-border-t-spinner-head vfp-rounded-full vfp-animate-spin" />
   </div>
 
-  <div v-else-if="error || !tree" class="vfp-flex vfp-items-center vfp-justify-center vfp-w-full vfp-h-full">
-    <div class="vfp-text-fg-secondary vfp-text-center"><p class="vfp-text-lg">{{ error || t('zip.parse_failed') }}</p></div>
-  </div>
+  <RendererError v-else-if="error || !tree" :message="error || t('zip.parse_failed')" />
 
   <template v-else>
     <ResizableSplit

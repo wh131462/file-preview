@@ -66,6 +66,10 @@ export default defineConfig({
         '@likecoin/epub-ts',
         'jszip',
         'opentype.js',
+        // wawoff2: 含 emscripten 模块 + 600KB wasm base64，
+        // 不能让 Rollup tree-shake（会丢掉 decompress 包装层导致挂死），必须 external
+        'wawoff2',
+        /^wawoff2(\/.*)?$/,
         // Markdown / 数学公式
         'remark-gfm',
         'remark-math',
@@ -77,10 +81,16 @@ export default defineConfig({
         'shiki',
         /^shiki(\/.*)?$/,
         // 视频
-        '@videojs-player/react',
         'video.js',
         // 电子表格
         'x-data-spreadsheet',
+        // 高级图片格式解码库（动态 import，按需加载）
+        'heic2any',
+        '@jsquash/avif',
+        'utif',
+        'ag-psd',
+        'jpeg2000',
+        '@cornerstonejs/codec-openjpeg',
       ],
       output: [
         {

@@ -10,6 +10,7 @@ import {
   File as FileIcon,
   ChevronRight,
 } from 'lucide-react';
+import { RendererError } from '../RendererError';
 import type JSZip from 'jszip';
 import {
   loadZip,
@@ -180,6 +181,9 @@ export const ZipRenderer: React.FC<ZipRendererProps> = ({ url, nestingDepth = 0,
   }, [onStatsChange]);
 
   useEffect(() => {
+    // 只有 URL 有效时才加载（避免空字符串或已 revoke 的 blob URL）
+    if (!url) return;
+
     let cancelled = false;
     const load = async () => {
       try {
@@ -297,13 +301,7 @@ export const ZipRenderer: React.FC<ZipRendererProps> = ({ url, nestingDepth = 0,
   }
 
   if (error || !tree) {
-    return (
-      <div className="rfp-flex rfp-items-center rfp-justify-center rfp-w-full rfp-h-full">
-        <div className="rfp-text-fg-secondary rfp-text-center">
-          <p className="rfp-text-lg">{error || t('zip.parse_failed')}</p>
-        </div>
-      </div>
-    );
+    return <RendererError message={error || t('zip.parse_failed')} />;
   }
 
   // 左侧：文件树

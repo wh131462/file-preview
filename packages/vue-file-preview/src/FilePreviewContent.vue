@@ -219,7 +219,23 @@ watch(
     totalPages.value = 1;
     contentNaturalWidth.value = 0;
     contentNaturalHeight.value = 0;
+    imageResetKey.value = 0;
     navVisible.value = true;
+    // 重置 epub 状态
+    epubCurrent.value = 0;
+    epubTotal.value = 0;
+    epubFullWidth.value = false;
+    // 重置 mobi 状态
+    mobiCurrent.value = 0;
+    mobiTotal.value = 0;
+    mobiFullWidth.value = false;
+    // 重置 zip 状态
+    zipStats.value = null;
+    // 重置 text 状态
+    textWordWrap.value = true;
+    textHtmlPreview.value = false;
+    // 重置 markdown 状态
+    markdownViewMode.value = 'preview';
     if (navHideTimer !== null) {
       clearTimeout(navHideTimer);
     }
@@ -580,6 +596,7 @@ const hasToolGroups = computed(() => toolGroups.value.length > 0);
       ref="contentRef"
       class="vfp-flex-1 vfp-flex vfp-items-center vfp-justify-center vfp-overflow-auto"
       @mousemove="handleMouseMove"
+      :key="currentFile?.url"
     >
       <template v-if="currentFile">
         <component :is="customRendererComponent" v-if="customRendererComponent" :file="currentFile" :ctx="customCtx" />
@@ -591,6 +608,7 @@ const hasToolGroups = computed(() => toolGroups.value.length > 0);
             :rotation="rotation"
             :reset-key="imageResetKey"
             :file-size="currentFile.size"
+            :file="currentFile"
             @zoom-change="handleZoomChange"
             @natural-width-change="(w: number) => (contentNaturalWidth = w)"
             @natural-height-change="(h: number) => (contentNaturalHeight = h)"
@@ -622,7 +640,7 @@ const hasToolGroups = computed(() => toolGroups.value.length > 0);
             @chapter-change="handleMobiChapterChange"
             @full-width-change="(v: boolean) => (mobiFullWidth = v)"
           />
-          <VideoRenderer v-else-if="fileType === 'video'" :url="resolvedUrl" />
+          <VideoRenderer v-else-if="fileType === 'video'" :url="resolvedUrl" :file-name="currentFile?.name" />
           <AudioRenderer
             v-else-if="fileType === 'audio'"
             :url="resolvedUrl"

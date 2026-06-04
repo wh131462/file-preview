@@ -1,9 +1,11 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { ChevronRight, ChevronDown } from 'lucide-react';
+import { parse as parseJsonc } from 'jsonc-parser';
 import { fetchTextUtf8 } from '@eternalheart/file-preview-core';
 import { useTranslator } from '../../i18n/LocaleContext';
 import { useFetcher } from '../../RequestContext';
 import { useResolvedTheme, type ResolvedTheme } from '../../ThemeContext';
+import { RendererError } from '../RendererError';
 
 interface JsonRendererProps {
   url: string;
@@ -170,13 +172,16 @@ export const JsonRenderer: React.FC<JsonRendererProps> = ({ url }) => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    const controller = new AbortController();
     const loadJson = async () => {
       try {
         setLoading(true);
         setError(null);
-        const text = await fetchTextUtf8(url, { fetcher });
-        setData(JSON.parse(text));
-      } catch (err) {
+        const text = await fetchTextUtf8(url, { fetcher, signal: controller.signal });
+        const parsed = parseJsonc(text);
+        setData(parsed);
+      } catch (err: any) {
+        if (err.name === 'AbortError') return;
         setError(t('json.load_failed'));
         console.error(err);
       } finally {
@@ -184,6 +189,7 @@ export const JsonRenderer: React.FC<JsonRendererProps> = ({ url }) => {
       }
     };
     loadJson();
+    return () => controller.abort();
   }, [url]);
 
   if (loading) {
@@ -195,13 +201,7 @@ export const JsonRenderer: React.FC<JsonRendererProps> = ({ url }) => {
   }
 
   if (error) {
-    return (
-      <div className="rfp-flex rfp-items-center rfp-justify-center rfp-w-full rfp-h-full">
-        <div className="rfp-text-fg-secondary rfp-text-center">
-          <p className="rfp-text-lg">{error}</p>
-        </div>
-      </div>
-    );
+    return <RendererError message={error} />;
   }
 
   return (

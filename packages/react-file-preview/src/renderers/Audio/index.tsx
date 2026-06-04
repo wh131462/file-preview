@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Play, Pause, Volume2, VolumeX, Volume1, SkipBack, SkipForward, Repeat } from 'lucide-react';
 import { useAudioPlayer } from '../../hooks/useAudioPlayer';
 import { useTranslator } from '../../i18n/LocaleContext';
+import { RendererError } from '../RendererError';
 
 /** 文本溢出时自动横向滚动 */
 const MarqueeText: React.FC<{
@@ -202,13 +203,7 @@ export const AudioRenderer: React.FC<AudioRendererProps> = ({ url, fileName }) =
   const VolumeIcon = isMuted || volume === 0 ? VolumeX : volume < 0.5 ? Volume1 : Volume2;
 
   if (error) {
-    return (
-      <div className="rfp-flex rfp-items-center rfp-justify-center rfp-w-full rfp-h-full">
-        <div className="rfp-text-fg-secondary rfp-text-center">
-          <p className="rfp-text-lg">{error}</p>
-        </div>
-      </div>
-    );
+    return <RendererError message={error} />;
   }
 
   return (

@@ -3,6 +3,7 @@ import ePub from '@likecoin/epub-ts';
 import { X } from 'lucide-react';
 import { useTranslator } from '../../i18n/LocaleContext';
 import { useFetcher } from '../../RequestContext';
+import { RendererError } from '../RendererError';
 
 // 全局注入 epubjs 容器样式（只注入一次）
 if (typeof document !== 'undefined' && !document.getElementById('rfp-epub-styles')) {
@@ -176,7 +177,8 @@ export const EpubRenderer = forwardRef<EpubRendererHandle, EpubRendererProps>(
 
     useEffect(() => {
       const viewer = viewerRef.current;
-      if (!viewer) return;
+      // 只有 URL 有效时才加载（避免空字符串或已 revoke 的 blob URL）
+      if (!viewer || !url) return;
 
       setLoading(true);
       setError(null);
@@ -357,12 +359,8 @@ export const EpubRenderer = forwardRef<EpubRendererHandle, EpubRendererProps>(
     );
 
     return (
-      <div className="rfp-relative rfp-w-full rfp-h-full rfp-flex rfp-justify-center rfp-bg-[#f5f5f0] rfp-overflow-hidden">
-        {error && (
-          <div className="rfp-absolute rfp-inset-0 rfp-flex rfp-items-center rfp-justify-center rfp-text-fg-secondary rfp-text-center">
-            <p className="rfp-text-lg">{error}</p>
-          </div>
-        )}
+      <div className="rfp-relative rfp-w-full rfp-h-full rfp-flex rfp-justify-center rfp-bg-surface-1 rfp-overflow-hidden">
+        {error && <RendererError message={error} />}
 
         {loading && !error && (
           <div className="rfp-absolute rfp-inset-0 rfp-flex rfp-items-center rfp-justify-center rfp-z-10">

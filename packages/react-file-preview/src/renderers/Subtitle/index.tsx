@@ -8,6 +8,7 @@ import {
 } from '@eternalheart/file-preview-core';
 import { useTranslator } from '../../i18n/LocaleContext';
 import { useFetcher } from '../../RequestContext';
+import { RendererError } from '../RendererError';
 
 interface SubtitleRendererProps {
   url: string;
@@ -38,19 +39,22 @@ export const SubtitleRenderer: React.FC<SubtitleRendererProps> = ({ url, fileNam
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    const controller = new AbortController();
     const load = async () => {
       try {
         setLoading(true);
         setError(null);
-        setText(await fetchTextUtf8(url, { fetcher }));
-      } catch (err) {
-        console.error(err);
+        setText(await fetchTextUtf8(url, { fetcher, signal: controller.signal }));
+      } catch (err: any) {
+        if (err.name === 'AbortError') return;
+        console.warn('[SubtitleRenderer] Failed to load subtitle:', err instanceof Error ? err.message : String(err));
         setError(t('subtitle.load_failed'));
       } finally {
         setLoading(false);
       }
     };
     load();
+    return () => controller.abort();
   }, [url]);
 
   const parsed: SubtitleParseResult | null = useMemo(() => {
@@ -58,7 +62,8 @@ export const SubtitleRenderer: React.FC<SubtitleRendererProps> = ({ url, fileNam
     try {
       return parseSubtitle(text, getFormat(fileName));
     } catch (err) {
-      console.error(err);
+      // 字幕解析失败通常是格式不支持或文件损坏，用 warn 级别记录
+      console.warn('[SubtitleRenderer] Failed to parse subtitle:', err instanceof Error ? err.message : String(err));
       return null;
     }
   }, [text, fileName]);
@@ -72,13 +77,7 @@ export const SubtitleRenderer: React.FC<SubtitleRendererProps> = ({ url, fileNam
   }
 
   if (error || !parsed) {
-    return (
-      <div className="rfp-flex rfp-items-center rfp-justify-center rfp-w-full rfp-h-full rfp-bg-[#0f0f12]">
-        <div className="rfp-text-fg-secondary rfp-text-center">
-          <p className="rfp-text-lg">{error || t('subtitle.parse_failed')}</p>
-        </div>
-      </div>
-    );
+    return <RendererError message={error || t('subtitle.parse_failed')} />;
   }
 
   const isLyric = parsed.format === 'lrc' || parsed.format === 'elrc';

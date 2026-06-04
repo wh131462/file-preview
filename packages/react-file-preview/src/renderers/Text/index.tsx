@@ -3,6 +3,7 @@ import { fetchTextUtf8, getLanguageFromFileName } from '@eternalheart/file-previ
 import { useTranslator } from '../../i18n/LocaleContext';
 import { useFetcher } from '../../RequestContext';
 import { useShikiHighlight } from '../../hooks/useShikiHighlight';
+import { RendererError } from '../RendererError';
 
 interface TextRendererProps {
   url: string;
@@ -29,13 +30,15 @@ export const TextRenderer: React.FC<TextRendererProps> = ({
   );
 
   useEffect(() => {
+    const controller = new AbortController();
     const loadText = async () => {
       try {
         setLoading(true);
         setError(null);
-        const text = await fetchTextUtf8(url, { fetcher });
+        const text = await fetchTextUtf8(url, { fetcher, signal: controller.signal });
         setContent(text);
-      } catch (err) {
+      } catch (err: any) {
+        if (err.name === 'AbortError') return;
         setError(t('text.load_failed'));
         console.error(err);
       } finally {
@@ -44,6 +47,7 @@ export const TextRenderer: React.FC<TextRendererProps> = ({
     };
 
     loadText();
+    return () => controller.abort();
   }, [url]);
 
   if (loading) {
@@ -55,13 +59,7 @@ export const TextRenderer: React.FC<TextRendererProps> = ({
   }
 
   if (error) {
-    return (
-      <div className="rfp-flex rfp-items-center rfp-justify-center rfp-w-full rfp-h-full">
-        <div className="rfp-text-fg-secondary rfp-text-center">
-          <p className="rfp-text-lg">{error}</p>
-        </div>
-      </div>
-    );
+    return <RendererError message={error} />;
   }
 
   // HTML 预览模式

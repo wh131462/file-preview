@@ -3,6 +3,7 @@ import { ref, computed, onMounted, onBeforeUnmount, toRef } from 'vue';
 import { Play, Pause, Volume2, VolumeX, Volume1, SkipBack, SkipForward, Repeat } from 'lucide-vue-next';
 import { useAudioPlayer } from '../../composables/useAudioPlayer';
 import { useTranslator } from '../../composables/useTranslator';
+import RendererError from '../RendererError.vue';
 
 const props = defineProps<{
   url: string;
@@ -71,11 +72,7 @@ const handleVolumeLeave = () => {
 </script>
 
 <template>
-  <div v-if="error" class="vfp-flex vfp-items-center vfp-justify-center vfp-w-full vfp-h-full">
-    <div class="vfp-text-fg-secondary vfp-text-center">
-      <p class="vfp-text-lg">{{ error }}</p>
-    </div>
-  </div>
+  <RendererError v-if="error" :message="error" />
 
   <div
     v-else

@@ -2,12 +2,18 @@ import { useRef, useEffect, useState } from 'react';
 import videojs from 'video.js';
 import 'video.js/dist/video-js.css';
 import { useTranslator } from '../../i18n/LocaleContext';
+import { RendererError } from '../RendererError';
 
 type VideoJsPlayer = ReturnType<typeof videojs>;
 
 interface VideoRendererProps {
   url: string;
+  fileName?: string;
 }
+
+// 浏览器原生不支持的视频容器（无论编码，<video> 都无法播放）
+// — 这些扩展名直接短路 videojs 初始化，给出明确提示
+const BROWSER_UNSUPPORTED_EXTS = new Set(['avi', 'wmv', 'flv']);
 
 // 根据 URL 获取视频 MIME 类型
 const getVideoType = (url: string): string => {
@@ -27,14 +33,37 @@ const getVideoType = (url: string): string => {
   return typeMap[ext] || 'video/mp4';
 };
 
-export const VideoRenderer: React.FC<VideoRendererProps> = ({ url }) => {
+// 获取视频文件扩展名（优先用文件名，blob/HTTP URL 都拿不到真扩展名）
+const getVideoExt = (url: string, fileName?: string): string => {
+  const source = fileName || url;
+  return source.split('.').pop()?.toLowerCase().split('?')[0] || '';
+};
+
+interface ErrorState {
+  title: string;
+  detail: string;
+}
+
+export const VideoRenderer: React.FC<VideoRendererProps> = ({ url, fileName }) => {
   const t = useTranslator();
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<ErrorState | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const videoRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<VideoJsPlayer | null>(null);
 
   useEffect(() => {
+    const videoExt = getVideoExt(url, fileName);
+
+    // 已知浏览器不支持的容器：跳过 videojs 初始化，直接展示友好提示
+    if (BROWSER_UNSUPPORTED_EXTS.has(videoExt)) {
+      setError({
+        title: t('video.unsupported_title'),
+        detail: t('video.unsupported_detail', { format: videoExt.toUpperCase() }),
+      });
+      setIsLoading(false);
+      return;
+    }
+
     // 确保 Video.js 播放器只初始化一次
     if (!playerRef.current && videoRef.current) {
       const videoElement = document.createElement('video-js');
@@ -43,13 +72,18 @@ export const VideoRenderer: React.FC<VideoRendererProps> = ({ url }) => {
 
       const videoType = getVideoType(url);
 
-      // 为 MOV 格式提供多个 MIME 类型作为备用
-      const sources = videoType === 'video/quicktime'
-        ? [
+      // 为特定格式提供多个 MIME 类型作为备用
+      let sources: Array<{ src: string; type: string }>;
+
+      if (videoType === 'video/quicktime') {
+        // MOV 格式 fallback
+        sources = [
           { src: url, type: 'video/quicktime' },
-          { src: url, type: 'video/mp4' } // 备用方案
-        ]
-        : [{ src: url, type: videoType }];
+          { src: url, type: 'video/mp4' }
+        ];
+      } else {
+        sources = [{ src: url, type: videoType }];
+      }
 
       const player = videojs(videoElement, {
         controls: true,
@@ -93,15 +127,30 @@ export const VideoRenderer: React.FC<VideoRendererProps> = ({ url }) => {
       });
 
       player.on('error', () => {
-        const error = player.error();
-        console.error('Video.js error:', error);
-        setError(t('video.load_failed_with_error', { error: error?.message || t('common.unknown_error') }));
+        const err = player.error();
+        // 视频加载错误是正常情况（格式不支持、编解码器缺失等），用 warn 级别记录
+        console.warn('[VideoRenderer] Video playback error:', err?.message || 'Unknown error');
+
+        // MEDIA_ERR_SRC_NOT_SUPPORTED（code=4）：编码或容器层面浏览器解不了
+        if (err?.code === 4) {
+          setError({
+            title: t('video.unsupported_title'),
+            detail: t('video.unsupported_detail', {
+              format: videoExt ? videoExt.toUpperCase() : t('common.unknown_error'),
+            }),
+          });
+        } else {
+          setError({
+            title: t('video.load_failed'),
+            detail: err?.message || t('common.unknown_error'),
+          });
+        }
         setIsLoading(false);
       });
 
       playerRef.current = player;
     }
-  }, [url]);
+  }, [url, fileName, t]);
 
   // 清理函数
   useEffect(() => {
@@ -116,19 +165,7 @@ export const VideoRenderer: React.FC<VideoRendererProps> = ({ url }) => {
   }, []);
 
   if (error) {
-    return (
-      <div className="rfp-flex rfp-items-center rfp-justify-center rfp-w-full rfp-h-full">
-        <div className="rfp-text-center">
-          <div className="rfp-w-16 rfp-h-16 rfp-mx-auto rfp-mb-4 rfp-rounded-full rfp-bg-red-500/10 rfp-flex rfp-items-center rfp-justify-center">
-            <svg className="rfp-w-8 rfp-h-8 rfp-text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
-          </div>
-          <p className="rfp-text-lg rfp-font-medium rfp-text-fg-primary rfp-mb-2">{t('video.load_failed')}</p>
-          <p className="rfp-text-sm rfp-text-fg-tertiary">{error}</p>
-        </div>
-      </div>
-    );
+    return <RendererError message={error.title} detail={error.detail} />;
   }
 
   return (

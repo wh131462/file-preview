@@ -5,6 +5,7 @@ import { codeToHtml } from 'shiki';
 import { useTranslator } from '../../composables/useTranslator';
 import { useFetcher } from '../../composables/useRequest';
 import { useResolvedTheme } from '../../composables/useResolvedTheme';
+import RendererError from '../RendererError.vue';
 
 const props = withDefaults(defineProps<{
   url: string;
@@ -70,11 +71,7 @@ watch(resolvedTheme, () => {
     />
   </div>
 
-  <div v-else-if="error" class="vfp-flex vfp-items-center vfp-justify-center vfp-w-full vfp-h-full">
-    <div class="vfp-text-fg-secondary vfp-text-center">
-      <p class="vfp-text-lg">{{ error }}</p>
-    </div>
-  </div>
+  <RendererError v-else-if="error" :message="error" />
 
   <!-- HTML 预览模式 -->
   <div v-else-if="htmlPreview && language === 'html'" class="vfp-w-full vfp-h-full vfp-bg-surface-toolbar">

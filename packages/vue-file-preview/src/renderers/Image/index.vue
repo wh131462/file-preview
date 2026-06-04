@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { ref, watch, onMounted, onBeforeUnmount, computed } from 'vue';
-import { formatFileSize } from '@eternalheart/file-preview-core';
+import { Loader2 } from 'lucide-vue-next';
+import { formatFileSize, detectImageFormat, getLoaderForMimeType } from '@eternalheart/file-preview-core';
+import type { PreviewFile } from '@eternalheart/file-preview-core';
 import { useTranslator } from '../../composables/useTranslator';
+import RendererError from '../RendererError.vue';
 
 const props = defineProps<{
   url: string;
@@ -9,6 +12,7 @@ const props = defineProps<{
   rotation: number;
   resetKey?: number;
   fileSize?: number;
+  file?: PreviewFile | File;
 }>();
 
 const emit = defineEmits<{
@@ -21,6 +25,13 @@ const { t } = useTranslator();
 
 const loaded = ref(false);
 const error = ref<string | null>(null);
+const decoding = ref(false);
+const decodeProgress = ref(0);
+const decodeError = ref<string | null>(null);
+const imageSrc = ref<string>('');
+const currentPage = ref(1);
+const totalPages = ref(1);
+const isRawThumbnail = ref(false);
 const position = ref({ x: 0, y: 0 });
 const isDragging = ref(false);
 let dragStart = { x: 0, y: 0 };
@@ -29,16 +40,169 @@ const naturalSize = ref({ width: 0, height: 0 });
 
 const imgRef = ref<HTMLImageElement | null>(null);
 const containerRef = ref<HTMLDivElement | null>(null);
+let blobUrl: string | null = null;
+let fileBlobCache: Blob | null = null;
+let loaderCache: any = null;
+const pageCache = new Map<number, string>();
 
+// 解码逻辑
 watch(
-  () => props.url,
-  () => {
+  () => [props.url, props.file] as const,
+  async () => {
+    // 重置状态：清空 src 以避免上一张图片的 onLoad/onError 误触发到新文件
+    imageSrc.value = '';
     loaded.value = false;
     error.value = null;
+    decoding.value = false;
+    decodeError.value = null;
+    decodeProgress.value = 0;
     position.value = { x: 0, y: 0 };
     internalZoom.value = 1;
-  }
+    currentPage.value = 1;
+    totalPages.value = 1;
+    isRawThumbnail.value = false;
+
+    // 清理旧的 blob URL 与缓存
+    if (blobUrl) {
+      URL.revokeObjectURL(blobUrl);
+      blobUrl = null;
+    }
+    pageCache.forEach((url) => URL.revokeObjectURL(url));
+    pageCache.clear();
+    fileBlobCache = null;
+    loaderCache = null;
+
+    // 如果没有 file 对象，直接使用 url
+    if (!props.file) {
+      imageSrc.value = props.url;
+      return;
+    }
+
+    try {
+      // 检测图片格式
+      const mimeType = await detectImageFormat(props.file);
+      const loader = await getLoaderForMimeType(mimeType);
+
+      // 如果不需要解码，直接使用原 URL
+      if (!loader || !(await loader.needsDecode(mimeType))) {
+        imageSrc.value = props.url;
+        return;
+      }
+
+      // 需要解码
+      decoding.value = true;
+
+      // 获取文件 Blob
+      let fileBlob: Blob;
+      if (props.file instanceof Blob) {
+        fileBlob = props.file;
+      } else {
+        const response = await fetch(props.url);
+        if (!response.ok) throw new Error('Failed to fetch file');
+        fileBlob = await response.blob();
+      }
+
+      // 缓存 Blob 与 loader
+      fileBlobCache = fileBlob;
+      loaderCache = loader;
+
+      // 标记 RAW 缩略图模式
+      const isRaw = mimeType.startsWith('image/x-');
+      if (isRaw) {
+        isRawThumbnail.value = true;
+      }
+
+      // 获取元数据（用于检测多页 TIFF）
+      if (loader.getMetadata) {
+        try {
+          const metadata = await loader.getMetadata(fileBlob);
+          if (metadata.pageCount && metadata.pageCount > 1) {
+            totalPages.value = metadata.pageCount;
+          }
+        } catch {
+          // 忽略元数据获取失败
+        }
+      }
+
+      // 调用 loader 解码（第 1 页 / 缩略图模式）
+      const decodedBlob = await loader.decode(fileBlob, {
+        page: 1,
+        fullQuality: false,
+        onProgress: (percent: number) => {
+          decodeProgress.value = percent;
+        },
+      });
+
+      // 生成 blob URL
+      const url = typeof decodedBlob === 'string'
+        ? decodedBlob
+        : URL.createObjectURL(decodedBlob);
+
+      blobUrl = url;
+      pageCache.set(1, url);
+      imageSrc.value = url;
+      decoding.value = false;
+    } catch (err: any) {
+      decodeError.value = err?.message || '解码失败';
+      decoding.value = false;
+    }
+  },
+  { immediate: true }
 );
+
+// 多页 TIFF 翻页
+const handlePageChange = async (page: number) => {
+  if (!fileBlobCache || !loaderCache) return;
+  if (page < 1 || page > totalPages.value) return;
+
+  // 命中缓存：直接切换
+  const cached = pageCache.get(page);
+  if (cached) {
+    currentPage.value = page;
+    imageSrc.value = cached;
+    return;
+  }
+
+  // 解码新页面
+  decoding.value = true;
+  try {
+    const decodedBlob = await loaderCache.decode(fileBlobCache, { page });
+    const url = typeof decodedBlob === 'string'
+      ? decodedBlob
+      : URL.createObjectURL(decodedBlob);
+
+    // LRU：缓存超过 10 页时删除最早的
+    if (pageCache.size >= 10) {
+      const firstKey = pageCache.keys().next().value;
+      if (firstKey !== undefined) {
+        const oldUrl = pageCache.get(firstKey);
+        if (oldUrl) URL.revokeObjectURL(oldUrl);
+        pageCache.delete(firstKey);
+      }
+    }
+
+    pageCache.set(page, url);
+    currentPage.value = page;
+    imageSrc.value = url;
+    decoding.value = false;
+  } catch (err: any) {
+    decodeError.value = err?.message || '翻页解码失败';
+    decoding.value = false;
+  }
+};
+
+// Cleanup on unmount
+onBeforeUnmount(() => {
+  if (blobUrl) {
+    URL.revokeObjectURL(blobUrl);
+  }
+  pageCache.forEach((url) => URL.revokeObjectURL(url));
+  pageCache.clear();
+  const container = containerRef.value;
+  if (container) {
+    container.removeEventListener('wheel', handleWheelNative);
+  }
+});
 
 watch(
   () => props.zoom,
@@ -163,7 +327,7 @@ const transformStyle = computed(() => ({
   transform: `translate(${position.value.x}px, ${position.value.y}px) scale(${internalZoom.value}) rotate(${props.rotation}deg)`,
   transformOrigin: 'center',
   transition: isDragging.value ? 'none' : 'transform 0.3s ease-out',
-  opacity: loaded.value ? 1 : 0,
+  opacity: loaded.value && !error.value && !decodeError.value ? 1 : 0,
 }));
 
 const sizeText = computed(() => {
@@ -182,21 +346,34 @@ const sizeText = computed(() => {
     @mouseup="handleMouseUp"
     @mouseleave="handleMouseUp"
   >
-    <div v-if="!loaded && !error" class="vfp-flex vfp-items-center vfp-justify-center">
+    <!-- 解码中 -->
+    <div
+      v-if="decoding"
+      class="vfp-absolute vfp-inset-0 vfp-flex vfp-flex-col vfp-items-center vfp-justify-center vfp-bg-surface-1/80 vfp-z-10"
+    >
+      <Loader2 class="vfp-w-12 vfp-h-12 vfp-text-fg-primary vfp-animate-spin" />
+      <p class="vfp-mt-4 vfp-text-fg-secondary">
+        正在解码... <span v-if="decodeProgress > 0">{{ Math.round(decodeProgress) }}%</span>
+      </p>
+    </div>
+
+    <!-- 解码错误 -->
+    <RendererError v-if="decodeError" :message="t('image.decode_failed')" :detail="decodeError" />
+
+    <div v-if="!loaded && !error && !decoding && !decodeError" class="vfp-flex vfp-items-center vfp-justify-center">
       <div
         class="vfp-w-12 vfp-h-12 vfp-border-4 vfp-border-line-strong vfp-border-t-spinner-head vfp-rounded-full vfp-animate-spin"
       />
     </div>
 
-    <div v-if="error" class="vfp-text-fg-secondary vfp-text-center">
-      <p class="vfp-text-lg">{{ error }}</p>
-    </div>
+    <RendererError v-if="error" :message="error" />
 
     <img
+      v-if="imageSrc"
       ref="imgRef"
-      :src="url"
+      :src="imageSrc"
       alt="Preview"
-      :class="['vfp-max-w-none vfp-select-none', !loaded && 'vfp-hidden']"
+      :class="['vfp-max-w-none vfp-select-none', (!loaded || error || decodeError) && 'vfp-hidden']"
       :style="transformStyle"
       :draggable="false"
       @load="handleLoad"
@@ -209,6 +386,32 @@ const sizeText = computed(() => {
       class="vfp-absolute vfp-bottom-2 vfp-right-3 vfp-text-[10px] vfp-text-fg-disabled hover:vfp-text-fg-secondary vfp-transition-colors vfp-pointer-events-auto vfp-select-none vfp-cursor-default"
     >
       {{ naturalSize.width }} × {{ naturalSize.height }}{{ sizeText }}
+    </div>
+
+    <!-- 多页 TIFF 翻页器 -->
+    <div
+      v-if="totalPages > 1"
+      class="vfp-absolute vfp-bottom-2 vfp-left-1/2 -vfp-translate-x-1/2 vfp-flex vfp-items-center vfp-gap-2 vfp-px-3 vfp-py-1.5 vfp-bg-surface-toolbar vfp-border vfp-border-line vfp-rounded-lg vfp-text-sm vfp-text-fg-primary vfp-shadow-md"
+    >
+      <button
+        type="button"
+        :disabled="currentPage <= 1 || decoding"
+        class="vfp-px-2 vfp-py-0.5 vfp-rounded hover:vfp-bg-surface-nav-hover disabled:vfp-opacity-40 disabled:vfp-cursor-not-allowed"
+        @click="handlePageChange(currentPage - 1)"
+      >
+        上一页
+      </button>
+      <span class="vfp-text-fg-secondary vfp-tabular-nums">
+        {{ currentPage }} / {{ totalPages }}
+      </span>
+      <button
+        type="button"
+        :disabled="currentPage >= totalPages || decoding"
+        class="vfp-px-2 vfp-py-0.5 vfp-rounded hover:vfp-bg-surface-nav-hover disabled:vfp-opacity-40 disabled:vfp-cursor-not-allowed"
+        @click="handlePageChange(currentPage + 1)"
+      >
+        下一页
+      </button>
     </div>
   </div>
 </template>

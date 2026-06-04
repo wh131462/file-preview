@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import mammoth from 'mammoth';
 import { useTranslator } from '../../i18n/LocaleContext';
 import { useFetcher } from '../../RequestContext';
+import { RendererError } from '../RendererError';
 
 interface DocxRendererProps {
   url: string;
@@ -30,6 +31,9 @@ export const DocxRenderer: React.FC<DocxRendererProps> = ({ url }) => {
   const measureRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // 只有 URL 有效时才加载（避免空字符串或已 revoke 的 blob URL）
+    if (!url) return;
+
     const loadDocx = async () => {
       setLoading(true);
       setError(null);
@@ -104,13 +108,7 @@ export const DocxRenderer: React.FC<DocxRendererProps> = ({ url }) => {
   }
 
   if (error) {
-    return (
-      <div className="rfp-flex rfp-items-center rfp-justify-center rfp-w-full rfp-h-full">
-        <div className="rfp-text-fg-secondary rfp-text-center">
-          <p className="rfp-text-lg">{error}</p>
-        </div>
-      </div>
-    );
+    return <RendererError message={error} />;
   }
 
   return (

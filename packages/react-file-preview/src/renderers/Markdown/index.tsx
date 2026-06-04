@@ -9,6 +9,7 @@ import { fetchTextUtf8 } from '@eternalheart/file-preview-core';
 import { useTranslator } from '../../i18n/LocaleContext';
 import { useFetcher } from '../../RequestContext';
 import { useShikiHighlight } from '../../hooks/useShikiHighlight';
+import { RendererError } from '../RendererError';
 import 'katex/dist/katex.min.css';
 
 interface MarkdownRendererProps {
@@ -103,13 +104,15 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ url, viewMod
   );
 
   useEffect(() => {
+    const controller = new AbortController();
     const loadMarkdown = async () => {
       try {
         setLoading(true);
         setError(null);
-        const text = await fetchTextUtf8(url, { fetcher });
+        const text = await fetchTextUtf8(url, { fetcher, signal: controller.signal });
         setContent(text);
-      } catch (err) {
+      } catch (err: any) {
+        if (err.name === 'AbortError') return;
         setError(t('markdown.load_failed'));
         console.error(err);
       } finally {
@@ -118,6 +121,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ url, viewMod
     };
 
     loadMarkdown();
+    return () => controller.abort();
   }, [url, fetcher, t]);
 
   if (loading) {
@@ -129,13 +133,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ url, viewMod
   }
 
   if (error) {
-    return (
-      <div className="rfp-flex rfp-items-center rfp-justify-center rfp-w-full rfp-h-full">
-        <div className="rfp-text-fg-secondary rfp-text-center">
-          <p className="rfp-text-lg">{error}</p>
-        </div>
-      </div>
-    );
+    return <RendererError message={error} />;
   }
 
   // 源码视图
@@ -167,32 +165,35 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ url, viewMod
               code({ node, inline, className, children, ...props }: any) {
                 const match = /language-(\w+)/.exec(className || '');
                 const codeString = String(children).replace(/\n$/, '');
-                if (!inline && match) {
-                  // 有语言标注的代码块 - shiki 高亮
-                  return <ShikiCodeBlock code={codeString} lang={match[1]} />;
-                }
-                if (!inline) {
-                  // 无语言标注的代码块 - 纯文本暗色显示
+
+                // 行内代码 - 返回纯 <code>
+                if (inline) {
                   return (
-                    <div className="rfp-relative rfp-group rfp-my-4">
-                      <FloatingCopyButton text={codeString} />
-                      <pre
-                        className="rfp-m-0 rfp-rounded-md rfp-border rfp-border-line-weak rfp-overflow-x-auto rfp-p-4 rfp-bg-code-bg"
-                        style={{ fontSize: '13px', lineHeight: '1.5' }}
-                      >
-                        <code className="rfp-font-mono rfp-text-code-fg rfp-text-sm">{children}</code>
-                      </pre>
-                    </div>
+                    <code
+                      className="rfp-bg-surface-2 rfp-px-1.5 rfp-py-0.5 rfp-rounded rfp-text-sm rfp-font-mono rfp-text-fg-primary rfp-border rfp-border-line-weak"
+                      {...props}
+                    >
+                      {children}
+                    </code>
                   );
                 }
-                // 行内代码
+
+                // 代码块 - 有语言标注
+                if (match) {
+                  return <ShikiCodeBlock code={codeString} lang={match[1]} />;
+                }
+
+                // 代码块 - 无语言标注
                 return (
-                  <code
-                    className="rfp-bg-surface-2 rfp-px-1.5 rfp-py-0.5 rfp-rounded rfp-text-sm rfp-font-mono rfp-text-fg-primary rfp-border rfp-border-line-weak"
-                    {...props}
-                  >
-                    {children}
-                  </code>
+                  <div className="rfp-relative rfp-group rfp-my-4">
+                    <FloatingCopyButton text={codeString} />
+                    <pre
+                      className="rfp-m-0 rfp-rounded-md rfp-border rfp-border-line-weak rfp-overflow-x-auto rfp-p-4 rfp-bg-code-bg"
+                      style={{ fontSize: '13px', lineHeight: '1.5' }}
+                    >
+                      <code className="rfp-font-mono rfp-text-code-fg rfp-text-sm">{children}</code>
+                    </pre>
+                  </div>
                 );
               },
               h1: ({ children }) => (

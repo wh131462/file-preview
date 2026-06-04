@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Presentation } from 'lucide-react';
 import { init } from 'pptx-preview';
 import { useTranslator } from '../../i18n/LocaleContext';
 import { useFetcher } from '../../RequestContext';
+import { RendererError } from '../RendererError';
 
 interface PptxRendererProps {
   url: string;
@@ -130,6 +130,9 @@ export const PptxRenderer: React.FC<PptxRendererProps> = ({ url, tiled = true })
   }, [calculateDimensions, reinitializePreviewer]);
 
   useEffect(() => {
+    // 只有 URL 有效时才加载（避免空字符串或已 revoke 的 blob URL）
+    if (!url) return;
+
     let isMounted = true;
     let timeoutId: ReturnType<typeof setTimeout> | null = null;
 
@@ -307,30 +310,7 @@ export const PptxRenderer: React.FC<PptxRendererProps> = ({ url, tiled = true })
 
       {/* 错误状态 - 绝对定位覆盖 */}
       {error && !loading && (
-        <div className="rfp-absolute rfp-inset-0 rfp-flex rfp-items-center rfp-justify-center rfp-bg-surface-toolbar rfp-backdrop-blur-sm rfp-z-10">
-          <div className="rfp-text-center rfp-max-w-sm md:rfp-max-w-md rfp-px-4">
-            <div className="rfp-w-24 rfp-h-24 md:rfp-w-32 md:rfp-h-32 rfp-mx-auto rfp-mb-4 md:rfp-mb-6 rfp-rounded-2xl md:rfp-rounded-3xl rfp-bg-gradient-to-br rfp-from-orange-500 rfp-via-red-500 rfp-to-pink-500 rfp-flex rfp-items-center rfp-justify-center rfp-shadow-2xl">
-              <Presentation className="rfp-w-12 rfp-h-12 md:rfp-w-16 md:rfp-h-16 rfp-text-fg-primary" />
-            </div>
-            <p className="rfp-text-lg md:rfp-text-xl rfp-text-fg-primary rfp-mb-2 md:rfp-mb-3 rfp-font-medium">{t('pptx.load_failed')}</p>
-            <p className="rfp-text-xs md:rfp-text-sm rfp-text-fg-tertiary rfp-mb-4 md:rfp-mb-6">
-              {error}
-            </p>
-            <a
-              href={url}
-              download
-              className="rfp-inline-flex rfp-items-center rfp-gap-2 rfp-px-4 rfp-py-2 md:rfp-px-6 md:rfp-py-3 rfp-bg-gradient-to-r rfp-from-purple-500 rfp-to-pink-500 rfp-text-fg-primary rfp-text-sm md:rfp-text-base rfp-rounded-lg md:rfp-rounded-xl hover:rfp-scale-105 rfp-transition-all rfp-shadow-lg"
-            >
-              <svg className="rfp-w-4 rfp-h-4 md:rfp-w-5 md:rfp-h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-              </svg>
-              {t('common.download')}
-            </a>
-            <p className="rfp-text-xs rfp-text-fg-muted rfp-mt-3 md:rfp-mt-4">
-              提示：可以使用 Microsoft PowerPoint 或 WPS 打开
-            </p>
-          </div>
-        </div>
+        <RendererError message={t('pptx.load_failed')} detail={error} />
       )}
 
       {/* PPT 容器 - 仅在非错误状态下渲染 */}

@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
+import { parse as parseJsonc } from 'jsonc-parser';
 import { fetchTextUtf8 } from '@eternalheart/file-preview-core';
 import { useTranslator } from '../../composables/useTranslator';
 import { useFetcher } from '../../composables/useRequest';
+import RendererError from '../RendererError.vue';
 
 const props = defineProps<{
   url: string;
@@ -21,7 +23,7 @@ const loadJson = async () => {
   error.value = null;
   try {
     const text = await fetchTextUtf8(props.url, { fetcher: fetcher.value });
-    data.value = JSON.parse(text);
+    data.value = parseJsonc(text);
   } catch (err) {
     console.error(err);
     error.value = t.value('json.load_failed');
@@ -38,11 +40,7 @@ watch(() => props.url, loadJson, { immediate: true });
     <div class="vfp-w-12 vfp-h-12 vfp-border-4 vfp-border-line-strong vfp-border-t-spinner-head vfp-rounded-full vfp-animate-spin" />
   </div>
 
-  <div v-else-if="error" class="vfp-flex vfp-items-center vfp-justify-center vfp-w-full vfp-h-full">
-    <div class="vfp-text-fg-secondary vfp-text-center">
-      <p class="vfp-text-lg">{{ error }}</p>
-    </div>
-  </div>
+  <RendererError v-else-if="error" :message="error" />
 
   <div v-else class="vfp-w-full vfp-h-full vfp-overflow-auto vfp-bg-code-bg vfp-py-3 vfp-pr-4">
     <JsonNode :value="data" :depth="0" :default-expanded="true" />

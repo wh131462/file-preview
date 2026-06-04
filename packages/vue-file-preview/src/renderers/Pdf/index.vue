@@ -4,9 +4,16 @@ import { configurePdfWorker } from '@eternalheart/file-preview-core';
 // @ts-ignore - pdfjs-dist 类型路径
 import * as pdfjsLib from 'pdfjs-dist/build/pdf.mjs';
 import { useTranslator } from '../../composables/useTranslator';
+import RendererError from '../RendererError.vue';
 
 // 在模块加载时配置 PDF.js worker（默认走 CDN）
 configurePdfWorker(pdfjsLib);
+
+defineOptions({
+  components: {
+    RendererError,
+  },
+});
 
 interface PdfPageProxy {
   getViewport(opts: { scale: number }): { width: number; height: number };
@@ -275,8 +282,11 @@ onMounted(() => {
 
 watch(
   () => props.url,
-  () => {
-    loadPdf();
+  (newUrl) => {
+    // 只有 URL 有效时才加载（避免空字符串或已 revoke 的 blob URL）
+    if (newUrl) {
+      loadPdf();
+    }
   }
 );
 
@@ -320,9 +330,7 @@ onBeforeUnmount(() => {
     ref="containerRef"
     class="vfp-flex vfp-flex-col vfp-items-center vfp-w-full vfp-h-full vfp-overflow-auto vfp-py-4 md:vfp-py-8 vfp-px-2 md:vfp-px-4"
   >
-    <div v-if="error" class="vfp-text-fg-secondary vfp-text-center">
-      <p class="vfp-text-lg">{{ error }}</p>
-    </div>
+    <RendererError v-if="error" :message="error" />
 
     <div v-if="!error && numPages === 0" class="vfp-flex vfp-items-center vfp-justify-center vfp-min-h-screen">
       <div

@@ -3,6 +3,7 @@ import { ref, watch, nextTick } from 'vue';
 import mammoth from 'mammoth';
 import { useTranslator } from '../../composables/useTranslator';
 import { useFetcher } from '../../composables/useRequest';
+import RendererError from '../RendererError.vue';
 
 const PAGE_HEIGHT = 1123;
 const PAGE_PADDING_Y = 60;
@@ -73,7 +74,10 @@ const paginate = () => {
   pages.value = result.map((blocks) => blocks.join(''));
 };
 
-watch(() => props.url, loadDocx, { immediate: true });
+watch(() => props.url, (newUrl) => {
+  // 只有 URL 有效时才加载（避免空字符串或已 revoke 的 blob URL）
+  if (newUrl) loadDocx();
+}, { immediate: true });
 
 watch(html, async () => {
   if (!html.value) return;
@@ -113,11 +117,7 @@ const pageStyle = {
     />
   </div>
 
-  <div v-else-if="error" class="vfp-flex vfp-items-center vfp-justify-center vfp-w-full vfp-h-full">
-    <div class="vfp-text-fg-secondary vfp-text-center">
-      <p class="vfp-text-lg">{{ error }}</p>
-    </div>
-  </div>
+  <RendererError v-else-if="error" :message="error" />
 
   <div v-else class="vfp-w-full vfp-h-full vfp-overflow-auto" style="background: rgba(0, 0, 0, 0.15)">
     <!-- 隐藏测量区 -->

@@ -57,12 +57,12 @@ export function useFetcher(): ComputedRef<Fetcher> {
 
 /**
  * 解析 file 的可消费 URL：
- * - 未配置 shouldFetchAsBlob 或返回 false：直接返回 file.url
+ * - 未配置 shouldFetchAsBlob 或返回 false：直接派生自 file.url（不入 ref，避免切换文件时残留旧值）
  * - 返回 true：用 fetcher 拉成 blob: URL，组件卸载或 file 变化时 revoke
  */
-export function useResolvedUrl(file: Ref<PreviewFile | undefined>): Ref<string> {
+export function useResolvedUrl(file: Ref<PreviewFile | undefined>): ComputedRef<string> {
   const ctx = useRequestContext();
-  const resolved = ref<string>('');
+  const blobUrlRef = ref<string>('');
   let createdBlobUrl: string | null = null;
 
   const cleanup = () => {
@@ -79,21 +79,16 @@ export function useResolvedUrl(file: Ref<PreviewFile | undefined>): Ref<string> 
       return { f, need, fetcher: ctx.value.fetcher };
     },
     async ({ f, need, fetcher }, _old, onCleanup) => {
-      if (!f) {
+      if (!f || !need) {
         cleanup();
-        resolved.value = '';
-        return;
-      }
-      if (!need) {
-        cleanup();
-        resolved.value = f.url;
+        blobUrlRef.value = '';
         return;
       }
       let cancelled = false;
       onCleanup(() => {
         cancelled = true;
       });
-      resolved.value = '';
+      blobUrlRef.value = '';
       try {
         const blobUrl = await fetchAsBlobUrl(f.url, fetcher);
         if (cancelled) {
@@ -102,11 +97,11 @@ export function useResolvedUrl(file: Ref<PreviewFile | undefined>): Ref<string> 
         }
         cleanup();
         createdBlobUrl = blobUrl;
-        resolved.value = blobUrl;
+        blobUrlRef.value = blobUrl;
       } catch (err) {
         if (!cancelled) {
           console.error('[file-preview] resolve blob url failed:', err);
-          resolved.value = f.url;
+          blobUrlRef.value = f.url;
         }
       }
     },
@@ -115,5 +110,12 @@ export function useResolvedUrl(file: Ref<PreviewFile | undefined>): Ref<string> 
 
   onBeforeUnmount(cleanup);
 
-  return resolved;
+  // 同步派生：非 blob 模式始终直接返回 file.url，确保切换文件时不会残留上一帧的 URL
+  return computed(() => {
+    const f = file.value;
+    if (!f) return '';
+    const need = !!ctx.value.shouldFetchAsBlob?.(f);
+    if (!need) return f.url;
+    return blobUrlRef.value;
+  });
 }

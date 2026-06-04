@@ -4,22 +4,49 @@ import videojs from 'video.js';
 import 'video.js/dist/video-js.css';
 import { getVideoMimeType } from '@eternalheart/file-preview-core';
 import { useTranslator } from '../../composables/useTranslator';
+import RendererError from '../RendererError.vue';
 
 type VideoJsPlayer = ReturnType<typeof videojs>;
 
 const props = defineProps<{
   url: string;
+  fileName?: string;
 }>();
 
 const { t } = useTranslator();
 
-const error = ref<string | null>(null);
+interface ErrorState {
+  title: string;
+  detail: string;
+}
+
+// 浏览器原生不支持的视频容器（无论编码，<video> 都无法播放）
+const BROWSER_UNSUPPORTED_EXTS = new Set(['avi', 'wmv', 'flv']);
+
+const error = ref<ErrorState | null>(null);
 const isLoading = ref(true);
 const videoContainerRef = ref<HTMLDivElement | null>(null);
 let player: VideoJsPlayer | null = null;
 
+const getVideoExt = (url: string, fileName?: string): string => {
+  const source = fileName || url;
+  return source.split('.').pop()?.toLowerCase().split('?')[0] || '';
+};
+
 const initPlayer = () => {
   if (!videoContainerRef.value || player) return;
+
+  const videoExt = getVideoExt(props.url, props.fileName);
+
+  // 已知浏览器不支持的容器：跳过 videojs 初始化，直接展示友好提示
+  if (BROWSER_UNSUPPORTED_EXTS.has(videoExt)) {
+    error.value = {
+      title: t.value('video.unsupported_title'),
+      detail: t.value('video.unsupported_detail', { format: videoExt.toUpperCase() }),
+    };
+    isLoading.value = false;
+    return;
+  }
 
   const videoElement = document.createElement('video-js');
   videoElement.classList.add('vjs-big-play-centered', 'vjs-theme-apple');
@@ -27,13 +54,18 @@ const initPlayer = () => {
 
   const videoType = getVideoMimeType(props.url);
 
-  const sources =
-    videoType === 'video/quicktime'
-      ? [
-          { src: props.url, type: 'video/quicktime' },
-          { src: props.url, type: 'video/mp4' },
-        ]
-      : [{ src: props.url, type: videoType }];
+  // 为特定格式提供多个 MIME 类型作为备用
+  let sources: Array<{ src: string; type: string }>;
+
+  if (videoType === 'video/quicktime') {
+    // MOV 格式 fallback
+    sources = [
+      { src: props.url, type: 'video/quicktime' },
+      { src: props.url, type: 'video/mp4' }
+    ];
+  } else {
+    sources = [{ src: props.url, type: videoType }];
+  }
 
   player = videojs(videoElement, {
     controls: true,
@@ -76,8 +108,22 @@ const initPlayer = () => {
 
   player.on('error', () => {
     const err = player?.error();
-    console.error('Video.js error:', err);
-    error.value = t.value('video.load_failed_with_error', { error: err?.message || t.value('common.unknown_error') });
+    console.warn('[VideoRenderer] Video playback error:', err?.message || 'Unknown error');
+
+    // MEDIA_ERR_SRC_NOT_SUPPORTED（code=4）：编码或容器层面浏览器解不了
+    if (err?.code === 4) {
+      error.value = {
+        title: t.value('video.unsupported_title'),
+        detail: t.value('video.unsupported_detail', {
+          format: videoExt ? videoExt.toUpperCase() : t.value('common.unknown_error'),
+        }),
+      };
+    } else {
+      error.value = {
+        title: t.value('video.load_failed'),
+        detail: err?.message || t.value('common.unknown_error'),
+      };
+    }
     isLoading.value = false;
   });
 };
@@ -102,29 +148,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div v-if="error" class="vfp-flex vfp-items-center vfp-justify-center vfp-w-full vfp-h-full">
-    <div class="vfp-text-center">
-      <div
-        class="vfp-w-16 vfp-h-16 vfp-mx-auto vfp-mb-4 vfp-rounded-full vfp-bg-red-500/10 vfp-flex vfp-items-center vfp-justify-center"
-      >
-        <svg
-          class="vfp-w-8 vfp-h-8 vfp-text-red-400"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-          />
-        </svg>
-      </div>
-      <p class="vfp-text-lg vfp-font-medium vfp-text-fg-primary vfp-mb-2">{{ t('video.load_failed') }}</p>
-      <p class="vfp-text-sm vfp-text-fg-tertiary">{{ error }}</p>
-    </div>
-  </div>
+  <RendererError v-if="error" :message="error.title" :detail="error.detail" />
 
   <div v-else class="vfp-flex vfp-items-center vfp-justify-center vfp-w-full vfp-h-full">
     <div class="vfp-w-full vfp-h-full vfp-relative">

@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref, watch, onMounted, onBeforeUnmount } from 'vue';
-import { FileSpreadsheet } from 'lucide-vue-next';
 import Spreadsheet from 'x-data-spreadsheet';
 import 'x-data-spreadsheet/dist/xspreadsheet.css';
 import {
@@ -11,6 +10,7 @@ import {
 } from '@eternalheart/file-preview-core';
 import { useTranslator } from '../../composables/useTranslator';
 import { useFetcher } from '../../composables/useRequest';
+import RendererError from '../RendererError.vue';
 
 const props = defineProps<{
   url: string;
@@ -153,22 +153,11 @@ onBeforeUnmount(() => {
       </div>
     </div>
 
-    <div
+    <RendererError
       v-if="error && !loading"
-      class="vfp-absolute vfp-inset-0 vfp-flex vfp-items-center vfp-justify-center vfp-bg-surface-toolbar vfp-backdrop-blur-sm vfp-z-10"
-    >
-      <div class="vfp-text-center vfp-max-w-sm md:vfp-max-w-md vfp-px-4">
-        <div
-          class="vfp-w-24 vfp-h-24 md:vfp-w-32 md:vfp-h-32 vfp-mx-auto vfp-mb-4 md:vfp-mb-6 vfp-rounded-2xl md:vfp-rounded-3xl vfp-bg-gradient-to-br vfp-from-green-500 vfp-via-emerald-500 vfp-to-teal-500 vfp-flex vfp-items-center vfp-justify-center vfp-shadow-2xl"
-        >
-          <FileSpreadsheet class="vfp-w-12 vfp-h-12 md:vfp-w-16 md:vfp-h-16 vfp-text-fg-primary" />
-        </div>
-        <p class="vfp-text-lg md:vfp-text-xl vfp-text-fg-primary vfp-mb-2 md:vfp-mb-3 vfp-font-medium">
-          {{ t('csv.load_failed') }}
-        </p>
-        <p class="vfp-text-xs md:vfp-text-sm vfp-text-fg-tertiary vfp-mb-4 md:vfp-mb-6">{{ error }}</p>
-      </div>
-    </div>
+      :message="error"
+      class="vfp-absolute vfp-inset-0 vfp-bg-surface-toolbar vfp-backdrop-blur-sm vfp-z-10"
+    />
 
     <div
       v-if="!error"

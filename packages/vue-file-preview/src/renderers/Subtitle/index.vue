@@ -9,6 +9,7 @@ import {
 } from '@eternalheart/file-preview-core';
 import { useTranslator } from '../../composables/useTranslator';
 import { useFetcher } from '../../composables/useRequest';
+import RendererError from '../RendererError.vue';
 
 const props = defineProps<{
   url: string;
@@ -80,14 +81,11 @@ const wordTimeShort = (t: number) => formatSubtitleTime(t).slice(3, 8);
     />
   </div>
 
-  <div
+  <RendererError
     v-else-if="error || !parsed"
-    class="vfp-flex vfp-items-center vfp-justify-center vfp-w-full vfp-h-full vfp-bg-[#0f0f12]"
-  >
-    <div class="vfp-text-fg-secondary vfp-text-center">
-      <p class="vfp-text-lg">{{ error || t('subtitle.parse_failed') }}</p>
-    </div>
-  </div>
+    :message="error || t('subtitle.parse_failed')"
+    class="vfp-bg-[#0f0f12]"
+  />
 
   <div
     v-else

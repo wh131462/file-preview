@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { FileSpreadsheet } from 'lucide-react';
 import Spreadsheet from 'x-data-spreadsheet';
 import 'x-data-spreadsheet/dist/xspreadsheet.css';
 import {
@@ -10,6 +9,7 @@ import {
 } from '@eternalheart/file-preview-core';
 import { useTranslator } from '../../i18n/LocaleContext';
 import { useFetcher } from '../../RequestContext';
+import { RendererError } from '../RendererError';
 
 interface CsvRendererProps {
   url: string;
@@ -121,6 +121,7 @@ export const CsvRenderer: React.FC<CsvRendererProps> = ({ url, fileName }) => {
 
   useEffect(() => {
     let isMounted = true;
+    const controller = new AbortController();
 
     const loadCsv = async () => {
       if (!containerRef.current) return;
@@ -129,7 +130,7 @@ export const CsvRenderer: React.FC<CsvRendererProps> = ({ url, fileName }) => {
       setError(null);
 
       try {
-        const text = await fetchTextUtf8(url, { fetcher });
+        const text = await fetchTextUtf8(url, { fetcher, signal: controller.signal });
         const parsed = parseCsv(text, { delimiter: guessCsvDelimiter(fileName) });
         const sheetData = convertCsvToSpreadsheetData(parsed.header, parsed.rows, fileName);
 
@@ -138,7 +139,8 @@ export const CsvRenderer: React.FC<CsvRendererProps> = ({ url, fileName }) => {
         sheetDataRef.current = sheetData as unknown as Record<string, unknown>[];
         mountSpreadsheet();
         setLoading(false);
-      } catch (err) {
+      } catch (err: any) {
+        if (err.name === 'AbortError') return;
         if (isMounted) {
           console.error('CSV 解析错误:', err);
           setError(t('csv.load_failed'));
@@ -155,6 +157,7 @@ export const CsvRenderer: React.FC<CsvRendererProps> = ({ url, fileName }) => {
 
     return () => {
       isMounted = false;
+      controller.abort();
       clearTimeout(timer);
       sheetDataRef.current = null;
       if (containerRef.current) {
@@ -177,13 +180,7 @@ export const CsvRenderer: React.FC<CsvRendererProps> = ({ url, fileName }) => {
 
       {error && !loading && (
         <div className="rfp-absolute rfp-inset-0 rfp-flex rfp-items-center rfp-justify-center rfp-bg-surface-toolbar rfp-backdrop-blur-sm rfp-z-10">
-          <div className="rfp-text-center rfp-max-w-sm md:rfp-max-w-md rfp-px-4">
-            <div className="rfp-w-24 rfp-h-24 md:rfp-w-32 md:rfp-h-32 rfp-mx-auto rfp-mb-4 md:rfp-mb-6 rfp-rounded-2xl md:rfp-rounded-3xl rfp-bg-gradient-to-br rfp-from-green-500 rfp-via-emerald-500 rfp-to-teal-500 rfp-flex rfp-items-center rfp-justify-center rfp-shadow-2xl">
-              <FileSpreadsheet className="rfp-w-12 rfp-h-12 md:rfp-w-16 md:rfp-h-16 rfp-text-fg-primary" />
-            </div>
-            <p className="rfp-text-lg md:rfp-text-xl rfp-text-fg-primary rfp-mb-2 md:rfp-mb-3 rfp-font-medium">{t('csv.load_failed')}</p>
-            <p className="rfp-text-xs md:rfp-text-sm rfp-text-fg-tertiary rfp-mb-4 md:rfp-mb-6">{error}</p>
-          </div>
+          <RendererError message={error} />
         </div>
       )}
 

@@ -11,6 +11,7 @@ import 'foliate-js/view.js';
 import type { FoliateView, TocItem } from 'foliate-js/view.js';
 import { useTranslator } from '../../i18n/LocaleContext';
 import { useFetcher } from '../../RequestContext';
+import { RendererError } from '../RendererError';
 
 const READER_CSS = `
   @namespace epub "http://www.idpf.org/2007/ops";
@@ -121,7 +122,8 @@ export const MobiRenderer = forwardRef<MobiRendererHandle, MobiRendererProps>(
 
     useEffect(() => {
       const host = hostRef.current;
-      if (!host) return;
+      // 只有 URL 有效时才加载（避免空字符串或已 revoke 的 blob URL）
+      if (!host || !url) return;
 
       setLoading(true);
       setError(null);
@@ -199,7 +201,8 @@ export const MobiRenderer = forwardRef<MobiRendererHandle, MobiRendererProps>(
           setLoading(false);
           reportProgress(0, view.book?.sections.length ?? 1);
         } catch (err) {
-          console.error('MOBI/AZW3 加载错误:', err);
+          // MOBI/EPUB 加载错误通常是文件损坏或 DRM 保护，用 warn 级别记录
+          console.warn('[MobiRenderer] Failed to load ebook:', err instanceof Error ? err.message : String(err));
           if (!cancelled) {
             setError(t('mobi.load_failed'));
             setLoading(false);
@@ -250,12 +253,8 @@ export const MobiRenderer = forwardRef<MobiRendererHandle, MobiRendererProps>(
     );
 
     return (
-      <div className="rfp-relative rfp-w-full rfp-h-full rfp-flex rfp-justify-center rfp-bg-[#f5f5f0] rfp-overflow-hidden">
-        {error && (
-          <div className="rfp-absolute rfp-inset-0 rfp-flex rfp-items-center rfp-justify-center rfp-text-fg-secondary rfp-text-center rfp-p-6">
-            <p className="rfp-text-lg">{error}</p>
-          </div>
-        )}
+      <div className="rfp-relative rfp-w-full rfp-h-full rfp-flex rfp-justify-center rfp-bg-surface-1 rfp-overflow-hidden">
+        {error && <RendererError message={error} />}
 
         {loading && !error && (
           <div className="rfp-absolute rfp-inset-0 rfp-flex rfp-items-center rfp-justify-center rfp-z-10">

@@ -4,6 +4,7 @@ import type { FieldsData } from '@kenjiuno/msgreader';
 import { User, Users, Paperclip, Calendar, Mail, Tag, Clock, Hash } from 'lucide-react';
 import { useTranslator } from '../../i18n/LocaleContext';
 import { useFetcher } from '../../RequestContext';
+import { RendererError } from '../RendererError';
 
 interface MsgRendererProps {
   url: string;
@@ -115,6 +116,9 @@ export const MsgRenderer: React.FC<MsgRendererProps> = ({ url }) => {
   const [fields, setFields] = useState<FieldsData | null>(null);
 
   useEffect(() => {
+    // 只有 URL 有效时才加载（避免空字符串或已 revoke 的 blob URL）
+    if (!url) return;
+
     const loadMsg = async () => {
       setLoading(true);
       setError(null);
@@ -150,13 +154,7 @@ export const MsgRenderer: React.FC<MsgRendererProps> = ({ url }) => {
   }
 
   if (error || !fields) {
-    return (
-      <div className="rfp-flex rfp-items-center rfp-justify-center rfp-w-full rfp-h-full">
-        <div className="rfp-text-fg-secondary rfp-text-center">
-          <p className="rfp-text-lg">{error || t('msg.parse_failed_short')}</p>
-        </div>
-      </div>
-    );
+    return <RendererError message={error || t('msg.parse_failed_short')} />;
   }
 
   const toStr = formatRecipients(fields.recipients, 'to');

@@ -7,6 +7,7 @@ import { fetchTextUtf8 } from '@eternalheart/file-preview-core';
 import { useTranslator } from '../../composables/useTranslator';
 import { useFetcher } from '../../composables/useRequest';
 import { useResolvedTheme } from '../../composables/useResolvedTheme';
+import RendererError from '../RendererError.vue';
 import 'katex/dist/katex.min.css';
 
 const props = defineProps<{
@@ -189,11 +190,7 @@ watch(shikiTheme, () => {
     />
   </div>
 
-  <div v-else-if="error" class="vfp-flex vfp-items-center vfp-justify-center vfp-w-full vfp-h-full">
-    <div class="vfp-text-fg-secondary vfp-text-center">
-      <p class="vfp-text-lg">{{ error }}</p>
-    </div>
-  </div>
+  <RendererError v-else-if="error" :message="error" />
 
   <!-- 源码视图 -->
   <div v-else-if="viewMode === 'source'" class="vfp-w-full vfp-h-full vfp-overflow-auto" style="background: var(--fp-code-bg);">

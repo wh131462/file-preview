@@ -219,7 +219,23 @@ const FilePreviewContentInner: React.FC<FilePreviewContentProps> = ({
     setTotalPages(1);
     setContentNaturalWidth(0);
     setContentNaturalHeight(0);
+    setImageResetKey(0);
     setNavVisible(true);
+    // 重置 epub 状态
+    setEpubCurrent(0);
+    setEpubTotal(0);
+    setEpubFullWidth(false);
+    // 重置 mobi 状态
+    setMobiCurrent(0);
+    setMobiTotal(0);
+    setMobiFullWidth(false);
+    // 重置 zip 状态
+    setZipStats(null);
+    // 重置 text 状态
+    setTextWordWrap(true);
+    setTextHtmlPreview(false);
+    // 重置 markdown 状态
+    setMarkdownViewMode('preview');
     if (navHideTimerRef.current) {
       clearTimeout(navHideTimerRef.current);
     }
@@ -523,7 +539,7 @@ const FilePreviewContentInner: React.FC<FilePreviewContentProps> = ({
         {customRenderer ? (
           customRenderer.render(currentFile, customCtx)
         ) : (
-          <Suspense fallback={<RendererLoading />}>
+          <Suspense fallback={<RendererLoading />} key={currentFile.url}>
             {fileType === 'image' && (
               <ImageRenderer
                 url={resolvedUrl}
@@ -531,6 +547,7 @@ const FilePreviewContentInner: React.FC<FilePreviewContentProps> = ({
                 rotation={rotation}
                 resetKey={imageResetKey}
                 fileSize={currentFile.size}
+                file={currentFile}
                 onZoomChange={handleZoomChange}
                 onNaturalWidthChange={setContentNaturalWidth}
                 onNaturalHeightChange={setContentNaturalHeight}
@@ -566,7 +583,7 @@ const FilePreviewContentInner: React.FC<FilePreviewContentProps> = ({
                 onFullWidthChange={setMobiFullWidth}
               />
             )}
-            {fileType === 'video' && <VideoRenderer url={resolvedUrl} />}
+            {fileType === 'video' && <VideoRenderer url={resolvedUrl} fileName={currentFile.name} />}
             {fileType === 'audio' && (
               <AudioRenderer url={resolvedUrl} fileName={currentFile.name} />
             )}

@@ -304,7 +304,7 @@ function App() {
               rel="noopener noreferrer"
               className="font-semibold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent hover:from-blue-300 hover:to-purple-300 inline-block hover:scale-105 transition-all duration-200"
             >
-              {SUPPORTED_FILE_TYPES.length} +种文件格式
+              {SUPPORTED_FILE_TYPES.length}+ 种文件格式
             </a>
             {' '}的现代化预览组件
           </p>

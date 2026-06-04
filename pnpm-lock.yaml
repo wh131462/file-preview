@@ -98,6 +98,13 @@ importers:
         version: 3.4.0(vite@5.4.21(@types/node@24.12.2)(less@4.6.4))
 
   packages/file-preview-core:
+    dependencies:
+      '@cornerstonejs/codec-openjpeg':
+        specifier: ^1.3.0
+        version: 1.3.0
+      jpeg2000:
+        specifier: ^1.1.1
+        version: 1.1.1
     devDependencies:
       '@types/node':
         specifier: ^24.10.1
@@ -117,15 +124,21 @@ importers:
 
   packages/react-file-preview:
     dependencies:
+      '@cornerstonejs/codec-openjpeg':
+        specifier: ^1.3.0
+        version: 1.3.0
+      '@jsquash/avif':
+        specifier: ^2.1.1
+        version: 2.1.1
       '@kenjiuno/msgreader':
         specifier: ^1.28.0
         version: 1.28.0
       '@likecoin/epub-ts':
         specifier: ^0.6.0
         version: 0.6.2
-      '@videojs-player/react':
-        specifier: ^1.0.0
-        version: 1.0.0(@types/video.js@7.3.58)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(video.js@8.23.7)
+      ag-psd:
+        specifier: ^30.1.1
+        version: 30.1.1
       docx-preview:
         specifier: ^0.3.2
         version: 0.3.7
@@ -138,6 +151,15 @@ importers:
       framer-motion:
         specifier: ^11.11.17
         version: 11.18.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      heic2any:
+        specifier: ^0.0.4
+        version: 0.0.4
+      jpeg2000:
+        specifier: ^1.1.1
+        version: 1.1.1
+      jsonc-parser:
+        specifier: ^3.3.1
+        version: 3.3.1
       jszip:
         specifier: ^3.10.1
         version: 3.10.1
@@ -177,9 +199,15 @@ importers:
       shiki:
         specifier: ^1.29.2
         version: 1.29.2
+      utif:
+        specifier: ^3.1.0
+        version: 3.1.0
       video.js:
         specifier: ^8.23.4
         version: 8.23.7
+      wawoff2:
+        specifier: ^2.0.1
+        version: 2.0.1
       x-data-spreadsheet:
         specifier: ^1.1.9
         version: 1.1.9
@@ -275,6 +303,12 @@ importers:
 
   packages/vue-file-preview:
     dependencies:
+      '@cornerstonejs/codec-openjpeg':
+        specifier: ^1.3.0
+        version: 1.3.0
+      '@jsquash/avif':
+        specifier: ^2.1.1
+        version: 2.1.1
       '@kenjiuno/msgreader':
         specifier: ^1.28.0
         version: 1.28.0
@@ -284,12 +318,24 @@ importers:
       '@traptitech/markdown-it-katex':
         specifier: ^3.6.0
         version: 3.6.0
+      ag-psd:
+        specifier: ^30.1.1
+        version: 30.1.1
       exceljs:
         specifier: ^4.4.0
         version: 4.4.0
       foliate-js:
         specifier: 1.0.1
         version: 1.0.1
+      heic2any:
+        specifier: ^0.0.4
+        version: 0.0.4
+      jpeg2000:
+        specifier: ^1.1.1
+        version: 1.1.1
+      jsonc-parser:
+        specifier: ^3.3.1
+        version: 3.3.1
       jszip:
         specifier: ^3.10.1
         version: 3.10.1
@@ -317,9 +363,15 @@ importers:
       shiki:
         specifier: ^1.24.0
         version: 1.29.2
+      utif:
+        specifier: ^3.1.0
+        version: 3.1.0
       video.js:
         specifier: ^8.23.4
         version: 8.23.7
+      wawoff2:
+        specifier: ^2.0.1
+        version: 2.0.1
       x-data-spreadsheet:
         specifier: ^1.1.9
         version: 1.1.9
@@ -535,6 +587,10 @@ packages:
   '@babel/types@7.29.0':
     resolution: {integrity: sha512-LwdZHpScM4Qz8Xw2iKSzS+cfglZzJGvofQICy7W7v4caru4EaAmyUuO6BGrbyQ2mYV11W0U8j5mBhd14dd3B0A==}
     engines: {node: '>=6.9.0'}
+
+  '@cornerstonejs/codec-openjpeg@1.3.0':
+    resolution: {integrity: sha512-hP8WAZ63AcaDYmHbBVTY04x424AglXsRHrI6VBdW4eTiJ76f0heWrEodT9Sb3sNwazzYuyMOIZNndJPeVSeHcw==}
+    engines: {node: '>=0.14'}
 
   '@docsearch/css@3.8.2':
     resolution: {integrity: sha512-y05ayQFyUmCXze79+56v/4HpycYF3uFqB78pLPrSV5ZKAlDuIAAJNhaRi8tTdRNXh05yxX/TyNnzD6LwSM89vQ==}
@@ -778,6 +834,9 @@ packages:
 
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
+
+  '@jsquash/avif@2.1.1':
+    resolution: {integrity: sha512-LMRxd0fMgfCLtobDh0/sFYJMMiRJTNYSEEWvRDKXlAeZ08t3gI5V+1thIT0XjXJ+SVG7Zug9B0XPyx0Ti5VRNA==}
 
   '@kenjiuno/decompressrtf@0.1.4':
     resolution: {integrity: sha512-v9c/iFz17jRWyd2cRnrvJg4VOg/4I/VCk+bG8JnoX2gJ9sAesPzo3uTqcmlVXdpasTI8hChpBVw00pghKe3qTQ==}
@@ -1069,9 +1128,6 @@ packages:
   '@types/unist@3.0.3':
     resolution: {integrity: sha512-ko/gIFJRv177XgZsZcBwnqJN5x/Gien8qNOn0D5bQU/zAzVf9Zt3BlcUiLqhV9y4ARk0GbT3tnUiPNgnTXzc/Q==}
 
-  '@types/video.js@7.3.58':
-    resolution: {integrity: sha512-1CQjuSrgbv1/dhmcfQ83eVyYbvGyqhTvb2Opxr0QCV+iJ4J6/J+XWQ3Om59WiwCd1MN3rDUHasx5XRrpUtewYQ==}
-
   '@types/web-bluetooth@0.0.21':
     resolution: {integrity: sha512-oIQLCGWtcFZy2JW77j9k8nHzAOpqMHLQejDA48XXMWH6tjCQHz5RCFz1bzsmROyL6PUm+LLnUiI4BCn221inxA==}
 
@@ -1136,14 +1192,6 @@ packages:
 
   '@ungap/structured-clone@1.3.0':
     resolution: {integrity: sha512-WmoN8qaIAo7WTYWbAZuG8PYEhn5fkz7dZrqTBZ7dtt//lL2Gwms1IcnQ5yHqjDfX8Ft5j4YzDM23f87zBfDe9g==}
-
-  '@videojs-player/react@1.0.0':
-    resolution: {integrity: sha512-cEPvG1b+B4EG494N3oGxACRce8WW2l+ewIznH/SDoNCWvbVMeSqKy1l6qKr0Zy/dejwKtvWiOamoBWuVEfoR3g==}
-    peerDependencies:
-      '@types/video.js': 7.x
-      react: ^16.8 || ^17
-      react-dom: ^16.8 || ^17
-      video.js: 7.x
 
   '@videojs/http-streaming@3.17.4':
     resolution: {integrity: sha512-XAvdG2dolBuV2Fx8bu1kjmQ2D4TonGzZH68Pgv/O9xMSFWdZtITSMFismeQLEAtMmGwze8qNJp3RgV+jStrJqg==}
@@ -1295,6 +1343,9 @@ packages:
 
   aes-decrypter@4.0.2:
     resolution: {integrity: sha512-lc+/9s6iJvuaRe5qDlMTpCFjnwpkeOXp8qP3oiZ5jsj1MRg+SBVUmmICrhxHvc8OELSmc+fEyyxAuppY6hrWzw==}
+
+  ag-psd@30.1.1:
+    resolution: {integrity: sha512-0GbWYR4Rvm1QnWCYeMiVbUJBXnSyTUKvNUK2tIIVDt/wrUVUL9pHTsnwqOTonEC2RRh5I/aUcGydc1LNgXfJWA==}
 
   ajv@6.14.0:
     resolution: {integrity: sha512-IWrosm/yrn43eiKqkfkHis7QioDleaXQHdDVPKg0FSwwd/DuvyX79TZnFOnYpB7dcsFAMmtFztZuXPDvSePkFw==}
@@ -1947,6 +1998,9 @@ packages:
     resolution: {integrity: sha512-F/1DnUGPopORZi0ni+CvrCgHQ5FyEAHRLSApuYWMmrbSwoN2Mn/7k+Gl38gJnR7yyDZk6WLXwiGod1JOWNDKGw==}
     hasBin: true
 
+  heic2any@0.0.4:
+    resolution: {integrity: sha512-3lLnZiDELfabVH87htnRolZ2iehX9zwpRyGNz22GKXIu0fznlblf0/ftppXKNqS26dqFSeqfIBhAmAj/uSp0cA==}
+
   hookable@5.5.3:
     resolution: {integrity: sha512-Yc+BQe8SvoXH1643Qez1zqLRmbA5rCL+sSmk6TVos0LWVfNIB7PGncdlId77WzLGSIB5KaWgTaNTs2lNVEI6VQ==}
 
@@ -2076,6 +2130,9 @@ packages:
     resolution: {integrity: sha512-AC/7JofJvZGrrneWNaEnJeOLUx+JlGt7tNa0wZiRPT4MY1wmfKjt2+6O2p2uz2+skll8OZZmJMNqeke7kKbNgQ==}
     hasBin: true
 
+  jpeg2000@1.1.1:
+    resolution: {integrity: sha512-keyTI3PY83W4AoeAw8aNJp7LUaU+OcZAga7QiUZPF+LtSY721kuIMNBkJmEXem6v7+lR8I85tcJTGEz8dHNIyQ==}
+
   js-tokens@4.0.0:
     resolution: {integrity: sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ==}
 
@@ -2101,6 +2158,9 @@ packages:
     resolution: {integrity: sha512-XmOWe7eyHYH14cLdVPoyg+GOH3rYX++KpzrylJwSW98t3Nk+U8XOl8FWKOgwtzdb8lXGf6zYwDUzeHMWfxasyg==}
     engines: {node: '>=6'}
     hasBin: true
+
+  jsonc-parser@3.3.1:
+    resolution: {integrity: sha512-HUgH65KyejrUFPvHFPbqOY0rsFip3Bo5wb4ngvdi1EpCYWUQDC5V+Y7mZws+DLkr4M//zQJoanu1SP+87Dv1oQ==}
 
   jszip@3.10.1:
     resolution: {integrity: sha512-xXDvecyTpGLrqFrvkrUSoxxfJI5AH7U8zxxtVclpsUtMCq4JQ290LY8AW5c7Ggnr/Y/oK+bQMbqK2qmtk3pN4g==}
@@ -2560,6 +2620,9 @@ packages:
 
   pako@1.0.11:
     resolution: {integrity: sha512-4hLB8Py4zZce5s4yd9XzopqwVv/yGNhV1Bl8NTmCq1763HeK2+EwVTv+leGeL13Dnh2wfbqowVPXCIO0z4taYw==}
+
+  pako@2.1.0:
+    resolution: {integrity: sha512-w+eufiZ1WuJYgPXbV/PO3NCMEc3xqylkKHzp8bxp1uW4qaSNQUkwmLLEc3kKsfz8lpV1F8Ht3U1Cm+9Srog2ug==}
 
   parent-module@1.0.1:
     resolution: {integrity: sha512-GQ2EWRpQV8/o+Aw8YqtfZZPfNRWZYkbidE9k5rpl/hC3vtHHBfGm2Ifi6qWV+coDGkrUKZAxE3Lot5kcsRlh+g==}
@@ -3123,6 +3186,9 @@ packages:
   uri-js@4.4.1:
     resolution: {integrity: sha512-7rKUyy33Q1yc98pQ1DAmLtwX109F7TIfWlW1Ydo8Wl1ii1SeHieeh0HHfPeL2fMXK6z0s8ecKs9frCuLJvndBg==}
 
+  utif@3.1.0:
+    resolution: {integrity: sha512-WEo4D/xOvFW53K5f5QTaTbbiORcm2/pCL9P6qmJnup+17eYfKaEhDeX9PeQkuyEoIxlbGklDuGl8xwuXYMrrXQ==}
+
   util-deprecate@1.0.2:
     resolution: {integrity: sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==}
 
@@ -3223,6 +3289,13 @@ packages:
     peerDependenciesMeta:
       typescript:
         optional: true
+
+  wasm-feature-detect@1.8.0:
+    resolution: {integrity: sha512-zksaLKM2fVlnB5jQQDqKXXwYHLQUVH9es+5TOOHwGOVJOCeRBCiPjwSg+3tN2AdTCzjgli4jijCH290kXb/zWQ==}
+
+  wawoff2@2.0.1:
+    resolution: {integrity: sha512-r0CEmvpH63r4T15ebFqeOjGqU4+EgTx4I510NtK35EMciSdcTxCw3Byy3JnBonz7iyIFZ0AbVo0bbFpEVuhCYA==}
+    hasBin: true
 
   web-namespaces@2.0.1:
     resolution: {integrity: sha512-bKr1DkiNa2krS7qxNtdrtHAmzuYGFQLiQ13TsorsdT6ULTkPLKuu5+GsFpDlg6JFjUTwX2DyhMPG2be8uPrqsQ==}
@@ -3496,6 +3569,8 @@ snapshots:
       '@babel/helper-string-parser': 7.27.1
       '@babel/helper-validator-identifier': 7.28.5
 
+  '@cornerstonejs/codec-openjpeg@1.3.0': {}
+
   '@docsearch/css@3.8.2': {}
 
   '@docsearch/js@3.8.2(@algolia/client-search@5.50.1)(@types/react@18.3.28)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(search-insights@2.17.3)':
@@ -3692,6 +3767,10 @@ snapshots:
     dependencies:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.5
+
+  '@jsquash/avif@2.1.1':
+    dependencies:
+      wasm-feature-detect: 1.8.0
 
   '@kenjiuno/decompressrtf@0.1.4': {}
 
@@ -3951,8 +4030,6 @@ snapshots:
 
   '@types/unist@3.0.3': {}
 
-  '@types/video.js@7.3.58': {}
-
   '@types/web-bluetooth@0.0.21': {}
 
   '@typescript-eslint/eslint-plugin@8.58.1(@typescript-eslint/parser@8.58.1(eslint@9.39.4(jiti@2.7.0))(typescript@5.9.3))(eslint@9.39.4(jiti@2.7.0))(typescript@5.9.3)':
@@ -4047,13 +4124,6 @@ snapshots:
       eslint-visitor-keys: 5.0.1
 
   '@ungap/structured-clone@1.3.0': {}
-
-  '@videojs-player/react@1.0.0(@types/video.js@7.3.58)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(video.js@8.23.7)':
-    dependencies:
-      '@types/video.js': 7.3.58
-      react: 18.3.1
-      react-dom: 18.3.1(react@18.3.1)
-      video.js: 8.23.7
 
   '@videojs/http-streaming@3.17.4(video.js@8.23.7)':
     dependencies:
@@ -4237,6 +4307,11 @@ snapshots:
       '@videojs/vhs-utils': 4.1.1
       global: 4.4.0
       pkcs7: 1.0.4
+
+  ag-psd@30.1.1:
+    dependencies:
+      base64-js: 1.5.1
+      pako: 2.1.0
 
   ajv@6.14.0:
     dependencies:
@@ -5005,6 +5080,8 @@ snapshots:
 
   he@1.2.0: {}
 
+  heic2any@0.0.4: {}
+
   hookable@5.5.3: {}
 
   html-url-attributes@3.0.1: {}
@@ -5112,6 +5189,8 @@ snapshots:
 
   jiti@2.7.0: {}
 
+  jpeg2000@1.1.1: {}
+
   js-tokens@4.0.0: {}
 
   js-yaml@4.1.1:
@@ -5127,6 +5206,8 @@ snapshots:
   json-stable-stringify-without-jsonify@1.0.1: {}
 
   json5@2.2.3: {}
+
+  jsonc-parser@3.3.1: {}
 
   jszip@3.10.1:
     dependencies:
@@ -5828,6 +5909,8 @@ snapshots:
 
   pako@1.0.11: {}
 
+  pako@2.1.0: {}
+
   parent-module@1.0.1:
     dependencies:
       callsites: 3.1.0
@@ -6512,6 +6595,10 @@ snapshots:
     dependencies:
       punycode: 2.3.1
 
+  utif@3.1.0:
+    dependencies:
+      pako: 1.0.11
+
   util-deprecate@1.0.2: {}
 
   uuid@10.0.0: {}
@@ -6643,6 +6730,12 @@ snapshots:
       '@vue/shared': 3.5.32
     optionalDependencies:
       typescript: 5.9.3
+
+  wasm-feature-detect@1.8.0: {}
+
+  wawoff2@2.0.1:
+    dependencies:
+      argparse: 2.0.1
 
   web-namespaces@2.0.1: {}
 

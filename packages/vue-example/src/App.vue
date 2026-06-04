@@ -327,7 +327,7 @@ onUnmounted(() => {
             rel="noopener noreferrer"
             class="font-semibold bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent hover:from-emerald-300 hover:to-teal-300 inline-block hover:scale-105 transition-all duration-200"
           >
-            {{ SUPPORTED_FILE_TYPES.length }} 种文件格式
+            {{ SUPPORTED_FILE_TYPES.length }}+ 种文件格式
           </a>
           的现代化预览组件 · Vue 3 版本
         </p>

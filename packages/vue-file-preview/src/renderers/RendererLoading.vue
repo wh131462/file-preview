@@ -4,10 +4,10 @@ const { t } = useTranslator();
 </script>
 
 <template>
-  <div class="rfp-flex rfp-items-center rfp-justify-center rfp-w-full rfp-h-full rfp-text-fg-muted">
-    <div class="rfp-flex rfp-flex-col rfp-items-center rfp-gap-3">
-      <div class="rfp-w-8 rfp-h-8 rfp-rounded-full rfp-border-2 rfp-border-fg-muted rfp-border-t-transparent rfp-animate-spin" />
-      <span class="rfp-text-sm">{{ t('common.loading') || 'Loading...' }}</span>
+  <div class="vfp-flex vfp-items-center vfp-justify-center vfp-w-full vfp-h-full vfp-text-fg-muted">
+    <div class="vfp-flex vfp-flex-col vfp-items-center vfp-gap-3">
+      <div class="vfp-w-8 vfp-h-8 vfp-rounded-full vfp-border-2 vfp-border-fg-muted vfp-border-t-transparent vfp-animate-spin" />
+      <span class="vfp-text-sm">{{ t('common.loading') || 'Loading...' }}</span>
     </div>
   </div>
 </template>

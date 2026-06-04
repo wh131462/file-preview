@@ -13,18 +13,18 @@ withDefaults(defineProps<Props>(), {
 </script>
 
 <template>
-  <div class="rfp-flex rfp-items-center rfp-justify-center rfp-w-full rfp-h-full">
-    <div class="rfp-text-center">
+  <div class="vfp-flex vfp-items-center vfp-justify-center vfp-w-full vfp-h-full">
+    <div class="vfp-text-center">
       <div
         v-if="showIcon"
-        class="rfp-w-16 rfp-h-16 rfp-mx-auto rfp-mb-4 rfp-rounded-full rfp-bg-red-500/10 rfp-flex rfp-items-center rfp-justify-center"
+        class="vfp-w-16 vfp-h-16 vfp-mx-auto vfp-mb-4 vfp-rounded-full vfp-bg-red-500/10 vfp-flex vfp-items-center vfp-justify-center"
       >
-        <AlertCircle class="rfp-w-8 rfp-h-8 rfp-text-red-400" />
+        <AlertCircle class="vfp-w-8 vfp-h-8 vfp-text-red-400" />
       </div>
-      <p class="rfp-text-lg md:rfp-text-xl rfp-font-medium rfp-text-fg-primary rfp-mb-2">
+      <p class="vfp-text-lg md:vfp-text-xl vfp-font-medium vfp-text-fg-primary vfp-mb-2">
         {{ message }}
       </p>
-      <p v-if="detail" class="rfp-text-sm rfp-text-fg-tertiary">
+      <p v-if="detail" class="vfp-text-sm vfp-text-fg-tertiary">
         {{ detail }}
       </p>
     </div>

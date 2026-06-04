@@ -31,6 +31,7 @@ export const zhCN: Messages = {
 
   // ─────── image ───────
   'image.load_failed': '图片加载失败',
+  'image.decode_failed': '图片解码失败',
 
   // ─────── pdf ───────
   'pdf.load_failed': 'PDF 文件加载失败',
@@ -68,6 +69,10 @@ export const zhCN: Messages = {
   'video.loading': '加载视频中...',
   'video.load_failed': '视频加载失败',
   'video.load_failed_with_error': '视频加载失败: {error}',
+  'video.format_not_supported': '浏览器不支持 {format} 格式，建议转换为 MP4/WebM 格式',
+  'video.unsupported_title': '该视频格式无法在浏览器中直接播放',
+  'video.unsupported_detail': '{format} 是浏览器原生不支持的容器/编码（常见于 AVI / WMV / FLV 及部分 MKV）。请下载到本地播放器观看，或转换为 MP4（H.264 + AAC）。',
+  'video.codec_not_supported_detail': '视频或音频编码 {codecs} 浏览器无法解码。请转换为 MP4（H.264 + AAC）后再预览。',
 
   // ─────── audio (aria-label) ───────
   'audio.aria.play': '播放',

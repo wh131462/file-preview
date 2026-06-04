@@ -81,3 +81,27 @@ export type {
   Translator,
   CreateTranslatorOptions,
 } from './i18n/types';
+
+// 导出 MIME 类型工具
+export {
+  EXTENSION_TO_MIME,
+  getMimeTypeFromExtension,
+  getMimeTypeFromFileName,
+  isAdvancedImageFormat,
+  isRawFormat,
+} from './utils/mimeTypes';
+
+// 导出图片解码 loader 注册与调度
+export {
+  registerLoader,
+  getLoader,
+  hasLoader,
+  getLoaderForMimeType,
+  detectImageFormat,
+} from './loaders/registry';
+export type {
+  ImageDecoder,
+  DecodeOptions,
+  ImageMetadata,
+  LoaderRegistry,
+} from './loaders/types';

@@ -7,7 +7,18 @@ export function getFileType(file: PreviewFile): FileType {
   const ext = file.name.split('.').pop()?.toLowerCase() || '';
   const mimeType = file.type.toLowerCase();
 
-  if (mimeType.startsWith('image/') || ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(ext)) {
+  if (
+    mimeType.startsWith('image/') ||
+    [
+      'jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp', 'ico',
+      // 高级图片格式
+      'heic', 'heif', 'avif', 'tif', 'tiff',
+      // RAW 格式
+      'cr2', 'nef', 'arw', 'dng', 'raf', 'orf',
+      // 其他专业格式
+      'psd', 'jp2', 'jpx', 'j2k',
+    ].includes(ext)
+  ) {
     return 'image';
   }
   if (mimeType.includes('pdf') || ext === 'pdf') {
@@ -72,7 +83,7 @@ export function getFileType(file: PreviewFile): FileType {
   if (ext === 'md' || ext === 'markdown') {
     return 'markdown';
   }
-  if (mimeType === 'application/json' || ext === 'json') {
+  if (mimeType === 'application/json' || ext === 'json' || ext === 'jsonc') {
     return 'json';
   }
   const textExtensions = [
@@ -119,6 +130,7 @@ export function getLanguageFromFileName(fileName: string): string {
     bash: 'bash',
     zsh: 'bash',
     json: 'json',
+    jsonc: 'json',
     xml: 'xml',
     html: 'html',
     css: 'css',

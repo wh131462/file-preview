@@ -52,6 +52,7 @@ export const decodeUtf8 = decodeText;
 export interface FetchTextOptions {
   fetcher?: Fetcher;
   init?: RequestInit;
+  signal?: AbortSignal;
 }
 
 /**
@@ -68,14 +69,22 @@ export async function fetchTextUtf8(
   const isOptions =
     !!optionsOrInit &&
     ('fetcher' in (optionsOrInit as FetchTextOptions) ||
-      'init' in (optionsOrInit as FetchTextOptions));
+      'init' in (optionsOrInit as FetchTextOptions) ||
+      'signal' in (optionsOrInit as FetchTextOptions));
   const fetcher = isOptions
     ? (optionsOrInit as FetchTextOptions).fetcher ?? fetch
     : fetch;
+  const signal = isOptions
+    ? (optionsOrInit as FetchTextOptions).signal
+    : undefined;
   const init = isOptions
     ? (optionsOrInit as FetchTextOptions).init
     : (optionsOrInit as RequestInit | undefined);
-  const res = await fetcher(url, init);
+
+  // 合并 signal 到 init
+  const mergedInit = signal ? { ...init, signal } : init;
+
+  const res = await fetcher(url, mergedInit);
   if (!res.ok) throw new Error(`请求失败: ${res.status}`);
   const buf = await res.arrayBuffer();
   return decodeText(buf);

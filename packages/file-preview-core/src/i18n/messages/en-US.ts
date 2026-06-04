@@ -31,6 +31,7 @@ export const enUS: Messages = {
 
   // ─────── image ───────
   'image.load_failed': 'Failed to load image',
+  'image.decode_failed': 'Failed to decode image',
 
   // ─────── pdf ───────
   'pdf.load_failed': 'Failed to load PDF',
@@ -68,6 +69,10 @@ export const enUS: Messages = {
   'video.loading': 'Loading video...',
   'video.load_failed': 'Failed to load video',
   'video.load_failed_with_error': 'Failed to load video: {error}',
+  'video.format_not_supported': 'Browser does not support {format} format. Please convert to MP4/WebM',
+  'video.unsupported_title': 'This video format cannot be played in the browser',
+  'video.unsupported_detail': '{format} is a container/codec that browsers do not natively support (typical for AVI / WMV / FLV and some MKV files). Please download and play it in a local player, or convert to MP4 (H.264 + AAC).',
+  'video.codec_not_supported_detail': 'The video or audio codec ({codecs}) cannot be decoded by the browser. Please convert to MP4 (H.264 + AAC) before previewing.',
 
   // ─────── audio (aria-label) ───────
   'audio.aria.play': 'Play',

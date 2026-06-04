@@ -165,9 +165,12 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ url, viewMod
               code({ node, inline, className, children, ...props }: any) {
                 const match = /language-(\w+)/.exec(className || '');
                 const codeString = String(children).replace(/\n$/, '');
+                // react-markdown v9 不再传 inline，需要兜底判断：
+                // 无语言 className 且不含换行视为内联代码
+                const isInline = inline ?? (!match && !codeString.includes('\n'));
 
                 // 行内代码 - 返回纯 <code>
-                if (inline) {
+                if (isInline) {
                   return (
                     <code
                       className="rfp-bg-surface-2 rfp-px-1.5 rfp-py-0.5 rfp-rounded rfp-text-sm rfp-font-mono rfp-text-fg-primary rfp-border rfp-border-line-weak"

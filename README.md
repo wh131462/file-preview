@@ -9,478 +9,244 @@ English | [简体中文](./README.zh-CN.md)
 
 A modern, feature-rich file preview component library with **first-class support for both React and Vue**. Preview images, videos, audio, PDFs, Office documents (Word, Excel, PowerPoint), Markdown, and code files — through a shared core and framework-specific bindings.
 
-> **Note:** The repository is still hosted at `wh131462/file-preview` for historical reasons, but the project now ships as a multi-framework library under the **File Preview** name.
+---
 
-## 📚 Documentation
+## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/2728.svg" width="20" height="20" alt="✨" /> Key Features
 
-- 📖 [Full Documentation](https://wh131462.github.io/file-preview/docs/)
-- 🎮 [React Demo](https://wh131462.github.io/file-preview/) · [Vue Demo](https://wh131462.github.io/file-preview/vue/)
+- <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f3a8.svg" width="16" height="16" alt="🎨" style="vertical-align: middle;" /> **Modern UI** — Apple-inspired minimalist design with glassmorphism effects
+- <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f4c1.svg" width="16" height="16" alt="📁" style="vertical-align: middle;" /> **20+ Format Support** — Images, videos, audio, PDF, Office, code, e-books, and more
+- <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1fa9f.svg" width="16" height="16" alt="🪟" style="vertical-align: middle;" /> **Dual Display Modes** — Full-screen modal or inline embedded preview
+- <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f3af.svg" width="16" height="16" alt="🎯" style="vertical-align: middle;" /> **Multi-framework Support** — React and Vue share core logic with consistent APIs
+- <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/2328.svg" width="16" height="16" alt="⌨️" style="vertical-align: middle;" /> **Full Interaction** — Keyboard navigation, drag-and-drop, zoom/rotate, custom players
 
-## 🏗️ Monorepo Structure
+---
 
-This project is organized as a monorepo using pnpm workspaces:
+## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f310.svg" width="20" height="20" alt="🌐" /> Quick Navigation
 
-- **packages/file-preview-core** — Framework-agnostic core (types, file detection, parsers)
-- **packages/react-file-preview** — React bindings (published as `@eternalheart/react-file-preview`)
-- **packages/vue-file-preview** — Vue bindings (published as `@eternalheart/vue-file-preview`)
-- **packages/example** — React demo app (deployed to GitHub Pages)
-- **packages/vue-example** — Vue demo app (deployed to GitHub Pages `/vue`)
-- **packages/docs** — VitePress documentation site
+<table>
+<tr>
+  <td width="33%"><strong><img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f4d6.svg" width="16" height="16" alt="📖" style="vertical-align: middle;" /> Documentation & Demos</strong></td>
+  <td width="33%"><strong><img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f4e6.svg" width="16" height="16" alt="📦" style="vertical-align: middle;" /> Packages & Resources</strong></td>
+  <td width="33%"><strong><img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f6e0.svg" width="16" height="16" alt="🛠️" style="vertical-align: middle;" /> Development & Contributing</strong></td>
+</tr>
+<tr>
+  <td>
+    &bull; <a href="https://wh131462.github.io/file-preview/docs/">Full Documentation</a><br>
+    &bull; <a href="https://wh131462.github.io/file-preview/">React Demo</a><br>
+    &bull; <a href="https://wh131462.github.io/file-preview/vue/">Vue Demo</a>
+  </td>
+  <td>
+    &bull; <a href="https://www.npmjs.com/package/@eternalheart/react-file-preview">React Package</a><br>
+    &bull; <a href="https://www.npmjs.com/package/@eternalheart/vue-file-preview">Vue Package</a><br>
+    &bull; <a href="https://github.com/wh131462/file-preview/issues">Issue Tracker</a>
+  </td>
+  <td>
+    &bull; <a href="#-project-architecture">Monorepo Structure</a><br>
+    &bull; <a href="#-development-guide">Dev Commands</a><br>
+    &bull; <a href="./CONTRIBUTING.md">Contributing Guide</a>
+  </td>
+</tr>
+</table>
 
-### Development Commands
+---
 
-```bash
-# Install dependencies
-pnpm install
-
-# Development
-pnpm dev              # Start example dev server
-pnpm dev:docs         # Start docs dev server
-
-# Build
-pnpm build            # Build all packages
-pnpm build:lib        # Build library only
-pnpm build:example    # Build example only
-pnpm build:docs       # Build docs only
-
-# Preview
-pnpm preview:example  # Preview example build
-pnpm preview:docs     # Preview docs build
-
-# Deploy
-pnpm deploy           # Deploy example and docs to GitHub Pages
-
-# Publish
-pnpm pub              # Publish library to npm
-```
-
-## ✨ Features
-
-- 🎨 **Modern UI** - Apple-inspired minimalist design with glassmorphism effects
-- 📁 **Multi-format Support** - Supports 20+ file formats
-- 🪟 **Two Display Modes** - Full-screen modal **or** inline embedded preview
-- 🖼️ **Powerful Image Viewer** - Zoom, rotate, drag, mouse wheel zoom
-- 🎬 **Custom Video Player** - Built on Video.js, supports multiple video formats
-- 🎵 **Custom Audio Player** - Beautiful audio control interface
-- 📄 **PDF Viewer** - Pagination support
-- 📊 **Office Documents Support** - Word, Excel, PowerPoint file preview
-- 📝 **Markdown Rendering** - GitHub Flavored Markdown support
-- 💻 **Code Highlighting** - Supports 40+ programming languages
-- 🎭 **Smooth Animations** - Powered by Framer Motion
-- 📱 **Responsive Design** - Adapts to all screen sizes
-- ⌨️ **Keyboard Navigation** - Arrow keys and ESC support
-- 🎯 **Drag & Drop** - File upload via drag and drop
-
-## 📦 Installation
+## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f3af.svg" width="20" height="20" alt="🎯" /> Quick Start
 
 ### React
 
 ```bash
 npm install @eternalheart/react-file-preview
-# or: yarn add @eternalheart/react-file-preview
-# or: pnpm add @eternalheart/react-file-preview
 ```
+
+```tsx
+import { FilePreviewModal } from '@eternalheart/react-file-preview';
+import '@eternalheart/react-file-preview/style.css';
+
+<FilePreviewModal
+  files={[file]}
+  currentIndex={0}
+  isOpen={true}
+  onClose={() => setIsOpen(false)}
+/>
+```
+
+<img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f449.svg" width="16" height="16" alt="👉" style="vertical-align: middle;" /> [View React Full Documentation](./packages/react-file-preview/README.md) | [Live Demo](https://wh131462.github.io/file-preview/)
 
 ### Vue
 
 ```bash
 npm install @eternalheart/vue-file-preview
-# or: yarn add @eternalheart/vue-file-preview
-# or: pnpm add @eternalheart/vue-file-preview
 ```
 
-**Important:** You also need to import the CSS file:
-
-```tsx
-// React
-import '@eternalheart/react-file-preview/style.css';
-```
-
-```ts
-// Vue
+```vue
+<script setup>
+import { FilePreviewModal } from '@eternalheart/vue-file-preview';
 import '@eternalheart/vue-file-preview/style.css';
-```
+</script>
 
-## 🚀 Quick Start
-
-📖 **New to this library?** Check out the [Quick Start Guide](https://wh131462.github.io/file-preview/docs/guide/getting-started.html) for a 5-minute introduction!
-
-### Basic Usage
-
-```tsx
-import { FilePreviewModal } from '@eternalheart/react-file-preview';
-import '@eternalheart/react-file-preview/style.css';
-import { useState } from 'react';
-
-function App() {
-  const [files, setFiles] = useState([]);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [isOpen, setIsOpen] = useState(false);
-
-  const handleFileSelect = (file: File) => {
-    // Method 1: Directly pass File object (recommended)
-    setFiles([file]);
-    setCurrentIndex(0);
-    setIsOpen(true);
-  };
-
-  return (
-    <>
-      <input
-        type="file"
-        onChange={(e) => e.target.files?.[0] && handleFileSelect(e.target.files[0])}
-      />
-
-      <FilePreviewModal
-        files={files}
-        currentIndex={currentIndex}
-        isOpen={isOpen}
-        onClose={() => setIsOpen(false)}
-        onNavigate={setCurrentIndex}
-      />
-    </>
-  );
-}
-```
-
-### Multiple Input Types
-
-The component supports three types of file inputs:
-
-```tsx
-import { FilePreviewModal, PreviewFileInput } from '@eternalheart/react-file-preview';
-import '@eternalheart/react-file-preview/style.css';
-
-function App() {
-  const files: PreviewFileInput[] = [
-    // 1. Native File object
-    file1,
-
-    // 2. HTTP URL string
-    'https://example.com/image.jpg',
-
-    // 3. File object with metadata
-    {
-      name: 'document.pdf',
-      type: 'application/pdf',
-      url: '/path/to/document.pdf',
-      size: 1024,
-    },
-  ];
-
-  return (
-    <FilePreviewModal
-      files={files}
-      currentIndex={0}
-      isOpen={true}
-      onClose={() => {}}
-    />
-  );
-}
-```
-
-### Embedded Mode (`FilePreviewEmbed`)
-
-Besides the full-screen modal, the library also ships an **embedded** variant that renders the preview inline inside any container. Useful for detail panels, side-by-side layouts, dashboards, etc.
-
-```tsx
-import { FilePreviewEmbed } from '@eternalheart/react-file-preview';
-import '@eternalheart/react-file-preview/style.css';
-import { useState } from 'react';
-
-function InlinePreview() {
-  const [index, setIndex] = useState(0);
-
-  const files = [
-    'https://example.com/image.jpg',
-    { name: 'document.pdf', type: 'application/pdf', url: '/doc.pdf' },
-  ];
-
-  return (
-    // The embedded preview fills its parent container by default.
-    <div style={{ width: '100%', height: 520 }}>
-      <FilePreviewEmbed
-        files={files}
-        currentIndex={index}
-        onNavigate={setIndex}
-      />
-    </div>
-  );
-}
-```
-
-Differences from `FilePreviewModal`:
-
-- No portal, no full-screen overlay, no `isOpen` / `onClose`
-- Does **not** show the close button (embedded previews have no concept of closing)
-- Keyboard navigation (←/→) is scoped to the embed container (focus-based), so it won't hijack the rest of the page
-- Size defaults to `width: 100%; height: 100%`, and can be overridden via `width` / `height` props
-
-```tsx
-// Explicit size
-<FilePreviewEmbed files={files} width={800} height={500} />
-```
-
-## 💡 Usage Examples
-
-### Preview PowerPoint Files
-
-```tsx
-import { FilePreviewModal } from '@eternalheart/react-file-preview';
-import { useState } from 'react';
-
-function PptPreview() {
-  const [isOpen, setIsOpen] = useState(false);
-
-  const pptFile = {
-    name: 'presentation.pptx',
-    type: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-    url: '/path/to/your/presentation.pptx',
-  };
-
-  return (
-    <>
-      <button onClick={() => setIsOpen(true)}>
-        Preview PPT
-      </button>
-
-      <FilePreviewModal
-        files={[pptFile]}
-        currentIndex={0}
-        isOpen={isOpen}
-        onClose={() => setIsOpen(false)}
-      />
-    </>
-  );
-}
-```
-
-### Preview Multiple Files
-
-```tsx
-const files = [
-  { name: 'image.jpg', type: 'image/jpeg', url: '/path/to/image.jpg' },
-  { name: 'document.pdf', type: 'application/pdf', url: '/path/to/document.pdf' },
-  { name: 'presentation.pptx', type: 'application/vnd.openxmlformats-officedocument.presentationml.presentation', url: '/path/to/presentation.pptx' },
-  { name: 'spreadsheet.xlsx', type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', url: '/path/to/spreadsheet.xlsx' },
-];
-
-<FilePreviewModal
-  files={files}
-  currentIndex={0}
-  isOpen={isOpen}
-  onClose={() => setIsOpen(false)}
-  onNavigate={setCurrentIndex}
-/>
-```
-
-## 📖 Supported File Formats
-
-### Images
-
-- **Formats**: JPG, PNG, GIF, WebP, SVG, BMP, ICO
-- **Features**: Zoom (0.1x - 10x), rotate, drag, mouse wheel zoom, double-click reset
-
-### Videos
-
-- **Formats**: MP4, WebM, OGG, MOV, AVI, MKV, M4V, 3GP, FLV
-- **Features**: Custom player, progress control, volume adjustment, fullscreen
-
-### Audio
-
-- **Formats**: MP3, WAV, OGG, M4A, AAC, FLAC
-- **Features**: Custom player, progress bar, volume control, skip forward/backward
-
-### Documents
-
-- **PDF**: Pagination, zoom
-- **Word**: DOCX format support
-- **Excel**: XLSX format support
-- **PowerPoint**: PPTX/PPT format support, slide preview
-
-### Code & Text
-
-- **Markdown**: GitHub Flavored Markdown, code highlighting
-- **Code Files**: JS, TS, Python, Java, C++, Go, Rust, and 40+ languages
-- **Text Files**: TXT, LOG, CSV, JSON, YAML, XML, etc.
-
-## 🎮 API Reference
-
-### FilePreviewModal Props
-
-| Prop                | Type                        | Required | Description                                                          |
-| ------------------- | --------------------------- | -------- | -------------------------------------------------------------------- |
-| `files`           | `PreviewFileInput[]`      | ✅       | Array of files (supports File objects, file objects, or URL strings) |
-| `currentIndex`    | `number`                  | ✅       | Current file index                                                   |
-| `isOpen`          | `boolean`                 | ✅       | Whether the modal is open                                            |
-| `onClose`         | `() => void`              | ✅       | Close callback                                                       |
-| `onNavigate`      | `(index: number) => void` | ❌       | Navigation callback                                                  |
-| `customRenderers` | `CustomRenderer[]`        | ❌       | Custom renderers for specific file types                             |
-
-### FilePreviewEmbed Props
-
-| Prop                | Type                        | Required | Default    | Description                            |
-| ------------------- | --------------------------- | -------- | ---------- | -------------------------------------- |
-| `files`           | `PreviewFileInput[]`      | ✅       | -          | Array of files                         |
-| `currentIndex`    | `number`                  | ❌       | `0`      | Current file index                     |
-| `onNavigate`      | `(index: number) => void` | ❌       | -          | Navigation callback                    |
-| `customRenderers` | `CustomRenderer[]`        | ❌       | -          | Custom renderers                       |
-| `width`           | `number \| string`         | ❌       | `'100%'` | Container width                        |
-| `height`          | `number \| string`         | ❌       | `'100%'` | Container height                       |
-| `className`       | `string`                  | ❌       | -          | Extra class on the root wrapper        |
-| `style`           | `CSSProperties`           | ❌       | -          | Extra inline style on the root wrapper |
-
-> `FilePreviewEmbed` has no `isOpen` / `onClose`. To hide/show the embed, conditionally render it from the parent. It also hides the close button in the toolbar.
-
-### FilePreviewContent (advanced)
-
-Both `FilePreviewModal` and `FilePreviewEmbed` are thin wrappers around the exported lower-level `FilePreviewContent` component. You can use it directly when building a fully custom wrapper (custom drawer, split-pane, etc.):
-
-```tsx
-import { FilePreviewContent } from '@eternalheart/react-file-preview';
-
-<div className="my-custom-wrapper">
-  <FilePreviewContent
-    mode="embed"       // or "modal"
-    files={files}
-    currentIndex={index}
-    onNavigate={setIndex}
+<template>
+  <FilePreviewModal
+    :files="[file]"
+    :current-index="0"
+    :is-open="true"
+    @close="isOpen = false"
   />
-</div>
+</template>
 ```
 
-### File Type Definitions
+<img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f449.svg" width="16" height="16" alt="👉" style="vertical-align: middle;" /> [View Vue Full Documentation](./packages/vue-file-preview/README.md) | [Live Demo](https://wh131462.github.io/file-preview/vue/)
 
-```typescript
-// Supports three types of file input
-type PreviewFileInput = File | PreviewFileLink | string;
+---
 
-// 1. Native File object (Browser File API)
-const file: File = ...;
+## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f4e6.svg" width="20" height="20" alt="📦" /> Package Overview
 
-// 2. File object
-interface PreviewFileLink {
-  id?: string;       // Optional unique identifier
-  name: string;      // File name
-  type: string;      // MIME type
-  url: string;       // File URL (supports blob URLs and HTTP URLs)
-  size?: number;     // File size in bytes
-}
+| Package | Description | Version | Documentation |
+|---------|-------------|---------|---------------|
+| [@eternalheart/react-file-preview](https://www.npmjs.com/package/@eternalheart/react-file-preview) | React component library | [![npm](https://img.shields.io/npm/v/@eternalheart/react-file-preview.svg)](https://www.npmjs.com/package/@eternalheart/react-file-preview) | [README](./packages/react-file-preview/README.md) |
+| [@eternalheart/vue-file-preview](https://www.npmjs.com/package/@eternalheart/vue-file-preview) | Vue 3 component library | [![npm](https://img.shields.io/npm/v/@eternalheart/vue-file-preview.svg)](https://www.npmjs.com/package/@eternalheart/vue-file-preview) | [README](./packages/vue-file-preview/README.md) |
+| file-preview-core | Framework-agnostic core | Internal | - |
 
-// 3. HTTP URL string
-const url: string = 'https://example.com/file.pdf';
+---
+
+## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f4cb.svg" width="20" height="20" alt="📋" /> Supported Formats
+
+<table>
+<tr>
+  <th width="15%">Type</th>
+  <th width="40%">Formats</th>
+  <th width="45%">Key Features</th>
+</tr>
+<tr>
+  <td><strong>Images</strong></td>
+  <td>JPG, PNG, GIF, WebP, SVG, BMP, ICO, AVIF, HEIC</td>
+  <td>Zoom (0.1x-10x), rotate, drag, mouse wheel zoom</td>
+</tr>
+<tr>
+  <td><strong>Videos</strong></td>
+  <td>MP4, WebM, OGG, MOV, AVI, MKV, M4V, 3GP, FLV</td>
+  <td>Custom player, progress control, volume adjustment, fullscreen</td>
+</tr>
+<tr>
+  <td><strong>Audio</strong></td>
+  <td>MP3, WAV, OGG, M4A, AAC, FLAC</td>
+  <td>Custom player, progress bar, volume control, skip forward/backward</td>
+</tr>
+<tr>
+  <td><strong>Documents</strong></td>
+  <td>PDF, DOCX, XLSX, PPTX/PPT</td>
+  <td>Pagination, zoom, slide preview, spreadsheet view</td>
+</tr>
+<tr>
+  <td><strong>Code</strong></td>
+  <td>JS, TS, Python, Java, C++, Go, Rust, and 40+ languages</td>
+  <td>Syntax highlighting, theme support, line numbers</td>
+</tr>
+<tr>
+  <td><strong>Subtitles</strong></td>
+  <td>SRT, WebVTT, LRC, ASS/SSA, TTML/DFXP</td>
+  <td>Timeline parsing, metadata extraction, structured display</td>
+</tr>
+<tr>
+  <td><strong>Others</strong></td>
+  <td>Markdown, CSV, JSON, XML, ZIP, MSG, EPUB, Fonts</td>
+  <td>Rendering, formatting, tree view, character set preview</td>
+</tr>
+</table>
+
+<img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f449.svg" width="16" height="16" alt="👉" style="vertical-align: middle;" /> [View complete format list and examples](https://wh131462.github.io/file-preview/docs/guide/supported-formats.html)
+
+---
+
+## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f3d7.svg" width="20" height="20" alt="🏗️" /> Project Architecture
+
+This project uses a pnpm workspace monorepo architecture:
+
+```
+file-preview/
+├── packages/
+│   ├── file-preview-core/     # Framework-agnostic core (types, detection, parsers)
+│   ├── react-file-preview/    # React bindings → @eternalheart/react-file-preview
+│   ├── vue-file-preview/      # Vue bindings → @eternalheart/vue-file-preview
+│   ├── example/               # React demo app (deployed to GitHub Pages)
+│   ├── vue-example/           # Vue demo app (deployed to GitHub Pages /vue)
+│   └── docs/                  # VitePress documentation site
+└── openspec/                  # OpenSpec change records
 ```
 
-### Usage Examples
+---
 
-```typescript
-// Method 1: Using native File objects
-const files = [file1, file2]; // Array of File objects
+## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f6e0.svg" width="20" height="20" alt="🛠️" /> Development Guide
 
-// Method 2: Using HTTP URL strings
-const files = [
-  'https://example.com/image.jpg',
-  'https://example.com/document.pdf',
-];
-
-// Method 3: Using file objects
-const files = [
-  {
-    name: 'presentation.pptx',
-    type: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-    url: '/path/to/presentation.pptx',
-  },
-];
-
-// Method 4: Mixed usage
-const files = [
-  file1,  // File object
-  'https://example.com/image.jpg',  // URL string
-  { name: 'doc.pdf', type: 'application/pdf', url: '/doc.pdf' },  // File object
-];
-```
-
-### Supported MIME Types
-
-#### Office Documents
-
-- **Word**: `application/vnd.openxmlformats-officedocument.wordprocessingml.document` (.docx)
-- **Excel**: `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet` (.xlsx)
-- **PowerPoint**: `application/vnd.openxmlformats-officedocument.presentationml.presentation` (.pptx)
-- **PowerPoint (Legacy)**: `application/vnd.ms-powerpoint` (.ppt)
-
-#### Other Documents
-
-- **PDF**: `application/pdf`
-
-#### Media Files
-
-- **Images**: `image/jpeg`, `image/png`, `image/gif`, `image/webp`, `image/svg+xml`, etc.
-- **Videos**: `video/mp4`, `video/webm`, `video/ogg`, etc.
-- **Audio**: `audio/mpeg`, `audio/wav`, `audio/ogg`, etc.
-
-#### Text Files
-
-- **Markdown**: File extensions `.md` or `.markdown`
-- **Code**: Auto-detected by file extension (`.js`, `.ts`, `.py`, `.java`, etc.)
-- **Plain Text**: `text/plain`, `text/csv`, etc.
-
-## 🎨 Custom Styling
-
-The component is built with Tailwind CSS. You can customize styles by overriding CSS variables:
-
-```css
-/* Custom theme colors */
-:root {
-  --primary-color: #8b5cf6;
-  --secondary-color: #ec4899;
-}
-```
-
-## ⌨️ Keyboard Shortcuts
-
-- `ESC` - Close preview
-- `←` - Previous file
-- `→` - Next file
-- `Mouse Wheel` - Zoom image (image preview only)
-
-## 📚 Documentation
-
-- [Online Demo](https://wh131462.github.io/file-preview) - Live demo
-
-## 🛠️ Development
-
-### For Library Development
+### Install Dependencies
 
 ```bash
-# Clone repository
-git clone https://github.com/wh131462/file-preview.git
-
-# Install dependencies
 pnpm install
-
-# Start dev server (demo app)
-pnpm dev
-
-# Build library (for npm)
-pnpm build:lib
-
-# Build demo app (for GitHub Pages)
-pnpm build:demo
 ```
 
-## 📄 License
+### Development Commands
+
+```bash
+# Start dev servers
+pnpm dev              # React demo
+pnpm dev:vue          # Vue demo
+pnpm dev:docs         # Documentation site
+
+# Build
+pnpm build            # Build all packages
+pnpm build:lib        # Build library only
+pnpm build:example    # Build examples only
+
+# Preview builds
+pnpm preview:example  # Preview example build
+pnpm preview:docs     # Preview docs build
+
+# Deploy and publish
+pnpm deploy           # Deploy examples and docs to GitHub Pages
+pnpm pub              # Publish library to npm
+```
+
+### Contributing
+
+1. Fork this repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'feat: add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Submit a Pull Request
+
+<img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f449.svg" width="16" height="16" alt="👉" style="vertical-align: middle;" /> [Read full contributing guide](./CONTRIBUTING.md)
+
+---
+
+## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/2328.svg" width="20" height="20" alt="⌨️" /> Keyboard Shortcuts
+
+| Key | Action |
+|-----|--------|
+| `ESC` | Close preview |
+| `←` / `→` | Navigate to previous/next file |
+| `Mouse Wheel` | Zoom image (image preview only) |
+
+---
+
+## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f4c4.svg" width="20" height="20" alt="📄" /> License
 
 [MIT](./LICENSE) © [EternalHeart](https://github.com/wh131462)
 
-## 🤝 Contributing
+---
 
-Issues and Pull Requests are welcome!
+## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f517.svg" width="20" height="20" alt="🔗" /> Links
 
-## 🔗 Links
+- **GitHub**: [wh131462/file-preview](https://github.com/wh131462/file-preview)
+- **Documentation**: [wh131462.github.io/file-preview/docs](https://wh131462.github.io/file-preview/docs/)
+- **Issue Tracker**: [GitHub Issues](https://github.com/wh131462/file-preview/issues)
+- **Community**: [Linux.do](https://linux.do/)
 
-- [GitHub](https://github.com/wh131462/file-preview)
-- [npm](https://www.npmjs.com/package/@eternalheart/react-file-preview)
-- [Online Demo](https://wh131462.github.io/file-preview)
-- [Issue Tracker](https://github.com/wh131462/file-preview/issues)
-- [Linux.do Community](https://linux.do/)
+---
+
+## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f4ac.svg" width="20" height="20" alt="💬" /> Community & Support
+
+If this project helps you, please:
+
+- <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/2b50.svg" width="16" height="16" alt="⭐" style="vertical-align: middle;" /> Star the project on GitHub
+- <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f41b.svg" width="16" height="16" alt="🐛" style="vertical-align: middle;" /> [Report issues](https://github.com/wh131462/file-preview/issues) to help us improve
+- <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f4a1.svg" width="16" height="16" alt="💡" style="vertical-align: middle;" /> [Submit PRs](https://github.com/wh131462/file-preview/pulls) to contribute code
+- <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f4e2.svg" width="16" height="16" alt="📢" style="vertical-align: middle;" /> Share it with more developers

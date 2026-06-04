@@ -89,3 +89,22 @@ All file type renderers SHALL use the unified `RendererError` component instead 
 #### Scenario: Backwards compatibility
 - **WHEN** existing error states are migrated to use `RendererError`
 - **THEN** the visual appearance and user experience remain consistent or improved
+
+### Requirement: Framework-specific Tailwind prefix
+The `RendererError` (and any sibling shared components such as `RendererLoading`) SHALL use the Tailwind class prefix declared by the package it ships in. The React package uses `rfp-` and the Vue package uses `vfp-`; cross-package copy-paste MUST update every class accordingly.
+
+#### Scenario: React package classes
+- **WHEN** a shared renderer component lives in `packages/react-file-preview`
+- **THEN** every Tailwind utility class in its template/JSX SHALL be prefixed with `rfp-` (e.g. `rfp-flex`, `rfp-text-lg`, `md:rfp-text-xl`)
+
+#### Scenario: Vue package classes
+- **WHEN** a shared renderer component lives in `packages/vue-file-preview`
+- **THEN** every Tailwind utility class in its template SHALL be prefixed with `vfp-` (e.g. `vfp-flex`, `vfp-text-lg`, `md:vfp-text-xl`)
+
+#### Scenario: No cross-package prefix leakage
+- **WHEN** a component is ported from one package to the other (e.g. React → Vue)
+- **THEN** the destination file MUST NOT contain any class names using the source package's prefix; a repo-wide grep for the wrong prefix inside the destination package SHALL return zero matches
+
+#### Scenario: Responsive variant prefixing
+- **WHEN** a responsive variant such as `md:`, `sm:`, `lg:` is applied
+- **THEN** the prefix appears between the variant and the utility name (e.g. `md:vfp-text-xl`, not `vfp-md:text-xl`)

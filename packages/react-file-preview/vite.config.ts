@@ -3,7 +3,6 @@ import react from '@vitejs/plugin-react';
 import { resolve } from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
-import { viteStaticCopy } from 'vite-plugin-static-copy';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -107,19 +106,6 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [
       react(),
-      // 复制 PDF.js worker 和 cmaps 文件到构建输出
-      viteStaticCopy({
-        targets: [
-          {
-            src: resolve(__dirname, 'node_modules/pdfjs-dist/build/pdf.worker.min.mjs'),
-            dest: './pdfjs',
-          },
-          {
-            src: resolve(__dirname, 'node_modules/pdfjs-dist/cmaps'),
-            dest: './pdfjs',
-          },
-        ],
-      }),
     ],
     publicDir: false, // 不复制 public 目录
     resolve: {

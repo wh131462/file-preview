@@ -3,7 +3,6 @@ import vue from '@vitejs/plugin-vue';
 import { resolve } from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
-import { viteStaticCopy } from 'vite-plugin-static-copy';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -96,18 +95,6 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [
       vue(),
-      viteStaticCopy({
-        targets: [
-          {
-            src: resolve(__dirname, 'node_modules/pdfjs-dist/build/pdf.worker.min.mjs'),
-            dest: './pdfjs',
-          },
-          {
-            src: resolve(__dirname, 'node_modules/pdfjs-dist/cmaps'),
-            dest: './pdfjs',
-          },
-        ],
-      }),
     ],
     publicDir: false,
     resolve: {

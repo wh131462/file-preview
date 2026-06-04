@@ -25,7 +25,7 @@ interface OpentypeFontLike {
 }
 
 const props = defineProps<{
-  font: OpentypeFontLike;
+  font: OpentypeFontLike | null;
   text: string;
   fontSize: number;
   renderMode: RenderMode;
@@ -40,12 +40,14 @@ let resizeObserver: ResizeObserver | null = null;
 const drawCanvas = () => {
   const wrapper = wrapperRef.value;
   const canvas = canvasRef.value;
-  if (!wrapper || !canvas || props.renderMode !== 'canvas') return;
+  if (!wrapper || !canvas || props.renderMode !== 'canvas' || !props.font) return;
 
   const containerWidth = wrapper.clientWidth || 600;
   const dpr = window.devicePixelRatio || 1;
   const lineHeight = props.fontSize * 1.4;
   const fillColor = props.theme === 'light' ? '#1f2937' : '#f3f4f6';
+
+  const font = props.font;
 
   // 按容器宽度做软换行：先按 \n 拆段，再按字宽贪心断行
   const wrapLine = (line: string): string[] => {
@@ -54,7 +56,7 @@ const drawCanvas = () => {
     let buf = '';
     for (const ch of Array.from(line)) {
       const next = buf + ch;
-      const w = props.font.getAdvanceWidth(next, props.fontSize);
+      const w = font.getAdvanceWidth(next, props.fontSize);
       if (w > containerWidth && buf) {
         result.push(buf);
         buf = ch;
@@ -86,7 +88,7 @@ const drawCanvas = () => {
   ctx.clearRect(0, 0, width, height);
 
   wrappedLines.forEach((line, idx) => {
-    const path = props.font.getPath(line, 0, props.fontSize + idx * lineHeight, props.fontSize);
+    const path = font.getPath(line, 0, props.fontSize + idx * lineHeight, props.fontSize);
     path.fill = fillColor;
     path.draw(ctx);
   });

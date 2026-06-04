@@ -130,6 +130,8 @@ export const zhCN: Messages = {
   'font.loading': '加载字体中...',
   'font.load_failed': '字体文件加载失败',
   'font.parse_failed': '字体解析失败',
+  'font.metadata_loading': '解析元数据中...',
+  'font.metadata_unavailable': '元数据不可用',
   'font.meta.family': '字体家族',
   'font.meta.subfamily': '子系列',
   'font.meta.version': '版本',

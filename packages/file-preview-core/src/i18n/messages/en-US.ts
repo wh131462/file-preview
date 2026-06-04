@@ -130,6 +130,8 @@ export const enUS: Messages = {
   'font.loading': 'Loading font...',
   'font.load_failed': 'Failed to load font',
   'font.parse_failed': 'Failed to parse font',
+  'font.metadata_loading': 'Parsing metadata...',
+  'font.metadata_unavailable': 'Metadata unavailable',
   'font.meta.family': 'Family',
   'font.meta.subfamily': 'Subfamily',
   'font.meta.version': 'Version',

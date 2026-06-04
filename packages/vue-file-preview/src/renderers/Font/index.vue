@@ -15,7 +15,9 @@
         <div class="vfp-grid vfp-grid-cols-2 vfp-gap-x-6 vfp-gap-y-2 vfp-text-sm vfp-min-w-0">
           <div class="vfp-flex vfp-items-center vfp-gap-2 vfp-min-w-0">
             <span class="vfp-text-fg-tertiary vfp-flex-shrink-0">{{ t('font.meta.family') }}:</span>
-            <span class="vfp-text-fg-primary vfp-font-semibold vfp-truncate">{{ metadata.family }}</span>
+            <span class="vfp-text-fg-primary vfp-font-semibold vfp-truncate">
+              {{ showMetaPlaceholder ? metaPlaceholder : metadata.family }}
+            </span>
           </div>
           <div v-if="metadata.subfamily" class="vfp-flex vfp-items-center vfp-gap-2 vfp-min-w-0">
             <span class="vfp-text-fg-tertiary vfp-flex-shrink-0">{{ t('font.meta.subfamily') }}:</span>
@@ -27,7 +29,9 @@
           </div>
           <div class="vfp-flex vfp-items-center vfp-gap-2 vfp-min-w-0">
             <span class="vfp-text-fg-tertiary vfp-flex-shrink-0">{{ t('font.meta.glyphs') }}:</span>
-            <span class="vfp-text-fg-primary vfp-truncate">{{ metadata.glyphCount }}</span>
+            <span class="vfp-text-fg-primary vfp-truncate">
+              {{ showMetaPlaceholder ? metaPlaceholder : metadata.glyphCount }}
+            </span>
           </div>
           <div v-if="metadata.designer" class="vfp-flex vfp-items-center vfp-gap-2 vfp-min-w-0">
             <span class="vfp-text-fg-tertiary vfp-flex-shrink-0">{{ t('font.meta.designer') }}:</span>
@@ -62,11 +66,10 @@
             <div v-for="size in SIZES" :key="size" class="vfp-space-y-2 vfp-min-w-0">
               <div class="vfp-text-xs vfp-text-fg-tertiary">{{ size }}px</div>
               <FontPreviewLine
-                v-if="font"
                 :font="font"
                 :text="displayText"
                 :font-size="size"
-                :render-mode="renderMode"
+                :render-mode="effectiveRenderMode"
                 :theme="resolvedTheme"
               />
             </div>
@@ -77,11 +80,10 @@
             <div class="vfp-min-w-0">
               <div class="vfp-text-sm vfp-text-fg-tertiary vfp-mb-3">Latin Alphabet</div>
               <FontPreviewLine
-                v-if="font"
                 :font="font"
                 :text="DEFAULT_SAMPLES.latin"
                 :font-size="24"
-                :render-mode="renderMode"
+                :render-mode="effectiveRenderMode"
                 :theme="resolvedTheme"
               />
             </div>
@@ -89,11 +91,10 @@
             <div class="vfp-min-w-0">
               <div class="vfp-text-sm vfp-text-fg-tertiary vfp-mb-3">Chinese Characters</div>
               <FontPreviewLine
-                v-if="font"
                 :font="font"
                 :text="DEFAULT_SAMPLES.chinese"
                 :font-size="24"
-                :render-mode="renderMode"
+                :render-mode="effectiveRenderMode"
                 :theme="resolvedTheme"
               />
             </div>
@@ -124,6 +125,7 @@ interface FontMetadata {
 }
 
 type RenderMode = 'fontface' | 'canvas';
+type MetadataStatus = 'loading' | 'ready' | 'unavailable';
 
 // 字体文件魔数：用首 4 字节判断格式，比扩展名更可靠
 const MAGIC_WOFF2 = 0x774f4632; // 'wOF2'
@@ -162,6 +164,7 @@ const resolvedTheme = useResolvedTheme();
 
 const font = ref<OpentypeFont | null>(null);
 const metadata = ref<FontMetadata | null>(null);
+const metadataStatus = ref<MetadataStatus>('loading');
 const loading = ref(true);
 const error = ref<string | null>(null);
 const customText = ref('');
@@ -170,6 +173,13 @@ const renderMode = ref<RenderMode>('fontface');
 let fontFace: FontFace | null = null;
 
 const displayText = computed(() => customText.value || DEFAULT_SAMPLES.mixed);
+
+const showMetaPlaceholder = computed(() => metadataStatus.value !== 'ready');
+const metaPlaceholder = computed(() =>
+  metadataStatus.value === 'loading' ? t.value('font.metadata_loading') : t.value('font.metadata_unavailable'),
+);
+// Canvas 模式必须有 font 才能绘制；没有 font（如 WOFF2 跳过解析）只能保留 FontFace 路径
+const effectiveRenderMode = computed<RenderMode>(() => (renderMode.value === 'canvas' && font.value ? 'canvas' : 'fontface'));
 
 const detectFormat = (url: string): string => {
   const ext = url.split('.').pop()?.toLowerCase().split('?')[0] || '';
@@ -182,7 +192,6 @@ const detectFormat = (url: string): string => {
   return formatMap[ext] || 'TTF';
 };
 
-// 魔数能识别就用魔数标签，识别不出再回退到扩展名
 const formatLabel = (magic: DetectedFormat, url: string): string => {
   const labels: Record<DetectedFormat, string | null> = {
     woff2: 'Web Open Font Format 2 (WOFF2)',
@@ -194,103 +203,119 @@ const formatLabel = (magic: DetectedFormat, url: string): string => {
   return labels[magic] ?? detectFormat(url);
 };
 
+// 任务 A：FontFace 原生加载（浏览器对 WOFF2 原生支持，无需 wawoff2 解压）
+const loadFontFace = async (faceBuffer: ArrayBuffer): Promise<void> => {
+  try {
+    fontFace = new FontFace('PreviewFont', faceBuffer);
+    await fontFace.load();
+    document.fonts.add(fontFace);
+    renderMode.value = 'fontface';
+  } catch (faceErr) {
+    console.warn('[FontRenderer] FontFace API rejected, fallback to Canvas:', faceErr);
+    renderMode.value = 'canvas';
+    throw faceErr;
+  }
+};
+
+// 任务 B：opentype 元数据解析。WOFF2 由浏览器原生渲染即可,不解析元数据
+// （opentype.js 不支持 Brotli;独立解压链路引入 emscripten wasm 与挂死风险,代价过大)
+const loadMetadata = async (arrayBuffer: ArrayBuffer, magic: DetectedFormat): Promise<void> => {
+  if (magic === 'woff2') {
+    throw new Error('WOFF2 metadata parsing intentionally skipped');
+  }
+
+  const fontData = parse(arrayBuffer) as unknown as OpentypeFont;
+  if (!fontData) {
+    throw new Error('Font data is invalid');
+  }
+
+  const rawNames = (fontData.names || {}) as unknown as Record<string, unknown>;
+  const platformTables = ['windows', 'macintosh', 'unicode']
+    .map((k) => rawNames[k])
+    .filter((t): t is Record<string, { en?: string; 'zh-Hans'?: string }> => !!t && typeof t === 'object');
+  const pickName = (key: string): string => {
+    for (const table of platformTables) {
+      const entry = table[key];
+      const val = entry?.en || entry?.['zh-Hans'];
+      if (val) return val;
+    }
+    const flat = rawNames[key] as { en?: string; 'zh-Hans'?: string } | undefined;
+    return flat?.en || flat?.['zh-Hans'] || '';
+  };
+
+  const meta: FontMetadata = {
+    family: pickName('fontFamily') || pickName('postScriptName') || 'Unknown',
+    subfamily: pickName('fontSubfamily'),
+    version: pickName('version'),
+    designer: pickName('designer'),
+    glyphCount: fontData.numGlyphs || 0,
+    format: formatLabel(magic, props.url),
+  };
+
+  font.value = fontData;
+  metadata.value = meta;
+  metadataStatus.value = 'ready';
+};
+
 onMounted(async () => {
-  // 只有 URL 有效时才加载（避免空字符串或已 revoke 的 blob URL）
   if (!props.url) return;
 
   try {
     loading.value = true;
     error.value = null;
+    metadataStatus.value = 'loading';
 
-    // 使用 fetcher 替代原生 fetch（支持鉴权）
     const response = await fetcher.value(props.url);
     if (!response.ok) {
       throw new Error('Failed to load font file');
     }
     const arrayBuffer = await response.arrayBuffer();
 
-    // 为 FontFace 克隆一份 ArrayBuffer，避免 opentype.js 的 parse 影响其状态
     const faceBuffer = arrayBuffer.slice(0);
-
-    // 用魔数检测真实格式
     const magic = detectMagic(arrayBuffer);
 
-    // woff2 需先解压为 ttf 才能交给 opentype.js（opentype.js 不内置 Brotli）
-    // FontFace 那一路仍用原始 woff2 buffer，浏览器原生解压更快
-    let parseBuffer: ArrayBuffer = arrayBuffer;
-    if (magic === 'woff2') {
-      // 用变量包裹 import 说明符，绕开 Rollup 的静态分析，让 'wawoff2' 始终作为运行时 external
-      // （直接 import('wawoff2') 在 vite/rollup 多 output 模式下会被错误地内联打包并丢失 decompress 包装层）
-      const pkg = 'wawoff2';
-      const wawoff2 = (await import(/* @vite-ignore */ pkg)) as { decompress: (b: Uint8Array) => Promise<Uint8Array> };
-      const woff2Bytes = new Uint8Array(arrayBuffer);
-      const ttfBytes = await wawoff2.decompress(woff2Bytes);
-      // 显式拷贝到独立 ArrayBuffer，避开 TS 对 Uint8Array.buffer 的 SharedArrayBuffer 联合类型
-      const ttfArrayBuffer = new ArrayBuffer(ttfBytes.byteLength);
-      new Uint8Array(ttfArrayBuffer).set(ttfBytes);
-      parseBuffer = ttfArrayBuffer;
-    }
+    const facePromise = loadFontFace(faceBuffer);
+    const metadataPromise = loadMetadata(arrayBuffer, magic);
 
-    // 解析字体文件（opentype.js 容忍度高于浏览器 OTS）
-    // parse 返回值与官方 Font 类型存在不一致（opentype.js 类型定义瑕疵），用 unknown 二次转换
-    const fontData = parse(parseBuffer) as unknown as OpentypeFont;
+    await facePromise.catch(() => {
+      // FontFace 失败由 metadata 兜底
+    });
+    loading.value = false;
 
-    if (!fontData) {
-      throw new Error('Font data is invalid');
-    }
-
-    // 提取元数据
-    // opentype.js 2.x 的 names 结构为 { windows: {...}, macintosh: {...}, unicode: {...} }，
-    // 字段被嵌在 platform 表下。优先 windows，其次 macintosh，再 unicode，最后回退到 1.x 平铺结构。
-    const rawNames = (fontData.names || {}) as unknown as Record<string, unknown>;
-    const platformTables = ['windows', 'macintosh', 'unicode']
-      .map((k) => rawNames[k])
-      .filter((t): t is Record<string, { en?: string; 'zh-Hans'?: string }> => !!t && typeof t === 'object');
-    const pickName = (key: string): string => {
-      for (const table of platformTables) {
-        const entry = table[key];
-        const val = entry?.en || entry?.['zh-Hans'];
-        if (val) return val;
-      }
-      const flat = rawNames[key] as { en?: string; 'zh-Hans'?: string } | undefined;
-      return flat?.en || flat?.['zh-Hans'] || '';
-    };
-
-    const meta: FontMetadata = {
-      family: pickName('fontFamily') || pickName('postScriptName') || 'Unknown',
-      subfamily: pickName('fontSubfamily'),
-      version: pickName('version'),
-      designer: pickName('designer'),
-      glyphCount: fontData.numGlyphs || 0,
-      format: formatLabel(magic, props.url),
-    };
-
-    font.value = fontData;
-    metadata.value = meta;
-
-    // 尝试用 FontFace API 加载（浏览器原生渲染，性能好）
-    // 失败时降级到 Canvas 软渲染（opentype.js 容忍度更高）
     try {
-      fontFace = new FontFace('PreviewFont', faceBuffer);
-      await fontFace.load();
-      document.fonts.add(fontFace);
-      renderMode.value = 'fontface';
-    } catch (faceErr) {
-      console.warn('[FontRenderer] FontFace API rejected, fallback to Canvas:', faceErr);
-      renderMode.value = 'canvas';
+      await metadataPromise;
+    } catch (metaErr) {
+      if (magic !== 'woff2') {
+        console.warn(
+          '[FontRenderer] Metadata parse failed, font is still rendered via FontFace:',
+          metaErr instanceof Error ? metaErr.message : String(metaErr),
+        );
+      }
+      metadataStatus.value = 'unavailable';
+      metadata.value = {
+        family: 'Unknown',
+        subfamily: '',
+        version: '',
+        designer: '',
+        glyphCount: 0,
+        format: formatLabel(magic, props.url),
+      };
     }
-
-    loading.value = false;
   } catch (err) {
-    console.error('[FontRenderer] Error:', err);
-    error.value = err instanceof Error ? err.message : t.value('font.load_failed');
+    console.warn(
+      '[FontRenderer] Failed to load font:',
+      err instanceof Error ? err.message : String(err),
+    );
+    error.value = t.value('font.load_failed');
     loading.value = false;
+    metadataStatus.value = 'unavailable';
   }
 });
 
 onBeforeUnmount(() => {
   if (fontFace) {
     document.fonts.delete(fontFace);
+    fontFace = null;
   }
 });
 </script>

@@ -205,9 +205,6 @@ importers:
       video.js:
         specifier: ^8.23.4
         version: 8.23.7
-      wawoff2:
-        specifier: ^2.0.1
-        version: 2.0.1
       x-data-spreadsheet:
         specifier: ^1.1.9
         version: 1.1.9
@@ -369,9 +366,6 @@ importers:
       video.js:
         specifier: ^8.23.4
         version: 8.23.7
-      wawoff2:
-        specifier: ^2.0.1
-        version: 2.0.1
       x-data-spreadsheet:
         specifier: ^1.1.9
         version: 1.1.9
@@ -3292,10 +3286,6 @@ packages:
 
   wasm-feature-detect@1.8.0:
     resolution: {integrity: sha512-zksaLKM2fVlnB5jQQDqKXXwYHLQUVH9es+5TOOHwGOVJOCeRBCiPjwSg+3tN2AdTCzjgli4jijCH290kXb/zWQ==}
-
-  wawoff2@2.0.1:
-    resolution: {integrity: sha512-r0CEmvpH63r4T15ebFqeOjGqU4+EgTx4I510NtK35EMciSdcTxCw3Byy3JnBonz7iyIFZ0AbVo0bbFpEVuhCYA==}
-    hasBin: true
 
   web-namespaces@2.0.1:
     resolution: {integrity: sha512-bKr1DkiNa2krS7qxNtdrtHAmzuYGFQLiQ13TsorsdT6ULTkPLKuu5+GsFpDlg6JFjUTwX2DyhMPG2be8uPrqsQ==}
@@ -6732,10 +6722,6 @@ snapshots:
       typescript: 5.9.3
 
   wasm-feature-detect@1.8.0: {}
-
-  wawoff2@2.0.1:
-    dependencies:
-      argparse: 2.0.1
 
   web-namespaces@2.0.1: {}
 

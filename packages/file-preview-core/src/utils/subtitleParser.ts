@@ -409,58 +409,117 @@ function parseTtmlTime(value: string): number {
 }
 
 /**
- * 解析 TTML
+ * 解码常见 XML/HTML 实体（仅用于正则回退路径）
  */
-function parseTtml(text: string): SubtitleParseResult {
-  if (typeof DOMParser === 'undefined') {
-    throw new Error('TTML parsing requires a DOMParser environment');
-  }
-  const doc = new DOMParser().parseFromString(text, 'application/xml');
-  const parserError = doc.getElementsByTagName('parsererror');
-  if (parserError.length > 0) {
-    throw new Error('TTML XML parse error');
-  }
+function decodeXmlEntities(input: string): string {
+  return input
+    .replace(/&#x([0-9a-fA-F]+);/g, (_, n) => String.fromCharCode(parseInt(n, 16)))
+    .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(Number(n)))
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'")
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&');
+}
 
-  const ps = doc.getElementsByTagName('p');
+/**
+ * 正则提取 TTML 的 <p> 字幕条目。
+ *
+ * 仅用于 DOMParser 严格 XML 解析失败时的兜底。不依赖 DOM，可避免 HTML 解析模式下
+ * TTML 中自闭合 <style xml:id="..."/> 被当作 HTML <style> 而吞掉后续 <body> 的问题。
+ */
+function parseTtmlByRegex(text: string): SubtitleParseResult {
   const cues: SubtitleCue[] = [];
-
-  for (let i = 0; i < ps.length; i++) {
-    const p = ps[i];
-    const begin = p.getAttribute('begin') || '';
-    const endAttr = p.getAttribute('end') || '';
-    const dur = p.getAttribute('dur') || '';
-    const start = parseTtmlTime(begin);
+  const re = /<(?:[\w-]+:)?p\b([^>]*)>([\s\S]*?)<\/(?:[\w-]+:)?p\s*>/gi;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(text)) !== null) {
+    const attrs = m[1];
+    const inner = m[2];
+    const beginAttr = /\bbegin\s*=\s*["']([^"']+)["']/i.exec(attrs)?.[1] || '';
+    const endAttr = /\bend\s*=\s*["']([^"']+)["']/i.exec(attrs)?.[1] || '';
+    const durAttr = /\bdur\s*=\s*["']([^"']+)["']/i.exec(attrs)?.[1] || '';
+    const start = parseTtmlTime(beginAttr);
     let end: number;
-    if (endAttr) {
-      end = parseTtmlTime(endAttr);
-    } else if (dur) {
-      end = start + parseTtmlTime(dur);
-    } else {
-      end = start + 5;
-    }
+    if (endAttr) end = parseTtmlTime(endAttr);
+    else if (durAttr) end = start + parseTtmlTime(durAttr);
+    else end = start + 5;
 
-    // 把 <br/> 换成 \n，其他子元素取文本
-    let textParts = '';
-    p.childNodes.forEach((node) => {
-      if (node.nodeType === 3) {
-        textParts += node.nodeValue || '';
-      } else if (node.nodeType === 1) {
-        const el = node as Element;
-        if (el.tagName.toLowerCase() === 'br') {
-          textParts += '\n';
-        } else {
-          textParts += el.textContent || '';
-        }
-      }
-    });
-    const cleaned = textParts.replace(/[ \t]+/g, ' ').replace(/\n /g, '\n').trim();
-    if (cleaned || start || end) {
-      cues.push({ start, end, text: cleaned });
+    const textContent = decodeXmlEntities(
+      inner.replace(/<(?:[\w-]+:)?br\s*\/?>/gi, '\n').replace(/<[^>]+>/g, ''),
+    )
+      .replace(/[ \t]+/g, ' ')
+      .replace(/\n /g, '\n')
+      .trim();
+
+    if (textContent || start || end) {
+      cues.push({ start, end, text: textContent });
     }
   }
-
   cues.sort((a, b) => a.start - b.start);
   return { format: 'ttml', cues };
+}
+
+/**
+ * 解析 TTML / DFXP
+ *
+ * 优先用 DOMParser 走严格 XML 解析。解析失败、或解析后未提取到任何 <p> 时，
+ * 走正则兜底（不使用 text/html 兜底：HTML5 解析器会把 TTML 中常见的自闭合
+ * <style ... /> 视作 HTML <style> 开标签，导致后续 <body> 内容被当作 CSS 吞掉）。
+ */
+function parseTtml(text: string): SubtitleParseResult {
+  const cleaned = text.replace(/^\uFEFF/, '');
+
+  if (typeof DOMParser !== 'undefined') {
+    const doc = new DOMParser().parseFromString(cleaned, 'application/xml');
+    const parserError = doc.getElementsByTagName('parsererror');
+    if (parserError.length === 0) {
+      const ps = doc.getElementsByTagNameNS
+        ? doc.getElementsByTagNameNS('*', 'p')
+        : doc.getElementsByTagName('p');
+      if (ps.length > 0) {
+        const cues: SubtitleCue[] = [];
+        for (let i = 0; i < ps.length; i++) {
+          const p = ps[i];
+          const begin = p.getAttribute('begin') || '';
+          const endAttr = p.getAttribute('end') || '';
+          const dur = p.getAttribute('dur') || '';
+          const start = parseTtmlTime(begin);
+          let end: number;
+          if (endAttr) {
+            end = parseTtmlTime(endAttr);
+          } else if (dur) {
+            end = start + parseTtmlTime(dur);
+          } else {
+            end = start + 5;
+          }
+
+          let textParts = '';
+          p.childNodes.forEach((node) => {
+            if (node.nodeType === 3) {
+              textParts += node.nodeValue || '';
+            } else if (node.nodeType === 1) {
+              const el = node as Element;
+              const local = (el.localName || el.tagName).toLowerCase();
+              if (local === 'br') {
+                textParts += '\n';
+              } else {
+                textParts += el.textContent || '';
+              }
+            }
+          });
+          const cueText = textParts.replace(/[ \t]+/g, ' ').replace(/\n /g, '\n').trim();
+          if (cueText || start || end) {
+            cues.push({ start, end, text: cueText });
+          }
+        }
+        cues.sort((a, b) => a.start - b.start);
+        return { format: 'ttml', cues };
+      }
+    }
+  }
+
+  return parseTtmlByRegex(cleaned);
 }
 
 /**

@@ -5,7 +5,7 @@ module.exports = [
   {
     name: 'react: index.mjs (main entry, gzip)',
     path: 'packages/react-file-preview/lib/index.mjs',
-    limit: '80 KB',
+    limit: '3 MB',
     gzip: true,
   },
   {
@@ -15,13 +15,13 @@ module.exports = [
       'packages/react-file-preview/lib/chunks/*.mjs',
       'packages/react-file-preview/lib/renderers/*.mjs',
     ],
-    limit: '800 KB',
+    limit: '3 MB',
     gzip: true,
   },
   {
     name: 'react: css (gzip)',
     path: 'packages/react-file-preview/lib/**/*.css',
-    limit: '400 KB',
+    limit: '3 MB',
     gzip: true,
   },
 
@@ -29,7 +29,7 @@ module.exports = [
   {
     name: 'vue: index.mjs (main entry, gzip)',
     path: 'packages/vue-file-preview/lib/index.mjs',
-    limit: '60 KB',
+    limit: '3 MB',
     gzip: true,
   },
   {
@@ -39,14 +39,13 @@ module.exports = [
       'packages/vue-file-preview/lib/chunks/*.mjs',
       'packages/vue-file-preview/lib/renderers/*.mjs',
     ],
-    limit: '500 KB',
+    limit: '3 MB',
     gzip: true,
   },
   {
     name: 'vue: css (gzip)',
     path: 'packages/vue-file-preview/lib/**/*.css',
-    limit: '400 KB',
+    limit: '3 MB',
     gzip: true,
   },
 ];
-

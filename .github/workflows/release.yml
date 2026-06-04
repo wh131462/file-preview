@@ -52,17 +52,19 @@ jobs:
         if: steps.extract-version.outputs.version != ''
         run: |
           CURRENT_TAG=${{ steps.extract-version.outputs.version }}
-          NPM="https://www.npmjs.com/package/@eternalheart/react-file-preview"
+          NPM_REACT="https://www.npmjs.com/package/@eternalheart/react-file-preview"
+          NPM_VUE="https://www.npmjs.com/package/@eternalheart/vue-file-preview"
+          NPM_LINKS=$'npm(react):'"$NPM_REACT"$'\nnpm(vue):'"$NPM_VUE"
           # 获取最近的合法版本标签
           git fetch --tags
           PREVIOUS_TAG=$(git tag --sort=-v:refname | grep -E '^v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$' | sed -n 2p)
 
           if [ -z "$PREVIOUS_TAG" ]; then
             echo "生成首个版本说明"
-            CHANGELOG="npm:$NPM"
+            CHANGELOG="$NPM_LINKS"
           else
             echo "生成变更：$PREVIOUS_TAG → $CURRENT_TAG"
-            CHANGELOG="$(git log $PREVIOUS_TAG..HEAD --format="* %s (%h)" --reverse)"$'\nnpm:'"$NPM"
+            CHANGELOG="$(git log $PREVIOUS_TAG..HEAD --format="* %s (%h)" --reverse)"$'\n'"$NPM_LINKS"
           fi
 
           # 安全输出多行内容

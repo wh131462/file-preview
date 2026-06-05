@@ -99,6 +99,7 @@ const handleCustomEvent = (e: CustomRendererEventPayload) => {
 const uploadedFiles = ref<PreviewFile[]>([]);
 const allFiles = ref<PreviewFileInput[]>([]);
 const isDragging = ref(false);
+let dragCounter = 0;
 const fileInputRef = ref<HTMLInputElement | null>(null);
 const theme = ref<Theme>('dark');
 const headless = ref(false);
@@ -202,13 +203,18 @@ const handleFileUpload = (event: Event) => {
 const handleDragEnter = (e: DragEvent) => {
   e.preventDefault();
   e.stopPropagation();
-  isDragging.value = true;
+  dragCounter += 1;
+  if (e.dataTransfer?.types?.includes('Files')) {
+    isDragging.value = true;
+  }
 };
 
 const handleDragLeave = (e: DragEvent) => {
   e.preventDefault();
   e.stopPropagation();
-  if (e.currentTarget === e.target) {
+  dragCounter -= 1;
+  if (dragCounter <= 0) {
+    dragCounter = 0;
     isDragging.value = false;
   }
 };
@@ -221,6 +227,7 @@ const handleDragOver = (e: DragEvent) => {
 const handleDrop = (e: DragEvent) => {
   e.preventDefault();
   e.stopPropagation();
+  dragCounter = 0;
   isDragging.value = false;
   const files = e.dataTransfer?.files || null;
   processFiles(files);
@@ -341,8 +348,8 @@ onUnmounted(() => {
           @dragover="handleDragOver"
           @drop="handleDrop"
           :class="[
-            'bg-white/5 backdrop-blur-sm rounded-xl sm:rounded-2xl p-5 sm:p-8 border-2 border-dashed transition-all',
-            isDragging ? 'border-emerald-500 bg-emerald-500/10 scale-105' : 'border-white/20 hover:border-white/40',
+            'bg-white/5 backdrop-blur-sm rounded-xl sm:rounded-2xl p-5 sm:p-8 border-2 border-dashed transition-colors duration-200',
+            isDragging ? 'border-emerald-500 bg-emerald-500/10' : 'border-white/20 hover:border-white/40',
           ]"
         >
           <input
@@ -374,6 +381,12 @@ onUnmounted(() => {
               class="px-5 py-2.5 sm:px-6 sm:py-3 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-lg text-white text-sm sm:text-base font-medium hover:shadow-lg hover:scale-105 active:scale-95 transition-all"
             >
               选择文件或拖拽到此处
+            </div>
+            <div
+              v-else
+              class="px-5 py-2.5 sm:px-6 sm:py-3 rounded-lg border border-emerald-400/40 bg-emerald-500/10 text-emerald-200 text-sm sm:text-base font-medium"
+            >
+              释放鼠标即可上传
             </div>
           </label>
         </div>

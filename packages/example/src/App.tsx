@@ -62,6 +62,7 @@ function App() {
   const [uploadedFiles, setUploadedFiles] = useState<PreviewFile[]>([]);
   const [allFiles, setAllFiles] = useState<PreviewFileInput[]>([]);
   const [isDragging, setIsDragging] = useState(false);
+  const dragCounter = useRef(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [theme, setTheme] = useState<Theme>('dark');
   const [headless, setHeadless] = useState(false);
@@ -179,14 +180,18 @@ function App() {
   const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsDragging(true);
+    dragCounter.current += 1;
+    if (e.dataTransfer?.types?.includes('Files')) {
+      setIsDragging(true);
+    }
   };
 
   const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
-    // 只有当离开整个拖拽区域时才设置为 false
-    if (e.currentTarget === e.target) {
+    dragCounter.current -= 1;
+    if (dragCounter.current <= 0) {
+      dragCounter.current = 0;
       setIsDragging(false);
     }
   };
@@ -199,6 +204,7 @@ function App() {
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
+    dragCounter.current = 0;
     setIsDragging(false);
 
     const files = e.dataTransfer.files;
@@ -317,8 +323,8 @@ function App() {
             onDragLeave={handleDragLeave}
             onDragOver={handleDragOver}
             onDrop={handleDrop}
-            className={`bg-white/5 backdrop-blur-sm rounded-xl sm:rounded-2xl p-5 sm:p-8 border-2 border-dashed transition-all ${isDragging
-              ? 'border-blue-500 bg-blue-500/10 scale-105'
+            className={`bg-white/5 backdrop-blur-sm rounded-xl sm:rounded-2xl p-5 sm:p-8 border-2 border-dashed transition-colors duration-200 ${isDragging
+              ? 'border-blue-500 bg-blue-500/10'
               : 'border-white/20 hover:border-white/40'
               }`}
           >
@@ -345,9 +351,13 @@ function App() {
               <p className="text-gray-400 text-xs sm:text-sm mb-3 sm:mb-4 px-2">
                 {isDragging ? '将文件拖放到此处' : '支持图片、PDF、Word、Excel、视频、音频等格式'}
               </p>
-              {!isDragging && (
+              {!isDragging ? (
                 <div className="px-5 py-2.5 sm:px-6 sm:py-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg text-white text-sm sm:text-base font-medium hover:shadow-lg hover:scale-105 active:scale-95 transition-all">
                   选择文件或拖拽到此处
+                </div>
+              ) : (
+                <div className="px-5 py-2.5 sm:px-6 sm:py-3 rounded-lg border border-blue-400/40 bg-blue-500/10 text-blue-200 text-sm sm:text-base font-medium">
+                  释放鼠标即可上传
                 </div>
               )}
             </label>

@@ -156,25 +156,6 @@ const FilePreviewContentInner: React.FC<FilePreviewContentProps> = ({
   const [textHtmlPreview, setTextHtmlPreview] = useState(false);
   const [markdownViewMode, setMarkdownViewMode] = useState<'preview' | 'source'>('preview');
 
-  // 导航箭头自动隐藏
-  const [navVisible, setNavVisible] = useState(true);
-  const navHideTimerRef = useRef<number | null>(null);
-  const NAV_HIDE_DELAY = 2000;
-
-  const resetNavTimer = useCallback(() => {
-    setNavVisible(true);
-    if (navHideTimerRef.current) {
-      clearTimeout(navHideTimerRef.current);
-    }
-    navHideTimerRef.current = window.setTimeout(() => {
-      setNavVisible(false);
-    }, NAV_HIDE_DELAY);
-  }, []);
-
-  const handleMouseMove = useCallback(() => {
-    resetNavTimer();
-  }, [resetNavTimer]);
-
   // 标准化文件输入
   const normalizedFiles = useMemo(() => normalizeFiles(files), [files]);
 
@@ -220,7 +201,6 @@ const FilePreviewContentInner: React.FC<FilePreviewContentProps> = ({
     setContentNaturalWidth(0);
     setContentNaturalHeight(0);
     setImageResetKey(0);
-    setNavVisible(true);
     // 重置 epub 状态
     setEpubCurrent(0);
     setEpubTotal(0);
@@ -236,9 +216,6 @@ const FilePreviewContentInner: React.FC<FilePreviewContentProps> = ({
     setTextHtmlPreview(false);
     // 重置 markdown 状态
     setMarkdownViewMode('preview');
-    if (navHideTimerRef.current) {
-      clearTimeout(navHideTimerRef.current);
-    }
   }, [currentIndex]);
 
   // 图片加载后默认适应窗口
@@ -252,18 +229,6 @@ const FilePreviewContentInner: React.FC<FilePreviewContentProps> = ({
       setZoom(Math.max(0.01, Math.min(10, newZoom)));
     }
   }, [fileType, contentNaturalWidth, contentNaturalHeight]);
-
-  // 导航箭头自动隐藏计时器启动 & 清理
-  useEffect(() => {
-    if (normalizedFiles.length > 1) {
-      resetNavTimer();
-    }
-    return () => {
-      if (navHideTimerRef.current) {
-        clearTimeout(navHideTimerRef.current);
-      }
-    };
-  }, [normalizedFiles.length, resetNavTimer]);
 
   // 键盘导航
   // - modal 模式:全局监听(window)
@@ -534,7 +499,6 @@ const FilePreviewContentInner: React.FC<FilePreviewContentProps> = ({
       <div
         ref={contentRef}
         className="rfp-flex-1 rfp-flex rfp-items-center rfp-justify-center rfp-overflow-auto"
-        onMouseMove={handleMouseMove}
       >
         {customRenderer ? (
           customRenderer.render(currentFile, customCtx)
@@ -631,37 +595,16 @@ const FilePreviewContentInner: React.FC<FilePreviewContentProps> = ({
         )}
       </div>
 
-      {/* 左右导航箭头 - 自动隐藏 */}
+      {/* 左右导航箭头 - 自动隐藏（隔离 state,避免拖选时的 mousemove/timer 污染整树 re-render） */}
       {!headless && normalizedFiles.length > 1 && (
-        <>
-          {currentIndex > 0 && (
-            <motion.button
-              initial={{ opacity: 0 }}
-              animate={{ opacity: navVisible ? 1 : 0, x: navVisible ? 0 : -20 }}
-              transition={{ duration: 0.2 }}
-              onClick={() => onNavigate?.(currentIndex - 1)}
-              onMouseEnter={() => setNavVisible(true)}
-              style={{ pointerEvents: navVisible ? 'auto' : 'none' }}
-              className="rfp-absolute rfp-z-20 rfp-left-2 md:rfp-left-4 rfp-top-1/2 -rfp-translate-y-1/2 rfp-w-10 rfp-h-10 md:rfp-w-12 md:rfp-h-12 rfp-rounded-full rfp-backdrop-blur-xl rfp-border rfp-flex rfp-items-center rfp-justify-center rfp-transition-colors rfp-shadow-2xl rfp-bg-surface-nav rfp-border-line hover:rfp-bg-surface-nav-hover rfp-text-fg-primary"
-            >
-              <ChevronLeft className="rfp-w-5 rfp-h-5 md:rfp-w-6 md:rfp-h-6" />
-            </motion.button>
-          )}
-
-          {currentIndex < normalizedFiles.length - 1 && (
-            <motion.button
-              initial={{ opacity: 0 }}
-              animate={{ opacity: navVisible ? 1 : 0, x: navVisible ? 0 : 20 }}
-              transition={{ duration: 0.2 }}
-              onClick={() => onNavigate?.(currentIndex + 1)}
-              onMouseEnter={() => setNavVisible(true)}
-              style={{ pointerEvents: navVisible ? 'auto' : 'none' }}
-              className="rfp-absolute rfp-z-20 rfp-right-2 md:rfp-right-4 rfp-top-1/2 -rfp-translate-y-1/2 rfp-w-10 rfp-h-10 md:rfp-w-12 md:rfp-h-12 rfp-rounded-full rfp-backdrop-blur-xl rfp-border rfp-flex rfp-items-center rfp-justify-center rfp-transition-colors rfp-shadow-2xl rfp-bg-surface-nav rfp-border-line hover:rfp-bg-surface-nav-hover rfp-text-fg-primary"
-            >
-              <ChevronRight className="rfp-w-5 rfp-h-5 md:rfp-w-6 md:rfp-h-6" />
-            </motion.button>
-          )}
-        </>
+        <NavArrows
+          containerRef={contentRef}
+          hasPrev={currentIndex > 0}
+          hasNext={currentIndex < normalizedFiles.length - 1}
+          onPrev={() => onNavigate?.(currentIndex - 1)}
+          onNext={() => onNavigate?.(currentIndex + 1)}
+          resetKey={currentIndex}
+        />
       )}
     </div>
     </ThemeProvider>
@@ -694,5 +637,91 @@ const ToolbarButton: React.FC<ToolbarButtonProps> = ({ icon, label, onClick, dis
         <span className="rfp-relative">{label}</span>
       </span>
     </button>
+  );
+};
+
+// 导航箭头：自带 mousemove 监听 + 2s 自动隐藏定时器,
+// state 隔离在本组件,避免 FilePreviewContent 整树因 navVisible 变化而 re-render
+interface NavArrowsProps {
+  containerRef: React.RefObject<HTMLDivElement | null>;
+  hasPrev: boolean;
+  hasNext: boolean;
+  onPrev: () => void;
+  onNext: () => void;
+  resetKey: number;
+}
+
+const NAV_HIDE_DELAY = 2000;
+
+const NavArrows: React.FC<NavArrowsProps> = ({
+  containerRef,
+  hasPrev,
+  hasNext,
+  onPrev,
+  onNext,
+  resetKey,
+}) => {
+  const [visible, setVisible] = useState(true);
+  const timerRef = useRef<number | null>(null);
+
+  const scheduleHide = useCallback(() => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = window.setTimeout(() => setVisible(false), NAV_HIDE_DELAY);
+  }, []);
+
+  const show = useCallback(() => {
+    setVisible((prev) => (prev ? prev : true));
+    scheduleHide();
+  }, [scheduleHide]);
+
+  // 监听容器的 mousemove,触发显示+重置隐藏定时器
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const handler = () => show();
+    el.addEventListener('mousemove', handler);
+    return () => {
+      el.removeEventListener('mousemove', handler);
+    };
+  }, [containerRef, show]);
+
+  // currentIndex 切换时,显示一次并重置定时器
+  useEffect(() => {
+    setVisible(true);
+    scheduleHide();
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, [resetKey, scheduleHide]);
+
+  return (
+    <>
+      {hasPrev && (
+        <motion.button
+          initial={{ opacity: 0 }}
+          animate={{ opacity: visible ? 1 : 0, x: visible ? 0 : -20 }}
+          transition={{ duration: 0.2 }}
+          onClick={onPrev}
+          onMouseEnter={show}
+          style={{ pointerEvents: visible ? 'auto' : 'none' }}
+          className="rfp-absolute rfp-z-20 rfp-left-2 md:rfp-left-4 rfp-top-1/2 -rfp-translate-y-1/2 rfp-w-10 rfp-h-10 md:rfp-w-12 md:rfp-h-12 rfp-rounded-full rfp-backdrop-blur-xl rfp-border rfp-flex rfp-items-center rfp-justify-center rfp-transition-colors rfp-shadow-2xl rfp-bg-surface-nav rfp-border-line hover:rfp-bg-surface-nav-hover rfp-text-fg-primary"
+        >
+          <ChevronLeft className="rfp-w-5 rfp-h-5 md:rfp-w-6 md:rfp-h-6" />
+        </motion.button>
+      )}
+      {hasNext && (
+        <motion.button
+          initial={{ opacity: 0 }}
+          animate={{ opacity: visible ? 1 : 0, x: visible ? 0 : 20 }}
+          transition={{ duration: 0.2 }}
+          onClick={onNext}
+          onMouseEnter={show}
+          style={{ pointerEvents: visible ? 'auto' : 'none' }}
+          className="rfp-absolute rfp-z-20 rfp-right-2 md:rfp-right-4 rfp-top-1/2 -rfp-translate-y-1/2 rfp-w-10 rfp-h-10 md:rfp-w-12 md:rfp-h-12 rfp-rounded-full rfp-backdrop-blur-xl rfp-border rfp-flex rfp-items-center rfp-justify-center rfp-transition-colors rfp-shadow-2xl rfp-bg-surface-nav rfp-border-line hover:rfp-bg-surface-nav-hover rfp-text-fg-primary"
+        >
+          <ChevronRight className="rfp-w-5 rfp-h-5 md:rfp-w-6 md:rfp-h-6" />
+        </motion.button>
+      )}
+    </>
   );
 };

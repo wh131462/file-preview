@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onBeforeUnmount, toRef, provide } from 'vue';
-import { X, Download, ChevronLeft, ChevronRight } from 'lucide-vue-next';
+import { X, Download } from 'lucide-vue-next';
 import {
   normalizeFiles,
   getFileType,
@@ -50,6 +50,7 @@ import {
 } from './renderers/lazy';
 // Unsupported 体量极小且每次回退都用，直接静态打包到主入口
 import UnsupportedRenderer from './renderers/Unsupported/index.vue';
+import NavArrows from './components/NavArrows.vue';
 
 const MAX_ZIP_NESTING_DEPTH = 3;
 
@@ -153,23 +154,6 @@ const imageResetKey = ref(0);
 const contentRef = ref<HTMLDivElement | null>(null);
 const rootRef = ref<HTMLDivElement | null>(null);
 
-// 导航箭头自动隐藏
-const navVisible = ref(true);
-let navHideTimer: number | null = null;
-const NAV_HIDE_DELAY = 2000;
-
-const resetNavTimer = () => {
-  navVisible.value = true;
-  if (navHideTimer !== null) {
-    clearTimeout(navHideTimer);
-  }
-  navHideTimer = window.setTimeout(() => {
-    navVisible.value = false;
-  }, NAV_HIDE_DELAY);
-};
-
-const handleMouseMove = () => resetNavTimer();
-
 // 标准化文件输入
 const normalizedFiles = computed(() => normalizeFiles(props.files));
 
@@ -220,7 +204,6 @@ watch(
     contentNaturalWidth.value = 0;
     contentNaturalHeight.value = 0;
     imageResetKey.value = 0;
-    navVisible.value = true;
     // 重置 epub 状态
     epubCurrent.value = 0;
     epubTotal.value = 0;
@@ -236,9 +219,6 @@ watch(
     textHtmlPreview.value = false;
     // 重置 markdown 状态
     markdownViewMode.value = 'preview';
-    if (navHideTimer !== null) {
-      clearTimeout(navHideTimer);
-    }
   }
 );
 
@@ -262,15 +242,6 @@ watch(
   }
 );
 
-// 导航箭头自动隐藏计时器
-watch(
-  () => normalizedFiles.value.length,
-  (len) => {
-    if (len > 1) resetNavTimer();
-  },
-  { immediate: true }
-);
-
 // 键盘导航
 const handleKeyDown = (e: KeyboardEvent) => {
   if (e.key === 'Escape' && props.mode === 'modal') {
@@ -291,7 +262,6 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
-  if (navHideTimer !== null) clearTimeout(navHideTimer);
   if (props.mode === 'modal') {
     window.removeEventListener('keydown', handleKeyDown);
   } else if (rootRef.value) {
@@ -595,7 +565,6 @@ const hasToolGroups = computed(() => toolGroups.value.length > 0);
     <div
       ref="contentRef"
       class="vfp-flex-1 vfp-flex vfp-items-center vfp-justify-center vfp-overflow-auto"
-      @mousemove="handleMouseMove"
       :key="currentFile?.url"
     >
       <template v-if="currentFile">
@@ -698,38 +667,16 @@ const hasToolGroups = computed(() => toolGroups.value.length > 0);
       </template>
     </div>
 
-    <!-- 左右导航箭头 -->
-    <template v-if="!headless && normalizedFiles.length > 1">
-      <button
-        v-if="currentIndex > 0"
-        :style="{
-          opacity: navVisible ? 1 : 0,
-          transform: navVisible ? 'translateY(-50%)' : 'translateY(-50%) translateX(-20px)',
-          pointerEvents: navVisible ? 'auto' : 'none',
-          transition: 'opacity 0.2s, transform 0.2s',
-        }"
-        class="vfp-absolute vfp-z-20 vfp-left-2 md:vfp-left-4 vfp-top-1/2 vfp-w-10 vfp-h-10 md:vfp-w-12 md:vfp-h-12 vfp-rounded-full vfp-backdrop-blur-xl vfp-border vfp-flex vfp-items-center vfp-justify-center vfp-transition-colors vfp-shadow-2xl vfp-bg-surface-nav vfp-border-line hover:vfp-bg-surface-nav-hover vfp-text-fg-primary"
-        @click="emit('navigate', currentIndex - 1)"
-        @mouseenter="navVisible = true"
-      >
-        <ChevronLeft class="vfp-w-5 vfp-h-5 md:vfp-w-6 md:vfp-h-6" />
-      </button>
-
-      <button
-        v-if="currentIndex < normalizedFiles.length - 1"
-        :style="{
-          opacity: navVisible ? 1 : 0,
-          transform: navVisible ? 'translateY(-50%)' : 'translateY(-50%) translateX(20px)',
-          pointerEvents: navVisible ? 'auto' : 'none',
-          transition: 'opacity 0.2s, transform 0.2s',
-        }"
-        class="vfp-absolute vfp-z-20 vfp-right-2 md:vfp-right-4 vfp-top-1/2 vfp-w-10 vfp-h-10 md:vfp-w-12 md:vfp-h-12 vfp-rounded-full vfp-backdrop-blur-xl vfp-border vfp-flex vfp-items-center vfp-justify-center vfp-transition-colors vfp-shadow-2xl vfp-bg-surface-nav vfp-border-line hover:vfp-bg-surface-nav-hover vfp-text-fg-primary"
-        @click="emit('navigate', currentIndex + 1)"
-        @mouseenter="navVisible = true"
-      >
-        <ChevronRight class="vfp-w-5 vfp-h-5 md:vfp-w-6 md:vfp-h-6" />
-      </button>
-    </template>
+    <!-- 左右导航箭头：state 隔离在 NavArrows 内部,避免 mousemove/timer 引起整树 patch -->
+    <NavArrows
+      v-if="!headless && normalizedFiles.length > 1"
+      :container-ref="contentRef"
+      :has-prev="currentIndex > 0"
+      :has-next="currentIndex < normalizedFiles.length - 1"
+      :reset-key="currentIndex"
+      @prev="emit('navigate', currentIndex - 1)"
+      @next="emit('navigate', currentIndex + 1)"
+    />
   </div>
 </template>
 

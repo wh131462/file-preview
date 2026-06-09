@@ -109,6 +109,33 @@ configurePdfjs({
 });
 ```
 
+### Vite 打包提示（AVIF 解码器）
+
+如果你的项目使用 Vite 打包,且项目里安装了 `@jsquash/avif`(直接安装或被其它依赖间接引入),生产构建时可能报错:
+
+```
+[commonjs--resolver] Invalid value "iife" for option "worker.format"
+- UMD and IIFE output formats are not supported for code-splitting builds.
+file: .../@jsquash/avif/codec/enc/avif_enc_mt.js
+```
+
+原因:`@jsquash/avif` 内部包含一个使用代码分割的多线程 worker,而 Vite 默认的 `worker.format` 是 `'iife'`,不支持多 chunk 拆分。
+
+**解决方法** —— 在你的 `vite.config.ts` 中加入:
+
+```ts
+export default defineConfig({
+  // ... 原有配置
+  worker: {
+    format: 'es',
+  },
+});
+```
+
+`'es'` 会产生 module worker(`type: 'module'`),现代浏览器全部支持,且兼容代码分割。
+
+> 说明:`@jsquash/avif` 仅在浏览器不原生支持 AVIF 时作为兜底使用(Chrome 85+、Firefox 93+、Safari 16+ 均已原生支持)。如果你的目标浏览器都覆盖原生支持范围,也可以直接从依赖中移除 `@jsquash/avif`。
+
 ## 🚀 快速开始
 
 📖 **第一次使用？** 查看 [快速开始指南](./QUICK_START.md) 获取 5 分钟入门教程！

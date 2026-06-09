@@ -111,6 +111,33 @@ configurePdfjs({
 });
 ```
 
+### Vite Bundler Note (AVIF Decoder)
+
+If your project bundler is Vite and you happen to have `@jsquash/avif` installed (transitively or directly), the production build may fail with:
+
+```
+[commonjs--resolver] Invalid value "iife" for option "worker.format"
+- UMD and IIFE output formats are not supported for code-splitting builds.
+file: .../@jsquash/avif/codec/enc/avif_enc_mt.js
+```
+
+This happens because `@jsquash/avif` ships a multi-threaded worker that uses code-splitting, while Vite's default `worker.format` is `'iife'`, which does not support split chunks.
+
+**Fix** — add this to your `vite.config.ts`:
+
+```ts
+export default defineConfig({
+  // ... your existing config
+  worker: {
+    format: 'es',
+  },
+});
+```
+
+`'es'` produces module workers (`type: 'module'`), supported by all modern browsers and compatible with code-splitting.
+
+> Note: `@jsquash/avif` is only used as a fallback when the browser does not natively support AVIF (Chrome 85+, Firefox 93+, Safari 16+ all support it natively). If your target browsers cover the native list, you can also remove `@jsquash/avif` from your dependencies entirely.
+
 ## 🚀 Quick Start
 
 📖 **New to this library?** Check out the [Quick Start Guide](./QUICK_START.md) for a 5-minute introduction!

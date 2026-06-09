@@ -1,0 +1,1 @@
+import{_ as i,o as a,c as n,ag as h}from"./chunks/framework.CKZNj4UW.js";const E=JSON.parse('{"title":"类型定义","description":"","frontmatter":{},"headers":[],"relativePath":"api/types.md","filePath":"api/types.md"}'),t={name:"api/types.md"};function l(e,s,p,k,r,d){return a(),n("div",null,[...s[0]||(s[0]=[h("",89)])])}const y=i(t,[["render",l]]);export{E as __pageData,y as default};

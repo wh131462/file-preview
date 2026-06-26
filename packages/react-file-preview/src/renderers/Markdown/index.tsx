@@ -156,9 +156,8 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ url, viewMod
 
   // 预览视图
   return (
-    <div className="rfp-w-full rfp-h-full rfp-overflow-auto rfp-p-6 md:rfp-p-10">
-      <div className="rfp-max-w-full md:rfp-max-w-4xl rfp-mx-auto">
-        <ReactMarkdown
+    <div className="rfp-w-full rfp-h-full rfp-overflow-auto rfp-py-6 rfp-px-4">
+      <ReactMarkdown
             remarkPlugins={[remarkGfm, remarkMath]}
             rehypePlugins={[rehypeRaw, rehypeKatex]}
             components={{
@@ -293,7 +292,6 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ url, viewMod
           >
             {content}
           </ReactMarkdown>
-      </div>
     </div>
   );
 };

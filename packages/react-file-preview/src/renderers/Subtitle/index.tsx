@@ -87,17 +87,17 @@ export const SubtitleRenderer: React.FC<SubtitleRendererProps> = ({ url, fileNam
   return (
     <div className="rfp-relative rfp-w-full rfp-h-full rfp-bg-[#0f0f12]">
       {/* 内容滚动区 */}
-      <div className="rfp-w-full rfp-h-full rfp-overflow-auto rfp-px-6 md:rfp-px-10 rfp-pt-6 rfp-pb-16 md:rfp-pb-20">
-        <div className="rfp-relative rfp-max-w-5xl rfp-mx-auto">
+      <div className="rfp-w-full rfp-h-full rfp-overflow-auto rfp-px-4 rfp-pt-6 rfp-pb-16">
+        <div className="rfp-relative">
           {/* vertical line */}
-          <div className="rfp-absolute rfp-left-[5px] md:rfp-left-[7px] rfp-top-2 rfp-bottom-2 rfp-w-px rfp-bg-surface-1" />
+          <div className="rfp-absolute rfp-left-[5px] rfp-top-2 rfp-bottom-2 rfp-w-px rfp-bg-surface-1" />
 
-          <ol className="rfp-space-y-5 md:rfp-space-y-6">
+          <ol className="rfp-space-y-5">
             {parsed.cues.map((cue, i) => (
-              <li key={`cue-${i}`} className="rfp-relative rfp-pl-6 md:rfp-pl-8 rfp-group">
+              <li key={`cue-${i}`} className="rfp-relative rfp-pl-6 rfp-group">
                 {/* dot */}
                 <div
-                  className={`rfp-absolute rfp-left-0 rfp-top-2 rfp-w-3 rfp-h-3 rfp-rounded-full rfp-bg-surface-3 rfp-border-2 rfp-border-[#0f0f12] rfp-transition-colors ${dotHover}`}
+                  className={`rfp-absolute rfp-left-0 rfp-top-[0.4rem] rfp-w-3 rfp-h-3 rfp-rounded-full rfp-bg-surface-3 rfp-border-2 rfp-border-[#0f0f12] rfp-transition-colors ${dotHover}`}
                 />
 
                 <div className="rfp-flex rfp-flex-wrap rfp-items-baseline rfp-gap-x-3 rfp-gap-y-1 rfp-mb-1.5">
@@ -119,7 +119,7 @@ export const SubtitleRenderer: React.FC<SubtitleRendererProps> = ({ url, fileNam
                 </div>
 
                 {cue.words && cue.words.length > 0 ? (
-                  <div className="rfp-flex rfp-flex-wrap rfp-gap-x-1.5 rfp-gap-y-1 rfp-text-base md:rfp-text-lg rfp-text-fg-primary rfp-leading-relaxed group-hover:rfp-text-fg-primary rfp-transition-colors">
+                  <div className="rfp-flex rfp-flex-wrap rfp-gap-x-1.5 rfp-gap-y-1 rfp-text-base rfp-text-fg-primary rfp-leading-relaxed group-hover:rfp-text-fg-primary rfp-transition-colors">
                     {cue.words.map((word, wi) => (
                       <span
                         key={`w-${wi}`}
@@ -135,8 +135,8 @@ export const SubtitleRenderer: React.FC<SubtitleRendererProps> = ({ url, fileNam
                   </div>
                 ) : (
                   <p
-                    className={`rfp-whitespace-pre-wrap rfp-break-words rfp-leading-relaxed group-hover:rfp-text-fg-primary rfp-transition-colors rfp-text-fg-primary ${
-                      isLyric ? 'rfp-text-base md:rfp-text-xl rfp-font-medium' : 'rfp-text-sm md:rfp-text-base'
+                    className={`rfp-whitespace-pre-wrap rfp-break-words rfp-leading-relaxed group-hover:rfp-text-fg-primary rfp-transition-colors rfp-text-fg-primary rfp-min-h-[1.25rem] ${
+                      isLyric ? 'rfp-text-base rfp-font-medium' : 'rfp-text-sm'
                     }`}
                   >
                     {cue.text}
@@ -149,7 +149,7 @@ export const SubtitleRenderer: React.FC<SubtitleRendererProps> = ({ url, fileNam
       </div>
 
       {/* 底部状态栏 */}
-      <div className="rfp-pointer-events-none rfp-absolute rfp-bottom-3 rfp-right-3 md:rfp-bottom-4 md:rfp-right-4 rfp-flex rfp-items-center rfp-gap-2 rfp-px-2.5 rfp-py-1 rfp-rounded-full rfp-bg-surface-nav rfp-backdrop-blur rfp-border rfp-border-line-weak rfp-text-[10px] rfp-text-fg-tertiary rfp-font-mono rfp-tabular-nums">
+      <div className="rfp-pointer-events-none rfp-absolute rfp-bottom-3 rfp-right-3 rfp-flex rfp-items-center rfp-gap-2 rfp-px-2.5 rfp-py-1 rfp-rounded-full rfp-bg-surface-nav rfp-backdrop-blur rfp-border rfp-border-line-weak rfp-text-[10px] rfp-text-fg-tertiary rfp-font-mono rfp-tabular-nums">
         <span>{parsed.cues.length} {isLyric ? t('subtitle.lines') : t('subtitle.cues')}</span>
         {meta.length && (
           <>

@@ -24,7 +24,7 @@ requestInit ─┘             (或原生 fetch)
 
 | 类别 | renderer | 默认行为 | 鉴权方式 |
 |------|----------|---------|---------|
-| **文档/文本类** | docx · xlsx · pptx · msg · zip · mobi · epub · markdown · json · csv · xml · subtitle · text | 用 fetch 拉到 ArrayBuffer / 文本再解析 | **自动**���自定义 fetcher，无需额外配置 |
+| **文档/文本类** | docx · xlsx · pptx · msg · zip · mobi · epub · markdown · json · csv · xml · subtitle · text | 用 fetch 拉到 ArrayBuffer / 文本再解析 | **自动**复用自定义 fetcher，无需额外配置 |
 | **src 类** | image · video · audio · pdf | 浏览器自己请求 `<img src>` / `<source>` / pdf.js url | 需打开 `shouldFetchAsBlob` 才会复用 fetcher |
 
 ## 场景 1：注入 Authorization

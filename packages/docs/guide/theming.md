@@ -28,7 +28,7 @@ import { FilePreviewModal } from '@eternalheart/react-file-preview'
 ```
 
 ```vue [Vue]
-<!-- 浅色主��� -->
+<!-- 浅色主题 -->
 <FilePreviewModal theme="light" :files="files" ... />
 
 <!-- 跟随系统 -->

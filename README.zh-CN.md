@@ -17,7 +17,7 @@
 - <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f4c1.svg" width="20" height="20" alt="📁" /> **20+ 格式支持** — 图片、视频、音频、PDF、Office、代码、电子书等
 - <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1fa9f.svg" width="20" height="20" alt="🪟" /> **双模式显示** — 全屏弹窗或内嵌容器两种模式
 - <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f3af.svg" width="20" height="20" alt="🎯" /> **多框架支持** — React 和 Vue 共享核心逻辑，API 一致
-- <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/2328.svg" width="20" height="20" alt="⌨️" /> **完整交互** — 键盘导航、拖放上传、缩放旋转、自定义播��器
+- <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/2328.svg" width="20" height="20" alt="⌨️" /> **完整交互** — 键盘导航、拖放上传、缩放旋转、自定义播放器
 
 ---
 

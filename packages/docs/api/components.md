@@ -448,7 +448,7 @@ function DetailPanel() {
 | `customRenderers` | `CustomRenderer[]` | ❌ | - | 自定义渲染器 |
 | `mode` | `'modal' \| 'embed'` | ❌ | `'modal'` | 运行模式,控制细节差异 |
 | `onClose` | `() => void` | ❌ | - | 关闭回调,仅在 `mode='modal'` 时显示关闭按钮 |
-| `headless` | `boolean` | ❌ | `false` | ���头模式,隐藏工具栏和导航箭头 |
+| `headless` | `boolean` | ❌ | `false` | 无头模式,隐藏工具栏和导航箭头 |
 | `theme` | `Theme` | ❌ | `'dark'` | 主题模式: `'auto' \| 'dark' \| 'light'` |
 | `locale` | `Locale` | ❌ | `'zh-CN'` | 界面语言 |
 | `messages` | `Partial<Record<Locale, Partial<Messages>>>` | ❌ | - | 自定义翻译字典 |

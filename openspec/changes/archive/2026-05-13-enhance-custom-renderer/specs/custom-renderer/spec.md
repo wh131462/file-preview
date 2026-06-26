@@ -92,7 +92,7 @@
 - **WHEN** `CustomRenderer` 未提供 `events` 字段
 - **THEN** `ctx.emit` 任意事件名 MUST 正常转发
 
-### Requirement: React 与 Vue 双端 API ���构
+### Requirement: React 与 Vue 双端 API 架构
 
 React 包（`@eternalheart/react-file-preview`）与 Vue 包（`@eternalheart/vue-file-preview`）SHALL 暴露等价的 `CustomRenderer` 类型、等价的 `ctx` 字段集合、等价的事件载荷形状（`{ name, payload, file }`）。两端的 `getToolbarGroups` 返回值 MUST 均为 `ToolbarGroup[]`，其中按钮的 `icon` 类型按各自框架既有规范（React 为 `ReactNode`，Vue 为 `Component`）。
 

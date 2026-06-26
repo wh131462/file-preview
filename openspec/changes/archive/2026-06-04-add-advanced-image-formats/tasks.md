@@ -90,7 +90,7 @@
     setImageSrc(file.url); // 原生支持
   }
   ```
-- [x] 在 JSX 中显示解码状态���
+- [x] 在 JSX 中显示解码状态界面
   ```tsx
   {decoding && (
     <div className="rfp-decoding-overlay">
@@ -328,7 +328,7 @@
 
 ---
 
-### 任务 3.3：实�� PSD loader
+### 任务 3.3：实现 PSD loader
 **估时**：2.5h  
 **文件**：`packages/file-preview-core/src/loaders/psdLoader.ts`
 

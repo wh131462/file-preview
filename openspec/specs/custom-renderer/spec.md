@@ -16,7 +16,7 @@
 
 #### Scenario: 无命中时退回内置渲染器
 - **WHEN** 所有 `customRenderers` 的 `test(file)` 均返回 false
-- **THEN** 系统 MUST 根据 `getFileType(file)` 选��内置渲染器
+- **THEN** 系统 MUST 根据 `getFileType(file)` 选择内置渲染器
 
 #### Scenario: `customRenderers` 为空
 - **WHEN** 未传入 `customRenderers` 或传入空数组

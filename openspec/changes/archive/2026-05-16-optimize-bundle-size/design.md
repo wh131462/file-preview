@@ -49,7 +49,7 @@
 **理由**：
 
 - 99% 使用者只用主入口，动态 import 是对他们最透明的优化，无需改代码即可获得收益。
-- 子路径入口给"我只用图片预览"的���致用户提供进一步收缩首屏的可能。
+- 子路径入口给"我只用图片预览"的垂直用户提供进一步收缩首屏的可能。
 - Rollup 的代码分割对 ESM 子目录 `import()` 是天然友好的，无需 webpack 特定配置。
 
 **替代方案**：
@@ -87,7 +87,7 @@
 
 **替代方案**：
 
-- ❌ 把重型库迁到 `optionalDependencies` / `peerDependencies(optional)`：体积收益相同，但会 BREAKING——使用者必须手动安装。先排除此方案，���留为未来可选优化路径。
+- ❌ 把重型库迁到 `optionalDependencies` / `peerDependencies(optional)`：体积收益相同，但会 BREAKING——使用者必须手动安装。先排除此方案，保留为未来可选优化路径。
 - ❌ 仅外部化 react / vue：现状就是如此，问题未解。
 - ❌ 提供 "bundled" 与 "lite" 两套发布包：维护成本翻倍。
 
@@ -124,7 +124,7 @@
 
 - [一些使用者 webpack 4 项目无法解析 ESM chunk 目录] → 在 README 加显著说明、保留 CJS 单文件 fallback、并提供 `legacy/` 子入口（必要时）。
 - [运行时缺失 optionalDependency 会导致渲染失败] → 实现统一的"缺失依赖友好错误页"组件，提示用户安装对应包；在 console 输出 `pnpm add <pkg>` 提示；docs 中给出依赖对照表。
-- [React 多实��风险（peer 列表过长）] → `peerDependenciesMeta.optional` + 不强制版本范围 (`*`)，并在文档说明使用者应保证全局唯一实例。
+- [React 多实例风险（peer 列表过长）] → `peerDependenciesMeta.optional` + 不强制版本范围 (`*`)，并在文档说明使用者应保证全局唯一实例。
 - [CSS 拆分后 SSR 注入麻烦] → 当前库不支持 SSR，影响有限；后续若做 SSR 再单独提供 manifest。
 - [BREAKING 引起 npm install 报错] → 通过 `optionalDependencies` 而非 `peerDependencies` 单独存在，使 install 不会失败；同时发 minor (1.4.0) 并在 CHANGELOG 显著标注。
 - [体积预算阈值定得过紧会拖累功能开发] → 初始阈值按本次优化后实测 +15% 设定，预留缓冲；新增大特性时允许 PR 中显式调整阈值。
@@ -134,7 +134,7 @@
 1. **里程碑 A（不发布）**：完成 vite 配置、入口拆分、CSS 拆分、依赖外部化；本地 `pnpm build` 输出多 chunk，通过手工冒烟测试覆盖 18 种文件类型。
 2. **里程碑 B（不发布）**：接入 `size-limit` 与 CI 检查；更新 README、docs 站点；补"缺失依赖友好错误"组件。
 3. **里程碑 C（pre-release）**：发布 `1.4.0-beta.x` 到 npm dist-tag `next`，邀请 example / docs / 已知使用者验证。
-4. **里程碑 D（正式）**：发布 `1.4.0`，CHANGELOG 顶部列出 BREAKING 与��移示例；保留 `1.3.x` 分支接受紧急 bugfix 至少 1 个月。
+4. **里程碑 D（正式）**：发布 `1.4.0`，CHANGELOG 顶部列出 BREAKING 与迁移示例；保留 `1.3.x` 分支接受紧急 bugfix 至少 1 个月。
 
 **回滚策略**：保留 `1.3.6` tag；若 `1.4.0` 出现严重兼容问题，立即 npm unpublish `1.4.0`（24 小时内）或 deprecate，并发布 `1.4.1` 修正。
 

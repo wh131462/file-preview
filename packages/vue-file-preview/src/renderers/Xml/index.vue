@@ -105,12 +105,31 @@ watch(resolvedTheme, () => {
 <style scoped>
 .shiki-wrapper :deep(pre) {
   margin: 0;
-  padding: 1.5rem;
+  padding: 1.5rem 1.5rem 1.5rem 0;
   background: transparent !important;
   font-size: 0.875rem;
   overflow-x: auto;
 }
 .shiki-wrapper :deep(code) {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  counter-reset: line;
+}
+.shiki-wrapper :deep(code .line) {
+  counter-increment: line;
+  display: inline-block;
+  width: 100%;
+  padding-left: 4.5em;
+  text-indent: -4.5em;
+}
+.shiki-wrapper :deep(code .line::before) {
+  content: counter(line);
+  display: inline-block;
+  width: 3em;
+  padding-right: 1em;
+  margin-right: 0.5em;
+  text-align: right;
+  color: var(--fp-fg-disabled);
+  user-select: none;
+  border-right: 1px solid var(--fp-line);
 }
 </style>

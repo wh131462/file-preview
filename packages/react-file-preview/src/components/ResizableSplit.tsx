@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useImperativeHandle, useRef, useState, useCallback, forwardRef } from 'react';
 
 export interface ResizableSplitProps {
   /** 左侧内容 */
@@ -19,15 +19,26 @@ export interface ResizableSplitProps {
   desktopMedia?: string;
   /** 容器额外类名 */
   className?: string;
+  /** 移动端使用 Tab 切换而非上下堆叠 */
+  mobileTabMode?: boolean;
+  /** Tab 模式下左侧标题 */
+  leftTabLabel?: string;
+  /** Tab 模式下右侧标题 */
+  rightTabLabel?: string;
+}
+
+export interface ResizableSplitHandle {
+  switchTab: (tab: 'left' | 'right') => void;
 }
 
 /**
  * 通用可拖动分隔布局：
  * - 桌面端（由 `desktopMedia` 判定）横向分两栏，中间分隔线可左右拖动调整左栏宽度
- * - 移动端退化为上下堆叠，不显示分隔线
+ * - 移动端默认退化为上下堆叠（不显示分隔线）
+ * - 设置 `mobileTabMode` 时移动端使用 Tab 切换显示
  * - 可选 `storageKey` 将宽度持久化到 localStorage
  */
-export const ResizableSplit: React.FC<ResizableSplitProps> = ({
+export const ResizableSplit = forwardRef<ResizableSplitHandle, ResizableSplitProps>(({
   left,
   right,
   initialLeftWidth = 280,
@@ -37,7 +48,10 @@ export const ResizableSplit: React.FC<ResizableSplitProps> = ({
   storageKey,
   desktopMedia = '(min-width: 768px)',
   className = '',
-}) => {
+  mobileTabMode = false,
+  leftTabLabel = '文件树',
+  rightTabLabel = '预览',
+}, ref) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [leftWidth, setLeftWidth] = useState<number>(() => {
     if (storageKey && typeof window !== 'undefined') {
@@ -48,6 +62,11 @@ export const ResizableSplit: React.FC<ResizableSplitProps> = ({
   });
   const [dragging, setDragging] = useState(false);
   const [isDesktop, setIsDesktop] = useState(false);
+  const [activeTab, setActiveTab] = useState<'left' | 'right'>('left');
+
+  useImperativeHandle(ref, () => ({
+    switchTab: (tab) => setActiveTab(tab),
+  }), []);
 
   // 响应式：监听媒体查询
   useEffect(() => {
@@ -101,6 +120,53 @@ export const ResizableSplit: React.FC<ResizableSplitProps> = ({
     setDragging(true);
   }, []);
 
+  // 移动端 Tab 模式
+  if (mobileTabMode && !isDesktop) {
+    return (
+      <div
+        ref={containerRef}
+        className={`rfp-w-full rfp-h-full rfp-flex rfp-flex-col rfp-min-h-0 rfp-min-w-0 ${className}`}
+      >
+        <div className="rfp-flex rfp-flex-shrink-0 rfp-border-b rfp-border-line-weak rfp-bg-surface-toolbar">
+          <button
+            type="button"
+            onClick={() => setActiveTab('left')}
+            className={`rfp-flex-1 rfp-py-2.5 rfp-text-sm rfp-transition-colors ${
+              activeTab === 'left'
+                ? 'rfp-text-fg-primary rfp-border-b-2 rfp-border-fg-primary -rfp-mb-px'
+                : 'rfp-text-fg-secondary'
+            }`}
+          >
+            {leftTabLabel}
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('right')}
+            className={`rfp-flex-1 rfp-py-2.5 rfp-text-sm rfp-transition-colors ${
+              activeTab === 'right'
+                ? 'rfp-text-fg-primary rfp-border-b-2 rfp-border-fg-primary -rfp-mb-px'
+                : 'rfp-text-fg-secondary'
+            }`}
+          >
+            {rightTabLabel}
+          </button>
+        </div>
+        <div
+          className="rfp-flex-1 rfp-min-h-0 rfp-min-w-0 rfp-w-full rfp-overflow-hidden"
+          style={{ display: activeTab === 'left' ? undefined : 'none' }}
+        >
+          {left}
+        </div>
+        <div
+          className="rfp-flex-1 rfp-min-h-0 rfp-min-w-0 rfp-w-full rfp-overflow-hidden"
+          style={{ display: activeTab === 'right' ? undefined : 'none' }}
+        >
+          {right}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       ref={containerRef}
@@ -127,4 +193,6 @@ export const ResizableSplit: React.FC<ResizableSplitProps> = ({
       <div className="rfp-flex-1 rfp-min-w-0 rfp-min-h-0 rfp-overflow-hidden">{right}</div>
     </div>
   );
-};
+});
+
+ResizableSplit.displayName = 'ResizableSplit';

@@ -14,6 +14,12 @@ interface Props {
   storageKey?: string;
   /** 启用横向拖动的媒体查询 */
   desktopMedia?: string;
+  /** 移动端使用 Tab 切换而非上下堆叠 */
+  mobileTabMode?: boolean;
+  /** Tab 模式下左侧标题 */
+  leftTabLabel?: string;
+  /** Tab 模式下右侧标题 */
+  rightTabLabel?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -22,6 +28,9 @@ const props = withDefaults(defineProps<Props>(), {
   maxLeftWidth: 640,
   minRightWidth: 200,
   desktopMedia: '(min-width: 768px)',
+  mobileTabMode: false,
+  leftTabLabel: '文件树',
+  rightTabLabel: '预览',
 });
 
 defineOptions({ name: 'ResizableSplit' });
@@ -38,6 +47,7 @@ const leftWidth = ref<number>(
 );
 const dragging = ref(false);
 const isDesktop = ref(false);
+const activeTab = ref<'left' | 'right'>('left');
 
 let mq: MediaQueryList | null = null;
 const mqHandler = () => {
@@ -109,6 +119,12 @@ watch(
     if (!props.storageKey) leftWidth.value = w;
   }
 );
+
+const switchTab = (tab: 'left' | 'right') => {
+  activeTab.value = tab;
+};
+
+defineExpose({ switchTab });
 </script>
 
 <template>
@@ -116,24 +132,59 @@ watch(
     ref="containerRef"
     class="vfp-w-full vfp-h-full vfp-flex vfp-flex-col md:vfp-flex-row vfp-min-h-0 vfp-min-w-0"
   >
-    <div
-      class="vfp-min-h-0 vfp-min-w-0 vfp-flex-shrink-0 vfp-w-full vfp-max-h-60 md:vfp-h-full md:vfp-max-h-none"
-      :style="leftStyle"
-    >
-      <slot name="left" />
-    </div>
-    <div
-      role="separator"
-      aria-orientation="vertical"
-      class="split-divider vfp-hidden md:vfp-block vfp-relative vfp-w-1.5 vfp-flex-shrink-0 vfp-cursor-col-resize vfp-transition-colors"
-      :class="dragging ? 'dragging' : ''"
-      @mousedown="onDividerDown"
-    >
-      <span class="vfp-absolute vfp-inset-y-0 hit-area" />
-    </div>
-    <div class="vfp-flex-1 vfp-min-w-0 vfp-min-h-0 vfp-overflow-hidden">
-      <slot name="right" />
-    </div>
+    <!-- 移动端 Tab 模式 -->
+    <template v-if="mobileTabMode && !isDesktop">
+      <div class="vfp-flex vfp-flex-shrink-0 vfp-border-b vfp-border-line-weak vfp-bg-surface-toolbar">
+        <button
+          type="button"
+          class="vfp-flex-1 vfp-py-2.5 vfp-text-sm vfp-transition-colors"
+          :class="activeTab === 'left'
+            ? 'vfp-text-fg-primary vfp-border-b-2 vfp-border-fg-primary -vfp-mb-px'
+            : 'vfp-text-fg-secondary'"
+          @click="switchTab('left')"
+        >
+          {{ leftTabLabel }}
+        </button>
+        <button
+          type="button"
+          class="vfp-flex-1 vfp-py-2.5 vfp-text-sm vfp-transition-colors"
+          :class="activeTab === 'right'
+            ? 'vfp-text-fg-primary vfp-border-b-2 vfp-border-fg-primary -vfp-mb-px'
+            : 'vfp-text-fg-secondary'"
+          @click="switchTab('right')"
+        >
+          {{ rightTabLabel }}
+        </button>
+      </div>
+      <div v-show="activeTab === 'left'" class="vfp-flex-1 vfp-min-h-0 vfp-min-w-0 vfp-w-full vfp-overflow-hidden">
+        <slot name="left" />
+      </div>
+      <div v-show="activeTab === 'right'" class="vfp-flex-1 vfp-min-h-0 vfp-min-w-0 vfp-w-full vfp-overflow-hidden">
+        <slot name="right" />
+      </div>
+    </template>
+
+    <!-- 桌面端 / 移动端默认堆叠模式 -->
+    <template v-else>
+      <div
+        class="vfp-min-h-0 vfp-min-w-0 vfp-flex-shrink-0 vfp-w-full vfp-max-h-60 md:vfp-h-full md:vfp-max-h-none"
+        :style="leftStyle"
+      >
+        <slot name="left" />
+      </div>
+      <div
+        role="separator"
+        aria-orientation="vertical"
+        class="split-divider vfp-hidden md:vfp-block vfp-relative vfp-w-1.5 vfp-flex-shrink-0 vfp-cursor-col-resize vfp-transition-colors"
+        :class="dragging ? 'dragging' : ''"
+        @mousedown="onDividerDown"
+      >
+        <span class="vfp-absolute vfp-inset-y-0 hit-area" />
+      </div>
+      <div class="vfp-flex-1 vfp-min-w-0 vfp-min-h-0 vfp-overflow-hidden">
+        <slot name="right" />
+      </div>
+    </template>
   </div>
 </template>
 

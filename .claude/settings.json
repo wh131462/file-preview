@@ -16,7 +16,9 @@
       "Bash(gh run list --limit 5)",
       "Bash(gh run list --workflow=deploy.yml --limit 3)",
       "Bash(gh auth status)",
-      "Bash(ipconfig getifaddr *)"
+      "Bash(ipconfig getifaddr *)",
+      "Bash(pnpm --filter @eternalheart/react-file-preview run build)",
+      "Bash(pnpm --filter @eternalheart/vue-file-preview run build)"
     ]
   }
 }

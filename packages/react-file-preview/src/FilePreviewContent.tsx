@@ -332,7 +332,7 @@ const FilePreviewContentInner: React.FC<FilePreviewContentProps> = ({
 
   if (!currentFile) return null;
 
-  const showCloseButton = mode === 'modal' && !!onClose;
+  const showCloseButton = !!onClose;
 
   // 工具栏配置 — 各 Renderer 自行声明。命中自定义渲染器时优先使用其 getToolbarGroups
   const toolGroups: ToolbarGroup[] = (() => {

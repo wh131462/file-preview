@@ -117,6 +117,7 @@ const handleWheel = (e: WheelEvent) => e.stopPropagation();
               :request-handler="requestHandler"
               :should-fetch-as-blob="shouldFetchAsBlob"
               :on-download="onDownload"
+              :on-close="() => emit('close')"
               @close="emit('close')"
               @navigate="(i) => emit('navigate', i)"
               @custom-event="(p) => emit('custom-event', p)"

@@ -78,6 +78,8 @@ interface Props {
   shouldFetchAsBlob?: ShouldFetchAsBlob;
   /** 自定义下载回调；不传时库内默认通过 fetcher 拉 Blob 触发下载 */
   onDownload?: (file: PreviewFile) => void | Promise<void>;
+  /** 关闭回调：传入后工具栏显示关闭按钮 */
+  onClose?: () => void;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -92,6 +94,7 @@ const props = withDefaults(defineProps<Props>(), {
   requestHandler: undefined,
   shouldFetchAsBlob: undefined,
   onDownload: undefined,
+  onClose: undefined,
 });
 
 provideRequestContext(() => ({
@@ -327,7 +330,7 @@ const handleDownload = async () => {
   }
 };
 
-const showCloseButton = computed(() => props.mode === 'modal');
+const showCloseButton = computed(() => !!props.onClose);
 
 const epubRef = ref<{ prevPage: () => void; nextPage: () => void; toggleFullWidth: () => void; toggleToc: () => void } | null>(null);
 const epubCurrent = ref(0);

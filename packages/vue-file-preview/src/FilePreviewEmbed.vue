@@ -29,6 +29,8 @@ interface Props {
   shouldFetchAsBlob?: ShouldFetchAsBlob;
   /** 自定义下载回调；不传时库内默认通过 fetcher 拉 Blob 触发下载 */
   onDownload?: (file: PreviewFile) => void | Promise<void>;
+  /** 关闭回调：传入后工具栏显示关闭按钮 */
+  onClose?: () => void;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -44,11 +46,13 @@ const props = withDefaults(defineProps<Props>(), {
   requestHandler: undefined,
   shouldFetchAsBlob: undefined,
   onDownload: undefined,
+  onClose: undefined,
 });
 
 const emit = defineEmits<{
   (e: 'navigate', index: number): void;
   (e: 'custom-event', payload: CustomRendererEventPayload): void;
+  (e: 'close'): void;
 }>();
 
 const systemDark = ref(
@@ -106,8 +110,10 @@ const wrapperStyle: CSSProperties = {
         :request-handler="requestHandler"
         :should-fetch-as-blob="shouldFetchAsBlob"
         :on-download="onDownload"
+        :on-close="onClose"
         @navigate="(i) => emit('navigate', i)"
         @custom-event="(p) => emit('custom-event', p)"
+        @close="() => emit('close')"
       />
     </div>
   </div>

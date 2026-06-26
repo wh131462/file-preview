@@ -15,7 +15,8 @@
       "Bash(find /Users/eternalheart/workspace/wh131462/react-file-preview -name \"*.json\" -path \"*/package.json\" -exec grep -l \"scripts\" {} ;)",
       "Bash(gh run list --limit 5)",
       "Bash(gh run list --workflow=deploy.yml --limit 3)",
-      "Bash(gh auth status)"
+      "Bash(gh auth status)",
+      "Bash(ipconfig getifaddr *)"
     ]
   }
 }

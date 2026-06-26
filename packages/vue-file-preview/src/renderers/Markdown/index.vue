@@ -203,10 +203,8 @@ watch(shikiTheme, () => {
   </div>
 
   <!-- 预览视图 -->
-  <div v-else class="vfp-w-full vfp-h-full vfp-overflow-auto vfp-p-6 md:vfp-p-10">
-    <div class="vfp-max-w-full md:vfp-max-w-4xl vfp-mx-auto">
-      <div ref="containerRef" class="markdown-body" v-html="html" />
-    </div>
+  <div v-else class="vfp-w-full vfp-h-full vfp-overflow-auto vfp-py-6 vfp-px-4">
+    <div ref="containerRef" class="markdown-body" v-html="html" />
   </div>
 </template>
 

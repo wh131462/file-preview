@@ -16,21 +16,21 @@ const emit = defineEmits<{
 
 <template>
   <div
-    class="vfp-flex vfp-flex-col vfp-items-center vfp-justify-center vfp-w-full vfp-h-full vfp-p-8 vfp-gap-6"
+    class="vfp-flex vfp-flex-col vfp-items-center vfp-justify-center vfp-w-full vfp-h-full vfp-p-6 vfp-gap-4"
   >
     <div
-      class="vfp-w-32 vfp-h-32 vfp-rounded-full vfp-bg-surface-2 vfp-flex vfp-items-center vfp-justify-center"
+      class="vfp-w-20 vfp-h-20 vfp-rounded-full vfp-bg-surface-2 vfp-flex vfp-items-center vfp-justify-center"
     >
-      <FileQuestion class="vfp-w-16 vfp-h-16 vfp-text-fg-secondary" />
+      <FileQuestion class="vfp-w-10 vfp-h-10 vfp-text-fg-secondary" />
     </div>
 
     <div class="vfp-text-fg-primary vfp-text-center">
-      <p class="vfp-text-xl vfp-font-medium vfp-mb-2">{{ fileName }}</p>
+      <p class="vfp-text-lg vfp-font-medium vfp-mb-2">{{ fileName }}</p>
       <p class="vfp-text-fg-secondary">{{ t('common.unsupported_preview', { type: fileType }) }}</p>
     </div>
 
     <button
-      class="vfp-flex vfp-items-center vfp-gap-2 vfp-px-6 vfp-py-3 vfp-bg-surface-2 hover:vfp-bg-surface-3 vfp-backdrop-blur-sm vfp-rounded-lg vfp-text-fg-primary vfp-font-medium vfp-transition-all"
+      class="vfp-flex vfp-items-center vfp-gap-2 vfp-px-4 vfp-py-2 vfp-bg-surface-2 hover:vfp-bg-surface-3 vfp-backdrop-blur-sm vfp-rounded-lg vfp-text-fg-primary vfp-font-medium vfp-transition-all"
       @click="emit('download')"
     >
       <Download class="vfp-w-5 vfp-h-5" />

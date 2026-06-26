@@ -139,12 +139,7 @@ const wordTimeShort = (t: number) => formatSubtitleTime(t).slice(3, 8);
   width: 100%;
   height: 100%;
   overflow: auto;
-  padding: 1.5rem 1.5rem 4rem;
-}
-@media (min-width: 768px) {
-  .content-scroll {
-    padding: 1.5rem 2.5rem 5rem;
-  }
+  padding: 1.5rem 1rem 4rem;
 }
 .status-pill {
   pointer-events: none;
@@ -164,20 +159,12 @@ const wordTimeShort = (t: number) => formatSubtitleTime(t).slice(3, 8);
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-variant-numeric: tabular-nums;
 }
-@media (min-width: 768px) {
-  .status-pill {
-    bottom: 1rem;
-    right: 1rem;
-  }
-}
 .dot {
   color: var(--fp-fg-disabled);
 }
 
 .timeline {
   position: relative;
-  max-width: 64rem;
-  margin: 0 auto;
 }
 .timeline-line {
   position: absolute;
@@ -187,11 +174,6 @@ const wordTimeShort = (t: number) => formatSubtitleTime(t).slice(3, 8);
   width: 1px;
   background: var(--fp-line-weak);
 }
-@media (min-width: 768px) {
-  .timeline-line {
-    left: 7px;
-  }
-}
 .cues {
   list-style: none;
   margin: 0;
@@ -200,24 +182,14 @@ const wordTimeShort = (t: number) => formatSubtitleTime(t).slice(3, 8);
   flex-direction: column;
   gap: 1.25rem;
 }
-@media (min-width: 768px) {
-  .cues {
-    gap: 1.5rem;
-  }
-}
 .cue-row {
   position: relative;
   padding-left: 1.5rem;
 }
-@media (min-width: 768px) {
-  .cue-row {
-    padding-left: 2rem;
-  }
-}
 .cue-dot {
   position: absolute;
   left: 0;
-  top: 0.5rem;
+  top: 0.4rem;
   width: 0.75rem;
   height: 0.75rem;
   border-radius: 9999px;
@@ -271,21 +243,12 @@ const wordTimeShort = (t: number) => formatSubtitleTime(t).slice(3, 8);
   line-height: 1.625;
   color: var(--fp-fg-primary);
   font-size: 0.875rem;
+  min-height: 1.25rem;
   transition: color 0.2s;
-}
-@media (min-width: 768px) {
-  .cue-text {
-    font-size: 1rem;
-  }
 }
 .cue-text.lyric {
   font-size: 1rem;
   font-weight: 500;
-}
-@media (min-width: 768px) {
-  .cue-text.lyric {
-    font-size: 1.25rem;
-  }
 }
 .cue-row:hover .cue-text {
   color: #fff;
@@ -298,11 +261,6 @@ const wordTimeShort = (t: number) => formatSubtitleTime(t).slice(3, 8);
   color: var(--fp-fg-primary);
   line-height: 1.625;
   transition: color 0.2s;
-}
-@media (min-width: 768px) {
-  .cue-words {
-    font-size: 1.125rem;
-  }
 }
 .cue-row:hover .cue-words {
   color: #fff;

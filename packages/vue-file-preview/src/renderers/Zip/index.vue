@@ -58,6 +58,7 @@ const selected = ref<SelectedPreview | null>(null);
 const previewLoading = ref(false);
 const previewError = ref<string | null>(null);
 const hoverTip = ref<HoverTipState | null>(null);
+const splitRef = ref<InstanceType<typeof ResizableSplit> | null>(null);
 
 const revokeCurrent = () => {
   if (selected.value?.blobUrl) URL.revokeObjectURL(selected.value.blobUrl);
@@ -131,6 +132,8 @@ const handleSelect = async (node: ZipTreeNode) => {
     const blob = await readZipEntryBlob(zip.value, node.path, mime !== 'application/octet-stream' ? mime : undefined);
     const blobUrl = URL.createObjectURL(blob);
     selected.value = { path: node.path, name: node.name, size: node.size, blobUrl };
+    // 移动端切换到预览 tab
+    splitRef.value?.switchTab('right');
   } catch (err) {
     console.error(err);
     previewError.value = '条目读取失败';
@@ -155,10 +158,14 @@ const previewFiles = computed(() => {
 
   <template v-else>
     <ResizableSplit
+      ref="splitRef"
       :initial-left-width="280"
       :min-left-width="180"
       :max-left-width="560"
       storage-key="vfp-zip-split-left"
+      mobile-tab-mode
+      left-tab-label="文件树"
+      right-tab-label="预览"
     >
       <template #left>
         <div class="vfp-w-full vfp-h-full vfp-overflow-auto">

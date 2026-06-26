@@ -748,4 +748,12 @@ const hasToolGroups = computed(() => toolGroups.value.length > 0);
   opacity: 1;
   visibility: visible;
 }
+
+/* 移动端隐藏 tooltip */
+@media (max-width: 1023px) {
+  .toolbar-btn[data-tooltip]::after,
+  .toolbar-btn[data-tooltip]::before {
+    display: none !important;
+  }
+}
 </style>

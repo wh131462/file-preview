@@ -632,7 +632,7 @@ const ToolbarButton: React.FC<ToolbarButtonProps> = ({ icon, label, onClick, dis
       }`}
     >
       {icon}
-      <span className="rfp-absolute rfp-left-1/2 -rfp-translate-x-1/2 rfp-top-full rfp-mt-1.5 rfp-px-2 rfp-py-1 rfp-text-xs rfp-rounded rfp-whitespace-nowrap rfp-pointer-events-none rfp-opacity-0 rfp-invisible group-hover:rfp-opacity-100 group-hover:rfp-visible rfp-transition-opacity rfp-duration-200 rfp-z-50 rfp-bg-fg-primary rfp-text-fg-inverse">
+      <span className="rfp-absolute rfp-left-1/2 -rfp-translate-x-1/2 rfp-top-full rfp-mt-1.5 rfp-px-2 rfp-py-1 rfp-text-xs rfp-rounded rfp-whitespace-nowrap rfp-pointer-events-none rfp-opacity-0 rfp-invisible group-hover:rfp-opacity-100 group-hover:rfp-visible rfp-transition-opacity rfp-duration-200 rfp-z-50 rfp-bg-fg-primary rfp-text-fg-inverse max-[1023px]:!rfp-hidden">
         <span className="rfp-absolute rfp-left-1/2 -rfp-translate-x-1/2 -rfp-top-1 rfp-w-2 rfp-h-2 rfp-rotate-45 rfp-bg-fg-primary" />
         <span className="rfp-relative">{label}</span>
       </span>

@@ -22,7 +22,7 @@ import {
   inferMimeType,
   type ZipTreeNode,
 } from '@eternalheart/file-preview-core';
-import { ResizableSplit } from '../../components/ResizableSplit';
+import { ResizableSplit, type ResizableSplitHandle } from '../../components/ResizableSplit';
 import type { ZipToolbarStats } from './toolbar';
 import { useTranslator } from '../../i18n/LocaleContext';
 import { useFetcher } from '../../RequestContext';
@@ -175,6 +175,7 @@ export const ZipRenderer: React.FC<ZipRendererProps> = ({ url, nestingDepth = 0,
   const [previewError, setPreviewError] = useState<string | null>(null);
   const [hoverTip, setHoverTip] = useState<HoverTipState | null>(null);
   const onStatsChangeRef = useRef(onStatsChange);
+  const splitRef = useRef<ResizableSplitHandle>(null);
 
   useEffect(() => {
     onStatsChangeRef.current = onStatsChange;
@@ -282,6 +283,8 @@ export const ZipRenderer: React.FC<ZipRendererProps> = ({ url, nestingDepth = 0,
         const blob = await readZipEntryBlob(zip, node.path, mime !== 'application/octet-stream' ? mime : undefined);
         const blobUrl = URL.createObjectURL(blob);
         setSelected({ path: node.path, name: node.name, size: node.size, blobUrl });
+        // 移动端切换到预览 tab
+        splitRef.current?.switchTab('right');
       } catch (err) {
         console.error(err);
         setPreviewError('条目读取失败');
@@ -367,12 +370,16 @@ export const ZipRenderer: React.FC<ZipRendererProps> = ({ url, nestingDepth = 0,
   return (
     <>
       <ResizableSplit
+        ref={splitRef}
         left={leftPane}
         right={rightPane}
         initialLeftWidth={280}
         minLeftWidth={180}
         maxLeftWidth={560}
         storageKey="rfp-zip-split-left"
+        mobileTabMode
+        leftTabLabel="文件树"
+        rightTabLabel="预览"
       />
       {/* 文件名 hover tooltip（portal 到 body，避免被滚动区裁剪） */}
       {hoverTip &&

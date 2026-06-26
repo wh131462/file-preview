@@ -108,6 +108,10 @@ watch(resolvedTheme, () => {
 }
 .shiki-wrapper :deep(code .line) {
   counter-increment: line;
+  display: inline-block;
+  width: 100%;
+  padding-left: 4.5em;
+  text-indent: -4.5em;
 }
 .shiki-wrapper :deep(code .line::before) {
   content: counter(line);

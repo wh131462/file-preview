@@ -45,6 +45,12 @@ let fileBlobCache: Blob | null = null;
 let loaderCache: any = null;
 const pageCache = new Map<number, string>();
 
+let isTouchDevice = false;
+let touchStartDistance = 0;
+let touchStartZoom = 1;
+let touchStartPos = { x: 0, y: 0 };
+let lastTapTime = 0;
+
 // 解码逻辑
 watch(
   () => [props.url, props.file] as const,
@@ -289,6 +295,10 @@ onMounted(() => {
   const container = containerRef.value;
   if (container) {
     container.addEventListener('wheel', handleWheelNative, { passive: false });
+    container.addEventListener('touchstart', handleTouchStart, { passive: false });
+    container.addEventListener('touchmove', handleTouchMove, { passive: false });
+    container.addEventListener('touchend', handleTouchEnd);
+    container.addEventListener('touchcancel', handleTouchEnd);
   }
 });
 
@@ -296,10 +306,15 @@ onBeforeUnmount(() => {
   const container = containerRef.value;
   if (container) {
     container.removeEventListener('wheel', handleWheelNative);
+    container.removeEventListener('touchstart', handleTouchStart);
+    container.removeEventListener('touchmove', handleTouchMove);
+    container.removeEventListener('touchend', handleTouchEnd);
+    container.removeEventListener('touchcancel', handleTouchEnd);
   }
 });
 
 const handleMouseDown = (e: MouseEvent) => {
+  if (isTouchDevice) return;
   if (e.button !== 0) return;
   isDragging.value = true;
   dragStart = {
@@ -309,6 +324,7 @@ const handleMouseDown = (e: MouseEvent) => {
 };
 
 const handleMouseMove = (e: MouseEvent) => {
+  if (isTouchDevice) return;
   if (!isDragging.value) return;
   position.value = clampPosition(
     {
@@ -320,7 +336,97 @@ const handleMouseMove = (e: MouseEvent) => {
 };
 
 const handleMouseUp = () => {
+  if (isTouchDevice) return;
   isDragging.value = false;
+};
+
+// 触屏事件处理
+const handleTouchStart = (e: TouchEvent) => {
+  isTouchDevice = true;
+  e.preventDefault();
+
+  const touches = e.touches;
+  if (touches.length === 1) {
+    // 单指拖拽
+    isDragging.value = true;
+    dragStart = {
+      x: touches[0].clientX - position.value.x,
+      y: touches[0].clientY - position.value.y,
+    };
+
+    // 双击检测
+    const now = Date.now();
+    if (now - lastTapTime < 300) {
+      // 双击复原：居中 + 缩放100%
+      position.value = { x: 0, y: 0 };
+      internalZoom.value = 1;
+      emit('zoomChange', 1);
+    }
+    lastTapTime = now;
+  } else if (touches.length === 2) {
+    // 双指缩放初始化
+    isDragging.value = false;
+    const distance = Math.hypot(
+      touches[1].clientX - touches[0].clientX,
+      touches[1].clientY - touches[0].clientY
+    );
+    touchStartDistance = distance;
+    touchStartZoom = internalZoom.value;
+    touchStartPos = { ...position.value };
+  }
+};
+
+const handleTouchMove = (e: TouchEvent) => {
+  e.preventDefault();
+
+  const touches = e.touches;
+  if (touches.length === 1 && isDragging.value) {
+    // 单指拖拽
+    position.value = clampPosition(
+      {
+        x: touches[0].clientX - dragStart.x,
+        y: touches[0].clientY - dragStart.y,
+      },
+      internalZoom.value
+    );
+  } else if (touches.length === 2) {
+    // 双指缩放
+    const container = containerRef.value;
+    if (!container) return;
+
+    const distance = Math.hypot(
+      touches[1].clientX - touches[0].clientX,
+      touches[1].clientY - touches[0].clientY
+    );
+
+    // 最小距离变化阈值，防止抖动
+    if (Math.abs(distance - touchStartDistance) < 5) return;
+
+    const scale = distance / touchStartDistance;
+    const newZoom = Math.max(0.01, Math.min(10, touchStartZoom * scale));
+
+    // 双指中心点作为缩放原点
+    const rect = container.getBoundingClientRect();
+    const centerX = (touches[0].clientX + touches[1].clientX) / 2 - rect.left - rect.width / 2;
+    const centerY = (touches[0].clientY + touches[1].clientY) / 2 - rect.top - rect.height / 2;
+
+    const zoomScale = newZoom / internalZoom.value;
+    position.value = clampPosition(
+      {
+        x: centerX - zoomScale * (centerX - touchStartPos.x),
+        y: centerY - zoomScale * (centerY - touchStartPos.y),
+      },
+      newZoom
+    );
+
+    internalZoom.value = newZoom;
+    emit('zoomChange', newZoom);
+  }
+};
+
+const handleTouchEnd = () => {
+  isDragging.value = false;
+  touchStartDistance = 0;
 };
 
 const transformStyle = computed(() => ({
@@ -340,7 +446,7 @@ const sizeText = computed(() => {
   <div
     ref="containerRef"
     class="vfp-relative vfp-flex vfp-items-center vfp-justify-center vfp-w-full vfp-h-full vfp-overflow-hidden"
-    :style="{ cursor: isDragging ? 'grabbing' : 'grab' }"
+    :style="{ cursor: isDragging ? 'grabbing' : 'grab', touchAction: 'none' }"
     @mousedown="handleMouseDown"
     @mousemove="handleMouseMove"
     @mouseup="handleMouseUp"

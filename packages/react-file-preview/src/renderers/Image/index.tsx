@@ -49,6 +49,11 @@ export const ImageRenderer: React.FC<ImageRendererProps> = ({
   const fileBlobRef = useRef<Blob | null>(null);
   const loaderRef = useRef<any>(null);
   const pageCacheRef = useRef<Map<number, string>>(new Map());
+  const isTouchDevice = useRef(false);
+  const touchStartDistance = useRef(0);
+  const touchStartZoom = useRef(1);
+  const touchStartPos = useRef({ x: 0, y: 0 });
+  const lastTapTime = useRef(0);
 
   // 解码逻辑：检测格式并按需解码
   useEffect(() => {
@@ -271,6 +276,89 @@ export const ImageRenderer: React.FC<ImageRendererProps> = ({
     onZoomChange?.(1);
   };
 
+  // 触屏事件处理
+  const handleTouchStart = useCallback((e: TouchEvent) => {
+    isTouchDevice.current = true;
+    e.preventDefault();
+
+    const touches = e.touches;
+    if (touches.length === 1) {
+      // 单指拖拽
+      setIsDragging(true);
+      setDragStart({
+        x: touches[0].clientX - position.x,
+        y: touches[0].clientY - position.y,
+      });
+
+      // 双击检测
+      const now = Date.now();
+      if (now - lastTapTime.current < 300) {
+        // 双击复原：居中 + 缩放100%
+        setPosition({ x: 0, y: 0 });
+        setInternalZoom(1);
+        onZoomChange?.(1);
+      }
+      lastTapTime.current = now;
+    } else if (touches.length === 2) {
+      // 双指缩放初始化
+      setIsDragging(false);
+      const distance = Math.hypot(
+        touches[1].clientX - touches[0].clientX,
+        touches[1].clientY - touches[0].clientY
+      );
+      touchStartDistance.current = distance;
+      touchStartZoom.current = internalZoom;
+      touchStartPos.current = { ...position };
+    }
+  }, [position, internalZoom, onZoomChange]);
+
+  const handleTouchMove = useCallback((e: TouchEvent) => {
+    e.preventDefault();
+
+    const touches = e.touches;
+    if (touches.length === 1 && isDragging) {
+      // 单指拖拽
+      setPosition(clampPosition({
+        x: touches[0].clientX - dragStart.x,
+        y: touches[0].clientY - dragStart.y,
+      }, internalZoom));
+    } else if (touches.length === 2) {
+      // 双指缩放
+      const container = containerRef.current;
+      if (!container) return;
+
+      const distance = Math.hypot(
+        touches[1].clientX - touches[0].clientX,
+        touches[1].clientY - touches[0].clientY
+      );
+
+      // 最小距离变化阈值，防止抖动
+      if (Math.abs(distance - touchStartDistance.current) < 5) return;
+
+      const scale = distance / touchStartDistance.current;
+      const newZoom = Math.max(0.01, Math.min(10, touchStartZoom.current * scale));
+
+      // 双指中心点作为缩放原点
+      const rect = container.getBoundingClientRect();
+      const centerX = (touches[0].clientX + touches[1].clientX) / 2 - rect.left - rect.width / 2;
+      const centerY = (touches[0].clientY + touches[1].clientY) / 2 - rect.top - rect.height / 2;
+
+      const zoomScale = newZoom / internalZoom;
+      setPosition(clampPosition({
+        x: centerX - zoomScale * (centerX - touchStartPos.current.x),
+        y: centerY - zoomScale * (centerY - touchStartPos.current.y),
+      }, newZoom));
+
+      setInternalZoom(newZoom);
+      onZoomChange?.(newZoom);
+    }
+  }, [isDragging, dragStart, internalZoom, clampPosition, onZoomChange]);
+
+  const handleTouchEnd = useCallback(() => {
+    setIsDragging(false);
+    touchStartDistance.current = 0;
+  }, []);
+
   // 鼠标滚轮缩放 —— 以鼠标位置为缩放原点
   // 使用原生事件 + passive: false,确保 preventDefault 生效,
   // 避免滚轮事件冒泡触发外层(如嵌入模式下的页面滚动)
@@ -306,7 +394,26 @@ export const ImageRenderer: React.FC<ImageRendererProps> = ({
     return () => container.removeEventListener('wheel', handleWheelNative);
   }, [onZoomChange, clampPosition]);
 
+  // 触屏事件监听器
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    container.addEventListener('touchstart', handleTouchStart, { passive: false });
+    container.addEventListener('touchmove', handleTouchMove, { passive: false });
+    container.addEventListener('touchend', handleTouchEnd);
+    container.addEventListener('touchcancel', handleTouchEnd);
+
+    return () => {
+      container.removeEventListener('touchstart', handleTouchStart);
+      container.removeEventListener('touchmove', handleTouchMove);
+      container.removeEventListener('touchend', handleTouchEnd);
+      container.removeEventListener('touchcancel', handleTouchEnd);
+    };
+  }, [handleTouchStart, handleTouchMove, handleTouchEnd]);
+
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    if (isTouchDevice.current) return;
     if (e.button !== 0) return;
     setIsDragging(true);
     setDragStart({
@@ -316,6 +423,7 @@ export const ImageRenderer: React.FC<ImageRendererProps> = ({
   }, [position]);
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    if (isTouchDevice.current) return;
     if (!isDragging) return;
     setPosition(clampPosition({
       x: e.clientX - dragStart.x,
@@ -324,6 +432,7 @@ export const ImageRenderer: React.FC<ImageRendererProps> = ({
   }, [isDragging, dragStart, internalZoom, clampPosition]);
 
   const handleMouseUp = useCallback(() => {
+    if (isTouchDevice.current) return;
     setIsDragging(false);
   }, []);
 
@@ -335,7 +444,7 @@ export const ImageRenderer: React.FC<ImageRendererProps> = ({
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseUp}
-      style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
+      style={{ cursor: isDragging ? 'grabbing' : 'grab', touchAction: 'none' }}
     >
       {/* 解码中 */}
       {decoding && (

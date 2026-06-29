@@ -10,6 +10,13 @@ export const enUS: Messages = {
   'common.loading': 'Loading',
   'common.unknown_error': 'Unknown error',
   'common.unsupported_preview': 'Preview not supported for this file type ({type})',
+  'common.retry': 'Retry',
+
+  // ─────── accessibility ───────
+  'accessibility.previousFile': 'Previous file',
+  'accessibility.nextFile': 'Next file',
+  'accessibility.closePreview': 'Close preview',
+  'accessibility.downloadFile': 'Download file',
 
   // ─────── toolbar ───────
   'toolbar.zoom_in': 'Zoom in',
@@ -20,6 +27,7 @@ export const enUS: Messages = {
   'toolbar.fit_to_window': 'Fit to window',
   'toolbar.original_size': 'Original size',
   'toolbar.toc': 'Table of contents',
+  'toolbar.outline': 'Outline',
   'toolbar.prev_page': 'Previous page',
   'toolbar.next_page': 'Next page',
   'toolbar.full_width': 'Full width',

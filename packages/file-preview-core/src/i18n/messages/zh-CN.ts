@@ -10,6 +10,13 @@ export const zhCN: Messages = {
   'common.loading': '加载中',
   'common.unknown_error': '未知错误',
   'common.unsupported_preview': '不支持预览此文件类型 ({type})',
+  'common.retry': '重试',
+
+  // ─────── accessibility ───────
+  'accessibility.previousFile': '上一个文件',
+  'accessibility.nextFile': '下一个文件',
+  'accessibility.closePreview': '关闭预览',
+  'accessibility.downloadFile': '下载文件',
 
   // ─────── toolbar ───────
   'toolbar.zoom_in': '放大',
@@ -20,6 +27,7 @@ export const zhCN: Messages = {
   'toolbar.fit_to_window': '适应窗口',
   'toolbar.original_size': '原始尺寸',
   'toolbar.toc': '目录',
+  'toolbar.outline': '大纲',
   'toolbar.prev_page': '上一页',
   'toolbar.next_page': '下一页',
   'toolbar.full_width': '全屏宽度',

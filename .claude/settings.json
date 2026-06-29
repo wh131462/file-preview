@@ -18,7 +18,9 @@
       "Bash(gh auth status)",
       "Bash(ipconfig getifaddr *)",
       "Bash(pnpm --filter @eternalheart/react-file-preview run build)",
-      "Bash(pnpm --filter @eternalheart/vue-file-preview run build)"
+      "Bash(pnpm --filter @eternalheart/vue-file-preview run build)",
+      "Bash(npx vue-tsc *)",
+      "Bash(npx eslint *)"
     ]
   }
 }

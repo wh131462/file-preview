@@ -98,6 +98,10 @@ export function getFileType(file: PreviewFile): FileType {
   if (mimeType.startsWith('text/') || textExtensions.includes(ext)) {
     return 'text';
   }
+  // 识别以 . 开头的配置文件（如 .gitignore, .prettierrc, .zshrc 等）
+  if (file.name.startsWith('.') && !file.name.includes('/')) {
+    return 'text';
+  }
   return 'unsupported';
 }
 
@@ -150,7 +154,69 @@ export function getLanguageFromFileName(fileName: string): string {
     md: 'markdown',
     txt: 'text',
   };
-  return languageMap[ext] || 'text';
+
+  // 优先使用扩展名映射
+  if (languageMap[ext]) {
+    return languageMap[ext];
+  }
+
+  // 处理以 . 开头的配置文件（无扩展名或特殊命名）
+  if (fileName.startsWith('.')) {
+    const fullName = fileName.toLowerCase();
+    const configFileMap: Record<string, string> = {
+      // Git 相关
+      '.gitignore': 'ini',
+      '.gitattributes': 'ini',
+      '.gitmodules': 'ini',
+      '.gitkeep': 'text',
+      // 编辑器配置
+      '.editorconfig': 'ini',
+      '.prettierrc': 'json',
+      '.prettierignore': 'ini',
+      '.eslintrc': 'json',
+      '.eslintignore': 'ini',
+      '.stylelintrc': 'json',
+      // Shell 配置
+      '.bashrc': 'bash',
+      '.zshrc': 'bash',
+      '.bash_profile': 'bash',
+      '.zprofile': 'bash',
+      '.profile': 'bash',
+      '.vimrc': 'vim',
+      // 环境变量
+      '.env': 'bash',
+      '.env.local': 'bash',
+      '.env.development': 'bash',
+      '.env.production': 'bash',
+      '.env.test': 'bash',
+      // 其他配置
+      '.npmrc': 'ini',
+      '.yarnrc': 'ini',
+      '.nvmrc': 'text',
+      '.dockerignore': 'ini',
+    };
+
+    if (configFileMap[fullName]) {
+      return configFileMap[fullName];
+    }
+
+    // 匹配 .env.* 开头的环境变量文件
+    if (fullName.startsWith('.env')) {
+      return 'bash';
+    }
+
+    // 其他以 rc 结尾的配置文件
+    if (fullName.endsWith('rc')) {
+      return 'json';
+    }
+
+    // 其他以 ignore 结尾的忽略文件
+    if (fullName.endsWith('ignore')) {
+      return 'ini';
+    }
+  }
+
+  return 'text';
 }
 
 /**

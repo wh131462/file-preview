@@ -87,7 +87,7 @@ watch(resolvedTheme, () => {
   <div v-else class="vfp-w-full vfp-h-full vfp-overflow-auto" style="background: var(--fp-code-bg);">
     <pre
       v-if="!highlighted"
-      class="vfp-p-6 vfp-text-fg-primary vfp-font-mono vfp-text-sm"
+      class="vfp-py-6 vfp-px-4 vfp-text-fg-primary vfp-font-mono vfp-text-sm"
       :class="wordWrap ? 'vfp-whitespace-pre-wrap vfp-break-words' : 'vfp-whitespace-pre'"
     >{{ content }}</pre>
     <div v-else class="shiki-wrapper" :class="{ 'no-wrap': !wordWrap }" v-html="highlighted" />

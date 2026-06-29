@@ -99,7 +99,7 @@ export const XmlRenderer: React.FC<XmlRendererProps> = ({ url }) => {
           dangerouslySetInnerHTML={{ __html: highlighted }}
         />
       ) : (
-        <pre className="rfp-p-6 rfp-text-fg-primary rfp-font-mono rfp-text-sm rfp-whitespace-pre-wrap rfp-break-words">
+        <pre className="rfp-py-6 rfp-px-4 rfp-text-fg-primary rfp-font-mono rfp-text-sm rfp-whitespace-pre-wrap rfp-break-words">
           {content}
         </pre>
       )}

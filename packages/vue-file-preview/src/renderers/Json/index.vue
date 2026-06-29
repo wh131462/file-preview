@@ -42,7 +42,7 @@ watch(() => props.url, loadJson, { immediate: true });
 
   <RendererError v-else-if="error" :message="error" />
 
-  <div v-else class="vfp-w-full vfp-h-full vfp-overflow-auto vfp-bg-code-bg vfp-py-3 vfp-pr-4">
+  <div v-else class="vfp-w-full vfp-h-full vfp-overflow-auto vfp-bg-code-bg vfp-py-6 vfp-px-4">
     <JsonNode :value="data" :depth="0" :default-expanded="true" />
   </div>
 </template>

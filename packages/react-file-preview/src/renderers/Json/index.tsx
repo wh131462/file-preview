@@ -205,7 +205,7 @@ export const JsonRenderer: React.FC<JsonRendererProps> = ({ url }) => {
   }
 
   return (
-    <div className="rfp-w-full rfp-h-full rfp-overflow-auto rfp-bg-code-bg rfp-py-3 rfp-pr-4">
+    <div className="rfp-w-full rfp-h-full rfp-overflow-auto rfp-bg-code-bg rfp-py-6 rfp-px-4">
       <JsonNode value={data} depth={0} defaultExpanded colors={colors} />
     </div>
   );

@@ -113,7 +113,7 @@ export const DocxRenderer: React.FC<DocxRendererProps> = ({ url }) => {
 
   return (
     <div
-      className="rfp-w-full rfp-h-full rfp-overflow-auto"
+      className="rfp-w-full rfp-h-full rfp-overflow-auto rfp-py-6 rfp-px-4"
       style={{ background: 'rgba(0, 0, 0, 0.15)' }}
     >
       {/* Hidden measurement div — same width as page content area */}
@@ -131,7 +131,7 @@ export const DocxRenderer: React.FC<DocxRendererProps> = ({ url }) => {
 
       {/* Visible pages */}
       <div
-        className="rfp-py-6 md:rfp-py-10 rfp-flex rfp-flex-col rfp-items-center"
+        className="rfp-flex rfp-flex-col rfp-items-center"
         style={{ gap: `${PAGE_GAP}px` }}
       >
         {(pages.length > 0 ? pages : ['']).map((pageHtml, i) => (
@@ -142,7 +142,7 @@ export const DocxRenderer: React.FC<DocxRendererProps> = ({ url }) => {
               maxWidth: '794px',
               minHeight: `${PAGE_HEIGHT}px`,
               background: 'white',
-              boxShadow: '0 2px 12px rgba(0, 0, 0, 0.15)',
+              boxShadow: '0 4px 6px rgba(0, 0, 0, 0.07), 0 10px 20px rgba(0, 0, 0, 0.10)',
               flexShrink: 0,
               padding: `${PAGE_PADDING_Y}px ${PAGE_PADDING_X}px`,
             }}

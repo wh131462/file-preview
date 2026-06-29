@@ -119,16 +119,23 @@ const pageStyle = {
 
   <RendererError v-else-if="error" :message="error" />
 
-  <div v-else class="vfp-w-full vfp-h-full vfp-overflow-auto" style="background: rgba(0, 0, 0, 0.15)">
+  <div v-else class="vfp-w-full vfp-h-full vfp-overflow-auto vfp-py-6 vfp-px-4" style="background: rgba(0, 0, 0, 0.15)">
     <!-- 隐藏测量区 -->
     <div ref="measureRef" :style="measureStyle" v-html="html" />
 
     <!-- 实际页面 -->
     <div
-      class="vfp-py-6 md:vfp-py-10 vfp-flex vfp-flex-col vfp-items-center"
+      class="vfp-flex vfp-flex-col vfp-items-center"
       :style="{ gap: `${PAGE_GAP}px` }"
     >
-      <div v-for="(pageHtml, i) in pages.length > 0 ? pages : ['']" :key="i" :style="pageStyle">
+      <div
+        v-for="(pageHtml, i) in pages.length > 0 ? pages : ['']"
+        :key="i"
+        :style="{
+          ...pageStyle,
+          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.07), 0 10px 20px rgba(0, 0, 0, 0.10)',
+        }"
+      >
         <div :style="contentStyle" v-html="pageHtml" />
       </div>
     </div>

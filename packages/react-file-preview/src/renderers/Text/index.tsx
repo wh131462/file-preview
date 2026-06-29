@@ -81,7 +81,7 @@ export const TextRenderer: React.FC<TextRendererProps> = ({
     <div className="rfp-w-full rfp-h-full rfp-overflow-auto rfp-bg-code-bg">
       {language === 'text' || !highlighted ? (
         <pre
-          className={`rfp-p-6 rfp-text-fg-primary rfp-font-mono rfp-text-sm ${
+          className={`rfp-py-6 rfp-px-4 rfp-text-fg-primary rfp-font-mono rfp-text-sm ${
             wordWrap ? 'rfp-whitespace-pre-wrap rfp-break-words' : 'rfp-whitespace-pre'
           }`}
         >

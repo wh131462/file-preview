@@ -207,7 +207,7 @@ export const AudioRenderer: React.FC<AudioRendererProps> = ({ url, fileName }) =
   }
 
   return (
-    <div className="rfp-flex rfp-flex-col rfp-items-center rfp-justify-center rfp-w-full rfp-h-full rfp-p-4 md:rfp-p-8 rfp-gap-5 md:rfp-gap-8 rfp-select-none">
+    <div className="rfp-flex rfp-flex-col rfp-items-center rfp-justify-center rfp-w-full rfp-h-full rfp-p-6 rfp-gap-6 rfp-select-none">
       {/* 唱片机整体 */}
       <div className="rfp-relative" style={{ width: '260px', height: '240px' }}>
         {/* 外圈光晕 */}
@@ -302,10 +302,10 @@ export const AudioRenderer: React.FC<AudioRendererProps> = ({ url, fileName }) =
       </div>
 
       {/* 文件名 */}
-      <div className="rfp-text-center rfp-max-w-sm md:rfp-max-w-md rfp-px-4">
+      <div className="rfp-text-center rfp-max-w-md rfp-px-4">
         <MarqueeText
           text={fileName}
-          className="rfp-text-lg md:rfp-text-xl rfp-font-medium rfp-mb-1 rfp-text-fg-primary"
+          className="rfp-text-lg rfp-font-medium rfp-mb-1 rfp-text-fg-primary"
         />
         <p className="rfp-text-xs rfp-tracking-widest rfp-uppercase rfp-text-accent">
           Audio
@@ -314,7 +314,7 @@ export const AudioRenderer: React.FC<AudioRendererProps> = ({ url, fileName }) =
 
       {/* 控制面板 */}
       <div
-        className="rfp-w-full rfp-max-w-sm md:rfp-max-w-md rfp-rounded-2xl rfp-p-4 md:rfp-p-6 rfp-border rfp-bg-surface-1 rfp-border-line-weak"
+        className="rfp-w-full rfp-max-w-md rfp-rounded-2xl rfp-p-5 rfp-border rfp-bg-surface-1 rfp-border-line-weak"
         style={{ backdropFilter: 'blur(16px)' }}
       >
         {/* 进度条 */}

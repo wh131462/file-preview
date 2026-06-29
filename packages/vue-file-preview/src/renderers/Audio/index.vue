@@ -76,7 +76,7 @@ const handleVolumeLeave = () => {
 
   <div
     v-else
-    class="vfp-flex vfp-flex-col vfp-items-center vfp-justify-center vfp-w-full vfp-h-full vfp-p-4 md:vfp-p-8 vfp-gap-5 md:vfp-gap-8 vfp-select-none"
+    class="vfp-flex vfp-flex-col vfp-items-center vfp-justify-center vfp-w-full vfp-h-full vfp-p-6 vfp-gap-6 vfp-select-none"
   >
     <!-- 唱片机 -->
     <div class="vfp-relative" style="width: 260px; height: 240px">
@@ -200,8 +200,8 @@ const handleVolumeLeave = () => {
     </div>
 
     <!-- 文件名 -->
-    <div class="vfp-text-center vfp-max-w-sm md:vfp-max-w-md vfp-px-4">
-      <div class="vfp-text-lg md:vfp-text-xl vfp-font-medium vfp-mb-1 vfp-truncate vfp-text-fg-primary">
+    <div class="vfp-text-center vfp-max-w-md vfp-px-4">
+      <div class="vfp-text-lg vfp-font-medium vfp-mb-1 vfp-truncate vfp-text-fg-primary">
         {{ fileName }}
       </div>
       <p class="vfp-text-xs vfp-tracking-widest vfp-uppercase vfp-text-accent">Audio</p>
@@ -209,7 +209,7 @@ const handleVolumeLeave = () => {
 
     <!-- 控制面板 -->
     <div
-      class="vfp-w-full vfp-max-w-sm md:vfp-max-w-md vfp-rounded-2xl vfp-p-4 md:vfp-p-6 vfp-border vfp-bg-surface-1 vfp-border-line-weak"
+      class="vfp-w-full vfp-max-w-md vfp-rounded-2xl vfp-p-5 vfp-border vfp-bg-surface-1 vfp-border-line-weak"
       :style="{ backdropFilter: 'blur(16px)' }"
     >
       <!-- 进度条 -->

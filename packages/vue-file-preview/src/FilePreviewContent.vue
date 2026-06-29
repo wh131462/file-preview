@@ -153,6 +153,7 @@ const totalPages = ref(1);
 const contentNaturalWidth = ref(0);
 const contentNaturalHeight = ref(0);
 const imageResetKey = ref(0);
+const pdfShowOutline = ref(false);
 
 const contentRef = ref<HTMLDivElement | null>(null);
 const rootRef = ref<HTMLDivElement | null>(null);
@@ -384,9 +385,30 @@ const toolGroups = computed(() => {
   if (fileType.value === 'pdf') {
     return getPdfToolbarGroups({
       zoom: zoom.value,
+      currentPage: currentPage.value,
+      totalPages: totalPages.value || 0,
       onZoomIn: handleZoomIn,
       onZoomOut: handleZoomOut,
       onReset: handleReset,
+      onPrevPage: () => {
+        const container = contentRef.value?.querySelector('.vfp-overflow-auto');
+        if (!container) return;
+        const pages = container.querySelectorAll('[data-page-number]');
+        const targetPage = pages[Math.max(0, currentPage.value - 2)];
+        if (targetPage) {
+          targetPage.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      },
+      onNextPage: () => {
+        const container = contentRef.value?.querySelector('.vfp-overflow-auto');
+        if (!container) return;
+        const pages = container.querySelectorAll('[data-page-number]');
+        const targetPage = pages[Math.min(pages.length - 1, currentPage.value)];
+        if (targetPage) {
+          targetPage.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      },
+      onToggleOutline: () => { pdfShowOutline.value = !pdfShowOutline.value; },
       t: t.value,
     });
   }
@@ -590,9 +612,11 @@ const hasToolGroups = computed(() => toolGroups.value.length > 0);
             :url="resolvedUrl"
             :zoom="zoom"
             :current-page="currentPage"
+            :show-outline="pdfShowOutline"
             @page-change="(p: number) => (currentPage = p)"
             @total-pages-change="(t: number) => (totalPages = t)"
             @page-width-change="(w: number) => (contentNaturalWidth = w)"
+            @toggle-outline="() => (pdfShowOutline = !pdfShowOutline)"
           />
           <DocxRenderer v-else-if="fileType === 'docx'" :url="resolvedUrl" />
           <XlsxRenderer v-else-if="fileType === 'xlsx'" :url="resolvedUrl" />

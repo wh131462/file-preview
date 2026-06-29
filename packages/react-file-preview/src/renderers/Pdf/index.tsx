@@ -1,8 +1,15 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslator } from '../../i18n/LocaleContext';
 import { RendererError } from '../RendererError';
+import { X } from 'lucide-react';
 // @ts-ignore - pdfjs-dist 类型路径
 import * as pdfjsLib from 'pdfjs-dist/build/pdf.mjs';
+
+interface PdfOutlineItem {
+  title: string;
+  dest: any;
+  items?: PdfOutlineItem[];
+}
 
 interface PdfPageProxy {
   getViewport(opts: { scale: number }): { width: number; height: number };
@@ -15,6 +22,7 @@ interface PdfPageProxy {
 interface PdfDocumentProxy {
   numPages: number;
   getPage(pageNumber: number): Promise<PdfPageProxy>;
+  getOutline(): Promise<PdfOutlineItem[] | null>;
   destroy(): void;
 }
 
@@ -29,24 +37,32 @@ interface PdfRendererProps {
   url: string;
   zoom: number;
   currentPage: number;
+  showOutline?: boolean;
   onPageChange: (page: number) => void;
   onTotalPagesChange: (total: number) => void;
   onPageWidthChange?: (width: number) => void;
+  onToggleOutline?: () => void;
 }
 
 export const PdfRenderer: React.FC<PdfRendererProps> = ({
   url,
   zoom,
   currentPage,
+  showOutline = false,
   onPageChange,
   onTotalPagesChange,
   onPageWidthChange,
+  onToggleOutline,
 }) => {
   const t = useTranslator();
   const [numPages, setNumPages] = useState<number>(0);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [outline, setOutline] = useState<PdfOutlineItem[]>([]);
+  const [activeOutlineItem, setActiveOutlineItem] = useState<string | null>(null);
+  const outlinePageMapRef = useRef<Map<string, number>>(new Map());
   const containerRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const pdfDocRef = useRef<PdfDocumentProxy | null>(null);
   const pageStatesRef = useRef<Map<number, PageState>>(new Map());
   const observerRef = useRef<IntersectionObserver | null>(null);
@@ -87,12 +103,6 @@ export const PdfRenderer: React.FC<PdfRendererProps> = ({
       state.element.innerHTML = '';
       state.element.appendChild(canvas);
 
-      // 页码标签
-      const label = document.createElement('div');
-      label.textContent = String(pageNumber);
-      label.className = 'rfp-absolute rfp-top-2 rfp-right-2 rfp-bg-surface-nav-hover rfp-backdrop-blur-sm rfp-text-fg-primary rfp-text-xs rfp-px-3 rfp-py-1 rfp-rounded-full';
-      state.element.appendChild(label);
-
       state.rendered = true;
     } catch (err: any) {
       if (err?.name !== 'RenderingCancelledException') {
@@ -131,10 +141,69 @@ export const PdfRenderer: React.FC<PdfRendererProps> = ({
   }, []);
 
   // 初始化页面占位符
-  const initPagePlaceholders = useCallback(() => {
-    if (!pdfDocRef.current || !containerRef.current) return;
+  // 构建大纲-页码映射
+  const buildOutlinePageMap = async (items: PdfOutlineItem[], pdfDoc: PdfDocumentProxy, depth = 0) => {
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      const itemKey = `${item.title}-${i}-${depth}`;
 
-    const wrapper = containerRef.current.querySelector('.pdf-pages') as HTMLDivElement | null;
+      try {
+        let pageNumber: number | null = null;
+        const dest = item.dest;
+
+        if (typeof dest === 'string') {
+          const namedDest = await (pdfDoc as any).getDestination?.(dest);
+          if (namedDest && namedDest[0] && typeof namedDest[0] === 'object') {
+            pageNumber = await (pdfDoc as any).getPageIndex?.(namedDest[0]) + 1;
+          }
+        } else if (Array.isArray(dest) && dest[0] && typeof dest[0] === 'object') {
+          pageNumber = await (pdfDoc as any).getPageIndex?.(dest[0]) + 1;
+        }
+
+        if (pageNumber !== null && pageNumber > 0) {
+          outlinePageMapRef.current.set(itemKey, pageNumber);
+        }
+
+        if (item.items && item.items.length > 0) {
+          await buildOutlinePageMap(item.items, pdfDoc, depth + 1);
+        }
+      } catch (err) {
+        // 静默失败，某些大纲项可能无法映射到页码
+      }
+    }
+  };
+
+  // 根据当前页码更新激活的大纲项
+  const updateActiveOutlineByPage = useCallback((page: number) => {
+    let closestItem: string | null = null;
+    let closestDistance = Infinity;
+
+    outlinePageMapRef.current.forEach((itemPage, itemKey) => {
+      if (itemPage <= page) {
+        const distance = page - itemPage;
+        if (distance < closestDistance) {
+          closestDistance = distance;
+          closestItem = itemKey;
+        }
+      }
+    });
+
+    if (closestItem !== activeOutlineItem) {
+      setActiveOutlineItem(closestItem);
+    }
+  }, [activeOutlineItem]);
+
+  // 监听页码变化，更新大纲高亮
+  useEffect(() => {
+    if (currentPage > 0 && outlinePageMapRef.current.size > 0) {
+      updateActiveOutlineByPage(currentPage);
+    }
+  }, [currentPage, updateActiveOutlineByPage]);
+
+  const initPagePlaceholders = useCallback(() => {
+    if (!pdfDocRef.current || !scrollContainerRef.current) return;
+
+    const wrapper = scrollContainerRef.current.querySelector('.pdf-pages') as HTMLDivElement | null;
     if (!wrapper) return;
 
     wrapper.innerHTML = '';
@@ -183,6 +252,20 @@ export const PdfRenderer: React.FC<PdfRendererProps> = ({
       setNumPages(total);
       onTotalPagesChange(total);
       onPageChange(1);
+
+      // 提取大纲
+      try {
+        const outlineData = await pdfDocRef.current.getOutline();
+        if (outlineData) {
+          setOutline(outlineData);
+          // 构建大纲-页码映射
+          outlinePageMapRef.current.clear();
+          await buildOutlinePageMap(outlineData, pdfDocRef.current);
+        }
+      } catch (err) {
+        console.warn('PDF 大纲提取失败:', err);
+      }
+
       setIsLoading(false);
     } catch (err) {
       console.error('PDF 加载错误:', err);
@@ -193,9 +276,9 @@ export const PdfRenderer: React.FC<PdfRendererProps> = ({
 
   // 滚动处理
   const handleScroll = useCallback(() => {
-    if (!containerRef.current || pageStatesRef.current.size === 0) return;
+    if (!scrollContainerRef.current || pageStatesRef.current.size === 0) return;
 
-    const container = containerRef.current;
+    const container = scrollContainerRef.current;
     const scrollTop = container.scrollTop;
     const containerHeight = container.clientHeight;
     const scrollCenter = scrollTop + containerHeight / 2;
@@ -241,7 +324,7 @@ export const PdfRenderer: React.FC<PdfRendererProps> = ({
         });
       },
       {
-        root: containerRef.current,
+        root: scrollContainerRef.current,
         rootMargin: '500px 0px',
         threshold: 0,
       }
@@ -284,7 +367,7 @@ export const PdfRenderer: React.FC<PdfRendererProps> = ({
       });
 
       // 触发重新渲染
-      if (observerRef.current && containerRef.current) {
+      if (observerRef.current && scrollContainerRef.current) {
         pageStatesRef.current.forEach((state) => {
           observerRef.current?.unobserve(state.element);
           observerRef.current?.observe(state.element);
@@ -297,7 +380,7 @@ export const PdfRenderer: React.FC<PdfRendererProps> = ({
 
   // 监听滚动事件
   useEffect(() => {
-    const container = containerRef.current;
+    const container = scrollContainerRef.current;
     if (!container) return;
 
     container.addEventListener('scroll', handleScroll);
@@ -326,31 +409,133 @@ export const PdfRenderer: React.FC<PdfRendererProps> = ({
     };
   }, []);
 
+  // 处理大纲点击跳转
+  const handleOutlineClick = useCallback(async (dest: any, itemKey: string, onClose?: () => void) => {
+    if (!pdfDocRef.current || !scrollContainerRef.current) return;
+
+    try {
+      let pageNumber: number;
+
+      if (typeof dest === 'string') {
+        // 命名目标
+        const namedDest = await (pdfDocRef.current as any).getDestination(dest);
+        if (namedDest && namedDest[0]) {
+          const pageRef = namedDest[0];
+          pageNumber = await (pdfDocRef.current as any).getPageIndex(pageRef) + 1;
+        } else {
+          return;
+        }
+      } else if (Array.isArray(dest) && dest[0]) {
+        // 直接页面引用
+        const pageRef = dest[0];
+        pageNumber = await (pdfDocRef.current as any).getPageIndex(pageRef) + 1;
+      } else {
+        return;
+      }
+
+      // 设置激活项
+      setActiveOutlineItem(itemKey);
+
+      // 滚动到目标页面
+      const pages = scrollContainerRef.current.querySelectorAll('[data-page-number]');
+      const targetPage = pages[pageNumber - 1];
+      if (targetPage) {
+        targetPage.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+
+      // 跳转后自动关闭侧边栏
+      if (onClose) {
+        setTimeout(() => onClose(), 300);
+      }
+    } catch (err) {
+      console.error('大纲跳转失败:', err);
+    }
+  }, []);
+
+  // 渲染大纲项
+  const renderOutlineItems = (items: PdfOutlineItem[], depth = 0, onClose?: () => void): React.ReactNode => {
+    return (
+      <ul style={{ marginLeft: depth > 0 ? 16 : 0 }}>
+        {items.map((item, i) => {
+          const itemKey = `${item.title}-${i}-${depth}`;
+          const isActive = activeOutlineItem === itemKey;
+          return (
+            <li key={itemKey}>
+              <button
+                onClick={() => handleOutlineClick(item.dest, itemKey, onClose)}
+                className={`rfp-w-full rfp-text-left rfp-py-2 rfp-px-3 rfp-text-sm rfp-rounded rfp-transition-all rfp-truncate ${
+                  isActive
+                    ? 'rfp-bg-surface-2 rfp-text-fg-primary rfp-font-medium'
+                    : 'rfp-text-fg-secondary hover:rfp-text-fg-primary hover:rfp-bg-surface-2'
+                }`}
+                title={item.title}
+              >
+                {item.title}
+              </button>
+              {item.items && item.items.length > 0 && renderOutlineItems(item.items, depth + 1, onClose)}
+            </li>
+          );
+        })}
+      </ul>
+    );
+  };
+
   return (
-    <div
-      ref={containerRef}
-      className="rfp-flex rfp-flex-col rfp-items-center rfp-w-full rfp-h-full rfp-overflow-auto rfp-py-4 md:rfp-py-8 rfp-px-2 md:rfp-px-4"
-    >
-      {error && (
-        <RendererError message={error} />
-      )}
-
-      {!error && isLoading && (
-        <div className="rfp-flex rfp-items-center rfp-justify-center rfp-min-h-screen">
-          <div className="rfp-w-12 rfp-h-12 rfp-border-4 rfp-border-line-strong rfp-border-t-spinner-head rfp-rounded-full rfp-animate-spin" />
+    <div ref={containerRef} className="rfp-relative rfp-w-full rfp-h-full">
+      {/* 大纲侧边栏 */}
+      {outline.length > 0 && (
+        <div
+          className="rfp-absolute rfp-inset-0 rfp-z-20 rfp-flex rfp-transition-opacity rfp-duration-300"
+          style={{
+            opacity: showOutline ? 1 : 0,
+            pointerEvents: showOutline ? 'auto' : 'none',
+          }}
+        >
+          <div
+            className="rfp-w-72 rfp-max-w-[80%] rfp-h-full rfp-bg-surface-overlay rfp-backdrop-blur-xl rfp-border-r rfp-border-line-weak rfp-flex rfp-flex-col rfp-shadow-2xl rfp-transition-transform rfp-duration-300"
+            style={{ transform: showOutline ? 'translateX(0)' : 'translateX(-100%)' }}
+          >
+            <div className="rfp-flex rfp-items-center rfp-justify-between rfp-px-4 rfp-py-3 rfp-border-b rfp-border-line-weak rfp-flex-shrink-0">
+              <span className="rfp-text-fg-primary rfp-font-medium rfp-text-sm">{t('toolbar.outline')}</span>
+              <button
+                onClick={onToggleOutline}
+                className="rfp-text-fg-tertiary hover:rfp-text-fg-primary rfp-transition-colors"
+              >
+                <X className="rfp-w-4 rfp-h-4" />
+              </button>
+            </div>
+            <div className="rfp-flex-1 rfp-overflow-y-auto rfp-py-4 rfp-px-1">
+              {renderOutlineItems(outline, 0, onToggleOutline)}
+            </div>
+          </div>
+          <div
+            className="rfp-flex-1 rfp-transition-opacity rfp-duration-300"
+            style={{ background: showOutline ? 'rgba(0,0,0,0.3)' : 'transparent' }}
+            onClick={onToggleOutline}
+          />
         </div>
       )}
 
-      {!error && !isLoading && (
-        <div className="pdf-pages rfp-flex rfp-flex-col rfp-gap-4" />
-      )}
+      <div
+        ref={scrollContainerRef}
+        className="rfp-w-full rfp-h-full rfp-overflow-auto rfp-py-6 rfp-px-4"
+      >
+        {error && (
+          <RendererError message={error} />
+        )}
 
-      {/* 底部页码指示器 */}
-      {numPages > 0 && (
-        <div className="rfp-sticky rfp-bottom-2 md:rfp-bottom-4 rfp-mt-4 md:rfp-mt-8 rfp-bg-surface-nav-hover rfp-backdrop-blur-xl rfp-text-fg-primary rfp-px-4 rfp-py-2 md:rfp-px-6 md:rfp-py-3 rfp-rounded-full rfp-text-xs md:rfp-text-sm rfp-font-medium rfp-shadow-2xl rfp-border rfp-border-line-weak">
-          第 {currentPage} 页 / 共 {numPages} 页
-        </div>
-      )}
+        {!error && isLoading && (
+          <div className="rfp-flex rfp-items-center rfp-justify-center rfp-min-h-screen">
+            <div className="rfp-w-12 rfp-h-12 rfp-border-4 rfp-border-line-strong rfp-border-t-spinner-head rfp-rounded-full rfp-animate-spin" />
+          </div>
+        )}
+
+        {!error && (
+          <div className="rfp-flex rfp-flex-col rfp-items-center">
+            <div className="pdf-pages rfp-flex rfp-flex-col rfp-gap-4" />
+          </div>
+        )}
+      </div>
     </div>
   );
 };

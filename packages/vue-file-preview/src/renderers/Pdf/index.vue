@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, onMounted, onBeforeUnmount, nextTick, computed } from 'vue';
+import { ref, watch, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import { configurePdfWorker } from '@eternalheart/file-preview-core';
 // @ts-ignore - pdfjs-dist 类型路径
 import * as pdfjsLib from 'pdfjs-dist/build/pdf.mjs';
@@ -318,7 +318,7 @@ const loadPdf = async () => {
     isLoading.value = false;
   } catch (err) {
     console.error('PDF 加载错误:', err);
-    error.value = t('pdf.load_failed');
+    error.value = t.value('pdf.load_failed');
     isLoading.value = false;
   }
 };

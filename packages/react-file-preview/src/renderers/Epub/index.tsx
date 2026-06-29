@@ -321,7 +321,6 @@ export const EpubRenderer = forwardRef<EpubRendererHandle, EpubRendererProps>(
       let isInitialRender = true;
       let lastDimensions = { width: 0, height: 0 };
       let resizeTimeout: number | null = null;
-      let isTransitioning = false;
 
       const doResize = () => {
         const v = viewerRef.current;
@@ -355,13 +354,9 @@ export const EpubRenderer = forwardRef<EpubRendererHandle, EpubRendererProps>(
 
         lastDimensions = newDimensions;
 
-        // 标记进入 transition 状态
-        isTransitioning = true;
-
         // 防抖：等待 transition 完成（350ms）后才重新渲染
         if (resizeTimeout !== null) clearTimeout(resizeTimeout);
         resizeTimeout = window.setTimeout(() => {
-          isTransitioning = false;
           doResize();
         }, 350);
       });

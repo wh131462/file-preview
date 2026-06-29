@@ -313,15 +313,66 @@ export const EpubRenderer = forwardRef<EpubRendererHandle, EpubRendererProps>(
       };
     }, [url]);
 
+    // 监听容器尺寸变化：等待 transition 完成后才 resize，避免 transition 期间频繁触发导致频闪
     useEffect(() => {
-      const onResize = () => {
-        const viewer = viewerRef.current;
-        if (!viewer || !renditionRef.current) return;
-        renditionRef.current.resize(viewer.offsetWidth, viewer.offsetHeight);
+      const viewer = viewerRef.current;
+      if (!viewer) return;
+
+      let isInitialRender = true;
+      let lastDimensions = { width: 0, height: 0 };
+      let resizeTimeout: number | null = null;
+      let isTransitioning = false;
+
+      const doResize = () => {
+        const v = viewerRef.current;
+        const rendition = renditionRef.current;
+        if (!v || !rendition) return;
+        rendition.resize(v.offsetWidth, v.offsetHeight);
+        // resize 后恢复阅读位置
+        if (lastCfiRef.current) {
+          try { rendition.display(lastCfiRef.current); } catch { /* ignore */ }
+        }
+        // resize/display 可能重建 .epub-container，需要重新绑定滚动监听
+        reattachScrollListener();
       };
-      window.addEventListener('resize', onResize);
-      return () => window.removeEventListener('resize', onResize);
-    }, []);
+
+      const observer = new ResizeObserver(() => {
+        const v = viewerRef.current;
+        if (!v) return;
+
+        if (isInitialRender) {
+          isInitialRender = false;
+          lastDimensions = { width: v.offsetWidth, height: v.offsetHeight };
+          return;
+        }
+
+        const newDimensions = { width: v.offsetWidth, height: v.offsetHeight };
+        const widthDiff = Math.abs(lastDimensions.width - newDimensions.width);
+        const heightDiff = Math.abs(lastDimensions.height - newDimensions.height);
+
+        // 微小变化不触发，避免抖动
+        if (widthDiff < 10 && heightDiff < 10) return;
+
+        lastDimensions = newDimensions;
+
+        // 标记进入 transition 状态
+        isTransitioning = true;
+
+        // 防抖：等待 transition 完成（350ms）后才重新渲染
+        if (resizeTimeout !== null) clearTimeout(resizeTimeout);
+        resizeTimeout = window.setTimeout(() => {
+          isTransitioning = false;
+          doResize();
+        }, 350);
+      });
+
+      observer.observe(viewer);
+
+      return () => {
+        observer.disconnect();
+        if (resizeTimeout !== null) clearTimeout(resizeTimeout);
+      };
+    }, [reattachScrollListener]);
 
     useEffect(() => {
       reattachScrollListener();

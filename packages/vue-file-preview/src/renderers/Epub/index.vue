@@ -206,9 +206,48 @@ const loadEpub = async () => {
   }
 };
 
-const onResize = () => {
+// 监听容器尺寸变化：等待 transition 完成后才 resize，避免 transition 期间频繁触发导致频闪
+let resizeObserver: ResizeObserver | null = null;
+let resizeTimeout: number | null = null;
+let lastDimensions = { width: 0, height: 0 };
+let isInitialResize = true;
+
+const doResize = () => {
   if (!viewerRef.value || !rendition) return;
   rendition.resize(viewerRef.value.offsetWidth, viewerRef.value.offsetHeight);
+  // resize 后恢复阅读位置
+  if (lastCfi) {
+    try { rendition.display(lastCfi); } catch { /* ignore */ }
+  }
+  // resize/display 可能重建 .epub-container，需要重新绑定滚动监听
+  reattachScrollListener();
+};
+
+const setupResizeObserver = () => {
+  if (!viewerRef.value) return;
+  resizeObserver = new ResizeObserver(() => {
+    if (!viewerRef.value) return;
+
+    if (isInitialResize) {
+      isInitialResize = false;
+      lastDimensions = { width: viewerRef.value.offsetWidth, height: viewerRef.value.offsetHeight };
+      return;
+    }
+
+    const newDimensions = { width: viewerRef.value.offsetWidth, height: viewerRef.value.offsetHeight };
+    const widthDiff = Math.abs(lastDimensions.width - newDimensions.width);
+    const heightDiff = Math.abs(lastDimensions.height - newDimensions.height);
+
+    // 微小变化不触发，避免抖动
+    if (widthDiff < 10 && heightDiff < 10) return;
+
+    lastDimensions = newDimensions;
+
+    // 防抖：等待 transition 完成（350ms）后才重新渲染
+    if (resizeTimeout !== null) clearTimeout(resizeTimeout);
+    resizeTimeout = window.setTimeout(doResize, 350);
+  });
+  resizeObserver.observe(viewerRef.value);
 };
 
 // 监听 epub-container 滚动，接近底部时强制加载后续 section
@@ -244,7 +283,7 @@ const reattachScrollListener = () => {
 
 onMounted(() => {
   loadEpub();
-  window.addEventListener('resize', onResize);
+  setupResizeObserver();
   reattachScrollListener();
 });
 
@@ -254,7 +293,8 @@ watch(() => props.url, (newUrl) => {
 });
 
 onBeforeUnmount(() => {
-  window.removeEventListener('resize', onResize);
+  if (resizeObserver) resizeObserver.disconnect();
+  if (resizeTimeout !== null) clearTimeout(resizeTimeout);
   scrollContainer?.removeEventListener('scroll', onContainerScroll);
   cleanup();
 });

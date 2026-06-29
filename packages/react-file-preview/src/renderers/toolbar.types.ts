@@ -4,6 +4,7 @@ export interface ToolbarButtonItem {
   tooltip: string;
   action: () => void;
   disabled?: boolean;
+  ariaKeyshortcuts?: string;
 }
 
 export interface ToolbarTextItem {

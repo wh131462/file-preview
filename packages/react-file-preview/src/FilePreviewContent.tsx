@@ -1,24 +1,24 @@
-import React, { useState, useEffect, useCallback, useMemo, useRef, Suspense } from 'react';
-import { motion } from 'framer-motion';
-import { X, Download, ChevronLeft, ChevronRight } from 'lucide-react';
-import { getFileType, createTranslator, type Locale, type Messages, type Translator, type Theme } from '@eternalheart/file-preview-core';
+import React, { useCallback, useMemo, useRef } from 'react';
+import { getFileType, createTranslator, type Locale, type Messages, type Translator, type Theme, downloadFileWithFetcher } from '@eternalheart/file-preview-core';
 import { LocaleProvider } from './i18n/LocaleContext';
 import { ThemeProvider } from './ThemeContext';
-import type { ToolbarGroup } from './renderers/toolbar.types';
-import { getImageToolbarGroups } from './renderers/Image/toolbar';
-import { getPdfToolbarGroups } from './renderers/Pdf/toolbar';
-import { getEpubToolbarGroups } from './renderers/Epub/toolbar';
-import { getMobiToolbarGroups } from './renderers/Mobi/toolbar';
-import { getZipToolbarGroups, type ZipToolbarStats } from './renderers/Zip/toolbar';
-import { getTextToolbarGroups } from './renderers/Text/toolbar';
-import { getMarkdownToolbarGroups } from './renderers/Markdown/toolbar';
-
-import { PreviewFileInput, CustomRenderer, CustomRendererContext } from './types';
+import type { PreviewFileInput, CustomRenderer, CustomRendererContext } from './types';
 import type { CustomRendererEventPayload, PreviewFile, RequestHandler, RequestInitFactory, ShouldFetchAsBlob } from '@eternalheart/file-preview-core';
-import { downloadFileWithFetcher } from '@eternalheart/file-preview-core';
 import { normalizeFiles } from './utils/fileNormalizer';
 import { RequestProvider, useResolvedUrl, useFetcher } from './RequestContext';
-// Renderer 通过 React.lazy 动态加载，运行时按需下载对应 chunk
+import type { EpubRendererHandle } from './renderers/Epub';
+import type { MobiRendererHandle } from './renderers/Mobi';
+import { UnsupportedRenderer } from './renderers/Unsupported';
+import {
+  useFilePreviewState,
+  useKeyboardNavigation,
+  useBookRenderer,
+  useThemeMode,
+  useImageAutoFit,
+  useToolbarConfig,
+  type ToolbarConfigHandlers,
+} from './hooks';
+import { FilePreviewToolbar, FilePreviewRenderer, NavArrows } from './components/preview';
 import {
   ImageRenderer,
   PdfRenderer,
@@ -39,11 +39,6 @@ import {
   TextRenderer,
   FontRenderer,
 } from './renderers/lazy';
-import type { EpubRendererHandle } from './renderers/Epub';
-import type { MobiRendererHandle } from './renderers/Mobi';
-// 不支持类型回退；体积极小，仍静态打包到主入口
-import { UnsupportedRenderer } from './renderers/Unsupported';
-import { RendererLoading } from './renderers/RendererLoading';
 
 const MAX_ZIP_NESTING_DEPTH = 3;
 
@@ -52,33 +47,19 @@ export interface FilePreviewContentProps {
   currentIndex: number;
   onNavigate?: (index: number) => void;
   customRenderers?: CustomRenderer[];
-  /** 运行模式:modal(弹窗) 或 embed(嵌入) */
   mode?: 'modal' | 'embed';
-  /** 关闭回调,仅 modal 模式使用 */
   onClose?: () => void;
-  /** ZIP 嵌套深度（内部使用），超过上限时不再递归渲染 ZIP */
   zipNestingDepth?: number;
-  /** 国际化语言，默认 'zh-CN' */
   locale?: Locale;
-  /** 用户自定义翻译字典，浅合并到内置字典之上 */
   messages?: Partial<Record<Locale, Partial<Messages>>>;
-  /** 无头模式：隐藏工具栏和导航箭头，仅渲染文件内容 */
   headless?: boolean;
-  /** 主题模式，默认 'dark' */
   theme?: Theme;
-  /** 自定义渲染器派发的事件出口，载荷为 `{ name, payload, file }` */
   onCustomEvent?: (event: CustomRendererEventPayload) => void;
-  /** 自定义 RequestInit（或工厂函数）：用于注入 Authorization 等鉴权头 */
   requestInit?: RequestInitFactory;
-  /** 自定义请求处理器：完全接管库内 fetch；与 requestInit 同时存在时 handler 接收已合并的 init */
   requestHandler?: RequestHandler;
-  /** 返回 true 时，对应文件会先经 fetcher 拉成 blob: URL 再喂给 image/video/audio/pdf 等 renderer */
   shouldFetchAsBlob?: ShouldFetchAsBlob;
-  /**
-   * 自定义下载回调。提供后完全接管下载行为；
-   * 不提供时，库内默认通过 fetcher 拉成 Blob 触发下载（鉴权 URL 场景自动可用）。
-   */
-  onDownload?: (file: PreviewFile) => void | Promise<void>;
+  onDownload?: (file: PreviewFile) => void;
+  onError?: (error: Error, errorInfo: React.ErrorInfo) => void;
 }
 
 export const FilePreviewContent: React.FC<FilePreviewContentProps> = (props) => {
@@ -108,7 +89,7 @@ const FilePreviewContentInner: React.FC<FilePreviewContentProps> = ({
   theme = 'dark',
   onCustomEvent,
   onDownload,
-  // 以下三项已由外层 RequestProvider 消费，Inner 内不再直接使用
+  onError,
   requestInit: _requestInit,
   requestHandler: _requestHandler,
   shouldFetchAsBlob: _shouldFetchAsBlob,
@@ -118,53 +99,11 @@ const FilePreviewContentInner: React.FC<FilePreviewContentProps> = ({
     [locale, userMessages],
   );
 
-  const [systemDark, setSystemDark] = useState(() =>
-    typeof window !== 'undefined'
-      ? window.matchMedia('(prefers-color-scheme: dark)').matches
-      : true,
-  );
-
-  useEffect(() => {
-    if (theme !== 'auto') return;
-    const mql = window.matchMedia('(prefers-color-scheme: dark)');
-    const handler = (e: MediaQueryListEvent) => setSystemDark(e.matches);
-    mql.addEventListener('change', handler);
-    return () => mql.removeEventListener('change', handler);
-  }, [theme]);
-
-  const resolvedTheme = theme === 'auto' ? (systemDark ? 'dark' : 'light') : theme;
-
-  const [zoom, setZoom] = useState(1);
-  const [rotation, setRotation] = useState(0);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [, setTotalPages] = useState(1);
-  const [contentNaturalWidth, setContentNaturalWidth] = useState(0);
-  const [contentNaturalHeight, setContentNaturalHeight] = useState(0);
-  const [imageResetKey, setImageResetKey] = useState(0);
-  const contentRef = useRef<HTMLDivElement>(null);
-  const rootRef = useRef<HTMLDivElement>(null);
-  const epubRef = useRef<EpubRendererHandle>(null);
-  const [epubCurrent, setEpubCurrent] = useState(0);
-  const [epubTotal, setEpubTotal] = useState(0);
-  const [epubFullWidth, setEpubFullWidth] = useState(false);
-  const mobiRef = useRef<MobiRendererHandle>(null);
-  const [mobiCurrent, setMobiCurrent] = useState(0);
-  const [mobiTotal, setMobiTotal] = useState(0);
-  const [mobiFullWidth, setMobiFullWidth] = useState(false);
-  const [zipStats, setZipStats] = useState<ZipToolbarStats | null>(null);
-  const [textWordWrap, setTextWordWrap] = useState(true);
-  const [textHtmlPreview, setTextHtmlPreview] = useState(false);
-  const [markdownViewMode, setMarkdownViewMode] = useState<'preview' | 'source'>('preview');
-
-  // 标准化文件输入
   const normalizedFiles = useMemo(() => normalizeFiles(files), [files]);
-
   const currentFile = normalizedFiles[currentIndex];
-
-  // 命中 shouldFetchAsBlob 时，把 file.url 转成 blob: URL 喂给 src 类 renderer
   const resolvedUrl = useResolvedUrl(currentFile);
+  const fetcher = useFetcher();
 
-  // 检查是否有自定义渲染器匹配当前文件
   const customRenderer = useMemo(() => {
     if (!currentFile) return null;
     return customRenderers.find(renderer => renderer.test(currentFile));
@@ -172,7 +111,38 @@ const FilePreviewContentInner: React.FC<FilePreviewContentProps> = ({
 
   const fileType = currentFile ? getFileType(currentFile) : 'unsupported';
 
-  // 自定义渲染器事件派发器：未绑定 onCustomEvent 时静默忽略
+  // 主题
+  const resolvedTheme = useThemeMode(theme);
+
+  // 状态管理（useReducer）
+  const { state, dispatch } = useFilePreviewState(currentIndex);
+
+  // Refs
+  const contentRef = useRef<HTMLDivElement>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const epubBook = useBookRenderer<EpubRendererHandle>();
+  const mobiBook = useBookRenderer<MobiRendererHandle>();
+
+  // 键盘导航
+  useKeyboardNavigation({
+    mode,
+    currentIndex,
+    totalFiles: normalizedFiles.length,
+    onNavigate,
+    onClose,
+    rootRef,
+  });
+
+  // 图片自动适应窗口
+  useImageAutoFit({
+    enabled: fileType === 'image',
+    naturalWidth: state.image.naturalWidth,
+    naturalHeight: state.image.naturalHeight,
+    containerRef: contentRef,
+    onZoomChange: (zoom) => dispatch({ type: 'SET_ZOOM', payload: zoom }),
+  });
+
+  // 自定义渲染器上下文
   const emitCustom = useCallback(
     (name: string, payload?: unknown) => {
       if (!currentFile) return;
@@ -181,128 +151,79 @@ const FilePreviewContentInner: React.FC<FilePreviewContentProps> = ({
     [currentFile, onCustomEvent],
   );
 
-  // 自定义渲染器上下文：注入给 render / getToolbarGroups
   const customCtx = useMemo<CustomRendererContext>(
-    () => ({
-      emit: emitCustom,
-      t,
-      theme: resolvedTheme,
-      locale,
-    }),
+    () => ({ emit: emitCustom, t, theme: resolvedTheme, locale }),
     [emitCustom, t, resolvedTheme, locale],
   );
 
-  // 重置状态当文件改变时
-  useEffect(() => {
-    setZoom(1);
-    setRotation(0);
-    setCurrentPage(1);
-    setTotalPages(1);
-    setContentNaturalWidth(0);
-    setContentNaturalHeight(0);
-    setImageResetKey(0);
-    // 重置 epub 状态
-    setEpubCurrent(0);
-    setEpubTotal(0);
-    setEpubFullWidth(false);
-    // 重置 mobi 状态
-    setMobiCurrent(0);
-    setMobiTotal(0);
-    setMobiFullWidth(false);
-    // 重置 zip 状态
-    setZipStats(null);
-    // 重置 text 状态
-    setTextWordWrap(true);
-    setTextHtmlPreview(false);
-    // 重置 markdown 状态
-    setMarkdownViewMode('preview');
-  }, [currentIndex]);
-
-  // 图片加载后默认适应窗口
-  useEffect(() => {
-    if (fileType === 'image' && contentNaturalWidth > 0 && contentNaturalHeight > 0 && contentRef.current) {
-      const containerWidth = contentRef.current.clientWidth;
-      const containerHeight = contentRef.current.clientHeight;
-      const scaleX = containerWidth / contentNaturalWidth;
-      const scaleY = containerHeight / contentNaturalHeight;
-      const newZoom = Math.min(scaleX, scaleY);
-      setZoom(Math.max(0.01, Math.min(10, newZoom)));
-    }
-  }, [fileType, contentNaturalWidth, contentNaturalHeight]);
-
-  // 键盘导航
-  // - modal 模式:全局监听(window)
-  // - embed 模式:只在根容器 focus 时监听,避免影响外部页面交互
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && mode === 'modal') {
-        onClose?.();
-      } else if (e.key === 'ArrowLeft' && currentIndex > 0) {
-        onNavigate?.(currentIndex - 1);
-      } else if (e.key === 'ArrowRight' && currentIndex < normalizedFiles.length - 1) {
-        onNavigate?.(currentIndex + 1);
-      }
-    };
-
-    if (mode === 'modal') {
-      window.addEventListener('keydown', handleKeyDown);
-      return () => window.removeEventListener('keydown', handleKeyDown);
-    } else {
-      const el = rootRef.current;
-      if (!el) return;
-      el.addEventListener('keydown', handleKeyDown as EventListener);
-      return () => el.removeEventListener('keydown', handleKeyDown as EventListener);
-    }
-  }, [mode, currentIndex, normalizedFiles.length, onClose, onNavigate]);
-
+  // 事件处理器
   const handleZoomIn = useCallback(() => {
-    setZoom((prev) => Math.min(prev + 0.1, 10));
-  }, []);
+    dispatch({ type: 'SET_ZOOM', payload: Math.min(state.common.zoom + 0.1, 10) });
+  }, [state.common.zoom, dispatch]);
 
   const handleZoomOut = useCallback(() => {
-    setZoom((prev) => Math.max(prev - 0.1, 0.01));
-  }, []);
-
-  const handleRotate = useCallback(() => {
-    setRotation((prev) => prev + 90);
-  }, []);
+    dispatch({ type: 'SET_ZOOM', payload: Math.max(state.common.zoom - 0.1, 0.01) });
+  }, [state.common.zoom, dispatch]);
 
   const handleRotateLeft = useCallback(() => {
-    setRotation((prev) => prev - 90);
-  }, []);
+    dispatch({ type: 'SET_ROTATION', payload: state.common.rotation - 90 });
+  }, [state.common.rotation, dispatch]);
+
+  const handleRotateRight = useCallback(() => {
+    dispatch({ type: 'SET_ROTATION', payload: state.common.rotation + 90 });
+  }, [state.common.rotation, dispatch]);
 
   const handleFitToWidth = useCallback(() => {
-    if (contentRef.current && contentNaturalWidth > 0 && contentNaturalHeight > 0) {
+    if (contentRef.current && state.image.naturalWidth > 0 && state.image.naturalHeight > 0) {
       const containerWidth = contentRef.current.clientWidth;
       const containerHeight = contentRef.current.clientHeight;
-      const scaleX = containerWidth / contentNaturalWidth;
-      const scaleY = containerHeight / contentNaturalHeight;
+      const scaleX = containerWidth / state.image.naturalWidth;
+      const scaleY = containerHeight / state.image.naturalHeight;
       const newZoom = Math.min(scaleX, scaleY);
-      setZoom(Math.max(0.01, Math.min(10, newZoom)));
+      dispatch({ type: 'SET_ZOOM', payload: Math.max(0.01, Math.min(10, newZoom)) });
     } else {
-      setZoom(1);
+      dispatch({ type: 'SET_ZOOM', payload: 1 });
     }
-    setRotation(0);
-    setImageResetKey(k => k + 1);
-  }, [contentNaturalWidth, contentNaturalHeight]);
+    dispatch({ type: 'SET_ROTATION', payload: 0 });
+    dispatch({ type: 'RESET_IMAGE' });
+  }, [state.image.naturalWidth, state.image.naturalHeight, dispatch]);
 
   const handleOriginalSize = useCallback(() => {
-    setZoom(1);
-    setRotation(0);
-    setImageResetKey(k => k + 1);
-  }, []);
-
-  const handleZoomChange = useCallback((newZoom: number) => {
-    setZoom(newZoom);
-  }, []);
+    dispatch({ type: 'SET_ZOOM', payload: 1 });
+    dispatch({ type: 'SET_ROTATION', payload: 0 });
+    dispatch({ type: 'RESET_IMAGE' });
+  }, [dispatch]);
 
   const handleReset = useCallback(() => {
-    setZoom(1);
-    setRotation(0);
-    setImageResetKey(k => k + 1);
-  }, []);
+    dispatch({ type: 'SET_ZOOM', payload: 1 });
+    dispatch({ type: 'SET_ROTATION', payload: 0 });
+    dispatch({ type: 'RESET_IMAGE' });
+  }, [dispatch]);
 
-  const fetcher = useFetcher();
+  const handlePrevPage = useCallback(() => {
+    if (!contentRef.current) return;
+    // 查找包含 [data-page-number] 的滚动容器（PDF 渲染器内部）
+    const container = contentRef.current.querySelector<HTMLElement>('.rfp-overflow-auto [data-page-number]')?.parentElement;
+    if (!container) return;
+    const pages = container.querySelectorAll('[data-page-number]');
+    const targetPage = pages[Math.max(0, state.pdf.currentPage - 2)];
+    if (targetPage) {
+      targetPage.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [state.pdf.currentPage]);
+
+  const handleNextPage = useCallback(() => {
+    if (!contentRef.current) return;
+    // 查找包含 [data-page-number] 的滚动容器（PDF 渲染器内部）
+    const container = contentRef.current.querySelector<HTMLElement>('.rfp-overflow-auto [data-page-number]')?.parentElement;
+    if (!container) return;
+    const pages = container.querySelectorAll('[data-page-number]');
+    const targetPage = pages[Math.min(pages.length - 1, state.pdf.currentPage)];
+    if (targetPage) {
+      targetPage.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [state.pdf.currentPage]);
+
   const handleDownload = useCallback(async () => {
     if (!currentFile) return;
     if (onDownload) {
@@ -316,412 +237,229 @@ const FilePreviewContentInner: React.FC<FilePreviewContentProps> = ({
     }
   }, [currentFile, onDownload, fetcher]);
 
-  const handleEpubChapterChange = useCallback((current: number, total: number) => {
-    setEpubCurrent(current);
-    setEpubTotal(total);
-  }, []);
+  // PDF 回调（需要 useCallback 避免触发 PdfRenderer 内部 useEffect 无限循环）
+  const handlePdfPageChange = useCallback(
+    (page: number) => dispatch({ type: 'SET_PDF_PAGE', payload: page }),
+    [dispatch]
+  );
 
-  const handleMobiChapterChange = useCallback((current: number, total: number) => {
-    setMobiCurrent(current);
-    setMobiTotal(total);
-  }, []);
+  const handlePdfTotalPagesChange = useCallback(
+    (total: number) => dispatch({ type: 'SET_PDF_TOTAL_PAGES', payload: total }),
+    [dispatch]
+  );
 
-  const handleZipStatsChange = useCallback((stats: ZipToolbarStats | null) => {
-    setZipStats(stats);
-  }, []);
+  const handlePdfPageWidthChange = useCallback(
+    (w: number) =>
+      dispatch({
+        type: 'SET_IMAGE_NATURAL_SIZE',
+        payload: { width: w, height: state.image.naturalHeight },
+      }),
+    [state.image.naturalHeight, dispatch]
+  );
+
+  const handlePdfToggleOutline = useCallback(
+    () => dispatch({ type: 'SET_PDF_OUTLINE', payload: !state.pdf.showOutline }),
+    [state.pdf.showOutline, dispatch]
+  );
+
+  // Image 回调
+  const handleImageZoomChange = useCallback(
+    (zoom: number) => dispatch({ type: 'SET_ZOOM', payload: zoom }),
+    [dispatch]
+  );
+
+  const handleImageNaturalWidthChange = useCallback(
+    (w: number) =>
+      dispatch({
+        type: 'SET_IMAGE_NATURAL_SIZE',
+        payload: { width: w, height: state.image.naturalHeight },
+      }),
+    [state.image.naturalHeight, dispatch]
+  );
+
+  const handleImageNaturalHeightChange = useCallback(
+    (h: number) =>
+      dispatch({
+        type: 'SET_IMAGE_NATURAL_SIZE',
+        payload: { width: state.image.naturalWidth, height: h },
+      }),
+    [state.image.naturalWidth, dispatch]
+  );
 
   if (!currentFile) return null;
 
-  const showCloseButton = !!onClose;
+  // 工具栏 handlers
+  const toolbarHandlers: ToolbarConfigHandlers = {
+    onZoomIn: handleZoomIn,
+    onZoomOut: handleZoomOut,
+    onRotateLeft: handleRotateLeft,
+    onRotateRight: handleRotateRight,
+    onReset: handleReset,
+    onFitToWidth: handleFitToWidth,
+    onOriginalSize: handleOriginalSize,
+    onPrevPage: handlePrevPage,
+    onNextPage: handleNextPage,
+    onToggleOutline: () => dispatch({ type: 'SET_PDF_OUTLINE', payload: !state.pdf.showOutline }),
+    onToggleWrap: () => dispatch({ type: 'SET_TEXT_WORD_WRAP', payload: !state.text.wordWrap }),
+    onToggleHtmlPreview: () => dispatch({ type: 'SET_TEXT_HTML_PREVIEW', payload: !state.text.htmlPreview }),
+    onToggleViewMode: () =>
+      dispatch({
+        type: 'SET_MARKDOWN_VIEW_MODE',
+        payload: state.markdown.viewMode === 'preview' ? 'source' : 'preview',
+      }),
+    epubRef: epubBook.ref,
+    mobiRef: mobiBook.ref,
+    epubCurrent: epubBook.current,
+    epubTotal: epubBook.total,
+    epubFullWidth: epubBook.fullWidth,
+    mobiCurrent: mobiBook.current,
+    mobiTotal: mobiBook.total,
+    mobiFullWidth: mobiBook.fullWidth,
+  };
 
-  // 工具栏配置 — 各 Renderer 自行声明。命中自定义渲染器时优先使用其 getToolbarGroups
-  const toolGroups: ToolbarGroup[] = (() => {
-    if (customRenderer) {
-      return customRenderer.getToolbarGroups?.(currentFile, customCtx) ?? [];
-    }
-    if (fileType === 'image') {
-      return getImageToolbarGroups({
-        zoom,
-        onZoomIn: handleZoomIn,
-        onZoomOut: handleZoomOut,
-        onFitToWidth: handleFitToWidth,
-        onOriginalSize: handleOriginalSize,
-        onRotateLeft: handleRotateLeft,
-        onRotateRight: handleRotate,
-        onReset: handleReset,
-        t,
-      });
-    }
-    if (fileType === 'pdf') {
-      return getPdfToolbarGroups({
-        zoom,
-        onZoomIn: handleZoomIn,
-        onZoomOut: handleZoomOut,
-        onReset: handleReset,
-        t,
-      });
-    }
-    if (fileType === 'epub') {
-      return getEpubToolbarGroups({
-        epubRef,
-        current: epubCurrent,
-        total: epubTotal,
-        fullWidth: epubFullWidth,
-        t,
-      });
-    }
-    if (fileType === 'mobi') {
-      return getMobiToolbarGroups({
-        mobiRef,
-        current: mobiCurrent,
-        total: mobiTotal,
-        fullWidth: mobiFullWidth,
-        t,
-      });
-    }
-    if (fileType === 'zip') {
-      return getZipToolbarGroups({ stats: zipStats, t });
-    }
-    if (fileType === 'text') {
-      const ext = currentFile.name.split('.').pop()?.toLowerCase() || '';
-      return getTextToolbarGroups({
-        wordWrap: textWordWrap,
-        onToggleWrap: () => setTextWordWrap(prev => !prev),
-        isHtml: ext === 'html' || ext === 'htm',
-        htmlPreview: textHtmlPreview,
-        onToggleHtmlPreview: () => setTextHtmlPreview(prev => !prev),
-        t,
-      });
-    }
-    if (fileType === 'markdown') {
-      return getMarkdownToolbarGroups({
-        viewMode: markdownViewMode,
-        onToggleViewMode: () => setMarkdownViewMode(prev => prev === 'preview' ? 'source' : 'preview'),
-        t,
-      });
-    }
-    return [];
-  })();
-
-  // 操作组：下载、关闭（通用，不属于任何 Renderer）
-  const actionGroups: ToolbarGroup[] = [
-    {
-      items: [
-        { type: 'button', icon: <Download className="rfp-w-4 rfp-h-4" />, tooltip: t('common.download'), action: handleDownload },
-      ],
-    },
-    ...(showCloseButton ? [{
-      items: [
-        { type: 'button' as const, icon: <X className="rfp-w-4 rfp-h-4" />, tooltip: t('common.close'), action: onClose! },
-      ],
-    }] : []),
-  ];
-
-  const renderToolbarItems = (groups: ToolbarGroup[], dividerClass: string) =>
-    groups.map((group, gi, arr) => (
-      <React.Fragment key={gi}>
-        {group.items.map((item, ii) =>
-          item.type === 'button' ? (
-            <ToolbarButton
-              key={`${gi}-${ii}`}
-              icon={item.icon}
-              label={item.tooltip}
-              onClick={item.action}
-              disabled={item.disabled}
-            />
-          ) : (
-            <span
-              key={`${gi}-${ii}`}
-              className="rfp-text-xs rfp-text-center rfp-font-medium rfp-tabular-nums rfp-text-fg-tertiary"
-              style={{ minWidth: item.minWidth || 'auto' }}
-            >
-              {item.content}
-            </span>
-          )
-        )}
-        {gi < arr.length - 1 && <div className={`rfp-w-px rfp-h-4 rfp-bg-divide ${dividerClass}`} />}
-      </React.Fragment>
-    ));
+  // 工具栏配置
+  const toolGroups = useToolbarConfig({
+    fileType,
+    fileName: currentFile.name,
+    state,
+    handlers: toolbarHandlers,
+    t,
+    customRenderer,
+    currentFile,
+    customRendererContext: customCtx,
+  });
 
   return (
     <LocaleProvider locale={locale} messages={userMessages}>
-    <ThemeProvider theme={resolvedTheme}>
-    <div
-      ref={rootRef}
-      tabIndex={mode === 'embed' ? 0 : -1}
-      data-theme={resolvedTheme}
-      className="rfp-relative rfp-w-full rfp-h-full rfp-flex rfp-flex-col rfp-overflow-hidden rfp-outline-none"
-    >
-      {/* 顶部工具栏 - 全屏融合式 */}
-      {!headless && (
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="rfp-flex-shrink-0 rfp-z-10 rfp-backdrop-blur-md rfp-border-b rfp-bg-surface-toolbar rfp-border-line"
-        style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
-      >
-        {/* 第一行:文件名 + 分页 + 关闭/下载(移动端右侧)/ 全部按钮(桌面端) */}
-        <div className="rfp-flex rfp-items-center rfp-justify-between rfp-px-3 md:rfp-px-5 rfp-py-1.5 md:rfp-py-2.5">
-          {/* 左侧:文件名 + 分页 */}
-          <div className="rfp-flex rfp-items-center rfp-flex-1 rfp-min-w-0 rfp-mr-2 md:rfp-mr-3">
-            <h2 className="rfp-font-medium rfp-text-xs md:rfp-text-sm rfp-truncate rfp-text-fg-primary">
-              {currentFile.name}
-            </h2>
-            <span className="rfp-text-xs rfp-ml-2 rfp-flex-shrink-0 rfp-text-fg-muted">
-              {currentIndex + 1}/{normalizedFiles.length}
-            </span>
-          </div>
+      <ThemeProvider theme={resolvedTheme}>
+        <div
+          ref={rootRef}
+          tabIndex={mode === 'embed' ? 0 : -1}
+          data-theme={resolvedTheme}
+          className="rfp-relative rfp-w-full rfp-h-full rfp-flex rfp-flex-col rfp-overflow-hidden rfp-outline-none"
+        >
+          {!headless && (
+            <FilePreviewToolbar
+              fileName={currentFile.name}
+              currentIndex={currentIndex}
+              totalFiles={normalizedFiles.length}
+              toolGroups={toolGroups}
+              t={t}
+              onDownload={handleDownload}
+              onClose={onClose}
+            />
+          )}
 
-          {/* 移动端:仅显示下载+关闭 */}
-          <div className="rfp-flex rfp-items-center rfp-gap-1 md:rfp-hidden rfp-flex-shrink-0">
-            {renderToolbarItems(actionGroups, 'rfp-mx-0.5')}
-          </div>
-
-          {/* 桌面端:所有工具按钮 */}
-          <div className="rfp-hidden md:rfp-flex rfp-items-center rfp-gap-1 rfp-flex-shrink-0">
-            {renderToolbarItems(toolGroups, 'rfp-mx-1')}
-            {toolGroups.length > 0 && <div className="rfp-w-px rfp-h-4 rfp-mx-1 rfp-bg-divide" />}
-            {renderToolbarItems(actionGroups, 'rfp-mx-1')}
-          </div>
-        </div>
-
-        {/* 第二行:移动端工具按钮(image/pdf/epub) */}
-        {toolGroups.length > 0 && (
-          <div className="rfp-flex rfp-items-center rfp-gap-1 rfp-px-3 rfp-pb-1.5 rfp-overflow-x-auto scrollbar-hide md:rfp-hidden">
-            {renderToolbarItems(toolGroups, 'rfp-mx-0.5')}
-          </div>
-        )}
-      </motion.div>
-      )}
-
-      {/* 内容区域 */}
-      <div
-        ref={contentRef}
-        className="rfp-flex-1 rfp-flex rfp-items-center rfp-justify-center rfp-overflow-auto"
-      >
-        {customRenderer ? (
-          customRenderer.render(currentFile, customCtx)
-        ) : (
-          <Suspense fallback={<RendererLoading />} key={currentFile.url}>
-            {fileType === 'image' && (
-              <ImageRenderer
-                url={resolvedUrl}
-                zoom={zoom}
-                rotation={rotation}
-                resetKey={imageResetKey}
-                fileSize={currentFile.size}
-                file={currentFile}
-                onZoomChange={handleZoomChange}
-                onNaturalWidthChange={setContentNaturalWidth}
-                onNaturalHeightChange={setContentNaturalHeight}
-              />
-            )}
-            {fileType === 'pdf' && (
-              <PdfRenderer
-                url={resolvedUrl}
-                zoom={zoom}
-                currentPage={currentPage}
-                onPageChange={setCurrentPage}
-                onTotalPagesChange={setTotalPages}
-                onPageWidthChange={setContentNaturalWidth}
-              />
-            )}
-            {fileType === 'docx' && <DocxRenderer url={resolvedUrl} />}
-            {fileType === 'xlsx' && <XlsxRenderer url={resolvedUrl} />}
-            {fileType === 'pptx' && <PptxRenderer url={resolvedUrl} />}
-            {fileType === 'msg' && <MsgRenderer url={resolvedUrl} />}
-            {fileType === 'epub' && (
-              <EpubRenderer
-                ref={epubRef}
-                url={resolvedUrl}
-                onChapterChange={handleEpubChapterChange}
-                onFullWidthChange={setEpubFullWidth}
-              />
-            )}
-            {fileType === 'mobi' && (
-              <MobiRenderer
-                ref={mobiRef}
-                url={resolvedUrl}
-                onChapterChange={handleMobiChapterChange}
-                onFullWidthChange={setMobiFullWidth}
-              />
-            )}
-            {fileType === 'video' && <VideoRenderer url={resolvedUrl} fileName={currentFile.name} />}
-            {fileType === 'audio' && (
-              <AudioRenderer url={resolvedUrl} fileName={currentFile.name} />
-            )}
-            {fileType === 'markdown' && <MarkdownRenderer url={resolvedUrl} viewMode={markdownViewMode} />}
-            {fileType === 'json' && (
-              <JsonRenderer url={resolvedUrl} fileName={currentFile.name} />
-            )}
-            {fileType === 'csv' && (
-              <CsvRenderer url={resolvedUrl} fileName={currentFile.name} />
-            )}
-            {fileType === 'xml' && (
-              <XmlRenderer url={resolvedUrl} fileName={currentFile.name} />
-            )}
-            {fileType === 'subtitle' && (
-              <SubtitleRenderer url={resolvedUrl} fileName={currentFile.name} />
-            )}
-            {fileType === 'zip' && (
-              zipNestingDepth >= MAX_ZIP_NESTING_DEPTH ? (
+          <div
+            ref={contentRef}
+            className="rfp-flex-1 rfp-flex rfp-items-center rfp-justify-center rfp-overflow-auto"
+          >
+            <FilePreviewRenderer
+              currentFile={currentFile}
+              customRenderer={customRenderer}
+              customRendererContext={customCtx}
+              t={t}
+              onDownload={handleDownload}
+              onError={onError}
+            >
+              {fileType === 'image' && (
+                <ImageRenderer
+                  url={resolvedUrl}
+                  zoom={state.common.zoom}
+                  rotation={state.common.rotation}
+                  resetKey={state.image.resetKey}
+                  fileSize={currentFile.size}
+                  file={currentFile}
+                  onZoomChange={handleImageZoomChange}
+                  onNaturalWidthChange={handleImageNaturalWidthChange}
+                  onNaturalHeightChange={handleImageNaturalHeightChange}
+                />
+              )}
+              {fileType === 'pdf' && (
+                <PdfRenderer
+                  url={resolvedUrl}
+                  zoom={state.common.zoom}
+                  currentPage={state.pdf.currentPage}
+                  showOutline={state.pdf.showOutline}
+                  onPageChange={handlePdfPageChange}
+                  onTotalPagesChange={handlePdfTotalPagesChange}
+                  onPageWidthChange={handlePdfPageWidthChange}
+                  onToggleOutline={handlePdfToggleOutline}
+                />
+              )}
+              {fileType === 'docx' && <DocxRenderer url={resolvedUrl} />}
+              {fileType === 'xlsx' && <XlsxRenderer url={resolvedUrl} />}
+              {fileType === 'pptx' && <PptxRenderer url={resolvedUrl} />}
+              {fileType === 'msg' && <MsgRenderer url={resolvedUrl} />}
+              {fileType === 'epub' && (
+                <EpubRenderer
+                  ref={epubBook.ref as React.RefObject<EpubRendererHandle>}
+                  url={resolvedUrl}
+                  onChapterChange={epubBook.handleChapterChange}
+                  onFullWidthChange={epubBook.setFullWidth}
+                />
+              )}
+              {fileType === 'mobi' && (
+                <MobiRenderer
+                  ref={mobiBook.ref as React.RefObject<MobiRendererHandle>}
+                  url={resolvedUrl}
+                  onChapterChange={mobiBook.handleChapterChange}
+                  onFullWidthChange={mobiBook.setFullWidth}
+                />
+              )}
+              {fileType === 'video' && <VideoRenderer url={resolvedUrl} fileName={currentFile.name} />}
+              {fileType === 'audio' && <AudioRenderer url={resolvedUrl} fileName={currentFile.name} />}
+              {fileType === 'markdown' && <MarkdownRenderer url={resolvedUrl} viewMode={state.markdown.viewMode} />}
+              {fileType === 'json' && <JsonRenderer url={resolvedUrl} fileName={currentFile.name} />}
+              {fileType === 'csv' && <CsvRenderer url={resolvedUrl} fileName={currentFile.name} />}
+              {fileType === 'xml' && <XmlRenderer url={resolvedUrl} fileName={currentFile.name} />}
+              {fileType === 'subtitle' && <SubtitleRenderer url={resolvedUrl} fileName={currentFile.name} />}
+              {fileType === 'zip' &&
+                (zipNestingDepth >= MAX_ZIP_NESTING_DEPTH ? (
+                  <UnsupportedRenderer
+                    fileName={currentFile.name}
+                    fileType={currentFile.type}
+                    onDownload={handleDownload}
+                  />
+                ) : (
+                  <ZipRenderer
+                    url={resolvedUrl}
+                    onStatsChange={(stats) => dispatch({ type: 'SET_ZIP_STATS', payload: stats })}
+                    nestingDepth={zipNestingDepth}
+                  />
+                ))}
+              {fileType === 'text' && (
+                <TextRenderer
+                  url={resolvedUrl}
+                  fileName={currentFile.name}
+                  wordWrap={state.text.wordWrap}
+                  htmlPreview={state.text.htmlPreview}
+                />
+              )}
+              {fileType === 'font' && <FontRenderer url={resolvedUrl} />}
+              {fileType === 'unsupported' && (
                 <UnsupportedRenderer
                   fileName={currentFile.name}
                   fileType={currentFile.type}
                   onDownload={handleDownload}
                 />
-              ) : (
-                <ZipRenderer url={resolvedUrl} onStatsChange={handleZipStatsChange} nestingDepth={zipNestingDepth} />
-              )
-            )}
-            {fileType === 'text' && (
-              <TextRenderer
-                url={resolvedUrl}
-                fileName={currentFile.name}
-                wordWrap={textWordWrap}
-                htmlPreview={textHtmlPreview}
-              />
-            )}
-            {fileType === 'font' && <FontRenderer url={resolvedUrl} />}
-            {fileType === 'unsupported' && (
-              <UnsupportedRenderer
-                fileName={currentFile.name}
-                fileType={currentFile.type}
-                onDownload={handleDownload}
-              />
-            )}
-          </Suspense>
-        )}
-      </div>
+              )}
+            </FilePreviewRenderer>
+          </div>
 
-      {/* 左右导航箭头 - 自动隐藏（隔离 state,避免拖选时的 mousemove/timer 污染整树 re-render） */}
-      {!headless && normalizedFiles.length > 1 && (
-        <NavArrows
-          containerRef={contentRef}
-          hasPrev={currentIndex > 0}
-          hasNext={currentIndex < normalizedFiles.length - 1}
-          onPrev={() => onNavigate?.(currentIndex - 1)}
-          onNext={() => onNavigate?.(currentIndex + 1)}
-          resetKey={currentIndex}
-        />
-      )}
-    </div>
-    </ThemeProvider>
+          {!headless && normalizedFiles.length > 1 && (
+            <NavArrows
+              containerRef={contentRef}
+              hasPrev={currentIndex > 0}
+              hasNext={currentIndex < normalizedFiles.length - 1}
+              onPrev={() => onNavigate?.(currentIndex - 1)}
+              onNext={() => onNavigate?.(currentIndex + 1)}
+              resetKey={currentIndex}
+              t={t}
+            />
+          )}
+        </div>
+      </ThemeProvider>
     </LocaleProvider>
-  );
-};
-
-// 工具栏按钮组件
-interface ToolbarButtonProps {
-  icon: React.ReactNode;
-  label: string;
-  onClick: () => void;
-  disabled?: boolean;
-}
-
-const ToolbarButton: React.FC<ToolbarButtonProps> = ({ icon, label, onClick, disabled }) => {
-  return (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      className={`rfp-relative rfp-group rfp-p-2 md:rfp-p-1.5 rfp-rounded-md rfp-transition-all rfp-select-none ${
-        disabled
-          ? 'rfp-text-fg-disabled rfp-cursor-not-allowed'
-          : 'rfp-text-fg-primary hover:rfp-bg-surface-2 active:rfp-bg-surface-3'
-      }`}
-    >
-      {icon}
-      <span className="rfp-absolute rfp-left-1/2 -rfp-translate-x-1/2 rfp-top-full rfp-mt-1.5 rfp-px-2 rfp-py-1 rfp-text-xs rfp-rounded rfp-whitespace-nowrap rfp-pointer-events-none rfp-opacity-0 rfp-invisible group-hover:rfp-opacity-100 group-hover:rfp-visible rfp-transition-opacity rfp-duration-200 rfp-z-50 rfp-bg-fg-primary rfp-text-fg-inverse max-[1023px]:!rfp-hidden">
-        <span className="rfp-absolute rfp-left-1/2 -rfp-translate-x-1/2 -rfp-top-1 rfp-w-2 rfp-h-2 rfp-rotate-45 rfp-bg-fg-primary" />
-        <span className="rfp-relative">{label}</span>
-      </span>
-    </button>
-  );
-};
-
-// 导航箭头：自带 mousemove 监听 + 2s 自动隐藏定时器,
-// state 隔离在本组件,避免 FilePreviewContent 整树因 navVisible 变化而 re-render
-interface NavArrowsProps {
-  containerRef: React.RefObject<HTMLDivElement | null>;
-  hasPrev: boolean;
-  hasNext: boolean;
-  onPrev: () => void;
-  onNext: () => void;
-  resetKey: number;
-}
-
-const NAV_HIDE_DELAY = 2000;
-
-const NavArrows: React.FC<NavArrowsProps> = ({
-  containerRef,
-  hasPrev,
-  hasNext,
-  onPrev,
-  onNext,
-  resetKey,
-}) => {
-  const [visible, setVisible] = useState(true);
-  const timerRef = useRef<number | null>(null);
-
-  const scheduleHide = useCallback(() => {
-    if (timerRef.current) clearTimeout(timerRef.current);
-    timerRef.current = window.setTimeout(() => setVisible(false), NAV_HIDE_DELAY);
-  }, []);
-
-  const show = useCallback(() => {
-    setVisible((prev) => (prev ? prev : true));
-    scheduleHide();
-  }, [scheduleHide]);
-
-  // 监听容器的 mousemove,触发显示+重置隐藏定时器
-  useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-    const handler = () => show();
-    el.addEventListener('mousemove', handler);
-    return () => {
-      el.removeEventListener('mousemove', handler);
-    };
-  }, [containerRef, show]);
-
-  // currentIndex 切换时,显示一次并重置定时器
-  useEffect(() => {
-    setVisible(true);
-    scheduleHide();
-    return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
-    };
-  }, [resetKey, scheduleHide]);
-
-  return (
-    <>
-      {hasPrev && (
-        <motion.button
-          initial={{ opacity: 0 }}
-          animate={{ opacity: visible ? 1 : 0, x: visible ? 0 : -20 }}
-          transition={{ duration: 0.2 }}
-          onClick={onPrev}
-          onMouseEnter={show}
-          style={{ pointerEvents: visible ? 'auto' : 'none' }}
-          className="rfp-absolute rfp-z-20 rfp-left-2 md:rfp-left-4 rfp-top-1/2 -rfp-translate-y-1/2 rfp-w-10 rfp-h-10 md:rfp-w-12 md:rfp-h-12 rfp-rounded-full rfp-backdrop-blur-xl rfp-border rfp-flex rfp-items-center rfp-justify-center rfp-transition-colors rfp-shadow-2xl rfp-bg-surface-nav rfp-border-line hover:rfp-bg-surface-nav-hover rfp-text-fg-primary"
-        >
-          <ChevronLeft className="rfp-w-5 rfp-h-5 md:rfp-w-6 md:rfp-h-6" />
-        </motion.button>
-      )}
-      {hasNext && (
-        <motion.button
-          initial={{ opacity: 0 }}
-          animate={{ opacity: visible ? 1 : 0, x: visible ? 0 : 20 }}
-          transition={{ duration: 0.2 }}
-          onClick={onNext}
-          onMouseEnter={show}
-          style={{ pointerEvents: visible ? 'auto' : 'none' }}
-          className="rfp-absolute rfp-z-20 rfp-right-2 md:rfp-right-4 rfp-top-1/2 -rfp-translate-y-1/2 rfp-w-10 rfp-h-10 md:rfp-w-12 md:rfp-h-12 rfp-rounded-full rfp-backdrop-blur-xl rfp-border rfp-flex rfp-items-center rfp-justify-center rfp-transition-colors rfp-shadow-2xl rfp-bg-surface-nav rfp-border-line hover:rfp-bg-surface-nav-hover rfp-text-fg-primary"
-        >
-          <ChevronRight className="rfp-w-5 rfp-h-5 md:rfp-w-6 md:rfp-h-6" />
-        </motion.button>
-      )}
-    </>
   );
 };

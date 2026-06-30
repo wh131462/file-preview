@@ -37,7 +37,17 @@
       "Bash(sed -i '' 's/ref={rendererRef as React\\\\.RefObject<RendererHandle>}/ref={rendererRef}/g' /Users/eternalheart/workspace/wh131462/file-preview/packages/react-file-preview/src/FilePreviewContent.tsx)",
       "Bash(xargs kill -9)",
       "Bash(echo \"Server PID: $!\")",
-      "Bash(curl -s http://localhost:4800/)"
+      "Bash(curl -s http://localhost:4800/)",
+      "Bash(sed -i '' 's/props\\\\.zoom/zoom.value/g' /Users/eternalheart/workspace/wh131462/file-preview/packages/vue-file-preview/src/renderers/Pdf/index.vue)",
+      "Bash(sed -i '' 's/props\\\\.currentPage/currentPage.value/g' /Users/eternalheart/workspace/wh131462/file-preview/packages/vue-file-preview/src/renderers/Pdf/index.vue)",
+      "Bash(sed -i '' \"s/emit\\('chapterChange', cur + 1, totalLocations\\);/currentChapter.value = cur + 1; totalChapters.value = totalLocations;/g\" index.vue)",
+      "Bash(sed -i '' \"s/emit\\('chapterChange', 1, totalLocations || 1\\);/currentChapter.value = 1; totalChapters.value = totalLocations || 1;/g\" index.vue)",
+      "Bash(chmod +x /tmp/finish-vue-renderers.sh)",
+      "Bash(rm -f renderers/Image/toolbar.ts)",
+      "Bash(rm -f renderers/Pdf/toolbar.ts)",
+      "Bash(rm -f renderers/Epub/toolbar.ts)",
+      "Bash(rm -f Image/toolbar.ts Pdf/toolbar.ts Epub/toolbar.ts Mobi/toolbar.ts Text/toolbar.ts Markdown/toolbar.ts Zip/toolbar.ts)",
+      "Bash(ls */toolbar.ts)"
     ]
   }
 }

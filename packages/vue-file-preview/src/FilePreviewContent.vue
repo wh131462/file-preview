@@ -21,27 +21,7 @@ import { provideResolvedTheme } from './composables/useResolvedTheme';
 import { provideRequestContext, useResolvedUrl, useFetcher } from './composables/useRequest';
 import type { ToolbarGroup, ToolbarButtonItem, ToolbarTextItem } from './renderers/toolbar.types';
 import type { RendererHandle } from './renderers/base.types';
-// Renderer 通过 defineAsyncComponent 动态加载，运行时按需下载对应 chunk
-import {
-  ImageRenderer,
-  PdfRenderer,
-  DocxRenderer,
-  XlsxRenderer,
-  PptxRenderer,
-  MsgRenderer,
-  EpubRenderer,
-  MobiRenderer,
-  VideoRenderer,
-  AudioRenderer,
-  MarkdownRenderer,
-  JsonRenderer,
-  CsvRenderer,
-  XmlRenderer,
-  SubtitleRenderer,
-  ZipRenderer,
-  TextRenderer,
-  FontRenderer,
-} from './renderers/lazy';
+import { BUILTIN_RENDERERS } from './renderers/registry';
 // Unsupported 体量极小且每次回退都用，直接静态打包到主入口
 import UnsupportedRenderer from './renderers/Unsupported/index.vue';
 import NavArrows from './components/NavArrows.vue';
@@ -197,6 +177,21 @@ const customRendererComponent = computed(() => {
 });
 
 const fileType = computed(() => (currentFile.value ? getFileType(currentFile.value) : 'unsupported'));
+
+// 从注册表中查找匹配当前 fileType 的内置渲染器
+const builtinRenderer = computed(() =>
+  BUILTIN_RENDERERS.find((r) => r.fileType === fileType.value) ?? null,
+);
+
+// 计算传给内置渲染器的 props
+const builtinRendererProps = computed(() => {
+  if (!builtinRenderer.value || !currentFile.value) return {};
+  return builtinRenderer.value.getProps({
+    resolvedUrl: resolvedUrl.value,
+    zipNestingDepth: props.zipNestingDepth,
+    currentFile: currentFile.value,
+  });
+});
 
 // 自定义渲染器事件派发器：未绑定 @custom-event 时仍调用 emit（Vue 会安全忽略未声明监听）
 const emitCustom = (name: string, payload?: unknown) => {
@@ -441,91 +436,21 @@ const hasToolGroups = computed(() => toolGroups.value.length > 0);
       <template v-if="currentFile">
         <component :is="customRendererComponent" v-if="customRendererComponent" :file="currentFile" :ctx="customCtx" />
         <template v-else>
-          <ImageRenderer
-            ref="rendererRef"
-            v-if="fileType === 'image'"
-            :url="resolvedUrl"
-            :file-size="currentFile.size"
-            :file="currentFile"
-          />
-          <PdfRenderer
-            ref="rendererRef"
-            v-else-if="fileType === 'pdf'"
-            :url="resolvedUrl"
-          />
-          <DocxRenderer
-            ref="rendererRef" v-else-if="fileType === 'docx'" :url="resolvedUrl" />
-          <XlsxRenderer
-            ref="rendererRef" v-else-if="fileType === 'xlsx'" :url="resolvedUrl" />
-          <PptxRenderer
-            ref="rendererRef" v-else-if="fileType === 'pptx'" :url="resolvedUrl" />
-          <MsgRenderer
-            ref="rendererRef" v-else-if="fileType === 'msg'" :url="resolvedUrl" />
-          <EpubRenderer
-            ref="rendererRef"
-            v-else-if="fileType === 'epub'"
-            :url="resolvedUrl"
-          />
-          <MobiRenderer
-            ref="rendererRef"
-            v-else-if="fileType === 'mobi'"
-            :url="resolvedUrl"
-          />
-          <VideoRenderer
-            ref="rendererRef" v-else-if="fileType === 'video'" :url="resolvedUrl" :file-name="currentFile?.name" />
-          <AudioRenderer
-            ref="rendererRef"
-            v-else-if="fileType === 'audio'"
-            :url="resolvedUrl"
+          <!-- ZIP 嵌套深度超限：fallback 到 Unsupported -->
+          <UnsupportedRenderer
+            v-if="fileType === 'zip' && props.zipNestingDepth >= MAX_ZIP_NESTING_DEPTH"
             :file-name="currentFile.name"
+            :file-type="currentFile.type"
+            @download="handleDownload"
           />
-          <MarkdownRenderer
-            ref="rendererRef" v-else-if="fileType === 'markdown'" :url="resolvedUrl" />
-          <JsonRenderer
+          <!-- 从注册表查找匹配的渲染器 -->
+          <component
+            v-else-if="builtinRenderer"
+            :is="builtinRenderer.component"
             ref="rendererRef"
-            v-else-if="fileType === 'json'"
-            :url="resolvedUrl"
-            :file-name="currentFile.name"
+            v-bind="builtinRendererProps"
           />
-          <CsvRenderer
-            ref="rendererRef"
-            v-else-if="fileType === 'csv'"
-            :url="resolvedUrl"
-            :file-name="currentFile.name"
-          />
-          <XmlRenderer
-            ref="rendererRef"
-            v-else-if="fileType === 'xml'"
-            :url="resolvedUrl"
-            :file-name="currentFile.name"
-          />
-          <SubtitleRenderer
-            ref="rendererRef"
-            v-else-if="fileType === 'subtitle'"
-            :url="resolvedUrl"
-            :file-name="currentFile.name"
-          />
-          <template v-else-if="fileType === 'zip' && props.zipNestingDepth >= MAX_ZIP_NESTING_DEPTH">
-            <UnsupportedRenderer
-              :file-name="currentFile.name"
-              :file-type="currentFile.type"
-              @download="handleDownload"
-            />
-          </template>
-          <ZipRenderer
-            ref="rendererRef"
-            v-else-if="fileType === 'zip'"
-            :url="resolvedUrl"
-            :nesting-depth="props.zipNestingDepth"
-          />
-          <TextRenderer
-            ref="rendererRef"
-            v-else-if="fileType === 'text'"
-            :url="resolvedUrl"
-            :file-name="currentFile.name"
-          />
-          <FontRenderer
-            ref="rendererRef" v-else-if="fileType === 'font'" :url="resolvedUrl" />
+          <!-- 未匹配：fallback 到 UnsupportedRenderer -->
           <UnsupportedRenderer
             v-else
             :file-name="currentFile.name"

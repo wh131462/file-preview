@@ -1,8 +1,9 @@
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect, useState, forwardRef, useImperativeHandle } from 'react';
 import videojs from 'video.js';
 import 'video.js/dist/video-js.css';
 import { useTranslator } from '../../i18n/LocaleContext';
 import { RendererError } from '../RendererError';
+import type { RendererHandle } from '../base.types';
 
 type VideoJsPlayer = ReturnType<typeof videojs>;
 
@@ -44,7 +45,7 @@ interface ErrorState {
   detail: string;
 }
 
-export const VideoRenderer: React.FC<VideoRendererProps> = ({ url, fileName }) => {
+export const VideoRenderer = forwardRef<RendererHandle, VideoRendererProps>(({ url, fileName }, ref) => {
   const t = useTranslator();
   const [error, setError] = useState<ErrorState | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -164,6 +165,11 @@ export const VideoRenderer: React.FC<VideoRendererProps> = ({ url, fileName }) =
     };
   }, []);
 
+  // 暴露接口给父组件（必须在所有提前 return 之前）
+  useImperativeHandle(ref, () => ({
+    getToolbarGroups: () => [],
+  }), []);
+
   if (error) {
     return <RendererError message={error.title} detail={error.detail} />;
   }
@@ -192,4 +198,4 @@ export const VideoRenderer: React.FC<VideoRendererProps> = ({ url, fileName }) =
       </div>
     </div>
   );
-};
+});

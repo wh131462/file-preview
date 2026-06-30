@@ -88,7 +88,7 @@ export function getFileType(file: PreviewFile): FileType {
   }
   const textExtensions = [
     'txt', 'log', 'lock',
-    'js', 'jsx', 'ts', 'tsx',
+    'js', 'jsx', 'ts', 'tsx', 'cjs', 'mjs', 'cts', 'mts',
     'py', 'java', 'cpp', 'c', 'h', 'cs', 'php', 'rb', 'go', 'mod', 'rs', 'swift', 'kt', 'lua', 'vim',
     'html', 'css', 'scss', 'sass', 'less',
     'yaml', 'yml', 'toml', 'ini', 'conf', 'env',
@@ -115,6 +115,10 @@ export function getLanguageFromFileName(fileName: string): string {
     jsx: 'jsx',
     ts: 'typescript',
     tsx: 'tsx',
+    cjs: 'javascript',
+    mjs: 'javascript',
+    cts: 'typescript',
+    mts: 'typescript',
     py: 'python',
     java: 'java',
     cpp: 'cpp',

@@ -20,13 +20,7 @@ import { provideLocale, useTranslator } from './composables/useTranslator';
 import { provideResolvedTheme } from './composables/useResolvedTheme';
 import { provideRequestContext, useResolvedUrl, useFetcher } from './composables/useRequest';
 import type { ToolbarGroup, ToolbarButtonItem, ToolbarTextItem } from './renderers/toolbar.types';
-import { getImageToolbarGroups } from './renderers/Image/toolbar';
-import { getPdfToolbarGroups } from './renderers/Pdf/toolbar';
-import { getEpubToolbarGroups } from './renderers/Epub/toolbar';
-import { getMobiToolbarGroups } from './renderers/Mobi/toolbar';
-import { getZipToolbarGroups, type ZipToolbarStats } from './renderers/Zip/toolbar';
-import { getTextToolbarGroups } from './renderers/Text/toolbar';
-import { getMarkdownToolbarGroups } from './renderers/Markdown/toolbar';
+import type { RendererHandle } from './renderers/base.types';
 // Renderer 通过 defineAsyncComponent 动态加载，运行时按需下载对应 chunk
 import {
   ImageRenderer,
@@ -146,17 +140,42 @@ const resolvedTheme = computed(() =>
 );
 provideResolvedTheme(resolvedTheme);
 
-const zoom = ref(1);
-const rotation = ref(0);
-const currentPage = ref(1);
-const totalPages = ref(1);
-const contentNaturalWidth = ref(0);
-const contentNaturalHeight = ref(0);
-const imageResetKey = ref(0);
-const pdfShowOutline = ref(false);
-
 const contentRef = ref<HTMLDivElement | null>(null);
 const rootRef = ref<HTMLDivElement | null>(null);
+
+// 渲染器 ref 和工具栏事件订阅
+const rendererRef = ref<RendererHandle | null>(null);
+const rendererToolbarGroups = ref<ToolbarGroup[]>([]);
+let unsubscribeToolbar: (() => void) | null = null;
+
+const cleanupSubscription = () => {
+  if (unsubscribeToolbar) {
+    unsubscribeToolbar();
+    unsubscribeToolbar = null;
+  }
+};
+
+// 当渲染器变化时，重新订阅工具栏事件
+watch(rendererRef, (newRenderer) => {
+  cleanupSubscription();
+  rendererToolbarGroups.value = [];
+
+  if (!newRenderer) return;
+
+  // 如果渲染器支持事件机制，订阅事件
+  if (newRenderer.onToolbarChange) {
+    unsubscribeToolbar = newRenderer.onToolbarChange(() => {
+      rendererToolbarGroups.value = newRenderer.getToolbarGroups?.() ?? [];
+    });
+  }
+
+  // 立即获取一次初始工具栏配置
+  rendererToolbarGroups.value = newRenderer.getToolbarGroups?.() ?? [];
+});
+
+onBeforeUnmount(() => {
+  cleanupSubscription();
+});
 
 // 标准化文件输入
 const normalizedFiles = computed(() => normalizeFiles(props.files));
@@ -201,13 +220,6 @@ provide('file-preview:custom-ctx', customCtx);
 watch(
   () => props.currentIndex,
   () => {
-    zoom.value = 1;
-    rotation.value = 0;
-    currentPage.value = 1;
-    totalPages.value = 1;
-    contentNaturalWidth.value = 0;
-    contentNaturalHeight.value = 0;
-    imageResetKey.value = 0;
     // 重置 epub 状态
     epubCurrent.value = 0;
     epubTotal.value = 0;
@@ -216,35 +228,10 @@ watch(
     mobiCurrent.value = 0;
     mobiTotal.value = 0;
     mobiFullWidth.value = false;
-    // 重置 zip 状态
-    zipStats.value = null;
-    // 重置 text 状态
-    textWordWrap.value = true;
-    textHtmlPreview.value = false;
-    // 重置 markdown 状态
-    markdownViewMode.value = 'preview';
   }
 );
 
 // 图片加载后默认适应窗口（已禁用，改为手动点击"适应窗口"按钮）
-// watch(
-//   [fileType, contentNaturalWidth, contentNaturalHeight],
-//   () => {
-//     if (
-//       fileType.value === 'image' &&
-//       contentNaturalWidth.value > 0 &&
-//       contentNaturalHeight.value > 0 &&
-//       contentRef.value
-//     ) {
-//       const containerWidth = contentRef.value.clientWidth;
-//       const containerHeight = contentRef.value.clientHeight;
-//       const scaleX = containerWidth / contentNaturalWidth.value;
-//       const scaleY = containerHeight / contentNaturalHeight.value;
-//       const newZoom = Math.min(scaleX, scaleY);
-//       zoom.value = Math.max(0.01, Math.min(10, newZoom));
-//     }
-//   }
-// );
 
 // 键盘导航
 const handleKeyDown = (e: KeyboardEvent) => {
@@ -273,63 +260,6 @@ onBeforeUnmount(() => {
   }
 });
 
-const handleZoomIn = () => {
-  zoom.value = Math.min(zoom.value + 0.1, 10);
-};
-const handleZoomOut = () => {
-  zoom.value = Math.max(zoom.value - 0.1, 0.01);
-};
-const handleRotate = () => {
-  rotation.value = rotation.value + 90;
-};
-const handleRotateLeft = () => {
-  rotation.value = rotation.value - 90;
-};
-
-const handleFitToWidth = () => {
-  if (contentRef.value && contentNaturalWidth.value > 0 && contentNaturalHeight.value > 0) {
-    const containerWidth = contentRef.value.clientWidth;
-    const containerHeight = contentRef.value.clientHeight;
-    const scaleX = containerWidth / contentNaturalWidth.value;
-    const scaleY = containerHeight / contentNaturalHeight.value;
-    const newZoom = Math.min(scaleX, scaleY);
-    console.log('[适应窗口]', {
-      containerWidth,
-      containerHeight,
-      naturalWidth: contentNaturalWidth.value,
-      naturalHeight: contentNaturalHeight.value,
-      scaleX,
-      scaleY,
-      newZoom,
-    });
-    zoom.value = Math.max(0.01, Math.min(10, newZoom));
-    rotation.value = 0;
-    imageResetKey.value++;
-  } else {
-    console.log('[适应窗口] 条件不满足', {
-      hasContainer: !!contentRef.value,
-      naturalWidth: contentNaturalWidth.value,
-      naturalHeight: contentNaturalHeight.value,
-    });
-  }
-};
-
-const handleOriginalSize = () => {
-  console.log('[原始尺寸] 设置 zoom = 1');
-  zoom.value = 1;
-  rotation.value = 0;
-  imageResetKey.value++;
-};
-
-const handleZoomChange = (newZoom: number) => {
-  zoom.value = newZoom;
-};
-
-const handleReset = () => {
-  zoom.value = 1;
-  rotation.value = 0;
-  imageResetKey.value++;
-};
 
 const fetcher = useFetcher();
 const handleDownload = async () => {
@@ -347,125 +277,27 @@ const handleDownload = async () => {
 
 const showCloseButton = computed(() => !!props.onClose);
 
-const epubRef = ref<{ prevPage: () => void; nextPage: () => void; toggleFullWidth: () => void; toggleToc: () => void } | null>(null);
 const epubCurrent = ref(0);
 const epubTotal = ref(0);
 const epubFullWidth = ref(false);
 
-const mobiRef = ref<{ prevPage: () => void; nextPage: () => void; toggleFullWidth: () => void; toggleToc: () => void } | null>(null);
 const mobiCurrent = ref(0);
 const mobiTotal = ref(0);
 const mobiFullWidth = ref(false);
 
-const handleEpubChapterChange = (current: number, total: number) => {
-  epubCurrent.value = current;
-  epubTotal.value = total;
-};
+// 防止 ESLint 报未使用警告（仍由模板中的事件回调使用）
+void epubCurrent; void epubTotal; void epubFullWidth;
+void mobiCurrent; void mobiTotal; void mobiFullWidth;
 
-const handleMobiChapterChange = (current: number, total: number) => {
-  mobiCurrent.value = current;
-  mobiTotal.value = total;
-};
-
-const zipStats = ref<ZipToolbarStats | null>(null);
-const handleZipStatsChange = (stats: ZipToolbarStats | null) => {
-  zipStats.value = stats;
-};
-
-const textWordWrap = ref(true);
-const textHtmlPreview = ref(false);
-const markdownViewMode = ref<'preview' | 'source'>('preview');
-
-// 工具栏配置 — 各 Renderer 自行声明。命中自定义渲染器时优先使用其 getToolbarGroups
+// 工具栏配置 — 各 Renderer 自行通过 ref 暴露 getToolbarGroups 和 onToolbarChange
 const toolGroups = computed(() => {
   if (customRenderer.value) {
     return (
       customRenderer.value.getToolbarGroups?.(currentFile.value!, customCtx.value) ?? []
     );
   }
-  if (fileType.value === 'image') {
-    return getImageToolbarGroups({
-      zoom: zoom.value,
-      onZoomIn: handleZoomIn,
-      onZoomOut: handleZoomOut,
-      onFitToWidth: handleFitToWidth,
-      onOriginalSize: handleOriginalSize,
-      onRotateLeft: handleRotateLeft,
-      onRotateRight: handleRotate,
-      onReset: handleReset,
-      t: t.value,
-    });
-  }
-  if (fileType.value === 'pdf') {
-    return getPdfToolbarGroups({
-      zoom: zoom.value,
-      currentPage: currentPage.value,
-      totalPages: totalPages.value || 0,
-      onZoomIn: handleZoomIn,
-      onZoomOut: handleZoomOut,
-      onReset: handleReset,
-      onPrevPage: () => {
-        const container = contentRef.value?.querySelector('.vfp-overflow-auto');
-        if (!container) return;
-        const pages = container.querySelectorAll('[data-page-number]');
-        const targetPage = pages[Math.max(0, currentPage.value - 2)];
-        if (targetPage) {
-          targetPage.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-      },
-      onNextPage: () => {
-        const container = contentRef.value?.querySelector('.vfp-overflow-auto');
-        if (!container) return;
-        const pages = container.querySelectorAll('[data-page-number]');
-        const targetPage = pages[Math.min(pages.length - 1, currentPage.value)];
-        if (targetPage) {
-          targetPage.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-      },
-      onToggleOutline: () => { pdfShowOutline.value = !pdfShowOutline.value; },
-      t: t.value,
-    });
-  }
-  if (fileType.value === 'epub') {
-    return getEpubToolbarGroups({
-      epubRef: epubRef.value,
-      current: epubCurrent.value,
-      total: epubTotal.value,
-      fullWidth: epubFullWidth.value,
-      t: t.value,
-    });
-  }
-  if (fileType.value === 'mobi') {
-    return getMobiToolbarGroups({
-      mobiRef: mobiRef.value,
-      current: mobiCurrent.value,
-      total: mobiTotal.value,
-      fullWidth: mobiFullWidth.value,
-      t: t.value,
-    });
-  }
-  if (fileType.value === 'zip') {
-    return getZipToolbarGroups({ stats: zipStats.value, t: t.value });
-  }
-  if (fileType.value === 'text') {
-    const ext = currentFile.value!.name.split('.').pop()?.toLowerCase() || '';
-    return getTextToolbarGroups({
-      wordWrap: textWordWrap.value,
-      onToggleWrap: () => { textWordWrap.value = !textWordWrap.value; },
-      isHtml: ext === 'html' || ext === 'htm',
-      htmlPreview: textHtmlPreview.value,
-      onToggleHtmlPreview: () => { textHtmlPreview.value = !textHtmlPreview.value; },
-      t: t.value,
-    });
-  }
-  if (fileType.value === 'markdown') {
-    return getMarkdownToolbarGroups({
-      viewMode: markdownViewMode.value,
-      onToggleViewMode: () => { markdownViewMode.value = markdownViewMode.value === 'preview' ? 'source' : 'preview'; },
-      t: t.value,
-    });
-  }
-  return [];
+  // 所有内置渲染器都通过事件驱动机制提供工具栏
+  return rendererToolbarGroups.value;
 });
 
 // 操作组：下载、关闭（通用，不属于任何 Renderer）
@@ -610,69 +442,65 @@ const hasToolGroups = computed(() => toolGroups.value.length > 0);
         <component :is="customRendererComponent" v-if="customRendererComponent" :file="currentFile" :ctx="customCtx" />
         <template v-else>
           <ImageRenderer
+            ref="rendererRef"
             v-if="fileType === 'image'"
             :url="resolvedUrl"
-            :zoom="zoom"
-            :rotation="rotation"
-            :reset-key="imageResetKey"
             :file-size="currentFile.size"
             :file="currentFile"
-            @zoom-change="handleZoomChange"
-            @natural-width-change="(w: number) => (contentNaturalWidth = w)"
-            @natural-height-change="(h: number) => (contentNaturalHeight = h)"
           />
           <PdfRenderer
+            ref="rendererRef"
             v-else-if="fileType === 'pdf'"
             :url="resolvedUrl"
-            :zoom="zoom"
-            :current-page="currentPage"
-            :show-outline="pdfShowOutline"
-            @page-change="(p: number) => (currentPage = p)"
-            @total-pages-change="(t: number) => (totalPages = t)"
-            @page-width-change="(w: number) => (contentNaturalWidth = w)"
-            @toggle-outline="() => (pdfShowOutline = !pdfShowOutline)"
           />
-          <DocxRenderer v-else-if="fileType === 'docx'" :url="resolvedUrl" />
-          <XlsxRenderer v-else-if="fileType === 'xlsx'" :url="resolvedUrl" />
-          <PptxRenderer v-else-if="fileType === 'pptx'" :url="resolvedUrl" />
-          <MsgRenderer v-else-if="fileType === 'msg'" :url="resolvedUrl" />
+          <DocxRenderer
+            ref="rendererRef" v-else-if="fileType === 'docx'" :url="resolvedUrl" />
+          <XlsxRenderer
+            ref="rendererRef" v-else-if="fileType === 'xlsx'" :url="resolvedUrl" />
+          <PptxRenderer
+            ref="rendererRef" v-else-if="fileType === 'pptx'" :url="resolvedUrl" />
+          <MsgRenderer
+            ref="rendererRef" v-else-if="fileType === 'msg'" :url="resolvedUrl" />
           <EpubRenderer
+            ref="rendererRef"
             v-else-if="fileType === 'epub'"
-            ref="epubRef"
             :url="resolvedUrl"
-            @chapter-change="handleEpubChapterChange"
-            @full-width-change="(v: boolean) => (epubFullWidth = v)"
           />
           <MobiRenderer
+            ref="rendererRef"
             v-else-if="fileType === 'mobi'"
-            ref="mobiRef"
             :url="resolvedUrl"
-            @chapter-change="handleMobiChapterChange"
-            @full-width-change="(v: boolean) => (mobiFullWidth = v)"
           />
-          <VideoRenderer v-else-if="fileType === 'video'" :url="resolvedUrl" :file-name="currentFile?.name" />
+          <VideoRenderer
+            ref="rendererRef" v-else-if="fileType === 'video'" :url="resolvedUrl" :file-name="currentFile?.name" />
           <AudioRenderer
+            ref="rendererRef"
             v-else-if="fileType === 'audio'"
             :url="resolvedUrl"
             :file-name="currentFile.name"
           />
-          <MarkdownRenderer v-else-if="fileType === 'markdown'" :url="resolvedUrl" :view-mode="markdownViewMode" />
+          <MarkdownRenderer
+            ref="rendererRef" v-else-if="fileType === 'markdown'" :url="resolvedUrl" />
           <JsonRenderer
+            ref="rendererRef"
             v-else-if="fileType === 'json'"
             :url="resolvedUrl"
             :file-name="currentFile.name"
           />
           <CsvRenderer
+            ref="rendererRef"
             v-else-if="fileType === 'csv'"
             :url="resolvedUrl"
             :file-name="currentFile.name"
           />
           <XmlRenderer
+            ref="rendererRef"
             v-else-if="fileType === 'xml'"
             :url="resolvedUrl"
             :file-name="currentFile.name"
           />
           <SubtitleRenderer
+            ref="rendererRef"
             v-else-if="fileType === 'subtitle'"
             :url="resolvedUrl"
             :file-name="currentFile.name"
@@ -685,19 +513,19 @@ const hasToolGroups = computed(() => toolGroups.value.length > 0);
             />
           </template>
           <ZipRenderer
+            ref="rendererRef"
             v-else-if="fileType === 'zip'"
             :url="resolvedUrl"
             :nesting-depth="props.zipNestingDepth"
-            @stats-change="handleZipStatsChange"
           />
           <TextRenderer
+            ref="rendererRef"
             v-else-if="fileType === 'text'"
             :url="resolvedUrl"
             :file-name="currentFile.name"
-            :word-wrap="textWordWrap"
-            :html-preview="textHtmlPreview"
           />
-          <FontRenderer v-else-if="fileType === 'font'" :url="resolvedUrl" />
+          <FontRenderer
+            ref="rendererRef" v-else-if="fileType === 'font'" :url="resolvedUrl" />
           <UnsupportedRenderer
             v-else
             :file-name="currentFile.name"

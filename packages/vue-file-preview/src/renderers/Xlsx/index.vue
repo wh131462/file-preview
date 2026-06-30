@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import type { RendererHandle } from '../base.types';
+import type { ToolbarGroup } from '../toolbar.types';
+
 import { ref, watch, onMounted, onBeforeUnmount } from 'vue';
 import ExcelJS from 'exceljs';
 import Spreadsheet from 'x-data-spreadsheet';
@@ -153,6 +156,13 @@ onBeforeUnmount(() => {
   sheetData = null;
   if (containerRef.value) containerRef.value.innerHTML = '';
 });
+
+const getToolbarGroups = (): ToolbarGroup[] => [];
+
+defineExpose<RendererHandle>({
+  getToolbarGroups,
+});
+
 </script>
 
 <template>

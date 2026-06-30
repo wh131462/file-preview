@@ -1,23 +1,28 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
+import { WrapText, Code, Eye } from 'lucide-vue-next';
 import { getLanguageFromFileName, fetchTextUtf8 } from '@eternalheart/file-preview-core';
 import { useTranslator } from '../../composables/useTranslator';
 import { useFetcher } from '../../composables/useRequest';
 import { useShikiHighlight } from '../../composables/useShikiHighlight';
 import RendererError from '../RendererError.vue';
+import { ToolbarEventEmitter } from '../base.types';
+import type { RendererHandle } from '../base.types';
+import type { ToolbarGroup } from '../toolbar.types';
 
-const props = withDefaults(defineProps<{
+const props = defineProps<{
   url: string;
   fileName: string;
-  wordWrap?: boolean;
-  htmlPreview?: boolean;
-}>(), {
-  wordWrap: true,
-  htmlPreview: false,
-});
+}>();
+
+const emitter = new ToolbarEventEmitter();
 
 const { t } = useTranslator();
 const fetcher = useFetcher();
+
+// 内部状态
+const wordWrap = ref(true);
+const htmlPreview = ref(false);
 
 const content = ref<string>('');
 const loading = ref(true);
@@ -26,6 +31,13 @@ const error = ref<string | null>(null);
 const language = computed(() => getLanguageFromFileName(props.fileName));
 const codeForShiki = computed(() => (language.value !== 'text' ? content.value : ''));
 const { lineHtmls } = useShikiHighlight(codeForShiki, language);
+
+const isHtml = computed(() => language.value === 'html');
+
+// 监听状态变化，通知工具栏更新
+watch([wordWrap, htmlPreview, loading, isHtml], () => {
+  emitter.notify();
+});
 
 const loadText = async () => {
   loading.value = true;
@@ -44,6 +56,44 @@ const loadText = async () => {
 watch(() => props.url, loadText, { immediate: true });
 
 const lines = computed(() => content.value.split('\n'));
+
+// 工具栏配置（对齐 React：WrapText 图标固定、Code/Eye 图标、翻译 key）
+const getToolbarGroups = (): ToolbarGroup[] => {
+  const groups: ToolbarGroup[] = [];
+
+  groups.push({
+    items: [
+      {
+        type: 'button',
+        icon: WrapText,
+        tooltip: wordWrap.value ? t.value('toolbar.wrap_off') : t.value('toolbar.wrap_on'),
+        action: () => { wordWrap.value = !wordWrap.value; },
+        active: wordWrap.value,
+      },
+    ],
+  });
+
+  if (isHtml.value) {
+    groups.push({
+      items: [
+        {
+          type: 'button',
+          icon: htmlPreview.value ? Code : Eye,
+          tooltip: htmlPreview.value ? t.value('toolbar.source') : t.value('toolbar.preview'),
+          action: () => { htmlPreview.value = !htmlPreview.value; },
+          active: htmlPreview.value,
+        },
+      ],
+    });
+  }
+
+  return groups;
+};
+
+defineExpose<RendererHandle>({
+  getToolbarGroups,
+  onToolbarChange: (listener) => emitter.subscribe(listener),
+});
 </script>
 
 <template>

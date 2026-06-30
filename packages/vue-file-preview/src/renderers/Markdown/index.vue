@@ -3,22 +3,30 @@ import { ref, computed, watch, nextTick } from 'vue';
 import MarkdownIt from 'markdown-it';
 import MarkdownItKatex from '@traptitech/markdown-it-katex';
 import { codeToHtml } from 'shiki';
+import { Eye, Code } from 'lucide-vue-next';
 import { fetchTextUtf8 } from '@eternalheart/file-preview-core';
 import { useTranslator } from '../../composables/useTranslator';
 import { useFetcher } from '../../composables/useRequest';
 import { useResolvedTheme } from '../../composables/useResolvedTheme';
 import RendererError from '../RendererError.vue';
+import { ToolbarEventEmitter } from '../base.types';
+import type { RendererHandle } from '../base.types';
+import type { ToolbarGroup } from '../toolbar.types';
 import 'katex/dist/katex.min.css';
 
 const props = defineProps<{
   url: string;
-  viewMode?: 'preview' | 'source';
 }>();
+
+const emitter = new ToolbarEventEmitter();
 
 const { t } = useTranslator();
 const fetcher = useFetcher();
 const resolvedTheme = useResolvedTheme();
 const shikiTheme = computed(() => (resolvedTheme.value === 'light' ? 'github-light' : 'github-dark'));
+
+// 内部状态
+const viewMode = ref<'preview' | 'source'>('preview');
 
 const content = ref('');
 const html = ref('');
@@ -26,6 +34,35 @@ const highlightedSource = ref('');
 const loading = ref(true);
 const error = ref<string | null>(null);
 const containerRef = ref<HTMLDivElement | null>(null);
+
+// 监听状态变化，通知工具栏更新
+watch([viewMode, loading], () => {
+  emitter.notify();
+});
+
+// 工具栏配置（对齐 React：Code 图标、翻译 key）
+const getToolbarGroups = (): ToolbarGroup[] => {
+  const groups: ToolbarGroup[] = [];
+
+  groups.push({
+    items: [
+      {
+        type: 'button',
+        icon: viewMode.value === 'preview' ? Code : Eye,
+        tooltip: viewMode.value === 'preview' ? t.value('toolbar.source') : t.value('toolbar.preview'),
+        action: () => { viewMode.value = viewMode.value === 'preview' ? 'source' : 'preview'; },
+        active: viewMode.value === 'source',
+      },
+    ],
+  });
+
+  return groups;
+};
+
+defineExpose<RendererHandle>({
+  getToolbarGroups,
+  onToolbarChange: (listener) => emitter.subscribe(listener),
+});
 
 // 创建 markdown-it 实例（支持 GFM 表格、删除线、任务列表、HTML、数学公式）
 const md = new MarkdownIt({

@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import { ref, watch, onMounted, onBeforeUnmount } from 'vue';
 import ePub from '@likecoin/epub-ts';
-import { X } from 'lucide-vue-next';
+import { X, ChevronLeft, ChevronRight, List, Maximize2, Minimize2 } from 'lucide-vue-next';
 import { useTranslator } from '../../composables/useTranslator';
 import { useFetcher } from '../../composables/useRequest';
 import RendererError from '../RendererError.vue';
+import { ToolbarEventEmitter } from '../base.types';
+import type { RendererHandle } from '../base.types';
+import type { ToolbarGroup } from '../toolbar.types';
 
 interface TocItem {
   label: string;
@@ -42,13 +45,14 @@ const A4_WIDTH = 794;
 
 const props = defineProps<{ url: string }>();
 
+const emitter = new ToolbarEventEmitter();
+
 const { t } = useTranslator();
 const fetcher = useFetcher();
 
-const emit = defineEmits<{
-  (e: 'chapterChange', current: number, total: number): void;
-  (e: 'fullWidthChange', isFullWidth: boolean): void;
-}>();
+// 内部状态
+const currentChapter = ref(1);
+const totalChapters = ref(1);
 
 const viewerRef = ref<HTMLDivElement | null>(null);
 const loading = ref(true);
@@ -57,6 +61,11 @@ const isFullWidth = ref(false);
 const toc = ref<TocItem[]>([]);
 const showToc = ref(false);
 const activeTocHref = ref('');
+
+// 监听状态变化，通知工具栏更新（对齐 React：增加 toc.length 监听）
+watch([currentChapter, totalChapters, isFullWidth, showToc, () => toc.value.length], () => {
+  emitter.notify();
+});
 
 let book: BookLike | null = null;
 let rendition: RenditionLike | null = null;
@@ -76,14 +85,12 @@ const prevPage = () => { rendition?.prev(); };
 const nextPage = () => { rendition?.next(); };
 const toggleFullWidth = () => {
   isFullWidth.value = !isFullWidth.value;
-  emit('fullWidthChange', isFullWidth.value);
   setTimeout(() => {
     if (viewerRef.value && rendition) {
       rendition.resize(viewerRef.value.offsetWidth, viewerRef.value.offsetHeight);
       if (lastCfi) {
         rendition.display(lastCfi);
       }
-      // resize/display 可能重建 .epub-container，需要重新绑定滚动监听
       reattachScrollListener();
     }
   }, 350);
@@ -99,7 +106,60 @@ const isActive = (href: string) => {
   return href === activeTocHref.value;
 };
 
-defineExpose({ prevPage, nextPage, toggleFullWidth, toggleToc });
+// 工具栏配置（对齐 React：List 图标、disabled 代替条件、Minimize2/Maximize2 切换）
+const getToolbarGroups = (): ToolbarGroup[] => [
+  {
+    items: [
+      {
+        type: 'button',
+        icon: List,
+        tooltip: t.value('toolbar.toc'),
+        action: toggleToc,
+        disabled: toc.value.length === 0,
+        active: showToc.value,
+      },
+    ],
+  },
+  {
+    items: [
+      {
+        type: 'button',
+        icon: ChevronLeft,
+        tooltip: t.value('toolbar.prev_page'),
+        action: prevPage,
+        disabled: currentChapter.value <= 1,
+      },
+      {
+        type: 'text',
+        content: `${currentChapter.value} / ${totalChapters.value}`,
+        minWidth: '4rem',
+      },
+      {
+        type: 'button',
+        icon: ChevronRight,
+        tooltip: t.value('toolbar.next_page'),
+        action: nextPage,
+        disabled: currentChapter.value >= totalChapters.value,
+      },
+    ],
+  },
+  {
+    items: [
+      {
+        type: 'button',
+        icon: isFullWidth.value ? Minimize2 : Maximize2,
+        tooltip: isFullWidth.value ? t.value('toolbar.normal_width') : t.value('toolbar.full_width'),
+        action: toggleFullWidth,
+        active: isFullWidth.value,
+      },
+    ],
+  },
+];
+
+defineExpose<RendererHandle>({
+  getToolbarGroups,
+  onToolbarChange: (listener) => emitter.subscribe(listener),
+});
 
 const loadEpub = async () => {
   if (!viewerRef.value) return;
@@ -157,7 +217,7 @@ const loadEpub = async () => {
       totalLocations = book.locations.length();
       const loc = rendition?.currentLocation() as { start?: { location?: number } } | undefined;
       const cur = loc?.start?.location ?? 0;
-      emit('chapterChange', cur + 1, totalLocations);
+      currentChapter.value = cur + 1; totalChapters.value = totalLocations;
     }).catch(() => { /* ignore */ });
 
     const nav = await book.loaded.navigation as { toc?: TocItem[] };
@@ -168,7 +228,7 @@ const loadEpub = async () => {
     await rendition.display();
 
     loading.value = false;
-    emit('chapterChange', 1, totalLocations || 1);
+    currentChapter.value = 1; totalChapters.value = totalLocations || 1;
 
     rendition.on('relocated', (location: unknown) => {
       const loc = location as { start?: { cfi?: string; location?: number; href?: string } };
@@ -196,7 +256,7 @@ const loadEpub = async () => {
       }
       const cur = loc?.start?.location;
       if (typeof cur === 'number' && totalLocations > 0) {
-        emit('chapterChange', cur + 1, totalLocations);
+        currentChapter.value = cur + 1; totalChapters.value = totalLocations;
       }
     });
   } catch (err) {

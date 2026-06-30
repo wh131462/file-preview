@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import type { RendererHandle } from '../base.types';
+import type { ToolbarGroup } from '../toolbar.types';
+
 import { ref, computed, watch } from 'vue';
 import {
   parseSubtitle,
@@ -69,6 +72,13 @@ const isLyric = computed(() => parsed.value?.format === 'lrc' || parsed.value?.f
 const meta = computed<Record<string, string>>(() => parsed.value?.metadata ?? {});
 
 const wordTimeShort = (t: number) => formatSubtitleTime(t).slice(3, 8);
+
+const getToolbarGroups = (): ToolbarGroup[] => [];
+
+defineExpose<RendererHandle>({
+  getToolbarGroups,
+});
+
 </script>
 
 <template>

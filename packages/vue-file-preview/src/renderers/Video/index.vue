@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import type { RendererHandle } from '../base.types';
+import type { ToolbarGroup } from '../toolbar.types';
+
 import { ref, onMounted, onBeforeUnmount, watch } from 'vue';
 import videojs from 'video.js';
 import 'video.js/dist/video-js.css';
@@ -145,6 +148,13 @@ onBeforeUnmount(() => {
     player = null;
   }
 });
+
+const getToolbarGroups = (): ToolbarGroup[] => [];
+
+defineExpose<RendererHandle>({
+  getToolbarGroups,
+});
+
 </script>
 
 <template>

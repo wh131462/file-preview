@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import type { RendererHandle } from '../base.types';
+import type { ToolbarGroup } from '../toolbar.types';
+
 import { ref, computed, watch } from 'vue';
 import { fetchTextUtf8 } from '@eternalheart/file-preview-core';
 import { useTranslator } from '../../composables/useTranslator';
@@ -72,6 +75,13 @@ const load = async () => {
 watch(() => props.url, load, { immediate: true });
 
 const lines = computed(() => content.value.split('\n'));
+
+const getToolbarGroups = (): ToolbarGroup[] => [];
+
+defineExpose<RendererHandle>({
+  getToolbarGroups,
+});
+
 </script>
 
 <template>

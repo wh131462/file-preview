@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import type { RendererHandle } from '../base.types';
+import type { ToolbarGroup } from '../toolbar.types';
+
 import { ref, watch, nextTick } from 'vue';
 import mammoth from 'mammoth';
 import { useTranslator } from '../../composables/useTranslator';
@@ -108,6 +111,13 @@ const pageStyle = {
   flexShrink: 0,
   padding: `${PAGE_PADDING_Y}px ${PAGE_PADDING_X}px`,
 };
+
+const getToolbarGroups = (): ToolbarGroup[] => [];
+
+defineExpose<RendererHandle>({
+  getToolbarGroups,
+});
+
 </script>
 
 <template>
@@ -119,7 +129,7 @@ const pageStyle = {
 
   <RendererError v-else-if="error" :message="error" />
 
-  <div v-else class="vfp-w-full vfp-h-full vfp-overflow-auto vfp-py-6 vfp-px-4" style="background: rgba(0, 0, 0, 0.15)">
+  <div v-else class="vfp-docx-container vfp-w-full vfp-h-full vfp-overflow-auto" style="background: rgba(0, 0, 0, 0.15)">
     <!-- 隐藏测量区 -->
     <div ref="measureRef" :style="measureStyle" v-html="html" />
 

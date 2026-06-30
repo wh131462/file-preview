@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import type { RendererHandle } from '../base.types';
+import type { ToolbarGroup } from '../toolbar.types';
+
 import { ref, computed, onMounted, onBeforeUnmount, toRef } from 'vue';
 import { Play, Pause, Volume2, VolumeX, Volume1, SkipBack, SkipForward, Repeat } from 'lucide-vue-next';
 import { useAudioPlayer } from '../../composables/useAudioPlayer';
@@ -69,6 +72,13 @@ const handleVolumeLeave = () => {
     showVolume.value = false;
   }, 300);
 };
+
+const getToolbarGroups = (): ToolbarGroup[] => [];
+
+defineExpose<RendererHandle>({
+  getToolbarGroups,
+});
+
 </script>
 
 <template>

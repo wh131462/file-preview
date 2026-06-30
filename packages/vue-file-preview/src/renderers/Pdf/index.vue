@@ -5,7 +5,10 @@ import { configurePdfWorker } from '@eternalheart/file-preview-core';
 import * as pdfjsLib from 'pdfjs-dist/build/pdf.mjs';
 import { useTranslator } from '../../composables/useTranslator';
 import RendererError from '../RendererError.vue';
-import { X } from 'lucide-vue-next';
+import { X, ZoomIn, ZoomOut, ChevronLeft, ChevronRight, Menu, RefreshCw } from 'lucide-vue-next';
+import { ToolbarEventEmitter } from '../base.types';
+import type { RendererHandle } from '../base.types';
+import type { ToolbarGroup } from '../toolbar.types';
 
 // 在模块加载时配置 PDF.js worker（默认走 CDN）
 configurePdfWorker(pdfjsLib);
@@ -40,20 +43,16 @@ interface PageState {
 
 const props = defineProps<{
   url: string;
-  zoom: number;
-  currentPage: number;
-  showOutline?: boolean;
 }>();
 
-const emit = defineEmits<{
-  (e: 'pageChange', page: number): void;
-  (e: 'totalPagesChange', total: number): void;
-  (e: 'pageWidthChange', width: number): void;
-  (e: 'toggleOutline'): void;
-}>();
+const emitter = new ToolbarEventEmitter();
 
 const { t } = useTranslator();
 
+// 内部状态管理
+const zoom = ref(1);
+const currentPage = ref(1);
+const showOutline = ref(false);
 const numPages = ref(0);
 const error = ref<string | null>(null);
 const isLoading = ref(true);
@@ -65,6 +64,128 @@ const outlinePageMap = new Map<string, number>();
 let pdfDoc: PdfDocumentProxy | null = null;
 const pageStates = new Map<number, PageState>();
 let observer: IntersectionObserver | null = null;
+
+// 通知工具栏变化
+watch([zoom, currentPage, numPages, showOutline, () => outline.value.length], () => {
+  emitter.notify();
+});
+
+// 工具栏操作
+const handleZoomIn = () => {
+  zoom.value = Math.min(3, zoom.value + 0.1);
+};
+const handleZoomOut = () => {
+  zoom.value = Math.max(0.5, zoom.value - 0.1);
+};
+const handleReset = () => {
+  zoom.value = 1;
+};
+const handlePrevPage = () => {
+  if (!scrollContainerRef.value) return;
+  const pages = scrollContainerRef.value.querySelectorAll('[data-page-number]');
+  const targetPage = pages[Math.max(0, currentPage.value - 2)];
+  if (targetPage) {
+    targetPage.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+};
+const handleNextPage = () => {
+  if (!scrollContainerRef.value) return;
+  const pages = scrollContainerRef.value.querySelectorAll('[data-page-number]');
+  const targetPage = pages[Math.min(pages.length - 1, currentPage.value)];
+  if (targetPage) {
+    targetPage.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+};
+const handleToggleOutline = () => {
+  showOutline.value = !showOutline.value;
+};
+
+// 工具栏配置
+const getToolbarGroups = (): ToolbarGroup[] => {
+  const groups: ToolbarGroup[] = [];
+
+  if (numPages.value === 0) return groups;
+
+  if (outline.value.length > 0) {
+    groups.push({
+      items: [
+        {
+          type: 'button',
+          icon: Menu,
+          tooltip: t.value('toolbar.outline'),
+          action: handleToggleOutline,
+          active: showOutline.value,
+        },
+      ],
+    });
+  }
+
+  groups.push({
+    items: [
+      {
+        type: 'button',
+        icon: ChevronLeft,
+        tooltip: t.value('toolbar.prev_page'),
+        action: handlePrevPage,
+        disabled: currentPage.value <= 1,
+      },
+      {
+        type: 'text',
+        content: `${currentPage.value} / ${numPages.value}`,
+        minWidth: '4rem',
+      },
+      {
+        type: 'button',
+        icon: ChevronRight,
+        tooltip: t.value('toolbar.next_page'),
+        action: handleNextPage,
+        disabled: currentPage.value >= numPages.value,
+      },
+    ],
+  });
+
+  groups.push({
+    items: [
+      {
+        type: 'button',
+        icon: ZoomOut,
+        tooltip: t.value('toolbar.zoom_out'),
+        action: handleZoomOut,
+        disabled: zoom.value <= 0.5,
+      },
+      {
+        type: 'text',
+        content: `${Math.round(zoom.value * 100)}%`,
+        minWidth: '3rem',
+      },
+      {
+        type: 'button',
+        icon: ZoomIn,
+        tooltip: t.value('toolbar.zoom_in'),
+        action: handleZoomIn,
+        disabled: zoom.value >= 3,
+      },
+    ],
+  });
+
+  groups.push({
+    items: [
+      {
+        type: 'button',
+        icon: RefreshCw,
+        tooltip: t.value('toolbar.reset'),
+        action: handleReset,
+      },
+    ],
+  });
+
+  return groups;
+};
+
+defineExpose<RendererHandle>({
+  getToolbarGroups,
+  onToolbarChange: (listener) => emitter.subscribe(listener),
+});
 
 // 构建大纲-页码映射
 const buildOutlinePageMap = async (items: PdfOutlineItem[], pdfDocument: PdfDocumentProxy, depth = 0) => {
@@ -149,7 +270,7 @@ const handleOutlineClick = async (dest: any, itemKey: string) => {
     }
 
     // 跳转后自动关闭侧边栏
-    setTimeout(() => emit('toggleOutline'), 300);
+    setTimeout(() => { showOutline.value = false; }, 300);
   } catch (err) {
     console.error('大纲跳转失败:', err);
   }
@@ -209,12 +330,6 @@ const renderPage = async (pageNumber: number, scale: number) => {
     state.renderTask = renderTask;
     await renderTask.promise;
 
-    // 上报第一页原始宽度
-    if (pageNumber === 1) {
-      const baseViewport = page.getViewport({ scale: 1 });
-      emit('pageWidthChange', baseViewport.width);
-    }
-
     state.element.innerHTML = '';
     state.element.appendChild(canvas);
 
@@ -262,7 +377,7 @@ const initPagePlaceholders = () => {
 
   for (let i = 1; i <= numPages.value; i++) {
     const pageDiv = document.createElement('div');
-    pageDiv.className = 'vfp-relative vfp-flex vfp-justify-center vfp-min-h-[800px]';
+    pageDiv.className = 'vfp-pdf-page-placeholder vfp-relative vfp-flex vfp-justify-center';
     pageDiv.setAttribute('data-page-number', String(i));
     wrapper.appendChild(pageDiv);
 
@@ -299,8 +414,7 @@ const loadPdf = async () => {
     const total = pdfDoc.numPages;
 
     numPages.value = total;
-    emit('totalPagesChange', total);
-    emit('pageChange', 1);
+    currentPage.value = 1;
 
     // 提取大纲
     try {
@@ -346,8 +460,8 @@ const handleScroll = () => {
     }
   });
 
-  if (currentVisiblePage !== props.currentPage) {
-    emit('pageChange', currentVisiblePage);
+  if (currentVisiblePage !== currentPage.value) {
+    currentPage.value = currentVisiblePage;
   }
 };
 
@@ -393,7 +507,7 @@ watch(numPages, (val) => {
 });
 
 // 监听 zoom 变化
-watch(() => props.zoom, () => {
+watch(() => zoom.value, () => {
   pageStates.forEach((state, pageNumber) => {
     if (state.rendered) {
       clearPageCanvas(pageNumber);
@@ -411,7 +525,7 @@ watch(() => props.zoom, () => {
 });
 
 // 监听 currentPage 变化，更新大纲高亮
-watch(() => props.currentPage, (page) => {
+watch(() => currentPage.value, (page) => {
   if (page > 0 && outlinePageMap.size > 0) {
     updateActiveOutlineByPage(page);
   }
@@ -461,7 +575,7 @@ onMounted(() => {
         if (!pageNumber) return;
 
         if (entry.isIntersecting) {
-          renderPage(pageNumber, props.zoom);
+          renderPage(pageNumber, zoom.value);
         } else {
           const state = pageStates.get(pageNumber);
           if (state && state.rendered) {
@@ -532,7 +646,7 @@ onBeforeUnmount(() => {
         <div class="vfp-flex vfp-items-center vfp-justify-between vfp-px-4 vfp-py-3 vfp-border-b vfp-border-line-weak vfp-flex-shrink-0">
           <span class="vfp-text-fg-primary vfp-font-medium vfp-text-sm">{{ t('toolbar.outline') }}</span>
           <button
-            @click="emit('toggleOutline')"
+            @click="showOutline = false"
             class="vfp-text-fg-tertiary hover:vfp-text-fg-primary vfp-transition-colors"
           >
             <X class="vfp-w-4 vfp-h-4" />
@@ -543,13 +657,13 @@ onBeforeUnmount(() => {
       <div
         class="vfp-flex-1 vfp-transition-opacity vfp-duration-300"
         :style="{ background: showOutline ? 'rgba(0,0,0,0.3)' : 'transparent' }"
-        @click="emit('toggleOutline')"
+        @click="showOutline = false"
       />
     </div>
 
     <div
       ref="scrollContainerRef"
-      class="vfp-w-full vfp-h-full vfp-overflow-auto vfp-py-6 vfp-px-4"
+      class="vfp-pdf-container vfp-w-full vfp-h-full vfp-overflow-auto"
     >
       <RendererError v-if="error" :message="error" />
 

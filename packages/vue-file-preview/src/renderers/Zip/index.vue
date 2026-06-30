@@ -11,10 +11,18 @@ import {
 } from '@eternalheart/file-preview-core';
 import ResizableSplit from '../../components/ResizableSplit.vue';
 import TreeItem from './TreeItem.vue';
-import type { ZipToolbarStats } from './toolbar';
 import { useTranslator } from '../../composables/useTranslator';
 import { useFetcher } from '../../composables/useRequest';
 import RendererError from '../RendererError.vue';
+import { ToolbarEventEmitter } from '../base.types';
+import type { RendererHandle } from '../base.types';
+import type { ToolbarGroup } from '../toolbar.types';
+
+export interface ZipToolbarStats {
+  files: number;
+  dirs: number;
+  size: number;
+}
 
 // 懒加载 FilePreviewContent 以打破循环依赖
 const LazyFilePreviewContent = defineAsyncComponent(
@@ -29,9 +37,7 @@ const props = withDefaults(defineProps<{
   nestingDepth: 0,
 });
 
-const emit = defineEmits<{
-  (e: 'statsChange', stats: ZipToolbarStats | null): void;
-}>();
+const emitter = new ToolbarEventEmitter();
 
 const { t } = useTranslator();
 const fetcher = useFetcher();
@@ -106,8 +112,16 @@ const totalStats = computed<ZipToolbarStats | null>(() => {
   return { files, dirs, size };
 });
 
-watch(totalStats, (s) => emit('statsChange', s), { immediate: true });
-onBeforeUnmount(() => emit('statsChange', null));
+// 通知工具栏变化
+watch(totalStats, () => emitter.notify());
+
+// 工具栏配置（对齐 React：返回空数组，不显示统计信息）
+const getToolbarGroups = (): ToolbarGroup[] => [];
+
+defineExpose<RendererHandle>({
+  getToolbarGroups,
+  onToolbarChange: (listener) => emitter.subscribe(listener),
+});
 
 const handleToggle = (path: string) => {
   const next = new Set(expanded.value);

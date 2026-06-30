@@ -6,6 +6,7 @@ export interface ToolbarButtonItem {
   tooltip: string;
   action: () => void;
   disabled?: boolean;
+  active?: boolean;
 }
 
 export interface ToolbarTextItem {

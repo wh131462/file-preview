@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import type { RendererHandle } from '../base.types';
+import type { ToolbarGroup } from '../toolbar.types';
+
 import { ref, watch, onMounted, onBeforeUnmount } from 'vue';
 import { init } from 'pptx-preview';
 import { useTranslator } from '../../composables/useTranslator';
@@ -209,6 +212,13 @@ onBeforeUnmount(() => {
   }
   previewer = null;
 });
+
+const getToolbarGroups = (): ToolbarGroup[] => [];
+
+defineExpose<RendererHandle>({
+  getToolbarGroups,
+});
+
 </script>
 
 <template>

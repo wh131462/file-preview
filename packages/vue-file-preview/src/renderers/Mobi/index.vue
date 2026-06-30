@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import { ref, watch, onBeforeUnmount, defineComponent, h, type PropType } from 'vue';
-import { X } from 'lucide-vue-next';
+import { X, ChevronLeft, ChevronRight, List, Maximize2, Minimize2 } from 'lucide-vue-next';
 import 'foliate-js/view.js';
 import { useTranslator } from '../../composables/useTranslator';
 import { useFetcher } from '../../composables/useRequest';
 import RendererError from '../RendererError.vue';
+import { ToolbarEventEmitter } from '../base.types';
+import type { RendererHandle } from '../base.types';
+import type { ToolbarGroup } from '../toolbar.types';
 
 interface TocItem {
   label: string;
@@ -57,10 +60,8 @@ const READER_CSS = `
 const A4_WIDTH = 794;
 
 const props = defineProps<{ url: string }>();
-const emit = defineEmits<{
-  (e: 'chapterChange', current: number, total: number): void;
-  (e: 'fullWidthChange', isFullWidth: boolean): void;
-}>();
+
+const emitter = new ToolbarEventEmitter();
 
 const { t } = useTranslator();
 const fetcher = useFetcher();
@@ -69,6 +70,10 @@ const hostRef = ref<HTMLDivElement | null>(null);
 let viewInstance: FoliateView | null = null;
 let totalLocations = 1;
 
+// 内部状态
+const currentChapter = ref(1);
+const totalChapters = ref(1);
+
 const loading = ref(true);
 const error = ref<string | null>(null);
 const toc = ref<TocItem[]>([]);
@@ -76,9 +81,15 @@ const showToc = ref(false);
 const activeTocHref = ref('');
 const isFullWidth = ref(false);
 
+// 监听状态变化，通知工具栏更新（对齐 React：增加 toc.length 监听）
+watch([currentChapter, totalChapters, isFullWidth, showToc, loading, () => toc.value.length], () => {
+  emitter.notify();
+});
+
 const reportProgress = (current: number, total: number) => {
   if (total > 0) totalLocations = total;
-  emit('chapterChange', Math.max(1, current + 1), totalLocations);
+  currentChapter.value = Math.max(1, current + 1);
+  totalChapters.value = totalLocations;
 };
 
 const prevPage = () => { viewInstance?.prev().catch(() => {}); };
@@ -86,7 +97,6 @@ const nextPage = () => { viewInstance?.next().catch(() => {}); };
 const toggleToc = () => { showToc.value = !showToc.value; };
 const toggleFullWidth = () => {
   isFullWidth.value = !isFullWidth.value;
-  emit('fullWidthChange', isFullWidth.value);
   if (viewInstance?.renderer) {
     viewInstance.renderer.setAttribute('max-inline-size', isFullWidth.value ? '9999' : '720');
   }
@@ -98,7 +108,60 @@ const handleTocClick = (href: string) => {
   viewInstance?.goTo(href).catch(() => {});
 };
 
-defineExpose({ prevPage, nextPage, toggleFullWidth, toggleToc });
+// 工具栏配置（对齐 React：List 图标、disabled 代替条件、Minimize2/Maximize2 切换）
+const getToolbarGroups = (): ToolbarGroup[] => [
+  {
+    items: [
+      {
+        type: 'button',
+        icon: List,
+        tooltip: t.value('toolbar.toc'),
+        action: toggleToc,
+        disabled: toc.value.length === 0,
+        active: showToc.value,
+      },
+    ],
+  },
+  {
+    items: [
+      {
+        type: 'button',
+        icon: ChevronLeft,
+        tooltip: t.value('toolbar.prev_page'),
+        action: prevPage,
+        disabled: currentChapter.value <= 1,
+      },
+      {
+        type: 'text',
+        content: `${currentChapter.value} / ${totalChapters.value}`,
+        minWidth: '4rem',
+      },
+      {
+        type: 'button',
+        icon: ChevronRight,
+        tooltip: t.value('toolbar.next_page'),
+        action: nextPage,
+        disabled: currentChapter.value >= totalChapters.value,
+      },
+    ],
+  },
+  {
+    items: [
+      {
+        type: 'button',
+        icon: isFullWidth.value ? Minimize2 : Maximize2,
+        tooltip: isFullWidth.value ? t.value('toolbar.normal_width') : t.value('toolbar.full_width'),
+        action: toggleFullWidth,
+        active: isFullWidth.value,
+      },
+    ],
+  },
+];
+
+defineExpose<RendererHandle>({
+  getToolbarGroups,
+  onToolbarChange: (listener) => emitter.subscribe(listener),
+});
 
 const load = async () => {
   const host = hostRef.value;

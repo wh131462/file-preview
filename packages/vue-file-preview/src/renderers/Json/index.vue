@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import type { RendererHandle } from '../base.types';
+import type { ToolbarGroup } from '../toolbar.types';
+
 import { ref, watch } from 'vue';
 import { parse as parseJsonc } from 'jsonc-parser';
 import { fetchTextUtf8 } from '@eternalheart/file-preview-core';
@@ -33,6 +36,13 @@ const loadJson = async () => {
 };
 
 watch(() => props.url, loadJson, { immediate: true });
+
+const getToolbarGroups = (): ToolbarGroup[] => [];
+
+defineExpose<RendererHandle>({
+  getToolbarGroups,
+});
+
 </script>
 
 <template>
@@ -215,6 +225,7 @@ const JsonNode = defineComponent({
     return h('div', null, children);
   },
 });
+
 </script>
 
 <style>

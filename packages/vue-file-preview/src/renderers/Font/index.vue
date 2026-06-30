@@ -106,6 +106,9 @@
 </template>
 
 <script setup lang="ts">
+import type { RendererHandle } from '../base.types';
+import type { ToolbarGroup } from '../toolbar.types';
+
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { parse } from 'opentype.js';
 import type { Font as OpentypeFont } from 'opentype.js';
@@ -318,4 +321,11 @@ onBeforeUnmount(() => {
     fontFace = null;
   }
 });
+
+const getToolbarGroups = (): ToolbarGroup[] => [];
+
+defineExpose<RendererHandle>({
+  getToolbarGroups,
+});
+
 </script>

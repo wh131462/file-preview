@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import type { RendererHandle } from '../base.types';
+import type { ToolbarGroup } from '../toolbar.types';
+
 import { FileQuestion, Download } from 'lucide-vue-next';
 import { useTranslator } from '../../composables/useTranslator';
 
@@ -12,6 +15,13 @@ const { t } = useTranslator();
 const emit = defineEmits<{
   (e: 'download'): void;
 }>();
+
+const getToolbarGroups = (): ToolbarGroup[] => [];
+
+defineExpose<RendererHandle>({
+  getToolbarGroups,
+});
+
 </script>
 
 <template>

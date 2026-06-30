@@ -1,28 +1,27 @@
 <script setup lang="ts">
 import { ref, watch, onMounted, onBeforeUnmount, computed } from 'vue';
-import { Loader2 } from 'lucide-vue-next';
+import { Loader2, ZoomIn, ZoomOut, RotateCw, RotateCcw, Scan, RefreshCw, Maximize2 } from 'lucide-vue-next';
 import { formatFileSize, detectImageFormat, getLoaderForMimeType } from '@eternalheart/file-preview-core';
 import type { PreviewFile } from '@eternalheart/file-preview-core';
 import { useTranslator } from '../../composables/useTranslator';
 import RendererError from '../RendererError.vue';
+import { ToolbarEventEmitter } from '../base.types';
+import type { RendererHandle } from '../base.types';
+import type { ToolbarGroup } from '../toolbar.types';
 
 const props = defineProps<{
   url: string;
-  zoom: number;
-  rotation: number;
-  resetKey?: number;
   fileSize?: number;
   file?: PreviewFile | File;
 }>();
 
-const emit = defineEmits<{
-  (e: 'zoomChange', zoom: number): void;
-  (e: 'naturalWidthChange', width: number): void;
-  (e: 'naturalHeightChange', height: number): void;
-}>();
+const emitter = new ToolbarEventEmitter();
 
 const { t } = useTranslator();
 
+// 内部状态管理
+const zoom = ref(1);
+const rotation = ref(0);
 const loaded = ref(false);
 const error = ref<string | null>(null);
 const decoding = ref(false);
@@ -37,6 +36,124 @@ const isDragging = ref(false);
 let dragStart = { x: 0, y: 0 };
 const internalZoom = ref(1);
 const naturalSize = ref({ width: 0, height: 0 });
+
+// 通知工具栏变化
+watch([zoom, rotation], () => {
+  emitter.notify();
+});
+
+// 工具栏配置（对齐 React 的 4 个按钮组）
+const getToolbarGroups = (): ToolbarGroup[] => [
+  {
+    items: [
+      {
+        type: 'button',
+        icon: ZoomOut,
+        tooltip: t.value('toolbar.zoom_out'),
+        action: handleZoomOut,
+        disabled: zoom.value <= 0.01,
+      },
+      {
+        type: 'text',
+        content: `${Math.round(zoom.value * 100)}%`,
+        minWidth: '3rem',
+      },
+      {
+        type: 'button',
+        icon: ZoomIn,
+        tooltip: t.value('toolbar.zoom_in'),
+        action: handleZoomIn,
+        disabled: zoom.value >= 10,
+      },
+    ],
+  },
+  {
+    items: [
+      {
+        type: 'button',
+        icon: Scan,
+        tooltip: t.value('toolbar.fit_to_window'),
+        action: handleFitToWidth,
+      },
+      {
+        type: 'button',
+        icon: Maximize2,
+        tooltip: t.value('toolbar.original_size'),
+        action: handleOriginalSize,
+      },
+    ],
+  },
+  {
+    items: [
+      {
+        type: 'button',
+        icon: RotateCcw,
+        tooltip: t.value('toolbar.rotate_left'),
+        action: handleRotateLeft,
+      },
+      {
+        type: 'button',
+        icon: RotateCw,
+        tooltip: t.value('toolbar.rotate_right'),
+        action: handleRotateRight,
+      },
+    ],
+  },
+  {
+    items: [
+      {
+        type: 'button',
+        icon: RefreshCw,
+        tooltip: t.value('toolbar.reset'),
+        action: handleReset,
+      },
+    ],
+  },
+];
+
+// 暴露接口
+defineExpose<RendererHandle>({
+  getToolbarGroups,
+  onToolbarChange: (listener) => emitter.subscribe(listener),
+});
+
+// 工具栏操作
+const handleZoomIn = () => {
+  zoom.value = Math.min(zoom.value + 0.1, 10);
+};
+
+const handleZoomOut = () => {
+  zoom.value = Math.max(zoom.value - 0.1, 0.01);
+};
+
+const handleRotateRight = () => {
+  rotation.value = (rotation.value + 90) % 360;
+};
+
+const handleRotateLeft = () => {
+  rotation.value = (rotation.value - 90 + 360) % 360;
+};
+
+const handleOriginalSize = () => {
+  zoom.value = 1;
+  rotation.value = 0;
+  position.value = { x: 0, y: 0 };
+};
+
+const handleReset = () => {
+  handleFitToWidth();
+};
+
+const handleFitToWidth = () => {
+  if (containerRef.value && naturalSize.value.width > 0 && naturalSize.value.height > 0) {
+    const containerWidth = containerRef.value.clientWidth;
+    const containerHeight = containerRef.value.clientHeight;
+    const scaleX = containerWidth / naturalSize.value.width;
+    const scaleY = containerHeight / naturalSize.value.height;
+    zoom.value = Math.max(0.01, Math.min(10, Math.min(scaleX, scaleY)));
+    position.value = { x: 0, y: 0 };
+  }
+};
 
 const imgRef = ref<HTMLImageElement | null>(null);
 const containerRef = ref<HTMLDivElement | null>(null);
@@ -64,6 +181,7 @@ watch(
     decodeProgress.value = 0;
     position.value = { x: 0, y: 0 };
     internalZoom.value = 1;
+    zoom.value = 1;
     currentPage.value = 1;
     totalPages.value = 1;
     isRawThumbnail.value = false;
@@ -210,19 +328,14 @@ onBeforeUnmount(() => {
   }
 });
 
-watch(
-  () => props.zoom,
-  (z) => {
-    internalZoom.value = z;
-  }
-);
+// 同步 zoom 和 internalZoom
+watch(zoom, (z) => {
+  internalZoom.value = z;
+});
 
-watch(
-  () => props.resetKey,
-  () => {
-    position.value = { x: 0, y: 0 };
-  }
-);
+watch(internalZoom, (z) => {
+  zoom.value = z;
+});
 
 const clampPosition = (pos: { x: number; y: number }, currentZoom: number) => {
   const container = containerRef.value;
@@ -247,8 +360,17 @@ const handleLoad = (e: Event) => {
   loaded.value = true;
   const img = e.currentTarget as HTMLImageElement;
   naturalSize.value = { width: img.naturalWidth, height: img.naturalHeight };
-  emit('naturalWidthChange', img.naturalWidth);
-  emit('naturalHeightChange', img.naturalHeight);
+
+  // 自动适应窗口
+  if (containerRef.value && naturalSize.value.width > 0 && naturalSize.value.height > 0) {
+    const containerWidth = containerRef.value.clientWidth;
+    const containerHeight = containerRef.value.clientHeight;
+    const scaleX = containerWidth / naturalSize.value.width;
+    const scaleY = containerHeight / naturalSize.value.height;
+    const newZoom = Math.min(scaleX, scaleY);
+    zoom.value = Math.max(0.01, Math.min(10, newZoom));
+    position.value = { x: 0, y: 0 };
+  }
 };
 
 const handleError = () => {
@@ -258,8 +380,7 @@ const handleError = () => {
 
 const handleDoubleClick = () => {
   position.value = { x: 0, y: 0 };
-  internalZoom.value = 1;
-  emit('zoomChange', 1);
+  zoom.value = 1;
 };
 
 // 鼠标滚轮缩放
@@ -288,7 +409,6 @@ const handleWheelNative = (e: WheelEvent) => {
   );
 
   internalZoom.value = newZoom;
-  emit('zoomChange', newZoom);
 };
 
 onMounted(() => {
@@ -359,8 +479,7 @@ const handleTouchStart = (e: TouchEvent) => {
     if (now - lastTapTime < 300) {
       // 双击复原：居中 + 缩放100%
       position.value = { x: 0, y: 0 };
-      internalZoom.value = 1;
-      emit('zoomChange', 1);
+      zoom.value = 1;
     }
     lastTapTime = now;
   } else if (touches.length === 2) {
@@ -420,7 +539,6 @@ const handleTouchMove = (e: TouchEvent) => {
     );
 
     internalZoom.value = newZoom;
-    emit('zoomChange', newZoom);
   }
 };
 
@@ -430,7 +548,7 @@ const handleTouchEnd = () => {
 };
 
 const transformStyle = computed(() => ({
-  transform: `translate(${position.value.x}px, ${position.value.y}px) scale(${internalZoom.value}) rotate(${props.rotation}deg)`,
+  transform: `translate(${position.value.x}px, ${position.value.y}px) scale(${internalZoom.value}) rotate(${rotation.value}deg)`,
   transformOrigin: 'center',
   transition: isDragging.value ? 'none' : 'transform 0.3s ease-out',
   opacity: loaded.value && !error.value && !decodeError.value ? 1 : 0,

@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import type { RendererHandle } from '../base.types';
+import type { ToolbarGroup } from '../toolbar.types';
+
 import { ref, computed, watch } from 'vue';
 import MsgReader from '@kenjiuno/msgreader';
 import type { FieldsData } from '@kenjiuno/msgreader';
@@ -154,6 +157,13 @@ const formatAttachmentSize = (size: number | undefined) => {
   if (size > 1024) return `${(size / 1024).toFixed(0)} KB`;
   return `${size} B`;
 };
+
+const getToolbarGroups = (): ToolbarGroup[] => [];
+
+defineExpose<RendererHandle>({
+  getToolbarGroups,
+});
+
 </script>
 
 <template>

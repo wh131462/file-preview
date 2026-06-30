@@ -217,6 +217,92 @@ pnpm pub              # Publish library to npm
 
 ---
 
+## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f9e9.svg" width="20" height="20" alt="🧩" /> Custom Renderers
+
+Both React and Vue packages support custom renderers for handling file types not built-in. Custom renderers can optionally provide toolbar configurations.
+
+### Basic Interface
+
+```typescript
+export interface RendererHandle {
+  getToolbarGroups: () => ToolbarGroup[];
+  
+  // Optional: Subscribe to toolbar changes for real-time updates
+  onToolbarChange?: (listener: () => void) => (() => void);
+}
+```
+
+### Event-Driven Toolbar Updates
+
+The new architecture uses an event-driven mechanism instead of polling, providing:
+
+- **Real-time updates**: Toolbar reflects state changes immediately
+- **Better performance**: No unnecessary re-renders or CPU usage
+- **Type-safe**: Full TypeScript support
+
+### Migration from Polling to Events
+
+**Before (polling-based):**
+```typescript
+// Main component polls getToolbarGroups() every 100ms
+setInterval(() => {
+  const groups = rendererRef.current?.getToolbarGroups() ?? [];
+  setToolbarGroups(groups);
+}, 100);
+```
+
+**After (event-driven):**
+```typescript
+// Renderer implementation
+const ImageRenderer = forwardRef<RendererHandle, Props>((props, ref) => {
+  const [zoom, setZoom] = useState(1);
+  const emitter = useMemo(() => new ToolbarEventEmitter(), []);
+  
+  // Notify when state changes
+  useEffect(() => {
+    emitter.notify();
+  }, [zoom, emitter]);
+  
+  const getToolbarGroups = useCallback((): ToolbarGroup[] => [
+    {
+      items: [
+        { type: 'text', content: `${Math.round(zoom * 100)}%` },
+        // ... other buttons
+      ]
+    }
+  ], [zoom]);
+  
+  useImperativeHandle(ref, () => ({
+    getToolbarGroups,
+    onToolbarChange: (listener) => emitter.subscribe(listener)
+  }), [getToolbarGroups, emitter]);
+  
+  return <img style={{ transform: `scale(${zoom})` }} />;
+});
+```
+
+**Main component automatically detects and uses events:**
+```typescript
+// If renderer supports onToolbarChange, subscribe to events
+// Otherwise, fallback to polling for backward compatibility
+useEffect(() => {
+  if (rendererRef.current?.onToolbarChange) {
+    return rendererRef.current.onToolbarChange(() => {
+      setToolbarGroups(rendererRef.current?.getToolbarGroups() ?? []);
+    });
+  }
+  // Fallback to polling
+  const interval = setInterval(() => {
+    setToolbarGroups(rendererRef.current?.getToolbarGroups() ?? []);
+  }, 100);
+  return () => clearInterval(interval);
+}, []);
+```
+
+<img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f449.svg" width="16" height="16" alt="👉" style="vertical-align: middle;" /> [View full custom renderer documentation](./packages/react-file-preview/README.md#custom-renderers)
+
+---
+
 ## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/2328.svg" width="20" height="20" alt="⌨️" /> Keyboard Shortcuts
 
 | Key | Action |

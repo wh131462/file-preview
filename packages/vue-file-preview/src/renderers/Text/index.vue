@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
 import { getLanguageFromFileName, fetchTextUtf8 } from '@eternalheart/file-preview-core';
-import { codeToHtml } from 'shiki';
 import { useTranslator } from '../../composables/useTranslator';
 import { useFetcher } from '../../composables/useRequest';
-import { useResolvedTheme } from '../../composables/useResolvedTheme';
+import { useShikiHighlight } from '../../composables/useShikiHighlight';
 import RendererError from '../RendererError.vue';
 
 const props = withDefaults(defineProps<{
@@ -19,14 +18,14 @@ const props = withDefaults(defineProps<{
 
 const { t } = useTranslator();
 const fetcher = useFetcher();
-const resolvedTheme = useResolvedTheme();
 
 const content = ref<string>('');
-const highlighted = ref<string>('');
 const loading = ref(true);
 const error = ref<string | null>(null);
 
 const language = computed(() => getLanguageFromFileName(props.fileName));
+const codeForShiki = computed(() => (language.value !== 'text' ? content.value : ''));
+const { lineHtmls } = useShikiHighlight(codeForShiki, language);
 
 const loadText = async () => {
   loading.value = true;
@@ -34,19 +33,6 @@ const loadText = async () => {
   try {
     const text = await fetchTextUtf8(props.url, { fetcher: fetcher.value });
     content.value = text;
-
-    if (language.value !== 'text') {
-      try {
-        highlighted.value = await codeToHtml(text, {
-          lang: language.value,
-          theme: resolvedTheme.value === 'light' ? 'github-light' : 'dark-plus',
-        });
-      } catch {
-        highlighted.value = '';
-      }
-    } else {
-      highlighted.value = '';
-    }
   } catch (err) {
     console.error(err);
     error.value = t.value('text.load_failed');
@@ -56,12 +42,8 @@ const loadText = async () => {
 };
 
 watch(() => props.url, loadText, { immediate: true });
-watch(resolvedTheme, () => {
-  // 主题切换时重新高亮
-  if (content.value && language.value !== 'text') {
-    loadText();
-  }
-});
+
+const lines = computed(() => content.value.split('\n'));
 </script>
 
 <template>
@@ -83,55 +65,27 @@ watch(resolvedTheme, () => {
     />
   </div>
 
-  <!-- 源码模式 -->
-  <div v-else class="vfp-w-full vfp-h-full vfp-overflow-auto" style="background: var(--fp-code-bg);">
+  <!-- 纯文本或高亮未就绪：fallback -->
+  <div v-else-if="language === 'text' || lineHtmls.length === 0" class="vfp-w-full vfp-h-full vfp-overflow-auto" style="background: var(--fp-code-bg);">
     <pre
-      v-if="!highlighted"
       class="vfp-py-6 vfp-px-4 vfp-text-fg-primary vfp-font-mono vfp-text-sm"
       :class="wordWrap ? 'vfp-whitespace-pre-wrap vfp-break-words' : 'vfp-whitespace-pre'"
     >{{ content }}</pre>
-    <div v-else class="shiki-wrapper" :class="{ 'no-wrap': !wordWrap }" v-html="highlighted" />
+  </div>
+
+  <!-- 双列布局：左 gutter（行号），右 code（shiki 高亮） -->
+  <div
+    v-else
+    class="vfp-code-block with-line-numbers vfp-w-full vfp-h-full"
+    :class="{ 'no-wrap': !wordWrap }"
+    :style="{ gridTemplateRows: `repeat(${lines.length}, auto) minmax(1.5rem, 1fr)` }"
+  >
+    <template v-for="(_, i) in lines" :key="i">
+      <span class="vfp-code-gutter">{{ i + 1 }}</span>
+      <span class="vfp-code-line" v-html="lineHtmls[i] ?? ''" />
+    </template>
+    <!-- 占位行：撑满剩余高度，让 gutter border 延伸到底部 -->
+    <span class="vfp-code-gutter-filler" />
+    <span class="vfp-code-line-filler" />
   </div>
 </template>
-
-<style scoped>
-.shiki-wrapper :deep(pre) {
-  margin: 0;
-  padding: 1.5rem 1.5rem 1.5rem 0;
-  background: transparent !important;
-  font-size: 0.875rem;
-  overflow-x: auto;
-}
-.shiki-wrapper :deep(code) {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  counter-reset: line;
-}
-.shiki-wrapper :deep(code .line) {
-  counter-increment: line;
-  display: inline-block;
-  width: 100%;
-  padding-left: 4.5em;
-  text-indent: -4.5em;
-}
-.shiki-wrapper :deep(code .line::before) {
-  content: counter(line);
-  display: inline-block;
-  width: 3em;
-  padding-right: 1em;
-  margin-right: 0.5em;
-  text-align: right;
-  color: var(--fp-fg-disabled);
-  user-select: none;
-  border-right: 1px solid var(--fp-line);
-}
-.shiki-wrapper.no-wrap :deep(code) {
-  white-space: pre;
-  word-break: normal;
-  overflow-wrap: normal;
-}
-.shiki-wrapper:not(.no-wrap) :deep(code) {
-  white-space: pre-wrap;
-  word-break: break-word;
-  overflow-wrap: break-word;
-}
-</style>

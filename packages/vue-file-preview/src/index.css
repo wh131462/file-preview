@@ -730,3 +730,82 @@
 .vfp-root .markdown-body .code-block-wrapper:hover .code-copy-float {
   opacity: 0.85;
 }
+
+/* ============================================================
+ * 双列 Grid 行号布局（Text/Xml 渲染器使用）
+ *
+ * DOM 结构：
+ *   <div class="vfp-code-block with-line-numbers [no-wrap]">
+ *     <span class="vfp-code-gutter">1</span>
+ *     <span class="vfp-code-line">...shiki HTML...</span>
+ *     <span class="vfp-code-gutter">2</span>
+ *     <span class="vfp-code-line">...</span>
+ *     ...
+ *   </div>
+ *
+ * 关键：
+ *   - Grid 两列：max-content（gutter） + 1fr（code）
+ *   - 同一逻辑行的 gutter 和 code 在同一 grid row → 高度自动同步
+ *   - border-right 画在每个 gutter cell 上，行间无 gap → 连续贯穿
+ * ============================================================ */
+
+.vfp-root .vfp-code-block {
+  background: var(--fp-code-bg);
+  color: var(--fp-code-fg);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  overflow: auto;
+}
+
+.vfp-root .vfp-code-block.with-line-numbers {
+  display: grid;
+  grid-template-columns: max-content minmax(20ch, 1fr);
+  min-height: 100%;
+}
+
+.vfp-root .vfp-code-block.with-line-numbers.no-wrap {
+  grid-template-columns: max-content max-content;
+}
+
+.vfp-root .vfp-code-block.with-line-numbers > .vfp-code-gutter {
+  padding-left: 1.5rem;
+  padding-right: 1em;
+  text-align: right;
+  border-right: 1px solid var(--fp-line);
+  color: var(--fp-fg-disabled);
+  user-select: none;
+  white-space: nowrap;
+  min-width: 3.5em;
+}
+
+/* 占位行：撑满剩余高度，让 gutter border 延伸到底部 */
+.vfp-root .vfp-code-block.with-line-numbers > .vfp-code-gutter-filler {
+  border-right: 1px solid var(--fp-line);
+  min-height: 1.5rem;
+}
+
+.vfp-root .vfp-code-block.with-line-numbers > .vfp-code-line-filler {
+  min-height: 1.5rem;
+}
+
+.vfp-root .vfp-code-block.with-line-numbers > .vfp-code-line {
+  padding-left: 1em;
+  padding-right: 1.5rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  min-height: 1.5em;
+  min-width: 0;
+}
+
+.vfp-root .vfp-code-block.with-line-numbers.no-wrap > .vfp-code-line {
+  white-space: pre;
+  word-break: normal;
+  overflow-wrap: normal;
+}
+
+/* 首行：上 padding；占位 filler 提供底部呼吸 */
+.vfp-root .vfp-code-block.with-line-numbers > :nth-child(-n+2) {
+  padding-top: 1.5rem;
+}

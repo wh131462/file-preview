@@ -1,10 +1,9 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { fetchTextUtf8 } from '@eternalheart/file-preview-core';
-import { codeToHtml } from 'shiki';
 import { useTranslator } from '../../composables/useTranslator';
 import { useFetcher } from '../../composables/useRequest';
-import { useResolvedTheme } from '../../composables/useResolvedTheme';
+import { useShikiHighlight } from '../../composables/useShikiHighlight';
 import RendererError from '../RendererError.vue';
 
 const props = defineProps<{
@@ -14,12 +13,13 @@ const props = defineProps<{
 
 const { t } = useTranslator();
 const fetcher = useFetcher();
-const resolvedTheme = useResolvedTheme();
 
 const content = ref<string>('');
-const highlighted = ref<string>('');
 const loading = ref(true);
 const error = ref<string | null>(null);
+const xmlLang = ref('xml');
+
+const { lineHtmls } = useShikiHighlight(content, xmlLang);
 
 const indentXml = (xml: string): string => {
   const PADDING = '  ';
@@ -61,14 +61,6 @@ const load = async () => {
   try {
     const raw = await fetchTextUtf8(props.url, { fetcher: fetcher.value });
     content.value = prettyPrintXml(raw);
-    try {
-      highlighted.value = await codeToHtml(content.value, {
-        lang: 'xml',
-        theme: resolvedTheme.value === 'light' ? 'github-light' : 'dark-plus',
-      });
-    } catch {
-      highlighted.value = '';
-    }
   } catch (err) {
     console.error(err);
     error.value = t.value('xml.load_failed');
@@ -78,9 +70,8 @@ const load = async () => {
 };
 
 watch(() => props.url, load, { immediate: true });
-watch(resolvedTheme, () => {
-  if (content.value) load();
-});
+
+const lines = computed(() => content.value.split('\n'));
 </script>
 
 <template>
@@ -92,44 +83,20 @@ watch(resolvedTheme, () => {
 
   <RendererError v-else-if="error" :message="error" />
 
-  <div v-else class="vfp-w-full vfp-h-full vfp-overflow-auto" style="background: var(--fp-code-bg);">
+  <div v-else-if="lineHtmls.length === 0" class="vfp-w-full vfp-h-full vfp-overflow-auto" style="background: var(--fp-code-bg);">
     <pre
-      v-if="!highlighted"
       class="vfp-py-6 vfp-px-4 vfp-text-fg-primary vfp-font-mono vfp-text-sm vfp-whitespace-pre-wrap vfp-break-words"
       >{{ content }}</pre
     >
-    <div v-else class="shiki-wrapper" v-html="highlighted" />
+  </div>
+
+  <div v-else class="vfp-code-block with-line-numbers vfp-w-full vfp-h-full" :style="{ gridTemplateRows: `repeat(${lines.length}, auto) minmax(1.5rem, 1fr)` }">
+    <template v-for="(_, i) in lines" :key="i">
+      <span class="vfp-code-gutter">{{ i + 1 }}</span>
+      <span class="vfp-code-line" v-html="lineHtmls[i] ?? ''" />
+    </template>
+    <!-- 占位行：撑满剩余高度，让 gutter border 延伸到底部 -->
+    <span class="vfp-code-gutter-filler" />
+    <span class="vfp-code-line-filler" />
   </div>
 </template>
-
-<style scoped>
-.shiki-wrapper :deep(pre) {
-  margin: 0;
-  padding: 1.5rem 1.5rem 1.5rem 0;
-  background: transparent !important;
-  font-size: 0.875rem;
-  overflow-x: auto;
-}
-.shiki-wrapper :deep(code) {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  counter-reset: line;
-}
-.shiki-wrapper :deep(code .line) {
-  counter-increment: line;
-  display: inline-block;
-  width: 100%;
-  padding-left: 4.5em;
-  text-indent: -4.5em;
-}
-.shiki-wrapper :deep(code .line::before) {
-  content: counter(line);
-  display: inline-block;
-  width: 3em;
-  padding-right: 1em;
-  margin-right: 0.5em;
-  text-align: right;
-  color: var(--fp-fg-disabled);
-  user-select: none;
-  border-right: 1px solid var(--fp-line);
-}
-</style>

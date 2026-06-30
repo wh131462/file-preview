@@ -226,25 +226,25 @@ watch(
   }
 );
 
-// 图片加载后默认适应窗口
-watch(
-  [fileType, contentNaturalWidth, contentNaturalHeight],
-  () => {
-    if (
-      fileType.value === 'image' &&
-      contentNaturalWidth.value > 0 &&
-      contentNaturalHeight.value > 0 &&
-      contentRef.value
-    ) {
-      const containerWidth = contentRef.value.clientWidth;
-      const containerHeight = contentRef.value.clientHeight;
-      const scaleX = containerWidth / contentNaturalWidth.value;
-      const scaleY = containerHeight / contentNaturalHeight.value;
-      const newZoom = Math.min(scaleX, scaleY);
-      zoom.value = Math.max(0.01, Math.min(10, newZoom));
-    }
-  }
-);
+// 图片加载后默认适应窗口（已禁用，改为手动点击"适应窗口"按钮）
+// watch(
+//   [fileType, contentNaturalWidth, contentNaturalHeight],
+//   () => {
+//     if (
+//       fileType.value === 'image' &&
+//       contentNaturalWidth.value > 0 &&
+//       contentNaturalHeight.value > 0 &&
+//       contentRef.value
+//     ) {
+//       const containerWidth = contentRef.value.clientWidth;
+//       const containerHeight = contentRef.value.clientHeight;
+//       const scaleX = containerWidth / contentNaturalWidth.value;
+//       const scaleY = containerHeight / contentNaturalHeight.value;
+//       const newZoom = Math.min(scaleX, scaleY);
+//       zoom.value = Math.max(0.01, Math.min(10, newZoom));
+//     }
+//   }
+// );
 
 // 键盘导航
 const handleKeyDown = (e: KeyboardEvent) => {
@@ -293,15 +293,29 @@ const handleFitToWidth = () => {
     const scaleX = containerWidth / contentNaturalWidth.value;
     const scaleY = containerHeight / contentNaturalHeight.value;
     const newZoom = Math.min(scaleX, scaleY);
+    console.log('[适应窗口]', {
+      containerWidth,
+      containerHeight,
+      naturalWidth: contentNaturalWidth.value,
+      naturalHeight: contentNaturalHeight.value,
+      scaleX,
+      scaleY,
+      newZoom,
+    });
     zoom.value = Math.max(0.01, Math.min(10, newZoom));
+    rotation.value = 0;
+    imageResetKey.value++;
   } else {
-    zoom.value = 1;
+    console.log('[适应窗口] 条件不满足', {
+      hasContainer: !!contentRef.value,
+      naturalWidth: contentNaturalWidth.value,
+      naturalHeight: contentNaturalHeight.value,
+    });
   }
-  rotation.value = 0;
-  imageResetKey.value++;
 };
 
 const handleOriginalSize = () => {
+  console.log('[原始尺寸] 设置 zoom = 1');
   zoom.value = 1;
   rotation.value = 0;
   imageResetKey.value++;

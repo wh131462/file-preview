@@ -14,26 +14,7 @@ import {
   useThemeMode,
 } from './hooks';
 import { FilePreviewToolbar, FilePreviewRenderer, NavArrows } from './components/preview';
-import {
-  ImageRenderer,
-  PdfRenderer,
-  DocxRenderer,
-  XlsxRenderer,
-  PptxRenderer,
-  MsgRenderer,
-  EpubRenderer,
-  MobiRenderer,
-  VideoRenderer,
-  AudioRenderer,
-  MarkdownRenderer,
-  JsonRenderer,
-  CsvRenderer,
-  XmlRenderer,
-  SubtitleRenderer,
-  ZipRenderer,
-  TextRenderer,
-  FontRenderer,
-} from './renderers/lazy';
+import { BUILTIN_RENDERERS } from './renderers/registry';
 
 const MAX_ZIP_NESTING_DEPTH = 3;
 
@@ -252,133 +233,42 @@ const FilePreviewContentInner: React.FC<FilePreviewContentProps> = ({
               onDownload={handleDownload}
               onError={onError}
             >
-              {fileType === 'image' && (
-                <ImageRenderer
-                  ref={rendererRef}
-                  url={resolvedUrl}
-                  fileSize={currentFile.size}
-                  file={currentFile}
-                />
-              )}
-              {fileType === 'pdf' && (
-                <PdfRenderer
-                  ref={rendererRef}
-                  url={resolvedUrl}
-                />
-              )}
-              {fileType === 'docx' && (
-                <DocxRenderer
-                  ref={rendererRef}
-                  url={resolvedUrl}
-                />
-              )}
-              {fileType === 'xlsx' && (
-                <XlsxRenderer
-                  ref={rendererRef}
-                  url={resolvedUrl}
-                />
-              )}
-              {fileType === 'pptx' && (
-                <PptxRenderer
-                  ref={rendererRef}
-                  url={resolvedUrl}
-                />
-              )}
-              {fileType === 'msg' && (
-                <MsgRenderer
-                  ref={rendererRef}
-                  url={resolvedUrl}
-                />
-              )}
-              {fileType === 'epub' && (
-                <EpubRenderer
-                  ref={rendererRef}
-                  url={resolvedUrl}
-                />
-              )}
-              {fileType === 'mobi' && (
-                <MobiRenderer
-                  ref={rendererRef}
-                  url={resolvedUrl}
-                />
-              )}
-              {fileType === 'video' && (
-                <VideoRenderer
-                  ref={rendererRef}
-                  url={resolvedUrl}
-                  fileName={currentFile.name}
-                />
-              )}
-              {fileType === 'audio' && (
-                <AudioRenderer
-                  ref={rendererRef}
-                  url={resolvedUrl}
-                  fileName={currentFile.name}
-                />
-              )}
-              {fileType === 'markdown' && <MarkdownRenderer ref={rendererRef} url={resolvedUrl} />}
-              {fileType === 'json' && (
-                <JsonRenderer
-                  ref={rendererRef}
-                  url={resolvedUrl}
-                  fileName={currentFile.name}
-                />
-              )}
-              {fileType === 'csv' && (
-                <CsvRenderer
-                  ref={rendererRef}
-                  url={resolvedUrl}
-                  fileName={currentFile.name}
-                />
-              )}
-              {fileType === 'xml' && (
-                <XmlRenderer
-                  ref={rendererRef}
-                  url={resolvedUrl}
-                  fileName={currentFile.name}
-                />
-              )}
-              {fileType === 'subtitle' && (
-                <SubtitleRenderer
-                  ref={rendererRef}
-                  url={resolvedUrl}
-                  fileName={currentFile.name}
-                />
-              )}
-              {fileType === 'zip' &&
-                (zipNestingDepth >= MAX_ZIP_NESTING_DEPTH ? (
+              {(() => {
+                // ZIP 嵌套深度超限：fallback 到 Unsupported
+                if (fileType === 'zip' && zipNestingDepth >= MAX_ZIP_NESTING_DEPTH) {
+                  return (
+                    <UnsupportedRenderer
+                      fileName={currentFile.name}
+                      fileType={currentFile.type}
+                      onDownload={handleDownload}
+                    />
+                  );
+                }
+
+                // 从注册表查找匹配的渲染器
+                const rendererConfig = BUILTIN_RENDERERS.find(
+                  (r) => r.fileType === fileType,
+                );
+
+                if (rendererConfig) {
+                  const RendererComponent = rendererConfig.component;
+                  const rendererProps = rendererConfig.getProps({
+                    resolvedUrl,
+                    zipNestingDepth,
+                    currentFile,
+                  });
+                  return <RendererComponent ref={rendererRef} {...rendererProps} />;
+                }
+
+                // 未匹配：fallback 到 UnsupportedRenderer
+                return (
                   <UnsupportedRenderer
                     fileName={currentFile.name}
                     fileType={currentFile.type}
                     onDownload={handleDownload}
                   />
-                ) : (
-                  <ZipRenderer
-                    ref={rendererRef}
-                    url={resolvedUrl}
-                    nestingDepth={zipNestingDepth}
-                  />
-                ))}
-              {fileType === 'text' && (
-                <TextRenderer
-                  ref={rendererRef}
-                  url={resolvedUrl}
-                  fileName={currentFile.name}
-                />
-              )}
-              {fileType === 'font' && (
-                <FontRenderer
-                  ref={rendererRef}
-                  url={resolvedUrl}
-                />
-              )}
-              {fileType === 'unsupported' && (
-                <UnsupportedRenderer
-                  fileName={currentFile.name}
-                  fileType={currentFile.type}
-                  onDownload={handleDownload}
-                />
-              )}
+                );
+              })()}
             </FilePreviewRenderer>
           </div>
 

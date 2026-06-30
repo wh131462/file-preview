@@ -239,18 +239,18 @@ function App() {
       {/* 导航栏 */}
       <nav className="bg-black/20 backdrop-blur-xl border-b border-white/10 sticky top-0 z-40">
         <div className="container mx-auto px-3 py-3 sm:px-4 sm:py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+          <div className="flex items-center justify-between gap-2 sm:gap-4">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1 overflow-hidden">
               <img src={iconSvg} alt="logo" className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex-shrink-0" />
-              <div className="flex flex-col items-start min-w-0">
-                <h1 className="text-base sm:text-xl font-bold text-white truncate">React File Preview</h1>
-                <p className="text-[10px] sm:text-xs text-gray-400 truncate max-w-[160px] sm:max-w-none">
+              <div className="flex flex-col items-start min-w-0 overflow-hidden">
+                <h1 className="text-base sm:text-xl font-bold text-white truncate w-full">React File Preview</h1>
+                <p className="text-[10px] sm:text-xs text-gray-400 truncate w-full">
                   @eternalheart/react-file-preview@{VERSION}
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
+            <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0 ml-auto">
               {/* 框架切换器 */}
               <div className="flex items-center gap-0.5 p-0.5 rounded-lg bg-white/5 border border-white/10">
                 <span className="px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-md text-xs sm:text-sm font-medium bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-md">

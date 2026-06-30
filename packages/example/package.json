@@ -11,7 +11,7 @@
   "dependencies": {
     "@eternalheart/react-file-preview": "workspace:*",
     "lucide-react": "^0.460.0",
-    "pdfjs-dist": "4.8.69",
+    "pdfjs-dist": "6.1.200",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },

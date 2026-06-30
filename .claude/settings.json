@@ -20,7 +20,24 @@
       "Bash(pnpm --filter @eternalheart/react-file-preview run build)",
       "Bash(pnpm --filter @eternalheart/vue-file-preview run build)",
       "Bash(npx vue-tsc *)",
-      "Bash(npx eslint *)"
+      "Bash(npx eslint *)",
+      "Bash(npm list *)",
+      "Bash(pnpm -r --filter \"@eternalheart/react-file-preview\" build)",
+      "Bash(pnpm -r --filter \"@eternalheart/vue-file-preview\" build)",
+      "Bash(pnpm -r --filter \"@eternalheart/react-file-preview\" --filter \"@eternalheart/vue-file-preview\" build)",
+      "Bash(npx tsc *)",
+      "Bash(npm view *)",
+      "Bash(chmod +x /tmp/check_renderers.sh)",
+      "Bash(/tmp/check_renderers.sh)",
+      "Bash(pnpm update *)",
+      "Bash(awk '/^const FontPreviewLine/,/^};$/ {print NR\": \"$0}' /Users/eternalheart/workspace/wh131462/file-preview/packages/react-file-preview/src/renderers/Font/index.tsx)",
+      "Bash(sed -i '' 's/ref={rendererRef as React\\\\.RefObject<PdfRendererHandle>}/ref={rendererRef}/g' /Users/eternalheart/workspace/wh131462/file-preview/packages/react-file-preview/src/FilePreviewContent.tsx)",
+      "Bash(sed -i '' 's/ref={rendererRef as React\\\\.RefObject<EpubRendererHandle>}/ref={rendererRef}/g' /Users/eternalheart/workspace/wh131462/file-preview/packages/react-file-preview/src/FilePreviewContent.tsx)",
+      "Bash(sed -i '' 's/ref={rendererRef as React\\\\.RefObject<MobiRendererHandle>}/ref={rendererRef}/g' /Users/eternalheart/workspace/wh131462/file-preview/packages/react-file-preview/src/FilePreviewContent.tsx)",
+      "Bash(sed -i '' 's/ref={rendererRef as React\\\\.RefObject<RendererHandle>}/ref={rendererRef}/g' /Users/eternalheart/workspace/wh131462/file-preview/packages/react-file-preview/src/FilePreviewContent.tsx)",
+      "Bash(xargs kill -9)",
+      "Bash(echo \"Server PID: $!\")",
+      "Bash(curl -s http://localhost:4800/)"
     ]
   }
 }

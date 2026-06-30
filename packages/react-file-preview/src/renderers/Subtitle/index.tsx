@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, forwardRef, useImperativeHandle } from 'react';
 import {
   parseSubtitle,
   formatSubtitleTime,
@@ -9,6 +9,7 @@ import {
 import { useTranslator } from '../../i18n/LocaleContext';
 import { useFetcher } from '../../RequestContext';
 import { RendererError } from '../RendererError';
+import type { RendererHandle } from '../base.types';
 
 interface SubtitleRendererProps {
   url: string;
@@ -31,7 +32,7 @@ const getFormat = (fileName: string): SubtitleFormat | undefined => {
   return FORMAT_BY_EXT[ext];
 };
 
-export const SubtitleRenderer: React.FC<SubtitleRendererProps> = ({ url, fileName }) => {
+export const SubtitleRenderer = forwardRef<RendererHandle, SubtitleRendererProps>(({ url, fileName }, ref) => {
   const t = useTranslator();
   const fetcher = useFetcher();
   const [text, setText] = useState<string>('');
@@ -67,6 +68,11 @@ export const SubtitleRenderer: React.FC<SubtitleRendererProps> = ({ url, fileNam
       return null;
     }
   }, [text, fileName]);
+
+  // 暴露接口给父组件
+  useImperativeHandle(ref, () => ({
+    getToolbarGroups: () => [],
+  }), []);
 
   if (loading) {
     return (
@@ -160,4 +166,4 @@ export const SubtitleRenderer: React.FC<SubtitleRendererProps> = ({ url, fileNam
       </div>
     </div>
   );
-};
+});

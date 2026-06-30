@@ -6,12 +6,14 @@ import {
   useImperativeHandle,
   forwardRef,
 } from 'react';
-import { X } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, Maximize2, Minimize2, List } from 'lucide-react';
 import 'foliate-js/view.js';
 import type { FoliateView, TocItem } from 'foliate-js/view.js';
 import { useTranslator } from '../../i18n/LocaleContext';
 import { useFetcher } from '../../RequestContext';
 import { RendererError } from '../RendererError';
+import type { RendererHandle } from '../base.types';
+import type { ToolbarGroup } from '../toolbar.types';
 
 const READER_CSS = `
   @namespace epub "http://www.idpf.org/2007/ops";
@@ -39,7 +41,7 @@ const READER_CSS = `
 
 const A4_WIDTH = 794;
 
-export interface MobiRendererHandle {
+export interface MobiRendererHandle extends RendererHandle {
   prevPage: () => void;
   nextPage: () => void;
   toggleFullWidth: () => void;
@@ -48,36 +50,34 @@ export interface MobiRendererHandle {
 
 interface MobiRendererProps {
   url: string;
-  onChapterChange?: (current: number, total: number) => void;
-  onFullWidthChange?: (isFullWidth: boolean) => void;
 }
 
 export const MobiRenderer = forwardRef<MobiRendererHandle, MobiRendererProps>(
-  ({ url, onChapterChange, onFullWidthChange }, ref) => {
+  ({ url }, ref) => {
     const t = useTranslator();
     const fetcher = useFetcher();
     const hostRef = useRef<HTMLDivElement>(null);
     const viewRef = useRef<FoliateView | null>(null);
-    const onChapterChangeRef = useRef(onChapterChange);
-    const onFullWidthChangeRef = useRef(onFullWidthChange);
-    onChapterChangeRef.current = onChapterChange;
-    onFullWidthChangeRef.current = onFullWidthChange;
 
     // 模拟 epub.js 的 locations 显示
     const totalLocationsRef = useRef(1);
 
+    // 内部状态管理
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [toc, setToc] = useState<TocItem[]>([]);
     const [showToc, setShowToc] = useState(false);
     const [activeTocHref, setActiveTocHref] = useState<string>('');
     const [isFullWidth, setIsFullWidth] = useState(false);
+    const [currentChapter, setCurrentChapter] = useState(0);
+    const [totalChapters, setTotalChapters] = useState(0);
     const isFullWidthRef = useRef(false);
     isFullWidthRef.current = isFullWidth;
 
     const reportProgress = useCallback((current: number, total: number) => {
       if (total > 0) totalLocationsRef.current = total;
-      onChapterChangeRef.current?.(Math.max(1, current + 1), totalLocationsRef.current);
+      setCurrentChapter(Math.max(1, current + 1));
+      setTotalChapters(totalLocationsRef.current);
     }, []);
 
     const handlePrev = useCallback(() => {
@@ -97,7 +97,6 @@ export const MobiRenderer = forwardRef<MobiRendererHandle, MobiRendererProps>(
     const toggleFullWidth = useCallback(() => {
       const newVal = !isFullWidthRef.current;
       setIsFullWidth(newVal);
-      onFullWidthChangeRef.current?.(newVal);
       // 宽度改变后 paginator 需要重新分页
       const view = viewRef.current;
       if (!view) return;
@@ -107,6 +106,50 @@ export const MobiRenderer = forwardRef<MobiRendererHandle, MobiRendererProps>(
       }
     }, []);
 
+    // 事件发射器：用于通知主组件工具栏状态变化
+    const listenersRef = useRef<Set<() => void>>(new Set());
+    const notifyToolbarChange = useCallback(() => {
+      listenersRef.current.forEach(listener => listener());
+    }, []);
+
+    // 监听影响工具栏的状态变化
+    useEffect(() => {
+      notifyToolbarChange();
+    }, [currentChapter, notifyToolbarChange]);
+
+    useEffect(() => {
+      notifyToolbarChange();
+    }, [totalChapters, notifyToolbarChange]);
+
+    useEffect(() => {
+      notifyToolbarChange();
+    }, [isFullWidth, notifyToolbarChange]);
+
+    useEffect(() => {
+      notifyToolbarChange();
+    }, [toc.length, notifyToolbarChange]);
+
+    // 工具栏配置
+    const getToolbarGroups = useCallback((): ToolbarGroup[] => [
+      {
+        items: [
+          { type: 'button', icon: <List className="rfp-w-4 rfp-h-4" />, tooltip: t('toolbar.toc'), action: toggleToc, disabled: toc.length === 0, active: showToc },
+        ],
+      },
+      {
+        items: [
+          { type: 'button', icon: <ChevronLeft className="rfp-w-4 rfp-h-4" />, tooltip: t('toolbar.prev_page'), action: handlePrev, disabled: currentChapter <= 1 },
+          { type: 'text', content: `${currentChapter} / ${totalChapters}`, minWidth: '4rem' },
+          { type: 'button', icon: <ChevronRight className="rfp-w-4 rfp-h-4" />, tooltip: t('toolbar.next_page'), action: handleNext, disabled: currentChapter >= totalChapters },
+        ],
+      },
+      {
+        items: [
+          { type: 'button', icon: isFullWidth ? <Minimize2 className="rfp-w-4 rfp-h-4" /> : <Maximize2 className="rfp-w-4 rfp-h-4" />, tooltip: isFullWidth ? t('toolbar.normal_width') : t('toolbar.full_width'), action: toggleFullWidth, active: isFullWidth },
+        ],
+      },
+    ], [currentChapter, totalChapters, isFullWidth, showToc, toc.length, t, handlePrev, handleNext, toggleToc, toggleFullWidth]);
+
     const handleTocClick = useCallback((href: string) => {
       setActiveTocHref(href);
       setShowToc(false);
@@ -114,11 +157,16 @@ export const MobiRenderer = forwardRef<MobiRendererHandle, MobiRendererProps>(
     }, []);
 
     useImperativeHandle(ref, () => ({
+      getToolbarGroups,
+      onToolbarChange: (listener: () => void) => {
+        listenersRef.current.add(listener);
+        return () => listenersRef.current.delete(listener);
+      },
       prevPage: handlePrev,
       nextPage: handleNext,
       toggleFullWidth,
       toggleToc,
-    }), [handlePrev, handleNext, toggleFullWidth, toggleToc]);
+    }), [getToolbarGroups, handlePrev, handleNext, toggleFullWidth, toggleToc]);
 
     useEffect(() => {
       const host = hostRef.current;

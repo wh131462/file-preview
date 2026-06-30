@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef } from 'react';
+import React, { useCallback, useMemo, useRef, useState, useEffect } from 'react';
 import { getFileType, createTranslator, type Locale, type Messages, type Translator, type Theme, downloadFileWithFetcher } from '@eternalheart/file-preview-core';
 import { LocaleProvider } from './i18n/LocaleContext';
 import { ThemeProvider } from './ThemeContext';
@@ -6,17 +6,12 @@ import type { PreviewFileInput, CustomRenderer, CustomRendererContext } from './
 import type { CustomRendererEventPayload, PreviewFile, RequestHandler, RequestInitFactory, ShouldFetchAsBlob } from '@eternalheart/file-preview-core';
 import { normalizeFiles } from './utils/fileNormalizer';
 import { RequestProvider, useResolvedUrl, useFetcher } from './RequestContext';
-import type { EpubRendererHandle } from './renderers/Epub';
-import type { MobiRendererHandle } from './renderers/Mobi';
+import type { RendererHandle } from './renderers/base.types';
+import type { ToolbarGroup } from './renderers/toolbar.types';
 import { UnsupportedRenderer } from './renderers/Unsupported';
 import {
-  useFilePreviewState,
   useKeyboardNavigation,
-  useBookRenderer,
   useThemeMode,
-  useImageAutoFit,
-  useToolbarConfig,
-  type ToolbarConfigHandlers,
 } from './hooks';
 import { FilePreviewToolbar, FilePreviewRenderer, NavArrows } from './components/preview';
 import {
@@ -114,14 +109,67 @@ const FilePreviewContentInner: React.FC<FilePreviewContentProps> = ({
   // 主题
   const resolvedTheme = useThemeMode(theme);
 
-  // 状态管理（useReducer）
-  const { state, dispatch } = useFilePreviewState(currentIndex);
-
   // Refs
   const contentRef = useRef<HTMLDivElement>(null);
   const rootRef = useRef<HTMLDivElement>(null);
-  const epubBook = useBookRenderer<EpubRendererHandle>();
-  const mobiBook = useBookRenderer<MobiRendererHandle>();
+
+  // 新架构：通用渲染器 ref，用于获取工具栏配置
+  const rendererInstanceRef = useRef<RendererHandle | null>(null);
+  const [rendererToolbarGroups, setRendererToolbarGroups] = useState<ToolbarGroup[]>([]);
+  const cleanupRef = useRef<(() => void) | null>(null);
+
+  // 设置渲染器并初始化工具栏（在渲染器挂载/更新时同步触发）
+  const setupRenderer = useCallback((renderer: RendererHandle | null) => {
+    // 清理旧的订阅
+    if (cleanupRef.current) {
+      cleanupRef.current();
+      cleanupRef.current = null;
+    }
+
+    rendererInstanceRef.current = renderer;
+
+    if (!renderer?.getToolbarGroups) {
+      setRendererToolbarGroups([]);
+      return;
+    }
+
+    // 立即获取一次初始状态
+    const initialGroups = renderer.getToolbarGroups();
+    setRendererToolbarGroups(initialGroups);
+
+    // 如果渲染器支持事件订阅，使用事件机制
+    if (renderer.onToolbarChange) {
+      const unsubscribe = renderer.onToolbarChange(() => {
+        const groups = renderer.getToolbarGroups();
+        setRendererToolbarGroups(groups);
+      });
+
+      cleanupRef.current = unsubscribe;
+      return;
+    }
+
+    // 回退机制：如果渲染器不支持事件，使用轮询
+    const interval = setInterval(() => {
+      const groups = renderer.getToolbarGroups();
+      setRendererToolbarGroups(groups);
+    }, 100);
+    cleanupRef.current = () => clearInterval(interval);
+  }, []);
+
+  // Callback ref：在渲染器挂载/卸载时立即触发
+  const rendererRef = useCallback((renderer: RendererHandle | null) => {
+    setupRenderer(renderer);
+  }, [setupRenderer]);
+
+  // 组件卸载时清理
+  useEffect(() => {
+    return () => {
+      if (cleanupRef.current) {
+        cleanupRef.current();
+        cleanupRef.current = null;
+      }
+    };
+  }, []);
 
   // 键盘导航
   useKeyboardNavigation({
@@ -133,14 +181,14 @@ const FilePreviewContentInner: React.FC<FilePreviewContentProps> = ({
     rootRef,
   });
 
-  // 图片自动适应窗口
-  useImageAutoFit({
-    enabled: fileType === 'image',
-    naturalWidth: state.image.naturalWidth,
-    naturalHeight: state.image.naturalHeight,
-    containerRef: contentRef,
-    onZoomChange: (zoom) => dispatch({ type: 'SET_ZOOM', payload: zoom }),
-  });
+  // 图片自动适应窗口（已禁用，改为手动点击"适应窗口"按钮）
+  // useImageAutoFit({
+  //   enabled: fileType === 'image',
+  //   naturalWidth: state.image.naturalWidth,
+  //   naturalHeight: state.image.naturalHeight,
+  //   containerRef: contentRef,
+  //   onZoomChange: (zoom) => dispatch({ type: 'SET_ZOOM', payload: zoom }),
+  // });
 
   // 自定义渲染器上下文
   const emitCustom = useCallback(
@@ -156,74 +204,6 @@ const FilePreviewContentInner: React.FC<FilePreviewContentProps> = ({
     [emitCustom, t, resolvedTheme, locale],
   );
 
-  // 事件处理器
-  const handleZoomIn = useCallback(() => {
-    dispatch({ type: 'SET_ZOOM', payload: Math.min(state.common.zoom + 0.1, 10) });
-  }, [state.common.zoom, dispatch]);
-
-  const handleZoomOut = useCallback(() => {
-    dispatch({ type: 'SET_ZOOM', payload: Math.max(state.common.zoom - 0.1, 0.01) });
-  }, [state.common.zoom, dispatch]);
-
-  const handleRotateLeft = useCallback(() => {
-    dispatch({ type: 'SET_ROTATION', payload: state.common.rotation - 90 });
-  }, [state.common.rotation, dispatch]);
-
-  const handleRotateRight = useCallback(() => {
-    dispatch({ type: 'SET_ROTATION', payload: state.common.rotation + 90 });
-  }, [state.common.rotation, dispatch]);
-
-  const handleFitToWidth = useCallback(() => {
-    if (contentRef.current && state.image.naturalWidth > 0 && state.image.naturalHeight > 0) {
-      const containerWidth = contentRef.current.clientWidth;
-      const containerHeight = contentRef.current.clientHeight;
-      const scaleX = containerWidth / state.image.naturalWidth;
-      const scaleY = containerHeight / state.image.naturalHeight;
-      const newZoom = Math.min(scaleX, scaleY);
-      dispatch({ type: 'SET_ZOOM', payload: Math.max(0.01, Math.min(10, newZoom)) });
-    } else {
-      dispatch({ type: 'SET_ZOOM', payload: 1 });
-    }
-    dispatch({ type: 'SET_ROTATION', payload: 0 });
-    dispatch({ type: 'RESET_IMAGE' });
-  }, [state.image.naturalWidth, state.image.naturalHeight, dispatch]);
-
-  const handleOriginalSize = useCallback(() => {
-    dispatch({ type: 'SET_ZOOM', payload: 1 });
-    dispatch({ type: 'SET_ROTATION', payload: 0 });
-    dispatch({ type: 'RESET_IMAGE' });
-  }, [dispatch]);
-
-  const handleReset = useCallback(() => {
-    dispatch({ type: 'SET_ZOOM', payload: 1 });
-    dispatch({ type: 'SET_ROTATION', payload: 0 });
-    dispatch({ type: 'RESET_IMAGE' });
-  }, [dispatch]);
-
-  const handlePrevPage = useCallback(() => {
-    if (!contentRef.current) return;
-    // 查找包含 [data-page-number] 的滚动容器（PDF 渲染器内部）
-    const container = contentRef.current.querySelector<HTMLElement>('.rfp-overflow-auto [data-page-number]')?.parentElement;
-    if (!container) return;
-    const pages = container.querySelectorAll('[data-page-number]');
-    const targetPage = pages[Math.max(0, state.pdf.currentPage - 2)];
-    if (targetPage) {
-      targetPage.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  }, [state.pdf.currentPage]);
-
-  const handleNextPage = useCallback(() => {
-    if (!contentRef.current) return;
-    // 查找包含 [data-page-number] 的滚动容器（PDF 渲染器内部）
-    const container = contentRef.current.querySelector<HTMLElement>('.rfp-overflow-auto [data-page-number]')?.parentElement;
-    if (!container) return;
-    const pages = container.querySelectorAll('[data-page-number]');
-    const targetPage = pages[Math.min(pages.length - 1, state.pdf.currentPage)];
-    if (targetPage) {
-      targetPage.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  }, [state.pdf.currentPage]);
-
   const handleDownload = useCallback(async () => {
     if (!currentFile) return;
     if (onDownload) {
@@ -237,97 +217,7 @@ const FilePreviewContentInner: React.FC<FilePreviewContentProps> = ({
     }
   }, [currentFile, onDownload, fetcher]);
 
-  // PDF 回调（需要 useCallback 避免触发 PdfRenderer 内部 useEffect 无限循环）
-  const handlePdfPageChange = useCallback(
-    (page: number) => dispatch({ type: 'SET_PDF_PAGE', payload: page }),
-    [dispatch]
-  );
-
-  const handlePdfTotalPagesChange = useCallback(
-    (total: number) => dispatch({ type: 'SET_PDF_TOTAL_PAGES', payload: total }),
-    [dispatch]
-  );
-
-  const handlePdfPageWidthChange = useCallback(
-    (w: number) =>
-      dispatch({
-        type: 'SET_IMAGE_NATURAL_SIZE',
-        payload: { width: w, height: state.image.naturalHeight },
-      }),
-    [state.image.naturalHeight, dispatch]
-  );
-
-  const handlePdfToggleOutline = useCallback(
-    () => dispatch({ type: 'SET_PDF_OUTLINE', payload: !state.pdf.showOutline }),
-    [state.pdf.showOutline, dispatch]
-  );
-
-  // Image 回调
-  const handleImageZoomChange = useCallback(
-    (zoom: number) => dispatch({ type: 'SET_ZOOM', payload: zoom }),
-    [dispatch]
-  );
-
-  const handleImageNaturalWidthChange = useCallback(
-    (w: number) =>
-      dispatch({
-        type: 'SET_IMAGE_NATURAL_SIZE',
-        payload: { width: w, height: state.image.naturalHeight },
-      }),
-    [state.image.naturalHeight, dispatch]
-  );
-
-  const handleImageNaturalHeightChange = useCallback(
-    (h: number) =>
-      dispatch({
-        type: 'SET_IMAGE_NATURAL_SIZE',
-        payload: { width: state.image.naturalWidth, height: h },
-      }),
-    [state.image.naturalWidth, dispatch]
-  );
-
   if (!currentFile) return null;
-
-  // 工具栏 handlers
-  const toolbarHandlers: ToolbarConfigHandlers = {
-    onZoomIn: handleZoomIn,
-    onZoomOut: handleZoomOut,
-    onRotateLeft: handleRotateLeft,
-    onRotateRight: handleRotateRight,
-    onReset: handleReset,
-    onFitToWidth: handleFitToWidth,
-    onOriginalSize: handleOriginalSize,
-    onPrevPage: handlePrevPage,
-    onNextPage: handleNextPage,
-    onToggleOutline: () => dispatch({ type: 'SET_PDF_OUTLINE', payload: !state.pdf.showOutline }),
-    onToggleWrap: () => dispatch({ type: 'SET_TEXT_WORD_WRAP', payload: !state.text.wordWrap }),
-    onToggleHtmlPreview: () => dispatch({ type: 'SET_TEXT_HTML_PREVIEW', payload: !state.text.htmlPreview }),
-    onToggleViewMode: () =>
-      dispatch({
-        type: 'SET_MARKDOWN_VIEW_MODE',
-        payload: state.markdown.viewMode === 'preview' ? 'source' : 'preview',
-      }),
-    epubRef: epubBook.ref,
-    mobiRef: mobiBook.ref,
-    epubCurrent: epubBook.current,
-    epubTotal: epubBook.total,
-    epubFullWidth: epubBook.fullWidth,
-    mobiCurrent: mobiBook.current,
-    mobiTotal: mobiBook.total,
-    mobiFullWidth: mobiBook.fullWidth,
-  };
-
-  // 工具栏配置
-  const toolGroups = useToolbarConfig({
-    fileType,
-    fileName: currentFile.name,
-    state,
-    handlers: toolbarHandlers,
-    t,
-    customRenderer,
-    currentFile,
-    customRendererContext: customCtx,
-  });
 
   return (
     <LocaleProvider locale={locale} messages={userMessages}>
@@ -343,7 +233,7 @@ const FilePreviewContentInner: React.FC<FilePreviewContentProps> = ({
               fileName={currentFile.name}
               currentIndex={currentIndex}
               totalFiles={normalizedFiles.length}
-              toolGroups={toolGroups}
+              toolGroups={rendererToolbarGroups}
               t={t}
               onDownload={handleDownload}
               onClose={onClose}
@@ -364,56 +254,97 @@ const FilePreviewContentInner: React.FC<FilePreviewContentProps> = ({
             >
               {fileType === 'image' && (
                 <ImageRenderer
+                  ref={rendererRef}
                   url={resolvedUrl}
-                  zoom={state.common.zoom}
-                  rotation={state.common.rotation}
-                  resetKey={state.image.resetKey}
                   fileSize={currentFile.size}
                   file={currentFile}
-                  onZoomChange={handleImageZoomChange}
-                  onNaturalWidthChange={handleImageNaturalWidthChange}
-                  onNaturalHeightChange={handleImageNaturalHeightChange}
                 />
               )}
               {fileType === 'pdf' && (
                 <PdfRenderer
+                  ref={rendererRef}
                   url={resolvedUrl}
-                  zoom={state.common.zoom}
-                  currentPage={state.pdf.currentPage}
-                  showOutline={state.pdf.showOutline}
-                  onPageChange={handlePdfPageChange}
-                  onTotalPagesChange={handlePdfTotalPagesChange}
-                  onPageWidthChange={handlePdfPageWidthChange}
-                  onToggleOutline={handlePdfToggleOutline}
                 />
               )}
-              {fileType === 'docx' && <DocxRenderer url={resolvedUrl} />}
-              {fileType === 'xlsx' && <XlsxRenderer url={resolvedUrl} />}
-              {fileType === 'pptx' && <PptxRenderer url={resolvedUrl} />}
-              {fileType === 'msg' && <MsgRenderer url={resolvedUrl} />}
+              {fileType === 'docx' && (
+                <DocxRenderer
+                  ref={rendererRef}
+                  url={resolvedUrl}
+                />
+              )}
+              {fileType === 'xlsx' && (
+                <XlsxRenderer
+                  ref={rendererRef}
+                  url={resolvedUrl}
+                />
+              )}
+              {fileType === 'pptx' && (
+                <PptxRenderer
+                  ref={rendererRef}
+                  url={resolvedUrl}
+                />
+              )}
+              {fileType === 'msg' && (
+                <MsgRenderer
+                  ref={rendererRef}
+                  url={resolvedUrl}
+                />
+              )}
               {fileType === 'epub' && (
                 <EpubRenderer
-                  ref={epubBook.ref as React.RefObject<EpubRendererHandle>}
+                  ref={rendererRef}
                   url={resolvedUrl}
-                  onChapterChange={epubBook.handleChapterChange}
-                  onFullWidthChange={epubBook.setFullWidth}
                 />
               )}
               {fileType === 'mobi' && (
                 <MobiRenderer
-                  ref={mobiBook.ref as React.RefObject<MobiRendererHandle>}
+                  ref={rendererRef}
                   url={resolvedUrl}
-                  onChapterChange={mobiBook.handleChapterChange}
-                  onFullWidthChange={mobiBook.setFullWidth}
                 />
               )}
-              {fileType === 'video' && <VideoRenderer url={resolvedUrl} fileName={currentFile.name} />}
-              {fileType === 'audio' && <AudioRenderer url={resolvedUrl} fileName={currentFile.name} />}
-              {fileType === 'markdown' && <MarkdownRenderer url={resolvedUrl} viewMode={state.markdown.viewMode} />}
-              {fileType === 'json' && <JsonRenderer url={resolvedUrl} fileName={currentFile.name} />}
-              {fileType === 'csv' && <CsvRenderer url={resolvedUrl} fileName={currentFile.name} />}
-              {fileType === 'xml' && <XmlRenderer url={resolvedUrl} fileName={currentFile.name} />}
-              {fileType === 'subtitle' && <SubtitleRenderer url={resolvedUrl} fileName={currentFile.name} />}
+              {fileType === 'video' && (
+                <VideoRenderer
+                  ref={rendererRef}
+                  url={resolvedUrl}
+                  fileName={currentFile.name}
+                />
+              )}
+              {fileType === 'audio' && (
+                <AudioRenderer
+                  ref={rendererRef}
+                  url={resolvedUrl}
+                  fileName={currentFile.name}
+                />
+              )}
+              {fileType === 'markdown' && <MarkdownRenderer ref={rendererRef} url={resolvedUrl} />}
+              {fileType === 'json' && (
+                <JsonRenderer
+                  ref={rendererRef}
+                  url={resolvedUrl}
+                  fileName={currentFile.name}
+                />
+              )}
+              {fileType === 'csv' && (
+                <CsvRenderer
+                  ref={rendererRef}
+                  url={resolvedUrl}
+                  fileName={currentFile.name}
+                />
+              )}
+              {fileType === 'xml' && (
+                <XmlRenderer
+                  ref={rendererRef}
+                  url={resolvedUrl}
+                  fileName={currentFile.name}
+                />
+              )}
+              {fileType === 'subtitle' && (
+                <SubtitleRenderer
+                  ref={rendererRef}
+                  url={resolvedUrl}
+                  fileName={currentFile.name}
+                />
+              )}
               {fileType === 'zip' &&
                 (zipNestingDepth >= MAX_ZIP_NESTING_DEPTH ? (
                   <UnsupportedRenderer
@@ -423,20 +354,24 @@ const FilePreviewContentInner: React.FC<FilePreviewContentProps> = ({
                   />
                 ) : (
                   <ZipRenderer
+                    ref={rendererRef}
                     url={resolvedUrl}
-                    onStatsChange={(stats) => dispatch({ type: 'SET_ZIP_STATS', payload: stats })}
                     nestingDepth={zipNestingDepth}
                   />
                 ))}
               {fileType === 'text' && (
                 <TextRenderer
+                  ref={rendererRef}
                   url={resolvedUrl}
                   fileName={currentFile.name}
-                  wordWrap={state.text.wordWrap}
-                  htmlPreview={state.text.htmlPreview}
                 />
               )}
-              {fileType === 'font' && <FontRenderer url={resolvedUrl} />}
+              {fileType === 'font' && (
+                <FontRenderer
+                  ref={rendererRef}
+                  url={resolvedUrl}
+                />
+              )}
               {fileType === 'unsupported' && (
                 <UnsupportedRenderer
                   fileName={currentFile.name}

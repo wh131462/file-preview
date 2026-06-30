@@ -4,6 +4,8 @@ export interface ToolbarButtonItem {
   tooltip: string;
   action: () => void;
   disabled?: boolean;
+  /** 激活状态：true 时按钮显示高亮样式（用于切换类按钮，如自动换行、HTML 预览等） */
+  active?: boolean;
   ariaKeyshortcuts?: string;
 }
 

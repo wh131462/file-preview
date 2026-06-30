@@ -20,6 +20,7 @@ export function renderToolbarItems(
             label={item.tooltip}
             onClick={item.action}
             disabled={item.disabled}
+            active={item.active}
             ariaKeyshortcuts={item.ariaKeyshortcuts}
           />
         ) : (

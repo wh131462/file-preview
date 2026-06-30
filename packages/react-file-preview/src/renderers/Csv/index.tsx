@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, forwardRef, useImperativeHandle } from 'react';
 import Spreadsheet from 'x-data-spreadsheet';
 import 'x-data-spreadsheet/dist/xspreadsheet.css';
 import {
@@ -10,13 +10,14 @@ import {
 import { useTranslator } from '../../i18n/LocaleContext';
 import { useFetcher } from '../../RequestContext';
 import { RendererError } from '../RendererError';
+import type { RendererHandle } from '../base.types';
 
 interface CsvRendererProps {
   url: string;
   fileName: string;
 }
 
-export const CsvRenderer: React.FC<CsvRendererProps> = ({ url, fileName }) => {
+export const CsvRenderer = forwardRef<RendererHandle, CsvRendererProps>(({ url, fileName }, ref) => {
   const t = useTranslator();
   const fetcher = useFetcher();
   const [loading, setLoading] = useState(true);
@@ -167,6 +168,11 @@ export const CsvRenderer: React.FC<CsvRendererProps> = ({ url, fileName }) => {
     };
   }, [url, fileName, mountSpreadsheet]);
 
+  // 暴露接口给父组件
+  useImperativeHandle(ref, () => ({
+    getToolbarGroups: () => [],
+  }), []);
+
   return (
     <div className="rfp-relative rfp-flex rfp-flex-col rfp-items-center rfp-w-full rfp-h-full">
       {loading && (
@@ -193,4 +199,4 @@ export const CsvRenderer: React.FC<CsvRendererProps> = ({ url, fileName }) => {
       )}
     </div>
   );
-};
+});

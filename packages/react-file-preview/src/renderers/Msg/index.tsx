@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
 import MsgReader from '@kenjiuno/msgreader';
 import type { FieldsData } from '@kenjiuno/msgreader';
 import { User, Users, Paperclip, Calendar, Mail, Tag, Clock, Hash } from 'lucide-react';
 import { useTranslator } from '../../i18n/LocaleContext';
 import { useFetcher } from '../../RequestContext';
 import { RendererError } from '../RendererError';
+import type { RendererHandle } from '../base.types';
 
 interface MsgRendererProps {
   url: string;
@@ -108,7 +109,7 @@ const valueStyle: React.CSSProperties = {
   flex: 1,
 };
 
-export const MsgRenderer: React.FC<MsgRendererProps> = ({ url }) => {
+export const MsgRenderer = forwardRef<RendererHandle, MsgRendererProps>(({ url }, ref) => {
   const t = useTranslator();
   const fetcher = useFetcher();
   const [loading, setLoading] = useState(true);
@@ -144,6 +145,11 @@ export const MsgRenderer: React.FC<MsgRendererProps> = ({ url }) => {
 
     loadMsg();
   }, [url]);
+
+  // 暴露接口给父组件（必须在 early return 之前调用）
+  useImperativeHandle(ref, () => ({
+    getToolbarGroups: () => [],
+  }), []);
 
   if (loading) {
     return (
@@ -392,4 +398,4 @@ export const MsgRenderer: React.FC<MsgRendererProps> = ({ url }) => {
       </div>
     </div>
   );
-};
+});

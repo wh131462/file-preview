@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback, useRef, lazy, Suspense } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef, lazy, Suspense, forwardRef, useImperativeHandle } from 'react';
 import React from 'react';
 import { createPortal } from 'react-dom';
 import {
@@ -11,6 +11,7 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import { RendererError } from '../RendererError';
+import type { RendererHandle } from '../base.types';
 import type JSZip from 'jszip';
 import {
   loadZip,
@@ -23,9 +24,14 @@ import {
   type ZipTreeNode,
 } from '@eternalheart/file-preview-core';
 import { ResizableSplit, type ResizableSplitHandle } from '../../components/ResizableSplit';
-import type { ZipToolbarStats } from './toolbar';
 import { useTranslator } from '../../i18n/LocaleContext';
 import { useFetcher } from '../../RequestContext';
+
+export interface ZipToolbarStats {
+  files: number;
+  dirs: number;
+  size: number;
+}
 
 // 懒加载 FilePreviewContent 以打破循环依赖
 const LazyFilePreviewContent = lazy(() =>
@@ -162,7 +168,7 @@ const TreeItem: React.FC<TreeItemProps> = ({
 
 // ---------- Main Zip Renderer ----------
 
-export const ZipRenderer: React.FC<ZipRendererProps> = ({ url, nestingDepth = 0, onStatsChange }) => {
+export const ZipRenderer = forwardRef<RendererHandle, ZipRendererProps>(({ url, nestingDepth = 0, onStatsChange }, ref) => {
   const t = useTranslator();
   const fetcher = useFetcher();
   const [zip, setZip] = useState<JSZip | null>(null);
@@ -295,6 +301,17 @@ export const ZipRenderer: React.FC<ZipRendererProps> = ({ url, nestingDepth = 0,
     [zip, selected]
   );
 
+  // Memoize files 数组以避免无限重新渲染
+  const previewFiles = useMemo(() => {
+    if (!selected) return [];
+    return [{ name: selected.name, url: selected.blobUrl, type: inferMimeType(selected.name) }];
+  }, [selected]);
+
+  // 暴露接口给父组件（必须在 early return 之前调用）
+  useImperativeHandle(ref, () => ({
+    getToolbarGroups: () => [],
+  }), []);
+
   if (loading) {
     return (
       <div className="rfp-flex rfp-items-center rfp-justify-center rfp-w-full rfp-h-full">
@@ -356,7 +373,7 @@ export const ZipRenderer: React.FC<ZipRendererProps> = ({ url, nestingDepth = 0,
             >
               <LazyFilePreviewContent
                 mode="embed"
-                files={[{ name: selected.name, url: selected.blobUrl, type: inferMimeType(selected.name) }]}
+                files={previewFiles}
                 currentIndex={0}
                 zipNestingDepth={nestingDepth + 1}
               />
@@ -399,4 +416,4 @@ export const ZipRenderer: React.FC<ZipRendererProps> = ({ url, nestingDepth = 0,
         )}
     </>
   );
-};
+});

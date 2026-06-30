@@ -1,20 +1,21 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, forwardRef, useImperativeHandle, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import rehypeRaw from 'rehype-raw';
-import { Copy, Check } from 'lucide-react';
+import { Copy, Check, Eye, Code } from 'lucide-react';
 import { fetchTextUtf8 } from '@eternalheart/file-preview-core';
 import { useTranslator } from '../../i18n/LocaleContext';
 import { useFetcher } from '../../RequestContext';
 import { useShikiHighlight } from '../../hooks/useShikiHighlight';
 import { RendererError } from '../RendererError';
+import type { RendererHandle } from '../base.types';
+import type { ToolbarGroup } from '../toolbar.types';
 import 'katex/dist/katex.min.css';
 
 interface MarkdownRendererProps {
   url: string;
-  viewMode?: 'preview' | 'source';
 }
 
 const useCopy = (text: string) => {
@@ -92,12 +93,16 @@ const ShikiCodeBlock = ({ code, lang }: { code: string; lang: string }) => {
   );
 };
 
-export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ url, viewMode = 'preview' }) => {
+export const MarkdownRenderer = forwardRef<RendererHandle, MarkdownRendererProps>(({ url }, ref) => {
   const t = useTranslator();
   const fetcher = useFetcher();
+
+  // 内部状态管理
   const [content, setContent] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<'preview' | 'source'>('preview');
+
   const { html: sourceHtml } = useShikiHighlight(
     viewMode === 'source' ? content : '',
     'markdown',
@@ -123,6 +128,46 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ url, viewMod
     loadMarkdown();
     return () => controller.abort();
   }, [url, fetcher, t]);
+
+  // 事件发射器：用于通知主组件工具栏状态变化
+  const listenersRef = useRef<Set<() => void>>(new Set());
+  const notifyToolbarChange = useCallback(() => {
+    listenersRef.current.forEach(listener => listener());
+  }, []);
+
+  // 监听影响工具栏的状态变化
+  useEffect(() => {
+    notifyToolbarChange();
+  }, [viewMode, notifyToolbarChange]);
+
+  // 切换视图模式
+  const toggleViewMode = useCallback(() => {
+    setViewMode(prev => prev === 'preview' ? 'source' : 'preview');
+  }, []);
+
+  // 工具栏配置
+  const getToolbarGroups = useCallback((): ToolbarGroup[] => [
+    {
+      items: [
+        {
+          type: 'button',
+          icon: viewMode === 'preview' ? <Code className="rfp-w-4 rfp-h-4" /> : <Eye className="rfp-w-4 rfp-h-4" />,
+          tooltip: viewMode === 'preview' ? t('toolbar.source') : t('toolbar.preview'),
+          action: toggleViewMode,
+          active: viewMode === 'source',
+        },
+      ],
+    },
+  ], [viewMode, t, toggleViewMode]);
+
+  // 暴露接口给父组件
+  useImperativeHandle(ref, () => ({
+    getToolbarGroups,
+    onToolbarChange: (listener: () => void) => {
+      listenersRef.current.add(listener);
+      return () => listenersRef.current.delete(listener);
+    },
+  }), [getToolbarGroups]);
 
   if (loading) {
     return (
@@ -294,4 +339,4 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ url, viewMod
           </ReactMarkdown>
     </div>
   );
-};
+});

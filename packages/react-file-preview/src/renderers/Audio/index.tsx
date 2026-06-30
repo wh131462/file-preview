@@ -1,9 +1,10 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Play, Pause, Volume2, VolumeX, Volume1, SkipBack, SkipForward, Repeat } from 'lucide-react';
 import { useAudioPlayer } from '../../hooks/useAudioPlayer';
 import { useTranslator } from '../../i18n/LocaleContext';
 import { RendererError } from '../RendererError';
+import type { RendererHandle } from '../base.types';
 
 /** 文本溢出时自动横向滚动 */
 const MarqueeText: React.FC<{
@@ -152,7 +153,7 @@ interface AudioRendererProps {
   fileName: string;
 }
 
-export const AudioRenderer: React.FC<AudioRendererProps> = ({ url, fileName }) => {
+export const AudioRenderer = forwardRef<RendererHandle, AudioRendererProps>(({ url, fileName }, ref) => {
   const t = useTranslator();
   const {
     audioRef,
@@ -201,6 +202,11 @@ export const AudioRenderer: React.FC<AudioRendererProps> = ({ url, fileName }) =
   };
 
   const VolumeIcon = isMuted || volume === 0 ? VolumeX : volume < 0.5 ? Volume1 : Volume2;
+
+  // 暴露接口给父组件
+  useImperativeHandle(ref, () => ({
+    getToolbarGroups: () => [],
+  }), []);
 
   if (error) {
     return <RendererError message={error} />;
@@ -490,4 +496,4 @@ export const AudioRenderer: React.FC<AudioRendererProps> = ({ url, fileName }) =
       <audio ref={audioRef} src={url} className="rfp-hidden" />
     </div>
   );
-};
+});

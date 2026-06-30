@@ -1,8 +1,9 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, forwardRef, useImperativeHandle } from 'react';
 import mammoth from 'mammoth';
 import { useTranslator } from '../../i18n/LocaleContext';
 import { useFetcher } from '../../RequestContext';
 import { RendererError } from '../RendererError';
+import type { RendererHandle } from '../base.types';
 
 interface DocxRendererProps {
   url: string;
@@ -21,7 +22,7 @@ const contentStyle: React.CSSProperties = {
   color: '#333',
 };
 
-export const DocxRenderer: React.FC<DocxRendererProps> = ({ url }) => {
+export const DocxRenderer = forwardRef<RendererHandle, DocxRendererProps>(({ url }, ref) => {
   const t = useTranslator();
   const fetcher = useFetcher();
   const [html, setHtml] = useState<string>('');
@@ -99,6 +100,11 @@ export const DocxRenderer: React.FC<DocxRendererProps> = ({ url }) => {
     });
   }, [html, paginate]);
 
+  // 暴露接口给父组件
+  useImperativeHandle(ref, () => ({
+    getToolbarGroups: () => [],
+  }), []);
+
   if (loading) {
     return (
       <div className="rfp-flex rfp-items-center rfp-justify-center rfp-w-full rfp-h-full">
@@ -113,7 +119,7 @@ export const DocxRenderer: React.FC<DocxRendererProps> = ({ url }) => {
 
   return (
     <div
-      className="rfp-w-full rfp-h-full rfp-overflow-auto rfp-py-6 rfp-px-4"
+      className="rfp-docx-container rfp-w-full rfp-h-full rfp-overflow-auto rfp-py-6 rfp-px-4"
       style={{ background: 'rgba(0, 0, 0, 0.15)' }}
     >
       {/* Hidden measurement div — same width as page content area */}
@@ -156,4 +162,4 @@ export const DocxRenderer: React.FC<DocxRendererProps> = ({ url }) => {
       </div>
     </div>
   );
-};
+});

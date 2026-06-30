@@ -1,8 +1,9 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, forwardRef, useImperativeHandle } from 'react';
 import { init } from 'pptx-preview';
 import { useTranslator } from '../../i18n/LocaleContext';
 import { useFetcher } from '../../RequestContext';
 import { RendererError } from '../RendererError';
+import type { RendererHandle } from '../base.types';
 
 interface PptxRendererProps {
   url: string;
@@ -10,7 +11,7 @@ interface PptxRendererProps {
   tiled?: boolean;
 }
 
-export const PptxRenderer: React.FC<PptxRendererProps> = ({ url, tiled = true }) => {
+export const PptxRenderer = forwardRef<RendererHandle, PptxRendererProps>(({ url, tiled = true }, ref) => {
   const t = useTranslator();
   const fetcher = useFetcher();
   const [loading, setLoading] = useState(true);
@@ -296,6 +297,11 @@ export const PptxRenderer: React.FC<PptxRendererProps> = ({ url, tiled = true })
     };
   }, [url, calculateDimensions, tiled]);
 
+  // 暴露接口给父组件
+  useImperativeHandle(ref, () => ({
+    getToolbarGroups: () => [],
+  }), []);
+
   return (
     <div className="rfp-relative rfp-flex rfp-flex-col rfp-items-center rfp-w-full rfp-h-full">
       {/* 加载状态 - 绝对定位覆盖 */}
@@ -323,4 +329,4 @@ export const PptxRenderer: React.FC<PptxRendererProps> = ({ url, tiled = true })
       )}
     </div>
   );
-};
+});

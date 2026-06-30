@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState, useCallback, useImperativeHandle, forwardRef } from 'react';
 import ePub from '@likecoin/epub-ts';
-import { X } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, Maximize2, Minimize2, List } from 'lucide-react';
 import { useTranslator } from '../../i18n/LocaleContext';
 import { useFetcher } from '../../RequestContext';
 import { RendererError } from '../RendererError';
+import type { RendererHandle } from '../base.types';
+import type { ToolbarGroup } from '../toolbar.types';
 
 // 全局注入 epubjs 容器样式（只注入一次）
 if (typeof document !== 'undefined' && !document.getElementById('rfp-epub-styles')) {
@@ -26,7 +28,7 @@ export interface TocItem {
   subitems?: TocItem[];
 }
 
-export interface EpubRendererHandle {
+export interface EpubRendererHandle extends RendererHandle {
   prevPage: () => void;
   nextPage: () => void;
   toggleFullWidth: () => void;
@@ -35,8 +37,6 @@ export interface EpubRendererHandle {
 
 interface EpubRendererProps {
   url: string;
-  onChapterChange?: (current: number, total: number) => void;
-  onFullWidthChange?: (isFullWidth: boolean) => void;
 }
 
 interface RenditionLike {
@@ -68,31 +68,53 @@ interface BookLike {
 const A4_WIDTH = 794;
 
 export const EpubRenderer = forwardRef<EpubRendererHandle, EpubRendererProps>(
-  ({ url, onChapterChange, onFullWidthChange }, ref) => {
+  ({ url }, ref) => {
     const t = useTranslator();
     const fetcher = useFetcher();
     const viewerRef = useRef<HTMLDivElement>(null);
     const bookRef = useRef<BookLike | null>(null);
     const renditionRef = useRef<RenditionLike | null>(null);
-    const onChapterChangeRef = useRef(onChapterChange);
-    const onFullWidthChangeRef = useRef(onFullWidthChange);
-    onChapterChangeRef.current = onChapterChange;
-    onFullWidthChangeRef.current = onFullWidthChange;
 
     const totalLocationsRef = useRef(0);
     const lastCfiRef = useRef<string | null>(null);
     const isFullWidthRef = useRef(false);
 
+    // 内部状态管理
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [isFullWidth, setIsFullWidth] = useState(false);
     const [toc, setToc] = useState<TocItem[]>([]);
     const [showToc, setShowToc] = useState(false);
     const [activeTocHref, setActiveTocHref] = useState<string>('');
+    const [currentChapter, setCurrentChapter] = useState(0);
+    const [totalChapters, setTotalChapters] = useState(0);
     const tocRef = useRef<TocItem[]>([]);
     tocRef.current = toc;
 
     isFullWidthRef.current = isFullWidth;
+
+    // 事件发射器：用于通知主组件工具栏状态变化
+    const listenersRef = useRef<Set<() => void>>(new Set());
+    const notifyToolbarChange = useCallback(() => {
+      listenersRef.current.forEach(listener => listener());
+    }, []);
+
+    // 监听影响工具栏的状态变化
+    useEffect(() => {
+      notifyToolbarChange();
+    }, [currentChapter, notifyToolbarChange]);
+
+    useEffect(() => {
+      notifyToolbarChange();
+    }, [totalChapters, notifyToolbarChange]);
+
+    useEffect(() => {
+      notifyToolbarChange();
+    }, [isFullWidth, notifyToolbarChange]);
+
+    useEffect(() => {
+      notifyToolbarChange();
+    }, [toc.length, notifyToolbarChange]);
 
     const handlePrev = useCallback(() => {
       renditionRef.current?.prev();
@@ -142,7 +164,6 @@ export const EpubRenderer = forwardRef<EpubRendererHandle, EpubRendererProps>(
     const toggleFullWidth = useCallback(() => {
       const newVal = !isFullWidthRef.current;
       setIsFullWidth(newVal);
-      onFullWidthChangeRef.current?.(newVal);
       // 等 CSS transition 完成后再 resize 并恢复位置
       setTimeout(() => {
         const viewer = viewerRef.current;
@@ -168,12 +189,38 @@ export const EpubRenderer = forwardRef<EpubRendererHandle, EpubRendererProps>(
       setShowToc(false);
     }, []);
 
+    // 工具栏配置
+    const getToolbarGroups = useCallback((): ToolbarGroup[] => [
+      {
+        items: [
+          { type: 'button', icon: <List className="rfp-w-4 rfp-h-4" />, tooltip: t('toolbar.toc'), action: toggleToc, disabled: toc.length === 0, active: showToc },
+        ],
+      },
+      {
+        items: [
+          { type: 'button', icon: <ChevronLeft className="rfp-w-4 rfp-h-4" />, tooltip: t('toolbar.prev_page'), action: handlePrev, disabled: currentChapter <= 1 },
+          { type: 'text', content: `${currentChapter} / ${totalChapters}`, minWidth: '4rem' },
+          { type: 'button', icon: <ChevronRight className="rfp-w-4 rfp-h-4" />, tooltip: t('toolbar.next_page'), action: handleNext, disabled: currentChapter >= totalChapters },
+        ],
+      },
+      {
+        items: [
+          { type: 'button', icon: isFullWidth ? <Minimize2 className="rfp-w-4 rfp-h-4" /> : <Maximize2 className="rfp-w-4 rfp-h-4" />, tooltip: isFullWidth ? t('toolbar.normal_width') : t('toolbar.full_width'), action: toggleFullWidth, active: isFullWidth },
+        ],
+      },
+    ], [currentChapter, totalChapters, isFullWidth, showToc, toc.length, t, handlePrev, handleNext, toggleToc, toggleFullWidth]);
+
     useImperativeHandle(ref, () => ({
+      getToolbarGroups,
+      onToolbarChange: (listener: () => void) => {
+        listenersRef.current.add(listener);
+        return () => listenersRef.current.delete(listener);
+      },
       prevPage: handlePrev,
       nextPage: handleNext,
       toggleFullWidth,
       toggleToc,
-    }), [handlePrev, handleNext, toggleFullWidth, toggleToc]);
+    }), [getToolbarGroups, handlePrev, handleNext, toggleFullWidth, toggleToc]);
 
     useEffect(() => {
       const viewer = viewerRef.current;
@@ -243,10 +290,11 @@ export const EpubRenderer = forwardRef<EpubRendererHandle, EpubRendererProps>(
           book.locations.generate(1024).then(() => {
             if (cancelled) return;
             totalLocationsRef.current = book.locations.length();
-            // 触发一次更新让父组件拿到 total
+            // 更新内部状态
             const loc = renditionRef.current?.currentLocation() as { start?: { location?: number; cfi?: string } } | undefined;
             const cur = loc?.start?.location ?? 0;
-            onChapterChangeRef.current?.(cur + 1, totalLocationsRef.current);
+            setCurrentChapter(cur + 1);
+            setTotalChapters(totalLocationsRef.current);
           }).catch(() => { /* ignore */ });
 
           // 获取目录
@@ -258,9 +306,10 @@ export const EpubRenderer = forwardRef<EpubRendererHandle, EpubRendererProps>(
           await rendition.display();
 
           if (cancelled) return;
+          setCurrentChapter(1);
+          setTotalChapters(totalLocationsRef.current || 1);
 
           setLoading(false);
-          onChapterChangeRef.current?.(1, totalLocationsRef.current || 1);
 
           rendition.on('relocated', (location: unknown) => {
             const loc = location as { start?: { cfi?: string; location?: number; href?: string } };
@@ -290,7 +339,8 @@ export const EpubRenderer = forwardRef<EpubRendererHandle, EpubRendererProps>(
             const cur = loc?.start?.location;
             const total = totalLocationsRef.current;
             if (typeof cur === 'number' && total > 0) {
-              onChapterChangeRef.current?.(cur + 1, total);
+              setCurrentChapter(cur + 1);
+              setTotalChapters(total);
             }
           });
 

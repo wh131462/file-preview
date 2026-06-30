@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, forwardRef, useImperativeHandle } from 'react';
 import { ChevronRight, ChevronDown } from 'lucide-react';
 import { parse as parseJsonc } from 'jsonc-parser';
 import { fetchTextUtf8 } from '@eternalheart/file-preview-core';
@@ -6,6 +6,7 @@ import { useTranslator } from '../../i18n/LocaleContext';
 import { useFetcher } from '../../RequestContext';
 import { useResolvedTheme, type ResolvedTheme } from '../../ThemeContext';
 import { RendererError } from '../RendererError';
+import type { RendererHandle } from '../base.types';
 
 interface JsonRendererProps {
   url: string;
@@ -162,7 +163,7 @@ function pickColors(theme: ResolvedTheme): JsonColors {
 
 // ---------- Main ----------
 
-export const JsonRenderer: React.FC<JsonRendererProps> = ({ url }) => {
+export const JsonRenderer = forwardRef<RendererHandle, JsonRendererProps>(({ url }, ref) => {
   const t = useTranslator();
   const fetcher = useFetcher();
   const resolvedTheme = useResolvedTheme();
@@ -192,6 +193,11 @@ export const JsonRenderer: React.FC<JsonRendererProps> = ({ url }) => {
     return () => controller.abort();
   }, [url]);
 
+  // 暴露接口给父组件（必须在 early return 之前调用）
+  useImperativeHandle(ref, () => ({
+    getToolbarGroups: () => [],
+  }), []);
+
   if (loading) {
     return (
       <div className="rfp-flex rfp-items-center rfp-justify-center rfp-w-full rfp-h-full">
@@ -209,4 +215,4 @@ export const JsonRenderer: React.FC<JsonRendererProps> = ({ url }) => {
       <JsonNode value={data} depth={0} defaultExpanded colors={colors} />
     </div>
   );
-};
+});

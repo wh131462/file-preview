@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, forwardRef, useImperativeHandle } from 'react';
 import ExcelJS from 'exceljs';
 import Spreadsheet from 'x-data-spreadsheet';
 import 'x-data-spreadsheet/dist/xspreadsheet.css';
@@ -6,12 +6,13 @@ import { convertWorkbookToSpreadsheetData } from '../../utils/excelDataConverter
 import { useTranslator } from '../../i18n/LocaleContext';
 import { useFetcher } from '../../RequestContext';
 import { RendererError } from '../RendererError';
+import type { RendererHandle } from '../base.types';
 
 interface XlsxRendererProps {
   url: string;
 }
 
-export const XlsxRenderer: React.FC<XlsxRendererProps> = ({ url }) => {
+export const XlsxRenderer = forwardRef<RendererHandle, XlsxRendererProps>(({ url }, ref) => {
   const t = useTranslator();
   const fetcher = useFetcher();
   const [loading, setLoading] = useState(true);
@@ -196,6 +197,11 @@ export const XlsxRenderer: React.FC<XlsxRendererProps> = ({ url }) => {
     };
   }, [url, mountSpreadsheet]);
 
+  // 暴露接口给父组件
+  useImperativeHandle(ref, () => ({
+    getToolbarGroups: () => [],
+  }), []);
+
   return (
     <div className="rfp-relative rfp-flex rfp-flex-col rfp-items-center rfp-w-full rfp-h-full">
       {/* 加载状态 */}
@@ -225,4 +231,4 @@ export const XlsxRenderer: React.FC<XlsxRendererProps> = ({ url }) => {
       )}
     </div>
   );
-};
+});

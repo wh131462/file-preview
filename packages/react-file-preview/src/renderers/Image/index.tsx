@@ -1,35 +1,49 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useImperativeHandle, forwardRef } from 'react';
 import { motion } from 'framer-motion';
-import { Loader2 } from 'lucide-react';
+import { Loader2, ZoomIn, ZoomOut, RotateCw, RotateCcw, Scan, RefreshCw } from 'lucide-react';
 import { useTranslator } from '../../i18n/LocaleContext';
 import { detectImageFormat, getLoaderForMimeType } from '@eternalheart/file-preview-core';
 import type { PreviewFile } from '@eternalheart/file-preview-core';
 import { RendererError } from '../RendererError';
+import type { RendererHandle } from '../base.types';
+import type { ToolbarGroup } from '../toolbar.types';
+
+const OriginalSizeIcon: React.FC<{ className?: string }> = ({ className }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+  >
+    <text x="12" y="17.5" textAnchor="middle" fontSize="20" fontWeight="bold" fill="currentColor" stroke="none">
+      1:1
+    </text>
+  </svg>
+);
+
+export interface ImageRendererHandle extends RendererHandle {
+  fitToWidth: () => void;
+  resetView: () => void;
+}
 
 interface ImageRendererProps {
   url: string;
-  zoom: number;
-  rotation: number;
-  resetKey?: number;
   fileSize?: number;
   file?: PreviewFile | File;
-  onZoomChange?: (zoom: number) => void;
-  onNaturalWidthChange?: (width: number) => void;
-  onNaturalHeightChange?: (height: number) => void;
 }
 
-export const ImageRenderer: React.FC<ImageRendererProps> = ({
+export const ImageRenderer = forwardRef<ImageRendererHandle, ImageRendererProps>(({
   url,
-  zoom,
-  rotation,
-  resetKey,
   fileSize,
   file,
-  onZoomChange,
-  onNaturalWidthChange,
-  onNaturalHeightChange
-}) => {
+}, ref) => {
   const t = useTranslator();
+
+  // 内部状态管理
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [decoding, setDecoding] = useState(false);
@@ -41,8 +55,10 @@ export const ImageRenderer: React.FC<ImageRendererProps> = ({
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
-  const [internalZoom, setInternalZoom] = useState(1);
+  const [zoom, setZoom] = useState(1);
+  const [rotation, setRotation] = useState(0);
   const [naturalSize, setNaturalSize] = useState({ width: 0, height: 0 });
+
   const imgRef = useRef<HTMLImageElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const blobUrlRef = useRef<string | null>(null);
@@ -54,6 +70,21 @@ export const ImageRenderer: React.FC<ImageRendererProps> = ({
   const touchStartZoom = useRef(1);
   const touchStartPos = useRef({ x: 0, y: 0 });
   const lastTapTime = useRef(0);
+
+  // 事件发射器：用于通知主组件工具栏状态变化
+  const listenersRef = useRef<Set<() => void>>(new Set());
+  const notifyToolbarChange = useCallback(() => {
+    listenersRef.current.forEach(listener => listener());
+  }, []);
+
+  // 监听影响工具栏的状态变化
+  useEffect(() => {
+    notifyToolbarChange();
+  }, [zoom, notifyToolbarChange]);
+
+  useEffect(() => {
+    notifyToolbarChange();
+  }, [rotation, notifyToolbarChange]);
 
   // 解码逻辑：检测格式并按需解码
   useEffect(() => {
@@ -68,7 +99,8 @@ export const ImageRenderer: React.FC<ImageRendererProps> = ({
       setDecodeError(null);
       setDecodeProgress(0);
       setPosition({ x: 0, y: 0 });
-      setInternalZoom(1);
+      setZoom(1);
+      setRotation(0);
       setCurrentPage(1);
       setTotalPages(1);
 
@@ -223,24 +255,22 @@ export const ImageRenderer: React.FC<ImageRendererProps> = ({
     };
   }, []);
 
-  // 当外部 zoom 改变时,同步内部 zoom
-  useEffect(() => {
-    setInternalZoom(zoom);
-  }, [zoom]);
-
-  // 适应窗口/原始尺寸等操作时重置位置居中
-  useEffect(() => {
-    if (resetKey !== undefined) {
-      setPosition({ x: 0, y: 0 });
-    }
-  }, [resetKey]);
-
   const handleLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
     setLoaded(true);
     const img = e.currentTarget;
-    setNaturalSize({ width: img.naturalWidth, height: img.naturalHeight });
-    onNaturalWidthChange?.(img.naturalWidth);
-    onNaturalHeightChange?.(img.naturalHeight);
+    const newNaturalSize = { width: img.naturalWidth, height: img.naturalHeight };
+    setNaturalSize(newNaturalSize);
+
+    // 图片加载完成后，自动适应窗口大小
+    if (containerRef.current && newNaturalSize.width > 0 && newNaturalSize.height > 0) {
+      const containerWidth = containerRef.current.clientWidth;
+      const containerHeight = containerRef.current.clientHeight;
+      const scaleX = containerWidth / newNaturalSize.width;
+      const scaleY = containerHeight / newNaturalSize.height;
+      const newZoom = Math.min(scaleX, scaleY);
+      setZoom(Math.max(0.01, Math.min(10, newZoom)));
+      setPosition({ x: 0, y: 0 });
+    }
   };
 
   // 边界限制：确保图片至少有一部分可见
@@ -272,8 +302,7 @@ export const ImageRenderer: React.FC<ImageRendererProps> = ({
   // 双击复原：居中 + 缩放100%
   const handleDoubleClick = () => {
     setPosition({ x: 0, y: 0 });
-    setInternalZoom(1);
-    onZoomChange?.(1);
+    setZoom(1);
   };
 
   // 触屏事件处理
@@ -295,8 +324,7 @@ export const ImageRenderer: React.FC<ImageRendererProps> = ({
       if (now - lastTapTime.current < 300) {
         // 双击复原：居中 + 缩放100%
         setPosition({ x: 0, y: 0 });
-        setInternalZoom(1);
-        onZoomChange?.(1);
+        setZoom(1);
       }
       lastTapTime.current = now;
     } else if (touches.length === 2) {
@@ -307,10 +335,10 @@ export const ImageRenderer: React.FC<ImageRendererProps> = ({
         touches[1].clientY - touches[0].clientY
       );
       touchStartDistance.current = distance;
-      touchStartZoom.current = internalZoom;
+      touchStartZoom.current = zoom;
       touchStartPos.current = { ...position };
     }
-  }, [position, internalZoom, onZoomChange]);
+  }, [position, zoom]);
 
   const handleTouchMove = useCallback((e: TouchEvent) => {
     e.preventDefault();
@@ -321,7 +349,7 @@ export const ImageRenderer: React.FC<ImageRendererProps> = ({
       setPosition(clampPosition({
         x: touches[0].clientX - dragStart.x,
         y: touches[0].clientY - dragStart.y,
-      }, internalZoom));
+      }, zoom));
     } else if (touches.length === 2) {
       // 双指缩放
       const container = containerRef.current;
@@ -343,16 +371,15 @@ export const ImageRenderer: React.FC<ImageRendererProps> = ({
       const centerX = (touches[0].clientX + touches[1].clientX) / 2 - rect.left - rect.width / 2;
       const centerY = (touches[0].clientY + touches[1].clientY) / 2 - rect.top - rect.height / 2;
 
-      const zoomScale = newZoom / internalZoom;
+      const zoomScale = newZoom / zoom;
       setPosition(clampPosition({
         x: centerX - zoomScale * (centerX - touchStartPos.current.x),
         y: centerY - zoomScale * (centerY - touchStartPos.current.y),
       }, newZoom));
 
-      setInternalZoom(newZoom);
-      onZoomChange?.(newZoom);
+      setZoom(newZoom);
     }
-  }, [isDragging, dragStart, internalZoom, clampPosition, onZoomChange]);
+  }, [isDragging, dragStart, zoom, clampPosition]);
 
   const handleTouchEnd = useCallback(() => {
     setIsDragging(false);
@@ -376,7 +403,7 @@ export const ImageRenderer: React.FC<ImageRendererProps> = ({
 
       const delta = e.deltaY > 0 ? -0.05 : 0.05;
 
-      setInternalZoom(prev => {
+      setZoom(prev => {
         const newZoom = Math.max(0.01, Math.min(10, prev + delta));
         const scale = newZoom / prev;
 
@@ -385,14 +412,13 @@ export const ImageRenderer: React.FC<ImageRendererProps> = ({
           y: mouseY - scale * (mouseY - pos.y),
         }, newZoom));
 
-        onZoomChange?.(newZoom);
         return newZoom;
       });
     };
 
     container.addEventListener('wheel', handleWheelNative, { passive: false });
     return () => container.removeEventListener('wheel', handleWheelNative);
-  }, [onZoomChange, clampPosition]);
+  }, [clampPosition]);
 
   // 触屏事件监听器
   useEffect(() => {
@@ -428,13 +454,93 @@ export const ImageRenderer: React.FC<ImageRendererProps> = ({
     setPosition(clampPosition({
       x: e.clientX - dragStart.x,
       y: e.clientY - dragStart.y,
-    }, internalZoom));
-  }, [isDragging, dragStart, internalZoom, clampPosition]);
+    }, zoom));
+  }, [isDragging, dragStart, zoom, clampPosition]);
 
   const handleMouseUp = useCallback(() => {
     if (isTouchDevice.current) return;
     setIsDragging(false);
   }, []);
+
+  // 工具栏事件处理
+  const handleZoomIn = useCallback(() => {
+    setZoom(z => Math.min(z + 0.1, 10));
+  }, []);
+
+  const handleZoomOut = useCallback(() => {
+    setZoom(z => Math.max(z - 0.1, 0.01));
+  }, []);
+
+  const handleRotateLeft = useCallback(() => {
+    setRotation(r => r - 90);
+  }, []);
+
+  const handleRotateRight = useCallback(() => {
+    setRotation(r => r + 90);
+  }, []);
+
+  const handleFitToWidth = useCallback(() => {
+    if (containerRef.current && naturalSize.width > 0 && naturalSize.height > 0) {
+      const containerWidth = containerRef.current.clientWidth;
+      const containerHeight = containerRef.current.clientHeight;
+      const scaleX = containerWidth / naturalSize.width;
+      const scaleY = containerHeight / naturalSize.height;
+      const newZoom = Math.min(scaleX, scaleY);
+      setZoom(Math.max(0.01, Math.min(10, newZoom)));
+      setRotation(0);
+      setPosition({ x: 0, y: 0 });
+    }
+  }, [naturalSize]);
+
+  const handleOriginalSize = useCallback(() => {
+    setZoom(1);
+    setRotation(0);
+    setPosition({ x: 0, y: 0 });
+  }, []);
+
+  const handleReset = useCallback(() => {
+    // 重置为自适应窗口，而不是原始尺寸
+    handleFitToWidth();
+  }, [handleFitToWidth]);
+
+  // 工具栏配置
+  const getToolbarGroups = useCallback((): ToolbarGroup[] => [
+    {
+      items: [
+        { type: 'button', icon: <ZoomOut className="rfp-w-4 rfp-h-4" />, tooltip: t('toolbar.zoom_out'), action: handleZoomOut, disabled: zoom <= 0.01 },
+        { type: 'text', content: `${Math.round(zoom * 100)}%`, minWidth: '3rem' },
+        { type: 'button', icon: <ZoomIn className="rfp-w-4 rfp-h-4" />, tooltip: t('toolbar.zoom_in'), action: handleZoomIn, disabled: zoom >= 10 },
+      ],
+    },
+    {
+      items: [
+        { type: 'button', icon: <Scan className="rfp-w-4 rfp-h-4" />, tooltip: t('toolbar.fit_to_window'), action: handleFitToWidth },
+        { type: 'button', icon: <OriginalSizeIcon className="rfp-w-4 rfp-h-4" />, tooltip: t('toolbar.original_size'), action: handleOriginalSize },
+      ],
+    },
+    {
+      items: [
+        { type: 'button', icon: <RotateCcw className="rfp-w-4 rfp-h-4" />, tooltip: t('toolbar.rotate_left'), action: handleRotateLeft },
+        { type: 'button', icon: <RotateCw className="rfp-w-4 rfp-h-4" />, tooltip: t('toolbar.rotate_right'), action: handleRotateRight },
+      ],
+    },
+    {
+      items: [
+        { type: 'button', icon: <RefreshCw className="rfp-w-4 rfp-h-4" />, tooltip: t('toolbar.reset'), action: handleReset },
+      ],
+    },
+  ], [zoom, t, handleZoomIn, handleZoomOut, handleFitToWidth, handleOriginalSize, handleRotateLeft, handleRotateRight, handleReset]);
+
+  // 暴露接口给父组件
+  useImperativeHandle(ref, () => ({
+    getToolbarGroups,
+    onToolbarChange: (listener: () => void) => {
+      listenersRef.current.add(listener);
+      return () => listenersRef.current.delete(listener);
+    },
+    fitToWidth: handleFitToWidth,
+    resetView: handleReset,
+  }), [getToolbarGroups, handleFitToWidth, handleReset]);
 
   return (
     <div
@@ -480,7 +586,7 @@ export const ImageRenderer: React.FC<ImageRendererProps> = ({
           alt="Preview"
           className={`rfp-max-w-none rfp-select-none ${!loaded || error || decodeError ? 'rfp-hidden' : ''}`}
           style={{
-            transform: `translate(${position.x}px, ${position.y}px) scale(${internalZoom}) rotate(${rotation}deg)`,
+            transform: `translate(${position.x}px, ${position.y}px) scale(${zoom}) rotate(${rotation}deg)`,
             transformOrigin: 'center',
             transition: isDragging ? 'none' : 'transform 0.3s ease-out',
           }}
@@ -527,4 +633,4 @@ export const ImageRenderer: React.FC<ImageRendererProps> = ({
       )}
     </div>
   );
-};
+});

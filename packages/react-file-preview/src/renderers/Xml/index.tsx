@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Fragment, forwardRef, useImperativeHandle } from 'react';
 import { fetchTextUtf8 } from '@eternalheart/file-preview-core';
 import { useTranslator } from '../../i18n/LocaleContext';
 import { useFetcher } from '../../RequestContext';
 import { useShikiHighlight } from '../../hooks/useShikiHighlight';
 import { RendererError } from '../RendererError';
+import type { RendererHandle } from '../base.types';
 
 interface XmlRendererProps {
   url: string;
@@ -51,13 +52,13 @@ const indentXml = (xml: string): string => {
     .join('\n');
 };
 
-export const XmlRenderer: React.FC<XmlRendererProps> = ({ url }) => {
+export const XmlRenderer = forwardRef<RendererHandle, XmlRendererProps>(({ url }, ref) => {
   const t = useTranslator();
   const fetcher = useFetcher();
   const [content, setContent] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { html: highlighted } = useShikiHighlight(content, 'xml');
+  const { lineHtmls } = useShikiHighlight(content, 'xml');
 
   useEffect(() => {
     const controller = new AbortController();
@@ -79,6 +80,11 @@ export const XmlRenderer: React.FC<XmlRendererProps> = ({ url }) => {
     return () => controller.abort();
   }, [url]);
 
+  // 暴露接口给父组件（必须在 early return 之前调用）
+  useImperativeHandle(ref, () => ({
+    getToolbarGroups: () => [],
+  }), []);
+
   if (loading) {
     return (
       <div className="rfp-flex rfp-items-center rfp-justify-center rfp-w-full rfp-h-full">
@@ -91,18 +97,33 @@ export const XmlRenderer: React.FC<XmlRendererProps> = ({ url }) => {
     return <RendererError message={error} />;
   }
 
-  return (
-    <div className="rfp-w-full rfp-h-full rfp-overflow-auto rfp-bg-code-bg">
-      {highlighted ? (
-        <div
-          className="rfp-shiki-wrapper with-line-numbers"
-          dangerouslySetInnerHTML={{ __html: highlighted }}
-        />
-      ) : (
+  if (lineHtmls.length === 0) {
+    return (
+      <div className="rfp-w-full rfp-h-full rfp-overflow-auto rfp-bg-code-bg">
         <pre className="rfp-py-6 rfp-px-4 rfp-text-fg-primary rfp-font-mono rfp-text-sm rfp-whitespace-pre-wrap rfp-break-words">
           {content}
         </pre>
-      )}
+      </div>
+    );
+  }
+
+  const lines = content.split('\n');
+  return (
+    <div
+      className="rfp-code-block with-line-numbers rfp-w-full rfp-h-full"
+    >
+      {lines.map((_, i) => (
+        <Fragment key={i}>
+          <span className="rfp-code-gutter">{i + 1}</span>
+          <span
+            className="rfp-code-line"
+            dangerouslySetInnerHTML={{ __html: lineHtmls[i] ?? '' }}
+          />
+        </Fragment>
+      ))}
+      {/* 占位行：撑满剩余高度，让 gutter border 延伸到底部 */}
+      <span className="rfp-code-gutter-filler" />
+      <span className="rfp-code-line-filler" />
     </div>
   );
-};
+});

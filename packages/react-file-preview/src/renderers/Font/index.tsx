@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, forwardRef, useImperativeHandle } from 'react';
 import { parse } from 'opentype.js';
 import type { Font as OpentypeFont } from 'opentype.js';
 import { useTranslator } from '../../i18n/LocaleContext';
 import { useFetcher } from '../../RequestContext';
 import { useResolvedTheme } from '../../ThemeContext';
 import { RendererError } from '../RendererError';
+import type { RendererHandle } from '../base.types';
 
 // 字体文件魔数：用首 4 字节判断格式，比扩展名更可靠
 const MAGIC_WOFF2 = 0x774f4632; // 'wOF2'
@@ -52,7 +53,7 @@ type RenderMode = 'fontface' | 'canvas';
 // 元数据状态：loading（解析中）/ ready（成功）/ unavailable（不支持解析或解析失败）
 type MetadataStatus = 'loading' | 'ready' | 'unavailable';
 
-export const FontRenderer: React.FC<FontRendererProps> = ({ url }) => {
+export const FontRenderer = forwardRef<RendererHandle, FontRendererProps>(({ url }, ref) => {
   const t = useTranslator();
   const fetcher = useFetcher();
   const resolvedTheme = useResolvedTheme();
@@ -225,6 +226,11 @@ export const FontRenderer: React.FC<FontRendererProps> = ({ url }) => {
     };
   }, [url, fetcher, t]);
 
+  // 暴露接口给父组件
+  useImperativeHandle(ref, () => ({
+    getToolbarGroups: () => [],
+  }), []);
+
   if (loading) {
     return (
       <div className="rfp-flex rfp-items-center rfp-justify-center rfp-w-full rfp-h-full">
@@ -349,7 +355,7 @@ export const FontRenderer: React.FC<FontRendererProps> = ({ url }) => {
       </div>
     </div>
   );
-};
+});
 
 interface FontPreviewLineProps {
   font: OpentypeFont | null;

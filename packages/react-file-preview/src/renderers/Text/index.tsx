@@ -1,30 +1,34 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Fragment, forwardRef, useCallback, useImperativeHandle, useRef } from 'react';
 import { fetchTextUtf8, getLanguageFromFileName } from '@eternalheart/file-preview-core';
 import { useTranslator } from '../../i18n/LocaleContext';
 import { useFetcher } from '../../RequestContext';
 import { useShikiHighlight } from '../../hooks/useShikiHighlight';
 import { RendererError } from '../RendererError';
+import { WrapText, Code, Eye } from 'lucide-react';
+import type { RendererHandle } from '../base.types';
+import type { ToolbarGroup } from '../toolbar.types';
 
 interface TextRendererProps {
   url: string;
   fileName: string;
-  wordWrap?: boolean;
-  htmlPreview?: boolean;
 }
 
-export const TextRenderer: React.FC<TextRendererProps> = ({
+export const TextRenderer = forwardRef<RendererHandle, TextRendererProps>(({
   url,
   fileName,
-  wordWrap = true,
-  htmlPreview = false,
-}) => {
+}, ref) => {
   const t = useTranslator();
   const fetcher = useFetcher();
+
+  // 内部状态管理
   const [content, setContent] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [wordWrap, setWordWrap] = useState(true);
+  const [htmlPreview, setHtmlPreview] = useState(false);
+
   const language = getLanguageFromFileName(fileName);
-  const { html: highlighted } = useShikiHighlight(
+  const { lineHtmls } = useShikiHighlight(
     language !== 'text' ? content : '',
     language,
   );
@@ -49,6 +53,75 @@ export const TextRenderer: React.FC<TextRendererProps> = ({
     loadText();
     return () => controller.abort();
   }, [url]);
+
+  // 事件发射器：用于通知主组件工具栏状态变化
+  const listenersRef = useRef<Set<() => void>>(new Set());
+  const notifyToolbarChange = useCallback(() => {
+    listenersRef.current.forEach(listener => listener());
+  }, []);
+
+  // 监听影响工具栏的状态变化
+  useEffect(() => {
+    notifyToolbarChange();
+  }, [wordWrap, notifyToolbarChange]);
+
+  useEffect(() => {
+    notifyToolbarChange();
+  }, [htmlPreview, notifyToolbarChange]);
+
+  // 切换操作
+  const toggleWordWrap = useCallback(() => {
+    setWordWrap(prev => !prev);
+  }, []);
+
+  const toggleHtmlPreview = useCallback(() => {
+    setHtmlPreview(prev => !prev);
+  }, []);
+
+  // 工具栏配置
+  const getToolbarGroups = useCallback((): ToolbarGroup[] => {
+    const groups: ToolbarGroup[] = [
+      {
+        items: [
+          {
+            type: 'button',
+            icon: <WrapText className="rfp-w-4 rfp-h-4" />,
+            tooltip: wordWrap ? t('toolbar.wrap_off') : t('toolbar.wrap_on'),
+            action: toggleWordWrap,
+            active: wordWrap,
+          },
+        ],
+      },
+    ];
+
+    // HTML 文件显示预览按钮
+    if (language === 'html') {
+      groups.push({
+        items: [
+          {
+            type: 'button',
+            icon: htmlPreview
+              ? <Code className="rfp-w-4 rfp-h-4" />
+              : <Eye className="rfp-w-4 rfp-h-4" />,
+            tooltip: htmlPreview ? t('toolbar.source') : t('toolbar.preview'),
+            action: toggleHtmlPreview,
+            active: htmlPreview,
+          },
+        ],
+      });
+    }
+
+    return groups;
+  }, [wordWrap, htmlPreview, language, t, toggleWordWrap, toggleHtmlPreview]);
+
+  // 暴露接口给父组件
+  useImperativeHandle(ref, () => ({
+    getToolbarGroups,
+    onToolbarChange: (listener: () => void) => {
+      listenersRef.current.add(listener);
+      return () => listenersRef.current.delete(listener);
+    },
+  }), [getToolbarGroups]);
 
   if (loading) {
     return (
@@ -76,10 +149,10 @@ export const TextRenderer: React.FC<TextRendererProps> = ({
     );
   }
 
-  // 源码模式
-  return (
-    <div className="rfp-w-full rfp-h-full rfp-overflow-auto rfp-bg-code-bg">
-      {language === 'text' || !highlighted ? (
+  // 纯文本或高亮未就绪：fallback 到普通 pre
+  if (language === 'text' || lineHtmls.length === 0) {
+    return (
+      <div className="rfp-w-full rfp-h-full rfp-overflow-auto rfp-bg-code-bg">
         <pre
           className={`rfp-py-6 rfp-px-4 rfp-text-fg-primary rfp-font-mono rfp-text-sm ${
             wordWrap ? 'rfp-whitespace-pre-wrap rfp-break-words' : 'rfp-whitespace-pre'
@@ -87,12 +160,28 @@ export const TextRenderer: React.FC<TextRendererProps> = ({
         >
           {content}
         </pre>
-      ) : (
-        <div
-          className={`rfp-shiki-wrapper with-line-numbers ${wordWrap ? '' : 'no-wrap'}`}
-          dangerouslySetInnerHTML={{ __html: highlighted }}
-        />
-      )}
+      </div>
+    );
+  }
+
+  // 双列布局：左 gutter（行号），右 code（shiki 高亮）
+  const lines = content.split('\n');
+  return (
+    <div
+      className={`rfp-code-block with-line-numbers ${wordWrap ? '' : 'no-wrap'} rfp-w-full rfp-h-full`}
+    >
+      {lines.map((_, i) => (
+        <Fragment key={i}>
+          <span className="rfp-code-gutter">{i + 1}</span>
+          <span
+            className="rfp-code-line"
+            dangerouslySetInnerHTML={{ __html: lineHtmls[i] ?? '' }}
+          />
+        </Fragment>
+      ))}
+      {/* 占位行：撑满剩余高度，让 gutter border 延伸到底部 */}
+      <span className="rfp-code-gutter-filler" />
+      <span className="rfp-code-line-filler" />
     </div>
   );
-};
+});

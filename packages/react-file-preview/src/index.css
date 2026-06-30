@@ -637,9 +637,7 @@
  * Shiki 代码高亮通用样式（与 vue-file-preview 同结构）
  *
  * 用法：renderer 把 shiki 输出包在 <div class="rfp-shiki-wrapper"> 里。
- * 加上 .with-line-numbers 时会用 CSS counter 自动渲染行号 +
- * 1px 右侧分隔线。
- * 加上 .no-wrap 强制不换行（横向滚动）。
+ * 仅用于 markdown 等无行号场景。
  * ============================================================ */
 
 .rfp-root .rfp-shiki-wrapper pre {
@@ -654,52 +652,142 @@
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
-/* 行号（仅 .with-line-numbers 启用） */
-.rfp-root .rfp-shiki-wrapper.with-line-numbers pre {
-  padding-left: 0;
-  padding-right: 1.5rem;
-}
-
-.rfp-root .rfp-shiki-wrapper.with-line-numbers code {
-  counter-reset: line;
-}
-
-.rfp-root .rfp-shiki-wrapper.with-line-numbers code .line {
-  counter-increment: line;
-  display: inline-block;
-  width: 100%;
-  padding-left: 4.5em;
-  text-indent: -4.5em;
-}
-
-.rfp-root .rfp-shiki-wrapper.with-line-numbers code .line::before {
-  content: counter(line);
-  display: inline-block;
-  width: 3em;
-  padding-right: 1em;
-  margin-right: 0.5em;
-  text-align: right;
-  color: var(--fp-fg-disabled);
-  user-select: none;
-  border-right: 1px solid var(--fp-line);
-}
-
-/* 换行模式 */
-.rfp-root .rfp-shiki-wrapper.no-wrap code {
-  white-space: pre;
-  word-break: normal;
-  overflow-wrap: normal;
-}
-
-.rfp-root .rfp-shiki-wrapper:not(.no-wrap) code {
-  white-space: pre-wrap;
-  word-break: break-word;
-  overflow-wrap: break-word;
-}
-
 /* Markdown 内代码块（无行号场景）保持紧凑 padding */
 .rfp-root .markdown-body .rfp-shiki-wrapper pre {
   padding: 1rem;
   font-size: 0.8125rem;
   line-height: 1.5;
+}
+
+/* ============================================================
+ * 双列 Grid 行号布局（Text/Xml 渲染器使用）
+ *
+ * DOM 结构：
+ *   <div class="rfp-code-block with-line-numbers [no-wrap]">
+ *     <span class="rfp-code-gutter">1</span>
+ *     <span class="rfp-code-line">...shiki HTML...</span>
+ *     <span class="rfp-code-gutter">2</span>
+ *     <span class="rfp-code-line">...</span>
+ *     ...
+ *   </div>
+ *
+ * 关键：
+ *   - Grid 两列：max-content（gutter） + 1fr（code）
+ *   - 同一逻辑行的 gutter 和 code 在同一 grid row → 高度自动同步
+ *   - border-right 画在每个 gutter cell 上，行间无 gap → 连续贯穿
+ * ============================================================ */
+
+.rfp-root .rfp-code-block {
+  background: var(--fp-code-bg);
+  color: var(--fp-code-fg);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  overflow: auto;
+}
+
+.rfp-root .rfp-code-block.with-line-numbers {
+  display: grid;
+  grid-template-columns: max-content minmax(20ch, 1fr);
+  align-content: start;
+  min-height: 100%;
+}
+
+.rfp-root .rfp-code-block.with-line-numbers.no-wrap {
+  grid-template-columns: max-content max-content;
+}
+
+.rfp-root .rfp-code-block.with-line-numbers > .rfp-code-gutter {
+  padding-left: 1.5rem;
+  padding-right: 1em;
+  text-align: right;
+  border-right: 1px solid var(--fp-line);
+  color: var(--fp-fg-disabled);
+  user-select: none;
+  white-space: nowrap;
+  min-width: 3.5em;
+}
+
+/* 占位行：撑满剩余高度，让 gutter border 延伸到底部 */
+.rfp-root .rfp-code-block.with-line-numbers > .rfp-code-gutter-filler {
+  border-right: 1px solid var(--fp-line);
+  min-height: 1.5rem;
+}
+
+.rfp-root .rfp-code-block.with-line-numbers > .rfp-code-line-filler {
+  min-height: 1.5rem;
+}
+
+.rfp-root .rfp-code-block.with-line-numbers > .rfp-code-line {
+  padding-left: 1em;
+  padding-right: 1.5rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  min-height: 1.5em;
+  min-width: 0;
+}
+
+.rfp-root .rfp-code-block.with-line-numbers.no-wrap > .rfp-code-line {
+  white-space: pre;
+  word-break: normal;
+  overflow-wrap: normal;
+}
+
+/* 首行：上 padding；占位 filler 提供底部呼吸 */
+.rfp-root .rfp-code-block.with-line-numbers > :nth-child(-n+2) {
+  padding-top: 1.5rem;
+}
+
+/* ============================================================
+ * 文档类渲染器容器响应式 padding（Docx、PDF）
+ * 宽屏时正常 padding (1.5rem)，挤压时逐渐减小至 0
+ *
+ * 计算逻辑：
+ * - 容器宽度 >= 894px: padding = 1.5rem (24px)
+ * - 容器宽度 <= 794px: padding = 0
+ * - 794px < 容器宽度 < 894px: 线性插值
+ *
+ * 公式: padding = max(0, (容器宽度 - 794) / (894 - 794) * 1.5rem)
+ *      简化: padding = max(0, (100cqw - 794px) / 100 * 1.5rem)
+ * ============================================================ */
+.rfp-root .rfp-docx-container,
+.rfp-root .rfp-pdf-container {
+  container-type: inline-size;
+  /* 使用 clamp 实现平滑过渡：最小0，最大1.5rem，中间线性变化 */
+  padding-top: clamp(0rem, calc((100cqw - 794px) / 100 * 1.5), 1.5rem);
+  padding-bottom: clamp(0rem, calc((100cqw - 794px) / 100 * 1.5), 1.5rem);
+  padding-left: clamp(0rem, calc((100cqw - 794px) / 100 * 1), 1rem);
+  padding-right: clamp(0rem, calc((100cqw - 794px) / 100 * 1), 1rem);
+}
+
+/* PDF 页面占位符：使用 aspect-ratio 让高度随宽度等比缩放 */
+.rfp-root .rfp-pdf-page-placeholder {
+  /* A4 纸张比例约为 1:1.414 (√2) */
+  aspect-ratio: 1 / 1.414;
+  width: 100%;
+  max-width: 1200px;
+  min-height: 400px;
+}
+
+/* 降级方案：如果浏览器不支持 container queries，使用媒体查询分段 */
+@supports not (container-type: inline-size) {
+  .rfp-root .rfp-docx-container,
+  .rfp-root .rfp-pdf-container {
+    padding: 1.5rem 1rem;
+  }
+
+  @media (max-width: 893px) {
+    .rfp-root .rfp-docx-container,
+    .rfp-root .rfp-pdf-container {
+      padding: 1rem 0.5rem;
+    }
+  }
+
+  @media (max-width: 794px) {
+    .rfp-root .rfp-docx-container,
+    .rfp-root .rfp-pdf-container {
+      padding: 0;
+    }
+  }
 }

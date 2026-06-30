@@ -9,6 +9,7 @@
     "dev": "pnpm dev:prep:react && (pnpm --filter @eternalheart/react-file-preview dev & pnpm --filter @eternalheart/react-file-preview-example dev)",
     "dev:vue": "pnpm dev:prep:vue && (pnpm --filter @eternalheart/vue-file-preview dev & pnpm --filter @eternalheart/vue-file-preview-example dev)",
     "dev:docs": "pnpm --filter @eternalheart/react-file-preview-docs dev",
+    "kill:dev": "for port in 4800 4801 4802; do lsof -ti :$port | xargs -r kill 2>/dev/null && echo \"已终止端口 $port\" || true; done",
     "dev:prep:react": "pnpm --filter @eternalheart/file-preview-core build && pnpm --filter @eternalheart/react-file-preview build:esm",
     "dev:prep:vue": "pnpm --filter @eternalheart/file-preview-core build && pnpm --filter @eternalheart/vue-file-preview build:esm",
     "build": "pnpm build:lib && pnpm --filter @eternalheart/react-file-preview-example build && pnpm --filter @eternalheart/vue-file-preview-example build && pnpm --filter @eternalheart/react-file-preview-docs build",

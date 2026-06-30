@@ -47,7 +47,10 @@
       "Bash(rm -f renderers/Pdf/toolbar.ts)",
       "Bash(rm -f renderers/Epub/toolbar.ts)",
       "Bash(rm -f Image/toolbar.ts Pdf/toolbar.ts Epub/toolbar.ts Mobi/toolbar.ts Text/toolbar.ts Markdown/toolbar.ts Zip/toolbar.ts)",
-      "Bash(ls */toolbar.ts)"
+      "Bash(ls */toolbar.ts)",
+      "Bash(kill 82168)",
+      "Bash(kill 42901)",
+      "Bash(chmod +x /Users/eternalheart/workspace/wh131462/file-preview/scripts/kill-ports.sh)"
     ]
   }
 }

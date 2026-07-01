@@ -100,13 +100,15 @@ defineExpose<RendererHandle>({
     >
   </div>
 
-  <div v-else class="vfp-code-block with-line-numbers vfp-w-full vfp-h-full" :style="{ gridTemplateRows: `repeat(${lines.length}, auto) minmax(1.5rem, 1fr)` }">
-    <template v-for="(_, i) in lines" :key="i">
-      <span class="vfp-code-gutter">{{ i + 1 }}</span>
-      <span class="vfp-code-line" v-html="lineHtmls[i] ?? ''" />
-    </template>
-    <!-- 占位行：撑满剩余高度，让 gutter border 延伸到底部 -->
-    <span class="vfp-code-gutter-filler" />
-    <span class="vfp-code-line-filler" />
+  <div v-else class="vfp-w-full vfp-h-full vfp-overflow-auto" style="background: var(--fp-code-bg);">
+    <div class="vfp-code-block with-line-numbers vfp-w-full" :style="{ gridTemplateRows: `repeat(${lines.length}, auto) minmax(1.5rem, 1fr)` }">
+      <template v-for="(_, i) in lines" :key="i">
+        <span class="vfp-code-gutter">{{ i + 1 }}</span>
+        <span class="vfp-code-line" v-html="lineHtmls[i] ?? ''" />
+      </template>
+      <!-- 占位行：撑满剩余高度，让 gutter border 延伸到底部 -->
+      <span class="vfp-code-gutter-filler" />
+      <span class="vfp-code-line-filler" />
+    </div>
   </div>
 </template>

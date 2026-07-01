@@ -167,21 +167,24 @@ export const TextRenderer = forwardRef<RendererHandle, TextRendererProps>(({
   // 双列布局：左 gutter（行号），右 code（shiki 高亮）
   const lines = content.split('\n');
   return (
-    <div
-      className={`rfp-code-block with-line-numbers ${wordWrap ? '' : 'no-wrap'} rfp-w-full rfp-h-full`}
-    >
-      {lines.map((_, i) => (
-        <Fragment key={i}>
-          <span className="rfp-code-gutter">{i + 1}</span>
-          <span
-            className="rfp-code-line"
-            dangerouslySetInnerHTML={{ __html: lineHtmls[i] ?? '' }}
-          />
-        </Fragment>
-      ))}
-      {/* 占位行：撑满剩余高度，让 gutter border 延伸到底部 */}
-      <span className="rfp-code-gutter-filler" />
-      <span className="rfp-code-line-filler" />
+    <div className="rfp-w-full rfp-h-full rfp-overflow-auto rfp-bg-code-bg">
+      <div
+        className={`rfp-code-block with-line-numbers ${wordWrap ? '' : 'no-wrap'} rfp-w-full`}
+        style={{ gridTemplateRows: `repeat(${lines.length}, auto) minmax(1.5rem, 1fr)` }}
+      >
+        {lines.map((_, i) => (
+          <Fragment key={i}>
+            <span className="rfp-code-gutter">{i + 1}</span>
+            <span
+              className="rfp-code-line"
+              dangerouslySetInnerHTML={{ __html: lineHtmls[i] ?? '' }}
+            />
+          </Fragment>
+        ))}
+        {/* 占位行：撑满剩余高度，让 gutter border 延伸到底部 */}
+        <span className="rfp-code-gutter-filler" />
+        <span className="rfp-code-line-filler" />
+      </div>
     </div>
   );
 });

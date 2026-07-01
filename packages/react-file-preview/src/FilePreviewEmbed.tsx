@@ -34,6 +34,8 @@ interface FilePreviewEmbedProps {
   onDownload?: (file: PreviewFile) => void | Promise<void>;
   /** 关闭回调：传入后工具栏显示关闭按钮 */
   onClose?: () => void;
+  /** 是否显示下载按钮，默认 true */
+  showDownload?: boolean;
 }
 
 export const FilePreviewEmbed: React.FC<FilePreviewEmbedProps> = ({
@@ -55,6 +57,7 @@ export const FilePreviewEmbed: React.FC<FilePreviewEmbedProps> = ({
   shouldFetchAsBlob,
   onDownload,
   onClose,
+  showDownload,
 }) => {
   const [systemDark, setSystemDark] = useState(() =>
     typeof window !== 'undefined'
@@ -95,6 +98,7 @@ export const FilePreviewEmbed: React.FC<FilePreviewEmbedProps> = ({
           shouldFetchAsBlob={shouldFetchAsBlob}
           onDownload={onDownload}
           onClose={onClose}
+          showDownload={showDownload}
         />
       </div>
     </div>

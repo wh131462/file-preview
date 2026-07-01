@@ -13,6 +13,7 @@ export interface FilePreviewToolbarProps {
   t: Translator;
   onDownload: () => void;
   onClose?: () => void;
+  showDownload: boolean;
 }
 
 /**
@@ -28,21 +29,26 @@ export const FilePreviewToolbar: React.FC<FilePreviewToolbarProps> = ({
   t,
   onDownload,
   onClose,
+  showDownload,
 }) => {
   const showCloseButton = !!onClose;
 
   // 操作组：下载、关闭（通用，不属于任何 Renderer）
   const actionGroups: ToolbarGroup[] = [
-    {
-      items: [
-        {
-          type: 'button',
-          icon: <Download className="rfp-w-4 rfp-h-4" />,
-          tooltip: t('accessibility.downloadFile'),
-          action: onDownload,
-        },
-      ],
-    },
+    ...(showDownload
+      ? [
+          {
+            items: [
+              {
+                type: 'button' as const,
+                icon: <Download className="rfp-w-4 rfp-h-4" />,
+                tooltip: t('accessibility.downloadFile'),
+                action: onDownload,
+              },
+            ],
+          },
+        ]
+      : []),
     ...(showCloseButton
       ? [
           {

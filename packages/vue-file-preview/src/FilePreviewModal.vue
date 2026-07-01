@@ -26,6 +26,8 @@ interface Props {
   shouldFetchAsBlob?: ShouldFetchAsBlob;
   /** 自定义下载回调；不传时库内默认通过 fetcher 拉 Blob 触发下载 */
   onDownload?: (file: PreviewFile) => void | Promise<void>;
+  /** 是否显示下载按钮，默认 true */
+  showDownload?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -38,6 +40,7 @@ const props = withDefaults(defineProps<Props>(), {
   requestHandler: undefined,
   shouldFetchAsBlob: undefined,
   onDownload: undefined,
+  showDownload: true,
 });
 
 const emit = defineEmits<{
@@ -118,6 +121,7 @@ const handleWheel = (e: WheelEvent) => e.stopPropagation();
               :should-fetch-as-blob="shouldFetchAsBlob"
               :on-download="onDownload"
               :on-close="() => emit('close')"
+              :show-download="showDownload"
               @close="emit('close')"
               @navigate="(i) => emit('navigate', i)"
               @custom-event="(p) => emit('custom-event', p)"

@@ -54,6 +54,8 @@ interface Props {
   onDownload?: (file: PreviewFile) => void | Promise<void>;
   /** 关闭回调：传入后工具栏显示关闭按钮 */
   onClose?: () => void;
+  /** 是否显示下载按钮，默认 true */
+  showDownload?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -69,6 +71,7 @@ const props = withDefaults(defineProps<Props>(), {
   shouldFetchAsBlob: undefined,
   onDownload: undefined,
   onClose: undefined,
+  showDownload: true,
 });
 
 provideRequestContext(() => ({
@@ -297,13 +300,14 @@ const toolGroups = computed(() => {
 
 // 操作组：下载、关闭（通用，不属于任何 Renderer）
 const actionGroups = computed<ToolbarGroup[]>(() => {
-  const groups: ToolbarGroup[] = [
-    {
+  const groups: ToolbarGroup[] = [];
+  if (props.showDownload) {
+    groups.push({
       items: [
         { type: 'button', icon: Download, tooltip: t.value('common.download'), action: handleDownload },
       ],
-    },
-  ];
+    });
+  }
   if (showCloseButton.value) {
     groups.push({
       items: [

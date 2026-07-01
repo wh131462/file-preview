@@ -36,6 +36,7 @@ export interface FilePreviewContentProps {
   shouldFetchAsBlob?: ShouldFetchAsBlob;
   onDownload?: (file: PreviewFile) => void;
   onError?: (error: Error, errorInfo: React.ErrorInfo) => void;
+  showDownload?: boolean;
 }
 
 export const FilePreviewContent: React.FC<FilePreviewContentProps> = (props) => {
@@ -66,6 +67,7 @@ const FilePreviewContentInner: React.FC<FilePreviewContentProps> = ({
   onCustomEvent,
   onDownload,
   onError,
+  showDownload = true,
   requestInit: _requestInit,
   requestHandler: _requestHandler,
   shouldFetchAsBlob: _shouldFetchAsBlob,
@@ -218,6 +220,7 @@ const FilePreviewContentInner: React.FC<FilePreviewContentProps> = ({
               t={t}
               onDownload={handleDownload}
               onClose={onClose}
+              showDownload={showDownload}
             />
           )}
 

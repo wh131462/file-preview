@@ -31,6 +31,8 @@ interface Props {
   onDownload?: (file: PreviewFile) => void | Promise<void>;
   /** 关闭回调：传入后工具栏显示关闭按钮 */
   onClose?: () => void;
+  /** 是否显示下载按钮，默认 true */
+  showDownload?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -47,6 +49,7 @@ const props = withDefaults(defineProps<Props>(), {
   shouldFetchAsBlob: undefined,
   onDownload: undefined,
   onClose: undefined,
+  showDownload: true,
 });
 
 const emit = defineEmits<{
@@ -111,6 +114,7 @@ const wrapperStyle: CSSProperties = {
         :should-fetch-as-blob="shouldFetchAsBlob"
         :on-download="onDownload"
         :on-close="onClose"
+        :show-download="showDownload"
         @navigate="(i) => emit('navigate', i)"
         @custom-event="(p) => emit('custom-event', p)"
         @close="() => emit('close')"

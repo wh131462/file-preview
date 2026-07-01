@@ -30,6 +30,8 @@ interface FilePreviewModalProps {
   shouldFetchAsBlob?: ShouldFetchAsBlob;
   /** 自定义下载回调；不传时库内默认通过 fetcher 拉 Blob 触发下载 */
   onDownload?: (file: PreviewFile) => void | Promise<void>;
+  /** 是否显示下载按钮，默认 true */
+  showDownload?: boolean;
 }
 
 export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
@@ -48,6 +50,7 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
   requestHandler,
   shouldFetchAsBlob,
   onDownload,
+  showDownload,
 }) => {
   const [systemDark, setSystemDark] = useState(() =>
     typeof window !== 'undefined'
@@ -119,6 +122,7 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
                 requestHandler={requestHandler}
                 shouldFetchAsBlob={shouldFetchAsBlob}
                 onDownload={onDownload}
+                showDownload={showDownload}
               />
             </div>
           </motion.div>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, onBeforeUnmount, defineComponent, h, type PropType } from 'vue';
+import { ref, watch, onBeforeUnmount, onMounted, defineComponent, h, type PropType } from 'vue';
 import { X, ChevronLeft, ChevronRight, List, Maximize2, Minimize2 } from 'lucide-vue-next';
 import 'foliate-js/view.js';
 import { useTranslator } from '../../composables/useTranslator';
@@ -74,7 +74,7 @@ let totalLocations = 1;
 const currentChapter = ref(1);
 const totalChapters = ref(1);
 
-const loading = ref(true);
+const loading = ref(false);
 const error = ref<string | null>(null);
 const toc = ref<TocItem[]>([]);
 const showToc = ref(false);
@@ -163,6 +163,20 @@ defineExpose<RendererHandle>({
   onToolbarChange: (listener) => emitter.subscribe(listener),
 });
 
+// 吞掉 foliate-js paginator 卸载/切换窗口期由 ResizeObserver 触发的 uncaught error。
+// 上游 bug：Paginator.destroy 里 unobserve 目标错了（unobserve(this) 而非 unobserve(container)），
+// observer 从未真正解除，view 已经半 destroy 时仍会触发一次 render，此时 #view / iframe body 已 null。
+// 已知触发：
+//   - "Cannot destructure property 'style' of 'el' as it is null" (setStylesImportant)
+//   - "Failed to execute 'getComputedStyle' on 'Window': parameter 1 is not of type 'Element'" (#replaceBackground)
+const paginatorErrorHandler = (e: ErrorEvent) => {
+  if (e.filename?.includes('paginator')) {
+    e.preventDefault();
+  }
+};
+onMounted(() => window.addEventListener('error', paginatorErrorHandler));
+onBeforeUnmount(() => window.removeEventListener('error', paginatorErrorHandler));
+
 const load = async () => {
   const host = hostRef.value;
   if (!host) return;
@@ -173,6 +187,9 @@ const load = async () => {
   activeTocHref.value = '';
   host.replaceChildren();
   viewInstance = null;
+  let progressReported = false;
+  // 多 section 文件的页码累加器：记录各 section 的实际页数
+  const sectionPagesMap = new Map<number, number>();
 
   try {
     const view = document.createElement('foliate-view') as FoliateView;
@@ -183,9 +200,81 @@ const load = async () => {
     view.addEventListener('relocate', (e: Event) => {
       const detail = (e as CustomEvent).detail;
       if (!detail) return;
+
+      const sectionCount = viewInstance?.book?.sections.length ?? 0;
+      const renderer = viewInstance?.renderer as
+        | {
+            page?: number;
+            pages?: number;
+            getContents?: () => Array<{ index: number }>;
+          }
+        | undefined;
+
+      // 用 Paginator 的 page/pages 得到精确翻页数：
+      // - 单 section：pages - 2 就是全书总页数
+      // - 多 section：记录已翻过的 section 的 pages，累加得到全书页码
+      const sectionIdx = renderer?.getContents?.()[0]?.index ?? -1;
+      if (
+        renderer
+        && typeof renderer.page === 'number'
+        && typeof renderer.pages === 'number'
+        && renderer.pages > 2
+        && sectionIdx >= 0
+      ) {
+        progressReported = true;
+        const curSectionPages = renderer.pages - 2;
+        // 更新当前 section 的实际页数（每次进入该 section 都刷新，防止首次未 render 完整）
+        sectionPagesMap.set(sectionIdx, curSectionPages);
+
+        // 累加已确知的前置 section pages
+        let pagesBefore = 0;
+        for (let i = 0; i < sectionIdx; i++) {
+          pagesBefore += sectionPagesMap.get(i) ?? 0;
+        }
+        const currentPage = pagesBefore + Math.min(curSectionPages, Math.max(1, renderer.page));
+
+        // total 策略：
+        // - 单 section：pages - 2 就是全书精确页数
+        // - 多 section：用"当前 section 字符/页数比"外推未访问 section 的 pages。
+        //   同一本书字体、行距、页宽恒定，比率稳定，比 SectionProgress 字符估算准得多。
+        //   翻到末页（fraction ≈ 1）时用 currentPage 覆盖，得到真实总数。
+        const atEnd = (detail.fraction ?? 0) >= 0.999;
+        let total: number;
+        if (sectionCount === 1) {
+          total = curSectionPages;
+        } else if (atEnd) {
+          total = currentPage;
+        } else {
+          const sections = viewInstance?.book?.sections ?? [];
+          const curSize = (sections[sectionIdx] as { size?: number } | undefined)?.size ?? 0;
+          const ratio = curSize > 0 ? curSectionPages / curSize : 0;
+          let est = 0;
+          for (let i = 0; i < sectionCount; i++) {
+            if (sectionPagesMap.has(i)) {
+              est += sectionPagesMap.get(i)!;
+            } else {
+              const s = (sections[i] as { size?: number } | undefined)?.size ?? 0;
+              est += Math.max(1, Math.round(s * ratio));
+            }
+          }
+          total = Math.max(currentPage, est);
+        }
+
+        reportProgress(currentPage - 1, total);
+        const tocItem = detail.tocItem as { href?: string } | undefined;
+        if (tocItem?.href) activeTocHref.value = tocItem.href;
+        return;
+      }
+
+      // 兜底：SectionProgress.location（基于字符数估算）
       const loc = detail.location as { current?: number; total?: number } | undefined;
       if (loc && typeof loc.current === 'number' && typeof loc.total === 'number') {
-        reportProgress(loc.current, loc.total);
+        progressReported = true;
+        // 当翻到末尾时（fraction 达到 1 表示全书 100%），用 current + 1 作为实际可达的 total，
+        // 覆盖 SectionProgress 基于字符数向上取整的估算值（会高估）
+        const atEnd = (detail.fraction ?? 0) >= 0.999;
+        const actualTotal = atEnd ? loc.current + 1 : loc.total;
+        reportProgress(loc.current, actualTotal);
       } else {
         const sections = viewInstance?.book?.sections ?? [];
         const idx = detail.index ?? 0;
@@ -216,13 +305,18 @@ const load = async () => {
       renderer.setAttribute('max-inline-size', '720');
       renderer.setAttribute('margin', '48');
       renderer.setAttribute('gap', '5%');
-      renderer.setStyles?.(READER_CSS);
       await renderer.next?.();
+      // setStyles 依赖 view.document 存在，必须在 next() 触发首次渲染后调用
+      renderer.setStyles?.(READER_CSS);
     }
 
     toc.value = (view.book?.toc ?? []) as TocItem[];
     loading.value = false;
-    reportProgress(0, view.book?.sections.length ?? 1);
+    // 只在 relocate 事件从未报告 progress 时使用 sections.length 作为 fallback，
+    // 避免覆盖 SectionProgress 报告的更准确的 total
+    if (!progressReported) {
+      reportProgress(0, view.book?.sections.length ?? 1);
+    }
   } catch (err) {
     console.error('MOBI/AZW3 加载错误:', err);
     error.value = t.value('mobi.load_failed');
@@ -230,11 +324,15 @@ const load = async () => {
   }
 };
 
-watch(() => props.url, (newUrl) => {
-  // 只有 URL 有效时才加载（避免空字符串或已 revoke 的 blob URL）
-  if (newUrl) load();
-}, { immediate: true });
+// mount 后如果已有 URL 立即加载；后续 URL 变化通过 watch 触发
+onMounted(() => {
+  if (props.url) load();
+});
+watch(() => props.url, (newUrl, oldUrl) => {
+  if (newUrl && newUrl !== oldUrl) load();
+});
 onBeforeUnmount(() => {
+  try { (viewInstance as unknown as { close?: () => void })?.close?.(); } catch { /* ignore */ }
   try { viewInstance?.book?.destroy?.(); } catch { /* ignore */ }
   viewInstance = null;
   hostRef.value?.replaceChildren();

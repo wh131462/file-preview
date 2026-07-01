@@ -36,10 +36,23 @@ const {
 } = useAudioPlayer(urlRef);
 
 const showVolume = ref(false);
+const isCompact = ref(false);
+const controlScale = ref(1);
+const isDragging = ref(false);
+const dragTime = ref(0);
+const containerRef = ref<HTMLDivElement | null>(null);
 let volumeHideTimer: number | null = null;
 const volumeRef = ref<HTMLDivElement | null>(null);
 
-const progress = computed(() => (duration.value > 0 ? currentTime.value / duration.value : 0));
+const displayTime = computed(() => (isDragging.value ? dragTime.value : currentTime.value));
+const progress = computed(() => (duration.value > 0 ? displayTime.value / duration.value : 0));
+
+// 动态计算尺寸
+const vinylScale = computed(() => (isCompact.value ? 0.72 : 1));
+// 唱片跟随控制面板同步缩放，避免头重脚轻
+const finalVinylScale = computed(() => vinylScale.value * controlScale.value);
+const vinylBase = 260;
+const vinylHeightBase = 240;
 
 const VolumeIcon = computed(() => {
   if (isMuted.value || volume.value === 0) return VolumeX;
@@ -53,13 +66,39 @@ const handleClickOutside = (e: MouseEvent) => {
   }
 };
 
+let resizeObserver: ResizeObserver | null = null;
+
 onMounted(() => {
   document.addEventListener('mousedown', handleClickOutside);
+  const checkSize = () => {
+    if (containerRef.value) {
+      isCompact.value = containerRef.value.clientHeight < 580;
+      // 控制面板宽度自适应缩放
+      // 基础宽度 464px，最小视觉宽度 320px，即最小 scale ≈ 0.714
+      const width = containerRef.value.clientWidth;
+      const baseWidth = 464;
+      const minVisualWidth = 320;
+      const minScale = minVisualWidth / baseWidth;
+      const scale = width >= baseWidth
+        ? 1
+        : Math.max(minScale, width / baseWidth);
+      controlScale.value = scale;
+    }
+  };
+  checkSize();
+  if (containerRef.value) {
+    resizeObserver = new ResizeObserver(checkSize);
+    resizeObserver.observe(containerRef.value);
+  }
 });
 
 onBeforeUnmount(() => {
   document.removeEventListener('mousedown', handleClickOutside);
   if (volumeHideTimer !== null) clearTimeout(volumeHideTimer);
+  if (resizeObserver) {
+    resizeObserver.disconnect();
+    resizeObserver = null;
+  }
 });
 
 const handleVolumeEnter = () => {
@@ -86,10 +125,24 @@ defineExpose<RendererHandle>({
 
   <div
     v-else
-    class="vfp-flex vfp-flex-col vfp-items-center vfp-justify-center vfp-w-full vfp-h-full vfp-p-6 vfp-gap-6 vfp-select-none"
+    ref="containerRef"
+    :class="[
+      'vfp-flex vfp-flex-col vfp-items-center vfp-justify-center vfp-w-full vfp-h-full vfp-select-none vfp-overflow-auto',
+      isCompact ? 'vfp-p-3 vfp-gap-3' : 'vfp-p-6 vfp-gap-6'
+    ]"
   >
     <!-- 唱片机 -->
-    <div class="vfp-relative" style="width: 260px; height: 240px">
+    <div
+      class="vfp-relative vfp-flex-shrink-0"
+      :style="{
+        width: `${vinylBase}px`,
+        height: `${vinylHeightBase}px`,
+        transform: `scale(${finalVinylScale})`,
+        transformOrigin: 'center center',
+        marginTop: isCompact ? `${-(vinylHeightBase * (1 - finalVinylScale)) / 2}px` : 0,
+        marginBottom: isCompact ? `${-(vinylHeightBase * (1 - finalVinylScale)) / 2}px` : 0,
+      }"
+    >
       <!-- 外圈光晕 -->
       <div
         class="vfp-absolute vfp-rounded-full"
@@ -210,20 +263,34 @@ defineExpose<RendererHandle>({
     </div>
 
     <!-- 文件名 -->
-    <div class="vfp-text-center vfp-max-w-md vfp-px-4">
-      <div class="vfp-text-lg vfp-font-medium vfp-mb-1 vfp-truncate vfp-text-fg-primary">
+    <div :class="['vfp-text-center vfp-max-w-md vfp-flex-shrink-0', isCompact ? 'vfp-px-2' : 'vfp-px-4']">
+      <div
+        :class="[
+          'vfp-font-medium vfp-truncate vfp-text-fg-primary',
+          isCompact ? 'vfp-text-sm' : 'vfp-text-lg'
+        ]"
+      >
         {{ fileName }}
       </div>
-      <p class="vfp-text-xs vfp-tracking-widest vfp-uppercase vfp-text-accent">Audio</p>
     </div>
 
-    <!-- 控制面板 -->
-    <div
-      class="vfp-w-full vfp-max-w-md vfp-rounded-2xl vfp-p-5 vfp-border vfp-bg-surface-1 vfp-border-line-weak"
-      :style="{ backdropFilter: 'blur(16px)' }"
-    >
+    <!-- 控制面板 wrapper：按容器宽度整体缩放，保底视觉宽度 320px -->
+    <div class="vfp-w-full vfp-flex vfp-justify-center vfp-flex-shrink-0">
+      <div
+        :class="[
+          'vfp-rounded-2xl vfp-border vfp-bg-surface-1 vfp-border-line-weak',
+          isCompact ? 'vfp-p-3' : 'vfp-p-5'
+        ]"
+        :style="{
+          width: '448px',
+          backdropFilter: 'blur(16px)',
+          transform: controlScale < 1 ? `scale(${controlScale})` : undefined,
+          transformOrigin: 'top center',
+          marginBottom: controlScale < 1 ? `${-(1 - controlScale) * 100}px` : undefined,
+        }"
+      >
       <!-- 进度条 -->
-      <div class="vfp-mb-5">
+      <div :class="isCompact ? 'vfp-mb-3' : 'vfp-mb-5'">
         <div class="vfp-relative vfp-h-4 vfp-flex vfp-items-center">
           <div
             class="vfp-absolute vfp-w-full vfp-h-[5px] vfp-rounded-full vfp-bg-surface-2"
@@ -234,7 +301,7 @@ defineExpose<RendererHandle>({
               width: `${progress * 100}%`,
               background: 'linear-gradient(90deg, var(--fp-accent), var(--fp-accent-hover))',
               boxShadow: isPlaying ? '0 0 8px rgba(129,140,248,0.4)' : 'none',
-              transition: 'width 0.1s linear',
+              transition: isDragging ? 'none' : 'width 0.1s linear',
             }"
           />
           <input
@@ -242,47 +309,71 @@ defineExpose<RendererHandle>({
             min="0"
             :max="duration > 0 ? duration : currentTime || 100"
             step="any"
-            :value="currentTime"
+            :value="displayTime"
             :disabled="duration <= 0"
             :aria-label="t('audio.aria.progress')"
             class="audio-slider vfp-absolute vfp-w-full"
-            @input="(e) => seek(parseFloat((e.target as HTMLInputElement).value))"
+            @pointerdown="() => { dragTime = currentTime; isDragging = true; }"
+            @input="(e) => {
+              const value = parseFloat((e.target as HTMLInputElement).value);
+              if (isDragging) {
+                dragTime = value;
+              } else {
+                seek(value);
+              }
+            }"
+            @pointerup="(e) => {
+              const value = parseFloat((e.target as HTMLInputElement).value);
+              seek(value);
+              isDragging = false;
+            }"
+            @pointercancel="isDragging = false"
           />
         </div>
         <div
-          class="vfp-flex vfp-justify-between vfp-text-xs vfp-mt-2.5 vfp-text-fg-tertiary"
+          :class="[
+            'vfp-flex vfp-justify-between vfp-text-fg-tertiary',
+            isCompact ? 'vfp-text-[10px] vfp-mt-1.5' : 'vfp-text-xs vfp-mt-2.5'
+          ]"
         >
-          <span style="font-variant-numeric: tabular-nums">{{ formatTime(currentTime) }}</span>
+          <span style="font-variant-numeric: tabular-nums">{{ formatTime(displayTime) }}</span>
           <span style="font-variant-numeric: tabular-nums">{{ duration > 0 ? formatTime(duration) : '--:--' }}</span>
         </div>
       </div>
 
       <!-- 控制按钮 -->
-      <div class="vfp-flex vfp-items-center vfp-justify-center vfp-gap-3">
+      <div :class="['vfp-flex vfp-items-center vfp-justify-center', isCompact ? 'vfp-gap-2' : 'vfp-gap-3']">
         <!-- 循环 -->
         <button
           :class="[
-            'vfp-w-9 vfp-h-9 vfp-rounded-full vfp-flex vfp-items-center vfp-justify-center vfp-transition-colors audio-ctrl-btn',
+            'vfp-rounded-full vfp-flex vfp-items-center vfp-justify-center vfp-transition-colors audio-ctrl-btn vfp-flex-shrink-0',
+            isCompact ? 'vfp-w-8 vfp-h-8' : 'vfp-w-9 vfp-h-9',
             isLoop ? 'vfp-bg-accent-soft vfp-text-accent' : 'vfp-bg-surface-2 vfp-text-fg-tertiary',
           ]"
           :aria-label="isLoop ? t('audio.aria.loop_off') : t('audio.aria.loop_on')"
           @click="toggleLoop"
         >
-          <Repeat class="vfp-w-4 vfp-h-4" />
+          <Repeat :class="isCompact ? 'vfp-w-3.5 vfp-h-3.5' : 'vfp-w-4 vfp-h-4'" />
         </button>
 
         <!-- 后退 -->
         <button
-          class="vfp-w-10 vfp-h-10 vfp-rounded-full vfp-flex vfp-items-center vfp-justify-center vfp-transition-colors audio-ctrl-btn vfp-bg-surface-2 vfp-text-fg-secondary"
+          :class="[
+            'vfp-rounded-full vfp-flex vfp-items-center vfp-justify-center vfp-transition-colors audio-ctrl-btn vfp-bg-surface-2 vfp-text-fg-secondary vfp-flex-shrink-0',
+            isCompact ? 'vfp-w-9 vfp-h-9' : 'vfp-w-10 vfp-h-10'
+          ]"
           :aria-label="t('audio.aria.backward_10')"
           @click="skip(-10)"
         >
-          <SkipBack class="vfp-w-[18px] vfp-h-[18px]" />
+          <SkipBack :class="isCompact ? 'vfp-w-4 vfp-h-4' : 'vfp-w-[18px] vfp-h-[18px]'" />
         </button>
 
         <!-- 播放/暂停 -->
         <button
-          class="vfp-w-14 vfp-h-14 vfp-rounded-full vfp-flex vfp-items-center vfp-justify-center audio-ctrl-btn"
+          :class="[
+            'vfp-rounded-full vfp-flex vfp-items-center vfp-justify-center audio-ctrl-btn vfp-flex-shrink-0',
+            isCompact ? 'vfp-w-12 vfp-h-12' : 'vfp-w-14 vfp-h-14'
+          ]"
           :style="{
             background: 'linear-gradient(135deg, var(--fp-accent-hover), var(--fp-accent))',
             color: '#fff',
@@ -291,30 +382,34 @@ defineExpose<RendererHandle>({
           :aria-label="isPlaying ? t('audio.aria.pause') : t('audio.aria.play')"
           @click="togglePlay"
         >
-          <Pause v-if="isPlaying" class="vfp-w-6 vfp-h-6" />
-          <Play v-else class="vfp-w-6 vfp-h-6 vfp-ml-0.5" />
+          <Pause v-if="isPlaying" :class="isCompact ? 'vfp-w-5 vfp-h-5' : 'vfp-w-6 vfp-h-6'" />
+          <Play v-else :class="isCompact ? 'vfp-w-5 vfp-h-5 vfp-ml-0.5' : 'vfp-w-6 vfp-h-6 vfp-ml-0.5'" />
         </button>
 
         <!-- 前进 -->
         <button
-          class="vfp-w-10 vfp-h-10 vfp-rounded-full vfp-flex vfp-items-center vfp-justify-center vfp-transition-colors audio-ctrl-btn vfp-bg-surface-2 vfp-text-fg-secondary"
+          :class="[
+            'vfp-rounded-full vfp-flex vfp-items-center vfp-justify-center vfp-transition-colors audio-ctrl-btn vfp-bg-surface-2 vfp-text-fg-secondary vfp-flex-shrink-0',
+            isCompact ? 'vfp-w-9 vfp-h-9' : 'vfp-w-10 vfp-h-10'
+          ]"
           :aria-label="t('audio.aria.forward_10')"
           @click="skip(10)"
         >
-          <SkipForward class="vfp-w-[18px] vfp-h-[18px]" />
+          <SkipForward :class="isCompact ? 'vfp-w-4 vfp-h-4' : 'vfp-w-[18px] vfp-h-[18px]'" />
         </button>
 
         <!-- 音量 -->
         <div ref="volumeRef" class="vfp-relative" @mouseenter="handleVolumeEnter" @mouseleave="handleVolumeLeave">
           <button
             :class="[
-              'vfp-w-9 vfp-h-9 vfp-rounded-full vfp-flex vfp-items-center vfp-justify-center vfp-transition-colors audio-ctrl-btn',
+              'vfp-rounded-full vfp-flex vfp-items-center vfp-justify-center vfp-transition-colors audio-ctrl-btn vfp-flex-shrink-0',
+              isCompact ? 'vfp-w-8 vfp-h-8' : 'vfp-w-9 vfp-h-9',
               showVolume ? 'vfp-bg-accent-soft vfp-text-accent' : 'vfp-bg-surface-2 vfp-text-fg-secondary',
             ]"
             :aria-label="isMuted ? t('audio.aria.unmute') : t('audio.aria.mute')"
             @click="toggleMute"
           >
-            <component :is="VolumeIcon" class="vfp-w-4 vfp-h-4" />
+            <component :is="VolumeIcon" :class="isCompact ? 'vfp-w-3.5 vfp-h-3.5' : 'vfp-w-4 vfp-h-4'" />
           </button>
 
           <Transition name="vfp-fade">
@@ -367,6 +462,8 @@ defineExpose<RendererHandle>({
           </Transition>
         </div>
       </div>
+    </div>
+    <!-- wrapper 闭合 -->
     </div>
 
     <audio ref="audioRef" :src="url" class="vfp-hidden" />

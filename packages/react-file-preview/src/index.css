@@ -271,7 +271,7 @@
   background: linear-gradient(135deg, #818cf8, #6366f1);
   cursor: pointer;
   box-shadow: 0 2px 8px rgba(99, 102, 241, 0.5);
-  transition: all 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
   margin-top: -5px;
 }
 
@@ -283,7 +283,7 @@
   cursor: pointer;
   border: none;
   box-shadow: 0 2px 8px rgba(99, 102, 241, 0.5);
-  transition: all 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .rfp-root .audio-slider::-webkit-slider-thumb:hover {

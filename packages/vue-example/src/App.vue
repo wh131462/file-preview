@@ -104,6 +104,7 @@ const fileInputRef = ref<HTMLInputElement | null>(null);
 const theme = ref<Theme>('dark');
 const headless = ref(false);
 const locale = ref<Locale>('zh-CN');
+const showDownload = ref(true);
 const panelOpen = ref(false);
 const ballPos = ref({ x: 20, y: 200 });
 let dragging = false;
@@ -453,6 +454,7 @@ onUnmounted(() => {
             :theme="theme"
             :headless="headless"
             :locale="locale"
+            :show-download="showDownload"
             :custom-renderers="demoCustomRenderers"
             @navigate="(i: number) => (embedIndex = i)"
             @custom-event="handleCustomEvent"
@@ -571,6 +573,16 @@ onUnmounted(() => {
             </button>
           </div>
         </div>
+        <div class="flex items-center gap-3">
+          <span class="text-gray-400 text-xs w-10 flex-shrink-0">下载</span>
+          <button
+            :class="['relative w-10 h-5 rounded-full transition-colors', showDownload ? 'bg-emerald-500' : 'bg-white/20']"
+            @click="showDownload = !showDownload"
+          >
+            <span :class="['absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform', showDownload ? 'translate-x-5' : '']" />
+          </button>
+          <span class="text-gray-500 text-xs">{{ showDownload ? '显示' : '隐藏' }}</span>
+        </div>
       </div>
     </div>
 
@@ -581,6 +593,7 @@ onUnmounted(() => {
       :theme="theme"
       :headless="headless"
       :locale="locale"
+      :show-download="showDownload"
       :custom-renderers="demoCustomRenderers"
       @close="isPreviewOpen = false"
       @navigate="(i: number) => (currentFileIndex = i)"

@@ -67,6 +67,7 @@ function App() {
   const [theme, setTheme] = useState<Theme>('dark');
   const [headless, setHeadless] = useState(false);
   const [locale, setLocale] = useState<Locale>('zh-CN');
+  const [showDownload, setShowDownload] = useState(true);
   const [panelOpen, setPanelOpen] = useState(false);
   const [ballPos, setBallPos] = useState({ x: 20, y: 200 });
   const draggingRef = useRef(false);
@@ -438,6 +439,7 @@ function App() {
                 theme={theme}
                 headless={headless}
                 locale={locale}
+                showDownload={showDownload}
                 customRenderers={demoCustomRenderers}
                 onCustomEvent={handleCustomEvent}
               />
@@ -558,6 +560,16 @@ function App() {
                 ))}
               </div>
             </div>
+            <div className="flex items-center gap-3">
+              <span className="text-gray-400 text-xs w-10 flex-shrink-0">下载</span>
+              <button
+                onClick={() => setShowDownload(!showDownload)}
+                className={`relative w-10 h-5 rounded-full transition-colors ${showDownload ? 'bg-blue-500' : 'bg-white/20'}`}
+              >
+                <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${showDownload ? 'translate-x-5' : ''}`} />
+              </button>
+              <span className="text-gray-500 text-xs">{showDownload ? '显示' : '隐藏'}</span>
+            </div>
           </div>
         )}
       </div>
@@ -571,6 +583,7 @@ function App() {
         theme={theme}
         headless={headless}
         locale={locale}
+        showDownload={showDownload}
         customRenderers={demoCustomRenderers}
         onCustomEvent={handleCustomEvent}
       />

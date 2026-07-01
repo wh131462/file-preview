@@ -698,7 +698,7 @@
 }
 
 .rfp-root .rfp-code-block.with-line-numbers > .rfp-code-gutter {
-  padding-left: 1.5rem;
+  padding-left: 1em;
   padding-right: 1em;
   text-align: right;
   border-right: 1px solid var(--fp-line);
@@ -720,7 +720,7 @@
 
 .rfp-root .rfp-code-block.with-line-numbers > .rfp-code-line {
   padding-left: 1em;
-  padding-right: 1.5rem;
+  padding-right: 1em;
   white-space: pre-wrap;
   word-break: break-word;
   overflow-wrap: break-word;

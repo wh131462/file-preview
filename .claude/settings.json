@@ -63,7 +63,15 @@
       "Bash(awk 'BEGIN{inblock=0} /^```/{inblock=!inblock; next} !inblock && /\\\\{\\\\{/ {print NR\": \"$0}' /Users/eternalheart/workspace/wh131462/file-preview/packages/docs/guide/custom-renderers.md)",
       "Bash(openspec sync-specs *)",
       "Bash(openspec --help)",
-      "Bash(openspec archive *)"
+      "Bash(openspec archive *)",
+      "Read(//var/folders/41/c117cgt92nzc9gyyqx7njqth0000gn/T/chrome-devtools-mcp-KVmNGK/**)",
+      "Read(//private/var/folders/41/c117cgt92nzc9gyyqx7njqth0000gn/T/chrome-devtools-mcp-KVmNGK/**)",
+      "Read(//var/folders/41/c117cgt92nzc9gyyqx7njqth0000gn/T/chrome-devtools-mcp-T0Wizl/**)",
+      "Read(//private/var/folders/41/c117cgt92nzc9gyyqx7njqth0000gn/T/chrome-devtools-mcp-T0Wizl/**)",
+      "Read(//var/folders/41/c117cgt92nzc9gyyqx7njqth0000gn/T/chrome-devtools-mcp-wbItqa/**)",
+      "Read(//private/var/folders/41/c117cgt92nzc9gyyqx7njqth0000gn/T/chrome-devtools-mcp-wbItqa/**)",
+      "Read(//var/folders/41/c117cgt92nzc9gyyqx7njqth0000gn/T/chrome-devtools-mcp-MaPF8N/**)",
+      "Read(//private/var/folders/41/c117cgt92nzc9gyyqx7njqth0000gn/T/chrome-devtools-mcp-MaPF8N/**)"
     ],
     "additionalDirectories": [
       "/Users/eternalheart/workspace/wh131462/file-preview/.claude/skills/support-type"

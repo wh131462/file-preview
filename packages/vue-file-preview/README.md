@@ -168,14 +168,18 @@ import { ref } from 'vue';
 import { FilePreviewModal, type PreviewFileInput } from '@eternalheart/vue-file-preview';
 import '@eternalheart/vue-file-preview/style.css';
 
+// Assume file1 comes from a File API source: <input type="file">,
+// drag & drop, clipboard paste, or fetch().then(r => r.blob())
+const file1 = new File(['content'], 'example.txt', { type: 'text/plain' });
+
 const files: PreviewFileInput[] = [
-  // 1. Native File object
+  // 1. Native File object (auto revoked when unmounted)
   file1,
 
-  // 2. HTTP URL string
+  // 2. HTTP URL string (loaded on demand)
   'https://example.com/image.jpg',
 
-  // 3. File object with metadata
+  // 3. File object with metadata (recommended for remote resources)
   {
     name: 'document.pdf',
     type: 'application/pdf',
@@ -183,6 +187,9 @@ const files: PreviewFileInput[] = [
     size: 1024,
   },
 ];
+
+// Memory note: If you generate URLs via URL.createObjectURL(),
+// call URL.revokeObjectURL() when files are removed to avoid memory leaks.
 
 const isOpen = ref(true);
 </script>
@@ -286,6 +293,55 @@ Differences from `FilePreviewModal`:
 
 ### E-books
 - **EPUB**: Chapter navigation, pagination
+
+## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/26a0.svg" width="20" height="20" alt="⚠️" /> Limitations &amp; Performance
+
+### Support Levels
+
+**✅ Full Support (Production Ready)**
+- Images (JPG, PNG, GIF, WebP, SVG, BMP, ICO)
+- Videos (MP4, WebM, OGG)
+- Audio (MP3, WAV, OGG)
+- PDF
+- Markdown
+- Code files (40+ languages via Shiki, lazy-loaded)
+- JSON, CSV, XML
+
+**⚠️ Partial Support (Preview Only)**
+- **Office (DOCX, XLSX, PPTX)**: Basic layout and text rendering. Complex formatting (charts, macros, embedded objects) may not render accurately.
+- **ZIP**: Directory tree browsing + inline preview for text/code/images. Large archives (&gt;100MB) may cause performance issues.
+- **Fonts (TTF, OTF, WOFF)**: Metadata + character preview. Full font feature testing not supported.
+
+**🧪 Experimental**
+- **MSG (Outlook Email)**: Headers and plain text body. Complex HTML body may not render correctly.
+- **EPUB**: Basic chapter navigation. CSS styling may differ from native readers. DRM-protected files not supported.
+- **Subtitle formats (SRT, ASS, TTML, LRC)**: Text display only. No video sync or advanced styling.
+
+### Performance Boundaries
+
+| File Size | Status | Notes |
+|-----------|--------|-------|
+| &lt; 50MB | ✅ Recommended | Smooth preview experience |
+| 50-100MB | ⚠️ May lag | UI may become unresponsive during load |
+| &gt; 100MB | ❌ Not recommended | Browser memory limits may be exceeded |
+
+**Special Cases:**
+- **ZIP archives**: Performance depends on file count, not just size
+- **Office documents**: Complex files (&gt;200 pages, heavy images) may timeout
+- **Code highlighting**: Files &gt;5MB may take 3-5s to highlight
+
+### Browser Compatibility
+
+**Minimum Requirements:**
+- Chrome 90+ / Edge 90+
+- Firefox 88+
+- Safari 14+
+
+**Known Limitations:**
+- **Safari iOS**: Video autoplay requires user interaction
+- **Firefox**: AVIF support requires Firefox 93+ (fallback decoder included)
+- **Office formats**: Rendering quality varies across browsers
+- **EPUB**: Some CSS features unsupported in older browsers
 
 ## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f3ae.svg" width="20" height="20" alt="🎮" /> API Reference
 
@@ -583,11 +639,34 @@ const error = ref<string | null>(null);
 - In `<template>`: Use `t('key')` directly (automatically unwrapped)
 - In `<script>`: Use `t.value('key')` for imperative calls
 
-**Adding New Translation Keys:**
+**Adding Custom Translation Keys:**
 
-1. Add keys to both `zh-CN.ts` and `en-US.ts` in `file-preview-core/src/i18n/messages/`
-2. Use `<scope>.<snake_name>` format (e.g., `custom.load_failed`, `custom.parse_error`)
-3. Common keys already available: `common.loading`, `common.download`, `common.close`, `toolbar.*`
+For custom renderers, extend translations via the `messages` prop (do NOT modify source files in `node_modules`):
+
+```vue
+<template>
+  <FilePreviewModal
+    :files="files"
+    locale="en-US"
+    :messages="{
+      'en-US': {
+        'custom.load_failed': 'Failed to load custom file',
+        'custom.file_size': 'File size: {size} KB'
+      },
+      'zh-CN': {
+        'custom.load_failed': '自定义文件加载失败',
+        'custom.file_size': '文件大小: {size} KB'
+      }
+    }"
+    :custom-renderers="[...]"
+  />
+</template>
+```
+
+**Guidelines:**
+- Use `<scope>.<snake_name>` format (e.g., `custom.load_failed`, `custom.parse_error`)
+- Provide translations for all enabled locales (`zh-CN` and `en-US`)
+- Common keys already available: `common.loading`, `common.download`, `common.close`, `toolbar.*`
 
 **Parameterized Translations:**
 
@@ -759,25 +838,6 @@ Verify:
 - [Full Documentation](https://wh131462.github.io/file-preview/docs/)
 - [Vue Demo](https://wh131462.github.io/file-preview/vue/)
 - [React Demo](https://wh131462.github.io/file-preview/)
-
-## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f4e6.svg" width="20" height="20" alt="📦" /> Package Information
-
-### Peer Dependencies
-
-- `vue`: ^3.4.0
-
-### Exports
-
-```json
-{
-  ".": {
-    "types": "./lib/index.d.ts",
-    "import": "./lib/index.mjs",
-    "require": "./lib/index.cjs"
-  },
-  "./style.css": "./lib/index.css"
-}
-```
 
 ## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f6e0.svg" width="20" height="20" alt="🛠️" /> Development
 

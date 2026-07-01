@@ -188,14 +188,18 @@ import { FilePreviewModal, PreviewFileInput } from '@eternalheart/react-file-pre
 import '@eternalheart/react-file-preview/style.css';
 
 function App() {
+  // Assume `file1` comes from a File API source: <input type="file">,
+  // drag &amp; drop, clipboard paste, or fetch().then(r =&gt; r.blob())
+  const file1 = new File(['content'], 'example.txt', { type: 'text/plain' });
+
   const files: PreviewFileInput[] = [
-    // 1. Native File object
+    // 1. Native File object (auto revoked when unmounted)
     file1,
 
-    // 2. HTTP URL string
+    // 2. HTTP URL string (loaded on demand)
     'https://example.com/image.jpg',
 
-    // 3. File object with metadata
+    // 3. File object with metadata (recommended for remote resources)
     {
       name: 'document.pdf',
       type: 'application/pdf',
@@ -203,6 +207,9 @@ function App() {
       size: 1024,
     },
   ];
+
+  // Memory note: If you generate URLs via URL.createObjectURL(),
+  // call URL.revokeObjectURL() when files are removed to avoid memory leaks.
 
   return (
     <FilePreviewModal
@@ -358,6 +365,55 @@ const files = [
 
 ### E-books
 - **EPUB**: Chapter navigation, pagination
+
+## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/26a0.svg" width="20" height="20" alt="⚠️" /> Limitations &amp; Performance
+
+### Support Levels
+
+**✅ Full Support (Production Ready)**
+- Images (JPG, PNG, GIF, WebP, SVG, BMP, ICO)
+- Videos (MP4, WebM, OGG)
+- Audio (MP3, WAV, OGG)
+- PDF
+- Markdown
+- Code files (40+ languages via Shiki, lazy-loaded)
+- JSON, CSV, XML
+
+**⚠️ Partial Support (Preview Only)**
+- **Office (DOCX, XLSX, PPTX)**: Basic layout and text rendering. Complex formatting (charts, macros, embedded objects) may not render accurately.
+- **ZIP**: Directory tree browsing + inline preview for text/code/images. Large archives (&gt;100MB) may cause performance issues.
+- **Fonts (TTF, OTF, WOFF)**: Metadata + character preview. Full font feature testing not supported.
+
+**🧪 Experimental**
+- **MSG (Outlook Email)**: Headers and plain text body. Complex HTML body may not render correctly.
+- **EPUB**: Basic chapter navigation. CSS styling may differ from native readers. DRM-protected files not supported.
+- **Subtitle formats (SRT, ASS, TTML, LRC)**: Text display only. No video sync or advanced styling.
+
+### Performance Boundaries
+
+| File Size | Status | Notes |
+|-----------|--------|-------|
+| &lt; 50MB | ✅ Recommended | Smooth preview experience |
+| 50-100MB | ⚠️ May lag | UI may become unresponsive during load |
+| &gt; 100MB | ❌ Not recommended | Browser memory limits may be exceeded |
+
+**Special Cases:**
+- **ZIP archives**: Performance depends on file count, not just size
+- **Office documents**: Complex files (&gt;200 pages, heavy images) may timeout
+- **Code highlighting**: Files &gt;5MB may take 3-5s to highlight
+
+### Browser Compatibility
+
+**Minimum Requirements:**
+- Chrome 90+ / Edge 90+
+- Firefox 88+
+- Safari 14+
+
+**Known Limitations:**
+- **Safari iOS**: Video autoplay requires user interaction
+- **Firefox**: AVIF support requires Firefox 93+ (fallback decoder included)
+- **Office formats**: Rendering quality varies across browsers
+- **EPUB**: Some CSS features unsupported in older browsers
 
 ## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f3ae.svg" width="20" height="20" alt="🎮" /> API Reference
 
@@ -718,11 +774,32 @@ export const CustomRenderer = forwardRef<RendererHandle, Props>((props, ref) => 
 });
 ```
 
-**Adding New Translation Keys:**
+**Adding Custom Translation Keys:**
 
-1. Add keys to both `zh-CN.ts` and `en-US.ts` in `file-preview-core/src/i18n/messages/`
-2. Use `<scope>.<snake_name>` format (e.g., `custom.load_failed`, `custom.parse_error`)
-3. Common keys already available: `common.loading`, `common.download`, `common.close`, `toolbar.*`
+For custom renderers, extend translations via the `messages` prop (do NOT modify source files in `node_modules`):
+
+```tsx
+<FilePreviewModal
+  files={files}
+  locale="en-US"
+  messages={{
+    'en-US': {
+      'custom.load_failed': 'Failed to load custom file',
+      'custom.file_size': 'File size: {size} KB'
+    },
+    'zh-CN': {
+      'custom.load_failed': '自定义文件加载失败',
+      'custom.file_size': '文件大小: {size} KB'
+    }
+  }}
+  customRenderers={[...]}
+/>
+```
+
+**Guidelines:**
+- Use `<scope>.<snake_name>` format (e.g., `custom.load_failed`, `custom.parse_error`)
+- Provide translations for all enabled locales (`zh-CN` and `en-US`)
+- Common keys already available: `common.loading`, `common.download`, `common.close`, `toolbar.*`
 
 **Parameterized Translations:**
 
@@ -890,32 +967,6 @@ This project supports [Context7](https://context7.com) MCP Server. If you are us
 3. Get more accurate code suggestions and answers without manually looking up documentation
 
 > For more details on configuring Context7, please visit [Context7 official documentation](https://github.com/upstash/context7).
-
-## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f4e6.svg" width="20" height="20" alt="📦" /> Package Information
-
-### Bundle Size
-
-- **ESM**: ~54 KB (gzipped: ~12 KB)
-- **CJS**: ~37 KB (gzipped: ~11 KB)
-- **CSS**: ~56 KB (gzipped: ~14 KB)
-
-### Peer Dependencies
-
-- `react`: ^18.0.0
-- `react-dom`: ^18.0.0
-
-### Exports
-
-```json
-{
-  ".": {
-    "types": "./lib/index.d.ts",
-    "import": "./lib/index.mjs",
-    "require": "./lib/index.cjs"
-  },
-  "./style.css": "./lib/index.css"
-}
-```
 
 ## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f6e0.svg" width="20" height="20" alt="🛠️" /> Development
 

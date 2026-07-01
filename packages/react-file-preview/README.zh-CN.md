@@ -186,14 +186,18 @@ import { FilePreviewModal, PreviewFileInput } from '@eternalheart/react-file-pre
 import '@eternalheart/react-file-preview/style.css';
 
 function App() {
+  // 假设 file1 来自 File API：<input type="file">、拖拽、
+  // 剪贴板粘贴,或 fetch().then(r => r.blob())
+  const file1 = new File(['content'], 'example.txt', { type: 'text/plain' });
+
   const files: PreviewFileInput[] = [
-    // 1. 原生 File 对象
+    // 1. 原生 File 对象（组件卸载时自动释放）
     file1,
 
-    // 2. HTTP URL 字符串
+    // 2. HTTP URL 字符串（按需加载）
     'https://example.com/image.jpg',
 
-    // 3. 带元数据的文件对象
+    // 3. 带元数据的文件对象（推荐用于远程资源）
     {
       name: 'document.pdf',
       type: 'application/pdf',
@@ -201,6 +205,9 @@ function App() {
       size: 1024,
     },
   ];
+
+  // 内存提示: 如果你通过 URL.createObjectURL() 生成 URL,
+  // 文件移除时请调用 URL.revokeObjectURL() 避免内存泄漏。
 
   return (
     <FilePreviewModal
@@ -356,6 +363,55 @@ const files = [
 
 ### 电子书
 - **EPUB**: 章节导航、翻页
+
+## ⚠️ 功能限制与性能说明
+
+### 支持等级
+
+**✅ 完全支持（生产可用）**
+- 图片（JPG, PNG, GIF, WebP, SVG, BMP, ICO）
+- 视频（MP4, WebM, OGG）
+- 音频（MP3, WAV, OGG）
+- PDF
+- Markdown
+- 代码文件（通过 Shiki 支持 40+ 种语言，按需加载）
+- JSON, CSV, XML
+
+**⚠️ 部分支持（仅供预览）**
+- **Office（DOCX, XLSX, PPTX）**: 基础布局和文本渲染。复杂格式（图表、宏、嵌入对象）可能无法准确渲染。
+- **ZIP**: 目录树浏览 + 文本/代码/图片内联预览。大型压缩包（>100MB）可能导致性能问题。
+- **字体（TTF, OTF, WOFF）**: 元数据 + 字符预览。不支持完整字体特性测试。
+
+**🧪 实验性支持**
+- **MSG（Outlook 邮件）**: 邮件头和纯文本正文。复杂 HTML 正文可能无法正确渲染。
+- **EPUB**: 基础章节导航。CSS 样式可能与原生阅读器有差异。不支持 DRM 保护文件。
+- **字幕格式（SRT, ASS, TTML, LRC）**: 仅文本显示。不支持视频同步或高级样式。
+
+### 性能边界
+
+| 文件大小 | 状态 | 说明 |
+|---------|------|------|
+| < 50MB | ✅ 推荐 | 流畅的预览体验 |
+| 50-100MB | ⚠️ 可能卡顿 | 加载时 UI 可能无响应 |
+| > 100MB | ❌ 不推荐 | 可能超出浏览器内存限制 |
+
+**特殊情况：**
+- **ZIP 压缩包**: 性能取决于文件数量，而非仅体积
+- **Office 文档**: 复杂文件（>200 页、大量图片）可能超时
+- **代码高亮**: >5MB 的文件可能需要 3-5 秒高亮时间
+
+### 浏览器兼容性
+
+**最低要求：**
+- Chrome 90+ / Edge 90+
+- Firefox 88+
+- Safari 14+
+
+**已知限制：**
+- **Safari iOS**: 视频自动播放需要用户交互
+- **Firefox**: AVIF 支持需要 Firefox 93+（已包含降级解码器）
+- **Office 格式**: 不同浏览器渲染质量有差异
+- **EPUB**: 旧版浏览器可能不支持某些 CSS 特性
 
 ## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f3ae.svg" width="20" height="20" alt="🎮" /> API 参考
 
@@ -716,11 +772,32 @@ export const CustomRenderer = forwardRef<RendererHandle, Props>((props, ref) => 
 });
 ```
 
-**新增翻译 key：**
+**新增自定义翻译键：**
 
-1. 在 `file-preview-core/src/i18n/messages/` 的 `zh-CN.ts` 和 `en-US.ts` 中同时添加 key
-2. 使用 `<scope>.<snake_name>` 格式（如 `custom.load_failed`、`custom.parse_error`）
-3. 已有通用 key：`common.loading`、`common.download`、`common.close`、`toolbar.*`
+对于自定义渲染器，通过 `messages` prop 扩展翻译（不要修改 `node_modules` 中的源文件）：
+
+```tsx
+<FilePreviewModal
+  files={files}
+  locale="en-US"
+  messages={{
+    'en-US': {
+      'custom.load_failed': 'Failed to load custom file',
+      'custom.file_size': 'File size: {size} KB'
+    },
+    'zh-CN': {
+      'custom.load_failed': '自定义文件加载失败',
+      'custom.file_size': '文件大小: {size} KB'
+    }
+  }}
+  customRenderers={[...]}
+/>
+```
+
+**指南：**
+- 使用 `<scope>.<snake_name>` 格式（如 `custom.load_failed`、`custom.parse_error`）
+- 为所有启用的语言（`zh-CN` 和 `en-US`）提供翻译
+- 已有通用 key：`common.loading`、`common.download`、`common.close`、`toolbar.*`
 
 **参数化翻译：**
 
@@ -888,32 +965,6 @@ export const CodeRenderer = forwardRef<RendererHandle, Props>((props, ref) => {
 3. 无需手动查阅文档，即可获得更精准的代码建议和解答
 
 > 更多关于 Context7 的配置方式，请访问 [Context7 官方文档](https://github.com/upstash/context7)。
-
-## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f4e6.svg" width="20" height="20" alt="📦" /> 包信息
-
-### 打包体积
-
-- **ESM**: ~54 KB (gzipped: ~12 KB)
-- **CJS**: ~37 KB (gzipped: ~11 KB)
-- **CSS**: ~56 KB (gzipped: ~14 KB)
-
-### Peer Dependencies
-
-- `react`: ^18.0.0
-- `react-dom`: ^18.0.0
-
-### 导出
-
-```json
-{
-  ".": {
-    "types": "./lib/index.d.ts",
-    "import": "./lib/index.mjs",
-    "require": "./lib/index.cjs"
-  },
-  "./style.css": "./lib/index.css"
-}
-```
 
 ## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f6e0.svg" width="20" height="20" alt="🛠️" /> 开发
 

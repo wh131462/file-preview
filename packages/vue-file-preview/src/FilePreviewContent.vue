@@ -353,8 +353,10 @@ const hasToolGroups = computed(() => toolGroups.value.length > 0);
               <button
                 v-if="item.type === 'button'"
                 class="toolbar-btn"
+                :class="{ active: (item as ToolbarButtonItem).active }"
                 :data-tooltip="(item as ToolbarButtonItem).tooltip"
                 :disabled="(item as ToolbarButtonItem).disabled"
+                :aria-pressed="(item as ToolbarButtonItem).active"
                 @click="(item as ToolbarButtonItem).action"
               >
                 <component :is="(item as ToolbarButtonItem).icon" class="vfp-w-4 vfp-h-4" />
@@ -370,8 +372,10 @@ const hasToolGroups = computed(() => toolGroups.value.length > 0);
               <button
                 v-if="item.type === 'button'"
                 class="toolbar-btn"
+                :class="{ active: (item as ToolbarButtonItem).active }"
                 :data-tooltip="(item as ToolbarButtonItem).tooltip"
                 :disabled="(item as ToolbarButtonItem).disabled"
+                :aria-pressed="(item as ToolbarButtonItem).active"
                 @click="(item as ToolbarButtonItem).action"
               >
                 <component :is="(item as ToolbarButtonItem).icon" class="vfp-w-4 vfp-h-4" />
@@ -391,8 +395,10 @@ const hasToolGroups = computed(() => toolGroups.value.length > 0);
               <button
                 v-if="item.type === 'button'"
                 class="toolbar-btn"
+                :class="{ active: (item as ToolbarButtonItem).active }"
                 :data-tooltip="(item as ToolbarButtonItem).tooltip"
                 :disabled="(item as ToolbarButtonItem).disabled"
+                :aria-pressed="(item as ToolbarButtonItem).active"
                 @click="(item as ToolbarButtonItem).action"
               >
                 <component :is="(item as ToolbarButtonItem).icon" class="vfp-w-4 vfp-h-4" />
@@ -413,8 +419,10 @@ const hasToolGroups = computed(() => toolGroups.value.length > 0);
             <button
               v-if="item.type === 'button'"
               class="toolbar-btn"
+              :class="{ active: (item as ToolbarButtonItem).active }"
               :data-tooltip="(item as ToolbarButtonItem).tooltip"
               :disabled="(item as ToolbarButtonItem).disabled"
+              :aria-pressed="(item as ToolbarButtonItem).active"
               @click="(item as ToolbarButtonItem).action"
             >
               <component :is="(item as ToolbarButtonItem).icon" class="vfp-w-4 vfp-h-4" />
@@ -499,6 +507,11 @@ const hasToolGroups = computed(() => toolGroups.value.length > 0);
   background: var(--fp-surface-2);
 }
 .toolbar-btn:active {
+  background: var(--fp-surface-3);
+}
+.toolbar-btn.active,
+.toolbar-btn.active:hover,
+.toolbar-btn.active:active {
   background: var(--fp-surface-3);
 }
 .toolbar-btn:disabled {

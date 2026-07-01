@@ -13,7 +13,7 @@ A modern, feature-rich file preview component library with **first-class support
 
 ## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/2728.svg" width="20" height="20" alt="✨" /> Key Features
 
-- <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f3a8.svg" width="16" height="16" alt="🎨" style="vertical-align: middle;" /> **Modern UI** — Apple-inspired minimalist design with glassmorphism effects
+- <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f3a8.svg" width="16" height="16" alt="🎨" style="vertical-align: middle;" /> **Modern UI** — Clean and modern interface with smooth animations
 - <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f4c1.svg" width="16" height="16" alt="📁" style="vertical-align: middle;" /> **20+ Format Support** — Images, videos, audio, PDF, Office, code, e-books, and more
 - <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1fa9f.svg" width="16" height="16" alt="🪟" style="vertical-align: middle;" /> **Dual Display Modes** — Full-screen modal or inline embedded preview
 - <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f3af.svg" width="16" height="16" alt="🎯" style="vertical-align: middle;" /> **Multi-framework Support** — React and Vue share core logic with consistent APIs
@@ -217,91 +217,51 @@ pnpm pub              # Publish library to npm
 
 ---
 
+
 ## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f9e9.svg" width="20" height="20" alt="🧩" /> Custom Renderers
 
-Both React and Vue packages support custom renderers for handling file types not built-in. Custom renderers can optionally provide toolbar configurations.
+Support custom renderers for file types not built-in.
 
-### Basic Interface
+**React Example:**
 
-```typescript
-export interface RendererHandle {
-  getToolbarGroups: () => ToolbarGroup[];
-  
-  // Optional: Subscribe to toolbar changes for real-time updates
-  onToolbarChange?: (listener: () => void) => (() => void);
-}
-```
+```tsx
+import { FilePreviewModal } from '@eternalheart/react-file-preview';
 
-### Event-Driven Toolbar Updates
-
-The new architecture uses an event-driven mechanism instead of polling, providing:
-
-- **Real-time updates**: Toolbar reflects state changes immediately
-- **Better performance**: No unnecessary re-renders or CPU usage
-- **Type-safe**: Full TypeScript support
-
-### Migration from Polling to Events
-
-**Before (polling-based):**
-```typescript
-// Main component polls getToolbarGroups() every 100ms
-setInterval(() => {
-  const groups = rendererRef.current?.getToolbarGroups() ?? [];
-  setToolbarGroups(groups);
-}, 100);
-```
-
-**After (event-driven):**
-```typescript
-// Renderer implementation
-const ImageRenderer = forwardRef<RendererHandle, Props>((props, ref) => {
-  const [zoom, setZoom] = useState(1);
-  const emitter = useMemo(() => new ToolbarEventEmitter(), []);
-  
-  // Notify when state changes
-  useEffect(() => {
-    emitter.notify();
-  }, [zoom, emitter]);
-  
-  const getToolbarGroups = useCallback((): ToolbarGroup[] => [
-    {
-      items: [
-        { type: 'text', content: `${Math.round(zoom * 100)}%` },
-        // ... other buttons
-      ]
-    }
-  ], [zoom]);
-  
-  useImperativeHandle(ref, () => ({
-    getToolbarGroups,
-    onToolbarChange: (listener) => emitter.subscribe(listener)
-  }), [getToolbarGroups, emitter]);
-  
-  return <img style={{ transform: `scale(${zoom})` }} />;
-});
-```
-
-**Main component automatically detects and uses events:**
-```typescript
-// If renderer supports onToolbarChange, subscribe to events
-// Otherwise, fallback to polling for backward compatibility
-useEffect(() => {
-  if (rendererRef.current?.onToolbarChange) {
-    return rendererRef.current.onToolbarChange(() => {
-      setToolbarGroups(rendererRef.current?.getToolbarGroups() ?? []);
-    });
+const customRenderers = [
+  {
+    test: (file) => file.type === 'application/custom',
+    component: ({ url }) => <div>Custom render: {url}</div>
   }
-  // Fallback to polling
-  const interval = setInterval(() => {
-    setToolbarGroups(rendererRef.current?.getToolbarGroups() ?? []);
-  }, 100);
-  return () => clearInterval(interval);
-}, []);
+];
+
+<FilePreviewModal files={files} customRenderers={customRenderers} />
 ```
 
-<img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f449.svg" width="16" height="16" alt="👉" style="vertical-align: middle;" /> [View full custom renderer documentation](./packages/react-file-preview/README.md#custom-renderers)
+**Vue Example:**
 
----
+```vue
+<script setup>
+import { FilePreviewModal } from '@eternalheart/vue-file-preview';
+
+const CustomRenderer = {
+  props: ['url'],
+  template: '<div>Custom render: {{ url }}</div>'
+};
+
+const customRenderers = [
+  {
+    test: (file) => file.type === 'application/custom',
+    component: CustomRenderer
+  }
+];
+</script>
+
+<template>
+  <FilePreviewModal :files="files" :custom-renderers="customRenderers" />
+</template>
+```
+
+<img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f449.svg" width="16" height="16" alt="👉" style="vertical-align: middle;" /> Full documentation: [React Custom Renderers](./packages/react-file-preview/README.md#-custom-renderers) | [Vue Custom Renderers](./packages/vue-file-preview/README.md#-custom-renderers)
 
 ## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/2328.svg" width="20" height="20" alt="⌨️" /> Keyboard Shortcuts
 

@@ -419,6 +419,86 @@ const files: PreviewFileInput[] = [
 ]
 ```
 
+## 内置渲染器架构类型（v2.0+）
+
+### RendererHandle
+
+内置渲染器通过 `forwardRef` / `defineExpose` 暴露的接口：
+
+```typescript
+interface RendererHandle {
+  /** 返回工具栏配置（必需） */
+  getToolbarGroups: () => ToolbarGroup[]
+  
+  /** 可选：订阅工具栏变更以实现实时更新 */
+  onToolbarChange?: (listener: () => void) => (() => void)
+}
+```
+
+**React 用法：**
+
+```tsx
+import { forwardRef, useImperativeHandle } from 'react';
+import type { RendererHandle } from '@eternalheart/react-file-preview';
+
+export const CustomRenderer = forwardRef<RendererHandle, Props>((props, ref) => {
+  useImperativeHandle(ref, () => ({
+    getToolbarGroups: () => [...],
+    onToolbarChange: (listener) => emitter.subscribe(listener)
+  }), []);
+  
+  return <div>...</div>;
+});
+```
+
+**Vue 用法：**
+
+```vue
+<script setup lang="ts">
+const getToolbarGroups = (): ToolbarGroup[] => [...];
+
+defineExpose({
+  getToolbarGroups
+});
+</script>
+```
+
+### ToolbarEventEmitter
+
+事件驱动工具栏更新的发布订阅类（仅 React）：
+
+```typescript
+class ToolbarEventEmitter {
+  /** 订阅工具栏变更 */
+  subscribe(listener: () => void): () => void
+  
+  /** 通知订阅者（状态变化时调用） */
+  notify(): void
+}
+```
+
+**React 用法：**
+
+```tsx
+import { useMemo, useEffect } from 'react';
+import { ToolbarEventEmitter } from '@eternalheart/react-file-preview';
+
+const emitter = useMemo(() => new ToolbarEventEmitter(), []);
+
+useEffect(() => {
+  emitter.notify();  // 状态变化时通知
+}, [zoom, currentPage, emitter]);
+
+useImperativeHandle(ref, () => ({
+  getToolbarGroups,
+  onToolbarChange: (listener) => emitter.subscribe(listener)
+}), [getToolbarGroups, emitter]);
+```
+
+**Vue 用法：**
+
+Vue 不需要显式使用 `ToolbarEventEmitter`，响应式系统自动追踪 `getToolbarGroups()` 的依赖变化。
+
 ## 下一步
 
 - [组件 API](./components) - 查看组件的完整 API

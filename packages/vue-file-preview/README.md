@@ -4,23 +4,22 @@ English | [简体中文](./README.zh-CN.md)
 
 A modern, feature-rich file preview component for Vue 3 with support for images, videos, audio, PDFs, Office documents (Word, Excel, PowerPoint), Markdown, and code files.
 
-## ✨ Features
+## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/2728.svg" width="20" height="20" alt="✨" /> Features
 
-- 🎨 **Modern UI** - Apple-inspired minimalist design with glassmorphism effects
-- 📁 **Multi-format Support** - Supports 20+ file formats
-- 🪟 **Two Display Modes** - Full-screen modal **or** inline embedded preview
-- 🖼️ **Powerful Image Viewer** - Zoom, rotate, drag, mouse wheel zoom
-- 🎬 **Custom Video Player** - Built on Video.js, supports multiple video formats
-- 🎵 **Custom Audio Player** - Beautiful audio control interface
-- 📄 **PDF Viewer** - Pagination support
-- 📊 **Office Documents Support** - Word, Excel, PowerPoint file preview
-- 📝 **Markdown Rendering** - GitHub Flavored Markdown support
-- 💻 **Code Highlighting** - Supports 40+ programming languages
-- 📱 **Responsive Design** - Adapts to all screen sizes
-- ⌨️ **Keyboard Navigation** - Arrow keys and ESC support
-- 🎯 **Drag & Drop** - File upload via drag and drop
+- <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f3a8.svg" width="16" height="16" alt="🎨" style="vertical-align: middle;" /> **Modern UI** - Clean and modern interface with smooth animations
+- <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f4c1.svg" width="16" height="16" alt="📁" style="vertical-align: middle;" /> **Multi-format Support** - Supports 20+ file formats
+- <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1fa9f.svg" width="16" height="16" alt="🪟" style="vertical-align: middle;" /> **Two Display Modes** - Full-screen modal **or** inline embedded preview
+- <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f5bc.svg" width="16" height="16" alt="🖼️" style="vertical-align: middle;" /> **Powerful Image Viewer** - Zoom, rotate, drag, mouse wheel zoom
+- <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f3ac.svg" width="16" height="16" alt="🎬" style="vertical-align: middle;" /> **Custom Video Player** - Built on Video.js, supports multiple video formats
+- <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f3b5.svg" width="16" height="16" alt="🎵" style="vertical-align: middle;" /> **Custom Audio Player** - Beautiful audio control interface
+- <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f4c4.svg" width="16" height="16" alt="📄" style="vertical-align: middle;" /> **PDF Viewer** - Pagination support
+- <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f4ca.svg" width="16" height="16" alt="📊" style="vertical-align: middle;" /> **Office Documents Support** - Word, Excel, PowerPoint file preview
+- <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f4dd.svg" width="16" height="16" alt="📝" style="vertical-align: middle;" /> **Markdown Rendering** - GitHub Flavored Markdown support
+- <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f4bb.svg" width="16" height="16" alt="💻" style="vertical-align: middle;" /> **Code Highlighting** - Supports 40+ programming languages
+- <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f4f1.svg" width="16" height="16" alt="📱" style="vertical-align: middle;" /> **Responsive Design** - Adapts to all screen sizes
+- <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/2328.svg" width="16" height="16" alt="⌨️" style="vertical-align: middle;" /> **Keyboard Navigation** - Arrow keys and ESC support
 
-## 📦 Installation
+## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f4e6.svg" width="20" height="20" alt="📦" /> Installation
 
 ```bash
 # Using npm
@@ -122,7 +121,7 @@ export default defineConfig({
 
 > Note: `@jsquash/avif` is only used as a fallback when the browser does not natively support AVIF (Chrome 85+, Firefox 93+, Safari 16+ all support it natively). If your target browsers cover the native list, you can also remove `@jsquash/avif` from your dependencies entirely.
 
-## 🚀 Quick Start
+## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f680.svg" width="20" height="20" alt="🚀" /> Quick Start
 
 ### Basic Usage
 
@@ -239,7 +238,7 @@ Differences from `FilePreviewModal`:
 <FilePreviewEmbed :files="files" :width="800" :height="500" />
 ```
 
-## 📖 Supported File Formats
+## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f4d6.svg" width="20" height="20" alt="📖" /> Supported File Formats
 
 ### Images
 - **Formats**: JPG, PNG, GIF, WebP, SVG, BMP, ICO
@@ -288,7 +287,7 @@ Differences from `FilePreviewModal`:
 ### E-books
 - **EPUB**: Chapter navigation, pagination
 
-## 🎮 API Reference
+## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f3ae.svg" width="20" height="20" alt="🎮" /> API Reference
 
 ### FilePreviewModal Props
 
@@ -302,6 +301,7 @@ Differences from `FilePreviewModal`:
 | `messages` | `Partial<Record<Locale, Partial<Messages>>>` | ❌ | Custom translation overrides |
 | `headless` | `boolean` | ❌ | Headless mode — hides toolbar and navigation arrows |
 | `theme` | `Theme` | ❌ | Theme mode: `'auto' \| 'dark' \| 'light'` (default `'dark'`) |
+| `showDownload` | `boolean` | ❌ | Whether to show the download button (default `true`) |
 
 ### FilePreviewModal Events
 
@@ -323,6 +323,7 @@ Differences from `FilePreviewModal`:
 | `messages` | `Partial<Record<Locale, Partial<Messages>>>` | ❌ | - | Custom translation overrides |
 | `headless` | `boolean` | ❌ | `false` | Headless mode — hides toolbar and navigation arrows |
 | `theme` | `Theme` | ❌ | `'dark'` | Theme mode: `'auto' \| 'dark' \| 'light'` |
+| `showDownload` | `boolean` | ❌ | `true` | Whether to show the download button |
 
 ### FilePreviewEmbed Events
 
@@ -365,20 +366,401 @@ interface PreviewFileLink {
 const url: string = 'https://example.com/file.pdf';
 ```
 
-## ⌨️ Keyboard Shortcuts
+## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f9e9.svg" width="20" height="20" alt="🧩" /> Custom Renderers
+
+The library supports custom renderers for handling file types not built-in. Custom renderers can optionally provide toolbar configurations and integrate with the library's architecture.
+
+### Event-Driven Toolbar Updates
+
+Custom renderers can implement real-time toolbar updates using Vue 3's reactivity system:
+
+**Benefits:**
+- **Real-time updates**: Toolbar reflects state changes immediately via Vue reactivity
+- **Better performance**: No polling overhead, leverages Vue's efficient change detection
+- **Type-safe**: Full TypeScript support with proper interfaces
+
+**Implementation:**
+
+```vue
+<script setup lang="ts">
+import { ref, computed, watch } from 'vue';
+import { ChevronLeft, ChevronRight } from 'lucide-vue-next';
+import type { ToolbarGroup } from '@eternalheart/vue-file-preview';
+
+interface Props {
+  url: string;
+}
+
+const props = defineProps<Props>();
+const emit = defineEmits<{
+  pageChange: [current: number, total: number];
+}>();
+
+const currentPage = ref(1);
+const totalPages = ref(10);
+
+// Emit page changes
+watch([currentPage, totalPages], () => {
+  emit('pageChange', currentPage.value, totalPages.value);
+});
+
+const getToolbarGroups = (): ToolbarGroup[] => [
+  {
+    items: [
+      {
+        type: 'button',
+        icon: ChevronLeft,
+        tooltip: 'Previous Page',
+        action: () => currentPage.value = Math.max(1, currentPage.value - 1),
+        disabled: currentPage.value <= 1
+      },
+      {
+        type: 'text',
+        content: `${currentPage.value} / ${totalPages.value}`,
+        minWidth: '4rem'
+      },
+      {
+        type: 'button',
+        icon: ChevronRight,
+        tooltip: 'Next Page',
+        action: () => currentPage.value = Math.min(totalPages.value, currentPage.value + 1),
+        disabled: currentPage.value >= totalPages.value
+      }
+    ]
+  }
+];
+
+// Expose for parent component
+defineExpose({
+  getToolbarGroups
+});
+</script>
+
+<template>
+  <div>Your custom renderer UI</div>
+</template>
+```
+
+**Main component usage:**
+
+```vue
+<script setup>
+import { CustomRenderer } from './CustomRenderer.vue';
+
+const files = [
+  { name: 'custom.xyz', type: 'application/custom', url: '/path/to/file' }
+];
+</script>
+
+<template>
+  <FilePreviewModal
+    :files="files"
+    :custom-renderers="[
+      {
+        test: (file) => file.type === 'application/custom',
+        component: CustomRenderer
+      }
+    ]"
+  />
+</template>
+```
+
+The main component automatically tracks reactive changes in `getToolbarGroups()` via Vue's reactivity system. No manual subscription needed.
+
+### Renderer Lazy Loading
+
+All built-in renderers use code-splitting via `defineAsyncComponent` to minimize the main bundle size and improve initial load performance.
+
+**Architecture:**
+
+- **Registration**: Renderers register in `src/renderers/lazy.ts` using `defineAsyncComponent` wrappers
+- **Loading**: Each renderer is a separate chunk, loaded on-demand when needed
+- **Fallback**: `RendererLoading` component handles the loading state
+
+**Bundle Size Impact:**
+
+- Main entry point: gzip ≤ 60 KB (strictly enforced by CI)
+- Each renderer: separate async chunk
+- Total library: gzip ≤ 500 KB (all renderers combined)
+
+**Implementation Example:**
+
+```ts
+// src/renderers/lazy.ts
+import { defineAsyncComponent } from 'vue';
+
+const wrap = (loader: () => Promise<any>) =>
+  defineAsyncComponent({
+    loader,
+    loadingComponent: RendererLoading,
+    delay: 0
+  });
+
+export const CustomRenderer = wrap(() => import('./Custom/index.vue'));
+```
+
+```vue
+<!-- src/FilePreviewContent.vue -->
+<script setup>
+import { CustomRenderer } from './renderers/lazy';  // ✅ Lazy import
+// NOT: import CustomRenderer from './renderers/Custom/index.vue';  // ❌ Direct import breaks code-splitting
+</script>
+
+<template>
+  <CustomRenderer
+    v-if="fileType === 'custom'"
+    ref="rendererRef"
+    :url="currentFile.url"
+  />
+</template>
+```
+
+**For Custom Renderers:**
+
+If you want your custom renderer to benefit from code-splitting, use the same pattern:
+
+```vue
+<script setup>
+import { defineAsyncComponent } from 'vue';
+
+const MyCustomRenderer = defineAsyncComponent(() => import('./MyCustomRenderer.vue'));
+
+const files = [...];
+</script>
+
+<template>
+  <FilePreviewModal
+    :files="files"
+    :custom-renderers="[
+      {
+        test: (file) => file.type === 'application/custom',
+        component: MyCustomRenderer
+      }
+    ]"
+  />
+</template>
+```
+
+### i18n Integration
+
+Custom renderers can access the library's i18n system via the `useTranslator()` composable for consistent multilingual support.
+
+**Architecture:**
+
+- **Dictionary Source**: `file-preview-core/src/i18n/messages/` (zh-CN.ts, en-US.ts)
+- **No Hardcoding**: All user-visible text must use translation keys
+- **Automatic Locale Switching**: Follows the `locale` prop passed to `FilePreviewModal`
+
+**Usage in Custom Renderers:**
+
+```vue
+<script setup lang="ts">
+import { ref } from 'vue';
+import { useTranslator } from '@eternalheart/vue-file-preview';
+
+interface Props {
+  url: string;
+}
+
+const props = defineProps<Props>();
+const { t } = useTranslator();
+const error = ref<string | null>(null);
+</script>
+
+<template>
+  <div v-if="error" class="vfp-text-fg-primary">
+    {{ t('custom.load_failed') }}: {{ error }}
+  </div>
+  <div v-else>
+    <button>{{ t('common.download') }}</button>
+    <span>{{ t('custom.loading') }}</span>
+  </div>
+</template>
+```
+
+**Note on Usage:**
+
+- In `<template>`: Use `t('key')` directly (automatically unwrapped)
+- In `<script>`: Use `t.value('key')` for imperative calls
+
+**Adding New Translation Keys:**
+
+1. Add keys to both `zh-CN.ts` and `en-US.ts` in `file-preview-core/src/i18n/messages/`
+2. Use `<scope>.<snake_name>` format (e.g., `custom.load_failed`, `custom.parse_error`)
+3. Common keys already available: `common.loading`, `common.download`, `common.close`, `toolbar.*`
+
+**Parameterized Translations:**
+
+```vue
+<template>
+  <!-- Dictionary: 'custom.file_size': 'File size: {size} KB' -->
+  <span>{{ t('custom.file_size', { size: 1024 }) }}</span>
+  <!-- → "File size: 1024 KB" -->
+</template>
+```
+
+**Toolbar Integration:**
+
+Toolbar items should also use translated strings:
+
+```ts
+const getToolbarGroups = (): ToolbarGroup[] => [
+  {
+    items: [
+      {
+        type: 'button',
+        icon: Download,
+        tooltip: t.value('common.download'),  // ✅ Translated (use .value in script)
+        action: handleDownload
+      }
+    ]
+  }
+];
+```
+
+### Theme Adaptation
+
+Custom renderers must use semantic color tokens to support the library's `'auto' | 'dark' | 'light'` theme system.
+
+**Semantic Token System:**
+
+All colors are defined as CSS variables (`--fp-*`) and exposed via Tailwind classes with the `vfp-` prefix:
+
+| Usage | Class | Description |
+|-------|-------|-------------|
+| **Text (fg)** | | |
+| Primary text | `vfp-text-fg-primary` | Highest contrast |
+| Body text | `vfp-text-fg-secondary` | Default text |
+| Secondary text | `vfp-text-fg-tertiary` | Captions, counters |
+| Muted text | `vfp-text-fg-muted` | Placeholders |
+| Disabled text | `vfp-text-fg-disabled` | Disabled buttons |
+| **Background (surface)** | | |
+| Surface 1 | `vfp-bg-surface-1` | Cards, weakest |
+| Surface 2 | `vfp-bg-surface-2` | Hover states |
+| Surface 3 | `vfp-bg-surface-3` | Emphasis |
+| Toolbar | `vfp-bg-surface-toolbar` | Top toolbar |
+| **Borders** | | |
+| Weak border | `vfp-border-line-weak` | Subtle lines |
+| Standard border | `vfp-border-line` | Default borders |
+| Strong border | `vfp-border-line-strong` | Emphasis |
+| **Code** | | |
+| Code background | `vfp-bg-code-bg` | Dark: #1e1e1e / Light: #f6f8fa |
+| Code text | `vfp-text-code-fg` | Follows theme |
+| **Accent** | | |
+| Accent background | `vfp-bg-accent` | Primary buttons |
+| Accent hover | `vfp-bg-accent-hover` | Hover state |
+
+**✅ Correct Usage:**
+
+```vue
+<template>
+  <div class="vfp-bg-surface-1 vfp-border vfp-border-line-weak vfp-rounded">
+    <h2 class="vfp-text-fg-primary vfp-text-lg">Title</h2>
+    <p class="vfp-text-fg-secondary">Body text</p>
+    <button class="vfp-bg-surface-2 hover:vfp-bg-surface-3 vfp-text-fg-primary">
+      Click me
+    </button>
+    <pre class="vfp-bg-code-bg vfp-text-code-fg">{{ code }}</pre>
+  </div>
+</template>
+```
+
+**For `<style scoped>` blocks**, use CSS variables:
+
+```vue
+<style scoped>
+.my-block {
+  color: var(--fp-fg-primary);
+  background: var(--fp-surface-2);
+  border: 1px solid var(--fp-line);
+}
+
+.my-code {
+  background: var(--fp-code-bg);
+  color: var(--fp-code-fg);
+}
+</style>
+```
+
+**❌ Incorrect Usage (DO NOT USE):**
+
+```vue
+<!-- ❌ Literal color classes — breaks theme switching -->
+<div class="vfp-text-white/90 vfp-bg-white/10 vfp-border-white/15">
+<div class="vfp-text-gray-700 vfp-bg-gray-100">
+
+<!-- ❌ Inline literal colors -->
+<div :style="{ color: '#ffffff', background: '#1f2937' }">
+
+<!-- ❌ Hardcoded dark-only colors in scoped style -->
+<style scoped>
+.foo { color: rgba(255, 255, 255, 0.75); }   /* Use var(--fp-fg-secondary) */
+.foo { background: #1e1e1e; }                 /* Use var(--fp-code-bg) */
+</style>
+```
+
+**Theme-Aware Third-Party Libraries:**
+
+For libraries with theme props (e.g., `shiki`), use `useResolvedTheme()`:
+
+```vue
+<script setup lang="ts">
+import { ref, watch } from 'vue';
+import { codeToHtml } from 'shiki';
+import { useResolvedTheme } from '@eternalheart/vue-file-preview';
+
+const props = defineProps<{ code: string; lang: string }>();
+const resolvedTheme = useResolvedTheme();  // Ref<'dark' | 'light'>
+const highlighted = ref('');
+
+const highlightCode = async () => {
+  highlighted.value = await codeToHtml(props.code, {
+    lang: props.lang,
+    theme: resolvedTheme.value === 'light' ? 'github-light' : 'dark-plus'
+  });
+};
+
+// Re-highlight when theme changes
+watch(resolvedTheme, highlightCode, { immediate: true });
+</script>
+
+<template>
+  <div v-html="highlighted"></div>
+</template>
+```
+
+**Testing:**
+
+Always test your custom renderer in both Light and Dark themes:
+
+```vue
+<FilePreviewModal
+  :files="files"
+  theme="light"  // Switch between 'light', 'dark', 'auto'
+  :custom-renderers="[...]"
+/>
+```
+
+Verify:
+- Text is readable in both themes (no white-on-white or black-on-black)
+- Borders and dividers are visible
+- Hover states have sufficient contrast
+- Code blocks follow theme (not always dark)
+
+## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/2328.svg" width="20" height="20" alt="⌨️" /> Keyboard Shortcuts
 
 - `ESC` - Close preview
 - `←` - Previous file
 - `→` - Next file
 - `Mouse Wheel` - Zoom image (image preview only)
 
-## 📚 Documentation
+## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f4da.svg" width="20" height="20" alt="📚" /> Documentation
 
 - [Full Documentation](https://wh131462.github.io/file-preview/docs/)
 - [Vue Demo](https://wh131462.github.io/file-preview/vue/)
 - [React Demo](https://wh131462.github.io/file-preview/)
 
-## 📦 Package Information
+## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f4e6.svg" width="20" height="20" alt="📦" /> Package Information
 
 ### Peer Dependencies
 
@@ -397,7 +779,7 @@ const url: string = 'https://example.com/file.pdf';
 }
 ```
 
-## 🛠️ Development
+## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f6e0.svg" width="20" height="20" alt="🛠️" /> Development
 
 ```bash
 # Clone repository
@@ -413,15 +795,15 @@ pnpm dev:vue-example
 pnpm build:vue
 ```
 
-## 📄 License
+## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f4c4.svg" width="20" height="20" alt="📄" /> License
 
 [MIT](./LICENSE) © [EternalHeart](https://github.com/wh131462)
 
-## 🤝 Contributing
+## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f91d.svg" width="20" height="20" alt="🤝" /> Contributing
 
 Issues and Pull Requests are welcome!
 
-## 🔗 Links
+## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f517.svg" width="20" height="20" alt="🔗" /> Links
 
 - [GitHub](https://github.com/wh131462/file-preview)
 - [npm](https://www.npmjs.com/package/@eternalheart/vue-file-preview)

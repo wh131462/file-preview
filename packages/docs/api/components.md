@@ -193,6 +193,18 @@ const customRenderers: CustomRenderer[] = [
 <FilePreviewModal theme="auto" .../>
 ```
 
+#### showDownload
+
+- **类型**: `boolean`
+- **必需**: 否
+- **默认值**: `true`
+- **描述**: 是否显示工具栏中的下载按钮。设为 `false` 可隐藏下载按钮，用于只读预览或需要禁用下载的场景。
+
+```tsx
+// 隐藏下载按钮
+<FilePreviewModal showDownload={false} .../>
+```
+
 #### onCustomEvent
 
 - **类型**: `(event: CustomRendererEventPayload) => void`
@@ -364,6 +376,7 @@ function Panel() {
 | `messages` | `Partial<Record<Locale, Partial<Messages>>>` | ❌ | - | 自定义翻译字典 |
 | `headless` | `boolean` | ❌ | `false` | 无头模式,隐藏工具栏和导航箭头 |
 | `theme` | `Theme` | ❌ | `'dark'` | 主题模式: `'auto' \| 'dark' \| 'light'` |
+| `showDownload` | `boolean` | ❌ | `true` | 是否显示下载按钮 |
 | `onCustomEvent` | `(e: CustomRendererEventPayload) => void` | ❌ | - | 自定义渲染器事件出口,载荷 `{ name, payload, file }` |
 | `requestInit` | `RequestInit \| (url) => RequestInit \| Promise<RequestInit>` | ❌ | - | 自定义 RequestInit，注入鉴权头等 |
 | `requestHandler` | `(url, init?) => Promise<Response>` | ❌ | - | 完全接管库内 fetch |
@@ -450,6 +463,7 @@ function DetailPanel() {
 | `onClose` | `() => void` | ❌ | - | 关闭回调,仅在 `mode='modal'` 时显示关闭按钮 |
 | `headless` | `boolean` | ❌ | `false` | 无头模式,隐藏工具栏和导航箭头 |
 | `theme` | `Theme` | ❌ | `'dark'` | 主题模式: `'auto' \| 'dark' \| 'light'` |
+| `showDownload` | `boolean` | ❌ | `true` | 是否显示下载按钮 |
 | `locale` | `Locale` | ❌ | `'zh-CN'` | 界面语言 |
 | `messages` | `Partial<Record<Locale, Partial<Messages>>>` | ❌ | - | 自定义翻译字典 |
 | `onCustomEvent` | `(e: CustomRendererEventPayload) => void` | ❌ | - | 自定义渲染器事件出口 |

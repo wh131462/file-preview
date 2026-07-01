@@ -6,24 +6,23 @@ A modern, feature-rich file preview component for React with support for images,
 
 
 
-## ✨ Features
+## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/2728.svg" width="20" height="20" alt="✨" /> Features
 
-- 🎨 **Modern UI** - Apple-inspired minimalist design with glassmorphism effects
-- 📁 **Multi-format Support** - Supports 20+ file formats
-- 🪟 **Two Display Modes** - Full-screen modal **or** inline embedded preview
-- 🖼️ **Powerful Image Viewer** - Zoom, rotate, drag, mouse wheel zoom
-- 🎬 **Custom Video Player** - Built on Video.js, supports multiple video formats
-- 🎵 **Custom Audio Player** - Beautiful audio control interface
-- 📄 **PDF Viewer** - Pagination support
-- 📊 **Office Documents Support** - Word, Excel, PowerPoint file preview
-- 📝 **Markdown Rendering** - GitHub Flavored Markdown support
-- 💻 **Code Highlighting** - Supports 40+ programming languages
-- 🎭 **Smooth Animations** - Powered by Framer Motion
-- 📱 **Responsive Design** - Adapts to all screen sizes
-- ⌨️ **Keyboard Navigation** - Arrow keys and ESC support
-- 🎯 **Drag & Drop** - File upload via drag and drop
+- <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f3a8.svg" width="16" height="16" alt="🎨" style="vertical-align: middle;" /> **Modern UI** - Clean and modern interface with smooth animations
+- <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f4c1.svg" width="16" height="16" alt="📁" style="vertical-align: middle;" /> **Multi-format Support** - Supports 20+ file formats
+- <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1fa9f.svg" width="16" height="16" alt="🪟" style="vertical-align: middle;" /> **Two Display Modes** - Full-screen modal **or** inline embedded preview
+- <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f5bc.svg" width="16" height="16" alt="🖼️" style="vertical-align: middle;" /> **Powerful Image Viewer** - Zoom, rotate, drag, mouse wheel zoom
+- <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f3ac.svg" width="16" height="16" alt="🎬" style="vertical-align: middle;" /> **Custom Video Player** - Built on Video.js, supports multiple video formats
+- <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f3b5.svg" width="16" height="16" alt="🎵" style="vertical-align: middle;" /> **Custom Audio Player** - Beautiful audio control interface
+- <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f4c4.svg" width="16" height="16" alt="📄" style="vertical-align: middle;" /> **PDF Viewer** - Pagination support
+- <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f4ca.svg" width="16" height="16" alt="📊" style="vertical-align: middle;" /> **Office Documents Support** - Word, Excel, PowerPoint file preview
+- <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f4dd.svg" width="16" height="16" alt="📝" style="vertical-align: middle;" /> **Markdown Rendering** - GitHub Flavored Markdown support
+- <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f4bb.svg" width="16" height="16" alt="💻" style="vertical-align: middle;" /> **Code Highlighting** - Supports 40+ programming languages
+- <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f3ad.svg" width="16" height="16" alt="🎭" style="vertical-align: middle;" /> **Smooth Animations** - Powered by Framer Motion
+- <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f4f1.svg" width="16" height="16" alt="📱" style="vertical-align: middle;" /> **Responsive Design** - Adapts to all screen sizes
+- <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/2328.svg" width="16" height="16" alt="⌨️" style="vertical-align: middle;" /> **Keyboard Navigation** - Arrow keys and ESC support
 
-## 📦 Installation
+## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f4e6.svg" width="20" height="20" alt="📦" /> Installation
 
 ```bash
 # Using npm
@@ -138,7 +137,7 @@ export default defineConfig({
 
 > Note: `@jsquash/avif` is only used as a fallback when the browser does not natively support AVIF (Chrome 85+, Firefox 93+, Safari 16+ all support it natively). If your target browsers cover the native list, you can also remove `@jsquash/avif` from your dependencies entirely.
 
-## 🚀 Quick Start
+## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f680.svg" width="20" height="20" alt="🚀" /> Quick Start
 
 📖 **New to this library?** Check out the [Quick Start Guide](./QUICK_START.md) for a 5-minute introduction!
 
@@ -258,7 +257,7 @@ Differences from `FilePreviewModal`:
 <FilePreviewEmbed files={files} width={800} height={500} />
 ```
 
-## 💡 Usage Examples
+## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f4a1.svg" width="20" height="20" alt="💡" /> Usage Examples
 
 ### Preview PowerPoint Files
 
@@ -311,7 +310,7 @@ const files = [
 />
 ```
 
-## 📖 Supported File Formats
+## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f4d6.svg" width="20" height="20" alt="📖" /> Supported File Formats
 
 ### Images
 - **Formats**: JPG, PNG, GIF, WebP, SVG, BMP, ICO
@@ -360,7 +359,7 @@ const files = [
 ### E-books
 - **EPUB**: Chapter navigation, pagination
 
-## 🎮 API Reference
+## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f3ae.svg" width="20" height="20" alt="🎮" /> API Reference
 
 ### FilePreviewModal Props
 
@@ -376,6 +375,7 @@ const files = [
 | `messages` | `Partial<Record<Locale, Partial<Messages>>>` | ❌ | Custom translation overrides |
 | `headless` | `boolean` | ❌ | Headless mode — hides toolbar and navigation arrows |
 | `theme` | `Theme` | ❌ | Theme mode: `'auto' \| 'dark' \| 'light'` (default `'dark'`) |
+| `showDownload` | `boolean` | ❌ | Whether to show the download button (default `true`) |
 
 ### FilePreviewEmbed Props
 
@@ -393,6 +393,7 @@ const files = [
 | `messages` | `Partial<Record<Locale, Partial<Messages>>>` | ❌ | - | Custom translation overrides |
 | `headless` | `boolean` | ❌ | `false` | Headless mode — hides toolbar and navigation arrows |
 | `theme` | `Theme` | ❌ | `'dark'` | Theme mode: `'auto' \| 'dark' \| 'light'` |
+| `showDownload` | `boolean` | ❌ | `true` | Whether to show the download button |
 
 > `FilePreviewEmbed` has no `isOpen` / `onClose`. To hide/show it, conditionally render it from the parent. It also hides the close button in the toolbar.
 
@@ -512,7 +513,7 @@ const files = [
 #### E-books
 - **EPUB**: `application/epub+zip` (.epub)
 
-## 🌐 Internationalization (i18n)
+## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f310.svg" width="20" height="20" alt="🌐" /> Internationalization (i18n)
 
 Built-in support for Chinese (default) and English. Zero external dependencies.
 
@@ -530,7 +531,332 @@ Built-in support for Chinese (default) and English. Zero external dependencies.
 
 Use `useTranslator()` hook in custom renderers to access the translation function.
 
-## 🎨 Custom Styling
+## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f9e9.svg" width="20" height="20" alt="🧩" /> Custom Renderers
+
+The library supports custom renderers for handling file types not built-in. Custom renderers can optionally provide toolbar configurations and integrate with the library's architecture.
+
+### Event-Driven Toolbar Updates
+
+Custom renderers can implement real-time toolbar updates using the event-driven mechanism:
+
+**Benefits:**
+- **Real-time updates**: Toolbar reflects state changes immediately
+- **Better performance**: No polling overhead or unnecessary re-renders
+- **Type-safe**: Full TypeScript support with proper interfaces
+
+**Implementation:**
+
+```tsx
+import { forwardRef, useImperativeHandle, useState, useEffect, useMemo, useCallback } from 'react';
+import { ToolbarEventEmitter } from '@eternalheart/react-file-preview';
+import type { RendererHandle, ToolbarGroup } from '@eternalheart/react-file-preview';
+
+interface CustomRendererProps {
+  url: string;
+  onPageChange?: (current: number, total: number) => void;
+}
+
+export const CustomRenderer = forwardRef<RendererHandle, CustomRendererProps>((props, ref) => {
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(10);
+  const emitter = useMemo(() => new ToolbarEventEmitter(), []);
+  
+  // Notify toolbar when state changes
+  useEffect(() => {
+    emitter.notify();
+    props.onPageChange?.(currentPage, totalPages);
+  }, [currentPage, totalPages, emitter, props]);
+  
+  const getToolbarGroups = useCallback((): ToolbarGroup[] => [
+    {
+      items: [
+        {
+          type: 'button',
+          icon: <ChevronLeft className="w-4 h-4" />,
+          tooltip: 'Previous Page',
+          action: () => setCurrentPage(p => Math.max(1, p - 1)),
+          disabled: currentPage <= 1
+        },
+        {
+          type: 'text',
+          content: `${currentPage} / ${totalPages}`,
+          minWidth: '4rem'
+        },
+        {
+          type: 'button',
+          icon: <ChevronRight className="w-4 h-4" />,
+          tooltip: 'Next Page',
+          action: () => setCurrentPage(p => Math.min(totalPages, p + 1)),
+          disabled: currentPage >= totalPages
+        }
+      ]
+    }
+  ], [currentPage, totalPages]);
+  
+  useImperativeHandle(ref, () => ({
+    getToolbarGroups,
+    onToolbarChange: (listener) => emitter.subscribe(listener)
+  }), [getToolbarGroups, emitter]);
+  
+  return <div>Your custom renderer UI</div>;
+});
+```
+
+**Main component usage:**
+
+```tsx
+import { CustomRenderer } from './CustomRenderer';
+
+<FilePreviewModal
+  files={files}
+  customRenderers={[
+    {
+      test: (file) => file.type === 'application/custom',
+      component: CustomRenderer
+    }
+  ]}
+/>
+```
+
+The main component automatically detects `onToolbarChange` and subscribes to events. If not implemented, it falls back to polling for backward compatibility.
+
+### Renderer Lazy Loading
+
+All built-in renderers use code-splitting via `React.lazy` to minimize the main bundle size and improve initial load performance.
+
+**Architecture:**
+
+- **Registration**: Renderers register in `src/renderers/lazy.tsx` using named exports wrapped in `React.lazy`
+- **Loading**: Each renderer is a separate chunk, loaded on-demand when needed
+- **Fallback**: `<Suspense>` with `<RendererLoading />` handles the loading state
+
+**Bundle Size Impact:**
+
+- Main entry point: gzip ≤ 80 KB (strictly enforced by CI)
+- Each renderer: separate async chunk
+- Total library: gzip ≤ 800 KB (all renderers combined)
+
+**Implementation Example:**
+
+```tsx
+// src/renderers/lazy.tsx
+import { lazy } from 'react';
+import type { CustomRenderer as CustomRendererImpl } from './Custom';
+
+export const CustomRenderer: Lazy<typeof CustomRendererImpl> = lazy(() =>
+  import('./Custom').then((m) => ({ default: m.CustomRenderer }))
+);
+```
+
+```tsx
+// src/FilePreviewContent.tsx
+import { CustomRenderer } from './renderers/lazy';  // ✅ Lazy import
+// NOT: import { CustomRenderer } from './renderers/Custom';  // ❌ Direct import breaks code-splitting
+
+<Suspense fallback={<RendererLoading />}>
+  {fileType === 'custom' && <CustomRenderer ref={rendererRef} url={currentFile.url} />}
+</Suspense>
+```
+
+**For Custom Renderers:**
+
+If you want your custom renderer to benefit from code-splitting, you can use the same pattern:
+
+```tsx
+import { lazy, Suspense } from 'react';
+
+const MyCustomRenderer = lazy(() => import('./MyCustomRenderer'));
+
+<FilePreviewModal
+  files={files}
+  customRenderers={[
+    {
+      test: (file) => file.type === 'application/custom',
+      component: (props) => (
+        <Suspense fallback={<div>Loading...</div>}>
+          <MyCustomRenderer {...props} />
+        </Suspense>
+      )
+    }
+  ]}
+/>
+```
+
+### i18n Integration
+
+Custom renderers can access the library's i18n system via the `useTranslator()` hook for consistent multilingual support.
+
+**Architecture:**
+
+- **Dictionary Source**: `file-preview-core/src/i18n/messages/` (zh-CN.ts, en-US.ts)
+- **No Hardcoding**: All user-visible text must use translation keys
+- **Automatic Locale Switching**: Follows the `locale` prop passed to `FilePreviewModal`
+
+**Usage in Custom Renderers:**
+
+```tsx
+import { useTranslator } from '@eternalheart/react-file-preview';
+
+export const CustomRenderer = forwardRef<RendererHandle, Props>((props, ref) => {
+  const t = useTranslator();
+  const [error, setError] = useState<string | null>(null);
+  
+  if (error) {
+    return (
+      <div className="rfp-text-fg-primary">
+        {t('custom.load_failed')}: {error}
+      </div>
+    );
+  }
+  
+  return (
+    <div>
+      <button>{t('common.download')}</button>
+      <span>{t('custom.loading')}</span>
+    </div>
+  );
+});
+```
+
+**Adding New Translation Keys:**
+
+1. Add keys to both `zh-CN.ts` and `en-US.ts` in `file-preview-core/src/i18n/messages/`
+2. Use `<scope>.<snake_name>` format (e.g., `custom.load_failed`, `custom.parse_error`)
+3. Common keys already available: `common.loading`, `common.download`, `common.close`, `toolbar.*`
+
+**Parameterized Translations:**
+
+```tsx
+// Dictionary: 'custom.file_size': '文件大小: {size} KB'
+t('custom.file_size', { size: 1024 })  // → "文件大小: 1024 KB"
+```
+
+**Toolbar Integration:**
+
+Toolbar items should also use translated strings:
+
+```tsx
+const getToolbarGroups = useCallback((): ToolbarGroup[] => [
+  {
+    items: [
+      {
+        type: 'button',
+        icon: <Download className="rfp-w-4 rfp-h-4" />,
+        tooltip: t('common.download'),  // ✅ Translated
+        action: handleDownload
+      }
+    ]
+  }
+], [t]);
+```
+
+### Theme Adaptation
+
+Custom renderers must use semantic color tokens to support the library's `'auto' | 'dark' | 'light'` theme system.
+
+**Semantic Token System:**
+
+All colors are defined as CSS variables (`--fp-*`) and exposed via Tailwind classes with the `rfp-` prefix:
+
+| Usage | Class | Description |
+|-------|-------|-------------|
+| **Text (fg)** | | |
+| Primary text | `rfp-text-fg-primary` | Highest contrast |
+| Body text | `rfp-text-fg-secondary` | Default text |
+| Secondary text | `rfp-text-fg-tertiary` | Captions, counters |
+| Muted text | `rfp-text-fg-muted` | Placeholders |
+| Disabled text | `rfp-text-fg-disabled` | Disabled buttons |
+| **Background (surface)** | | |
+| Surface 1 | `rfp-bg-surface-1` | Cards, weakest |
+| Surface 2 | `rfp-bg-surface-2` | Hover states |
+| Surface 3 | `rfp-bg-surface-3` | Emphasis |
+| Toolbar | `rfp-bg-surface-toolbar` | Top toolbar |
+| **Borders** | | |
+| Weak border | `rfp-border-line-weak` | Subtle lines |
+| Standard border | `rfp-border-line` | Default borders |
+| Strong border | `rfp-border-line-strong` | Emphasis |
+| **Code** | | |
+| Code background | `rfp-bg-code-bg` | Dark: #1e1e1e / Light: #f6f8fa |
+| Code text | `rfp-text-code-fg` | Follows theme |
+| **Accent** | | |
+| Accent background | `rfp-bg-accent` | Primary buttons |
+| Accent hover | `rfp-bg-accent-hover` | Hover state |
+
+**✅ Correct Usage:**
+
+```tsx
+export const CustomRenderer = forwardRef<RendererHandle, Props>((props, ref) => {
+  return (
+    <div className="rfp-bg-surface-1 rfp-border rfp-border-line-weak rfp-rounded">
+      <h2 className="rfp-text-fg-primary rfp-text-lg">Title</h2>
+      <p className="rfp-text-fg-secondary">Body text</p>
+      <button className="rfp-bg-surface-2 hover:rfp-bg-surface-3 rfp-text-fg-primary">
+        Click me
+      </button>
+      <pre className="rfp-bg-code-bg rfp-text-code-fg">
+        {code}
+      </pre>
+    </div>
+  );
+});
+```
+
+**❌ Incorrect Usage (DO NOT USE):**
+
+```tsx
+// ❌ Literal color classes — breaks theme switching
+<div className="rfp-text-white/90 rfp-bg-white/10 rfp-border-white/15">
+<div className="rfp-text-gray-700 rfp-bg-gray-100">
+
+// ❌ Inline literal colors
+<div style={{ color: '#ffffff', background: '#1f2937' }}>
+
+// ❌ Hardcoded dark-only colors
+<div style={{ background: '#1e1e1e' }}>  // Use rfp-bg-code-bg instead
+```
+
+**Theme-Aware Third-Party Libraries:**
+
+For libraries with theme props (e.g., `react-syntax-highlighter`), use `useResolvedTheme()`:
+
+```tsx
+import { useResolvedTheme } from '@eternalheart/react-file-preview';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { vscDarkPlus, vs } from 'react-syntax-highlighter/dist/esm/styles/prism';
+
+export const CodeRenderer = forwardRef<RendererHandle, Props>((props, ref) => {
+  const resolvedTheme = useResolvedTheme();  // 'dark' | 'light'
+  
+  return (
+    <SyntaxHighlighter
+      language="javascript"
+      style={resolvedTheme === 'light' ? vs : vscDarkPlus}
+    >
+      {code}
+    </SyntaxHighlighter>
+  );
+});
+```
+
+**Testing:**
+
+Always test your custom renderer in both Light and Dark themes:
+
+```tsx
+<FilePreviewModal
+  files={files}
+  theme="light"  // Switch between 'light', 'dark', 'auto'
+  customRenderers={[...]}
+/>
+```
+
+Verify:
+- Text is readable in both themes (no white-on-white or black-on-black)
+- Borders and dividers are visible
+- Hover states have sufficient contrast
+- Code blocks follow theme (not always dark)
+
+## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f3a8.svg" width="20" height="20" alt="🎨" /> Custom Styling
 
 The component is built with Tailwind CSS. You can customize styles by overriding CSS variables:
 
@@ -542,18 +868,18 @@ The component is built with Tailwind CSS. You can customize styles by overriding
 }
 ```
 
-## ⌨️ Keyboard Shortcuts
+## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/2328.svg" width="20" height="20" alt="⌨️" /> Keyboard Shortcuts
 
 - `ESC` - Close preview
 - `←` - Previous file
 - `→` - Next file
 - `Mouse Wheel` - Zoom image (image preview only)
 
-## 📚 Documentation
+## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f4da.svg" width="20" height="20" alt="📚" /> Documentation
 
 - [Online Demo](https://wh131462.github.io/file-preview) - Live demo
 
-## 🤖 Context7 Support
+## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f916.svg" width="20" height="20" alt="🤖" /> Context7 Support
 
 This project supports [Context7](https://context7.com) MCP Server. If you are using AI coding assistants (such as Claude Code, Cursor, etc.), you can configure the Context7 MCP Server to get the latest documentation and code examples for `@eternalheart/react-file-preview`, enabling a better AI-assisted development experience.
 
@@ -565,7 +891,7 @@ This project supports [Context7](https://context7.com) MCP Server. If you are us
 
 > For more details on configuring Context7, please visit [Context7 official documentation](https://github.com/upstash/context7).
 
-## 📦 Package Information
+## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f4e6.svg" width="20" height="20" alt="📦" /> Package Information
 
 ### Bundle Size
 
@@ -591,7 +917,7 @@ This project supports [Context7](https://context7.com) MCP Server. If you are us
 }
 ```
 
-## 🛠️ Development
+## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f6e0.svg" width="20" height="20" alt="🛠️" /> Development
 
 ### For Library Development
 
@@ -629,15 +955,15 @@ react-file-preview/
 └── vite.config.lib.ts        # Library build config
 ```
 
-## 📄 License
+## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f4c4.svg" width="20" height="20" alt="📄" /> License
 
 [MIT](./LICENSE) © [EternalHeart](https://github.com/wh131462)
 
-## 🤝 Contributing
+## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f91d.svg" width="20" height="20" alt="🤝" /> Contributing
 
 Issues and Pull Requests are welcome!
 
-## 🔗 Links
+## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f517.svg" width="20" height="20" alt="🔗" /> Links
 
 - [GitHub](https://github.com/wh131462/file-preview)
 - [npm](https://www.npmjs.com/package/@eternalheart/react-file-preview)

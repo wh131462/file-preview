@@ -13,7 +13,7 @@
 
 ## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/2728.svg" width="24" height="24" alt="✨" /> 核心特性
 
-- <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f3a8.svg" width="20" height="20" alt="🎨" /> **现代化 UI** — Apple 风格极简设计，毛玻璃效果
+- <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f3a8.svg" width="20" height="20" alt="🎨" /> **现代化 UI** — 简洁现代的界面设计，流畅动画
 - <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f4c1.svg" width="20" height="20" alt="📁" /> **20+ 格式支持** — 图片、视频、音频、PDF、Office、代码、电子书等
 - <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1fa9f.svg" width="20" height="20" alt="🪟" /> **双模式显示** — 全屏弹窗或内嵌容器两种模式
 - <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f3af.svg" width="20" height="20" alt="🎯" /> **多框架支持** — React 和 Vue 共享核心逻辑，API 一致
@@ -212,6 +212,57 @@ pnpm pub              # 发布库到 npm
 3. 提交更改 (`git commit -m 'feat: add amazing feature'`)
 4. 推送到分支 (`git push origin feature/amazing-feature`)
 5. 提交 Pull Request
+
+<img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f449.svg" width="16" height="16" alt="👉" style="vertical-align: middle;" /> [阅读完整贡献指南](./CONTRIBUTING.md)
+
+---
+
+
+## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f9e9.svg" width="20" height="20" alt="🧩" /> 自定义渲染器
+
+支持为内置不支持的文件类型提供自定义渲染器。
+
+**React 示例：**
+
+```tsx
+import { FilePreviewModal } from '@eternalheart/react-file-preview';
+
+const customRenderers = [
+  {
+    test: (file) => file.type === 'application/custom',
+    component: ({ url }) => <div>自定义渲染: {url}</div>
+  }
+];
+
+<FilePreviewModal files={files} customRenderers={customRenderers} />
+```
+
+**Vue 示例：**
+
+```vue
+<script setup>
+import { FilePreviewModal } from '@eternalheart/vue-file-preview';
+
+const CustomRenderer = {
+  props: ['url'],
+  template: '<div>自定义渲染: {{ url }}</div>'
+};
+
+const customRenderers = [
+  {
+    test: (file) => file.type === 'application/custom',
+    component: CustomRenderer
+  }
+];
+</script>
+
+<template>
+  <FilePreviewModal :files="files" :custom-renderers="customRenderers" />
+</template>
+```
+
+<img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f449.svg" width="16" height="16" alt="👉" style="vertical-align: middle;" /> 详细文档：[React 自定义渲染器](./packages/react-file-preview/README.zh-CN.md#-自定义渲染器) | [Vue 自定义渲染器](./packages/vue-file-preview/README.zh-CN.md#-自定义渲染器)
+
 
 ---
 

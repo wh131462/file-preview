@@ -6,19 +6,18 @@
 
 ## ✨ 特性
 
-- 🎨 **现代化 UI** - Apple 风格的简约设计,毛玻璃效果
-- 📁 **多格式支持** - 支持 20+ 种文件格式
-- 🪟 **两种展示模式** - 全屏弹窗 **或** 嵌入式内联预览
-- 🖼️ **强大的图片查看器** - 缩放、旋转、拖拽、滚轮缩放
-- 🎬 **自定义视频播放器** - 基于 Video.js,支持多种视频格式
-- 🎵 **自定义音频播放器** - 精美的音频控制界面
-- 📄 **PDF 查看器** - 支持分页浏览
-- 📊 **Office 文档支持** - Word、Excel、PowerPoint 文件预览
-- 📝 **Markdown 渲染** - 支持 GitHub Flavored Markdown
-- 💻 **代码高亮** - 支持 40+ 种编程语言
-- 📱 **响应式设计** - 适配各种屏幕尺寸
-- ⌨️ **键盘导航** - 支持方向键和 ESC 键
-- 🎯 **拖拽上传** - 支持拖拽文件上传
+- <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f3a8.svg" width="16" height="16" alt="🎨" style="vertical-align: middle;" /> **现代化 UI** - 简洁现代的界面设计，流畅动画
+- <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f4c1.svg" width="16" height="16" alt="📁" style="vertical-align: middle;" /> **多格式支持** - 支持 20+ 种文件格式
+- <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1fa9f.svg" width="16" height="16" alt="🪟" style="vertical-align: middle;" /> **两种展示模式** - 全屏弹窗 **或** 嵌入式内联预览
+- <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f5bc.svg" width="16" height="16" alt="🖼️" style="vertical-align: middle;" /> **强大的图片查看器** - 缩放、旋转、拖拽、滚轮缩放
+- <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f3ac.svg" width="16" height="16" alt="🎬" style="vertical-align: middle;" /> **自定义视频播放器** - 基于 Video.js,支持多种视频格式
+- <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f3b5.svg" width="16" height="16" alt="🎵" style="vertical-align: middle;" /> **自定义音频播放器** - 精美的音频控制界面
+- <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f4c4.svg" width="16" height="16" alt="📄" style="vertical-align: middle;" /> **PDF 查看器** - 支持分页浏览
+- <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f4ca.svg" width="16" height="16" alt="📊" style="vertical-align: middle;" /> **Office 文档支持** - Word、Excel、PowerPoint 文件预览
+- <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f4dd.svg" width="16" height="16" alt="📝" style="vertical-align: middle;" /> **Markdown 渲染** - 支持 GitHub Flavored Markdown
+- <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f4bb.svg" width="16" height="16" alt="💻" style="vertical-align: middle;" /> **代码高亮** - 支持 40+ 种编程语言
+- <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f4f1.svg" width="16" height="16" alt="📱" style="vertical-align: middle;" /> **响应式设计** - 适配各种屏幕尺寸
+- <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/2328.svg" width="16" height="16" alt="⌨️" style="vertical-align: middle;" /> **键盘导航** - 支持方向键和 ESC 键
 
 ## 📦 安装
 
@@ -302,6 +301,7 @@ const files = [
 | `messages` | `Partial<Record<Locale, Partial<Messages>>>` | ❌ | 自定义翻译覆盖 |
 | `headless` | `boolean` | ❌ | 无头模式，隐藏工具栏和导航箭头 |
 | `theme` | `Theme` | ❌ | 主题模式: `'auto' \| 'dark' \| 'light'`（默认 `'dark'`） |
+| `showDownload` | `boolean` | ❌ | 是否显示下载按钮（默认 `true`） |
 
 ### FilePreviewModal 事件
 
@@ -323,6 +323,7 @@ const files = [
 | `messages` | `Partial<Record<Locale, Partial<Messages>>>` | ❌ | - | 自定义翻译覆盖 |
 | `headless` | `boolean` | ❌ | `false` | 无头模式，隐藏工具栏和导航箭头 |
 | `theme` | `Theme` | ❌ | `'dark'` | 主题模式: `'auto' \| 'dark' \| 'light'` |
+| `showDownload` | `boolean` | ❌ | `true` | 是否显示下载按钮 |
 
 ### FilePreviewEmbed 事件
 
@@ -364,6 +365,387 @@ interface PreviewFileLink {
 // 3. HTTP URL 字符串
 const url: string = 'https://example.com/file.pdf';
 ```
+
+## 🧩 自定义渲染器
+
+本库支持自定义渲染器以处理内置不支持的文件类型。自定义渲染器可以可选地提供工具栏配置并集成到本库的架构中。
+
+### 事件驱动的工具栏更新
+
+自定义渲染器可以通过 Vue 3 的响应式系统实现实时工具栏更新：
+
+**优势：**
+- **实时更新**：工具栏通过 Vue 响应式立即反映状态变化
+- **更好的性能**：无轮询开销，利用 Vue 的高效变更检测
+- **类型安全**：完整的 TypeScript 接口支持
+
+**实现方式：**
+
+```vue
+<script setup lang="ts">
+import { ref, watch } from 'vue';
+import { ChevronLeft, ChevronRight } from 'lucide-vue-next';
+import type { ToolbarGroup } from '@eternalheart/vue-file-preview';
+
+interface Props {
+  url: string;
+}
+
+const props = defineProps<Props>();
+const emit = defineEmits<{
+  pageChange: [current: number, total: number];
+}>();
+
+const currentPage = ref(1);
+const totalPages = ref(10);
+
+// 发送页码变化
+watch([currentPage, totalPages], () => {
+  emit('pageChange', currentPage.value, totalPages.value);
+});
+
+const getToolbarGroups = (): ToolbarGroup[] => [
+  {
+    items: [
+      {
+        type: 'button',
+        icon: ChevronLeft,
+        tooltip: '上一页',
+        action: () => currentPage.value = Math.max(1, currentPage.value - 1),
+        disabled: currentPage.value <= 1
+      },
+      {
+        type: 'text',
+        content: `${currentPage.value} / ${totalPages.value}`,
+        minWidth: '4rem'
+      },
+      {
+        type: 'button',
+        icon: ChevronRight,
+        tooltip: '下一页',
+        action: () => currentPage.value = Math.min(totalPages.value, currentPage.value + 1),
+        disabled: currentPage.value >= totalPages.value
+      }
+    ]
+  }
+];
+
+// 暴露给父组件
+defineExpose({
+  getToolbarGroups
+});
+</script>
+
+<template>
+  <div>你的自定义渲染器 UI</div>
+</template>
+```
+
+**主组件使用：**
+
+```vue
+<script setup>
+import { CustomRenderer } from './CustomRenderer.vue';
+
+const files = [
+  { name: 'custom.xyz', type: 'application/custom', url: '/path/to/file' }
+];
+</script>
+
+<template>
+  <FilePreviewModal
+    :files="files"
+    :custom-renderers="[
+      {
+        test: (file) => file.type === 'application/custom',
+        component: CustomRenderer
+      }
+    ]"
+  />
+</template>
+```
+
+主组件通过 Vue 的响应式系统自动追踪 `getToolbarGroups()` 的响应式变化。无需手动订阅。
+
+### Renderer 懒加载
+
+所有内置渲染器通过 `defineAsyncComponent` 实现代码分割，以最小化主包体积并提升初始加载性能。
+
+**架构：**
+
+- **注册**：渲染器在 `src/renderers/lazy.ts` 中注册，使用 `defineAsyncComponent` 包装
+- **加载**：每个渲染器是独立的 chunk，按需加载
+- **回退**：`RendererLoading` 组件处理加载状态
+
+**打包体积影响：**
+
+- 主入口：gzip ≤ 60 KB（CI 强制约束）
+- 每个渲染器：独立异步 chunk
+- 整个库：gzip ≤ 500 KB（所有渲染器合计）
+
+**实现示例：**
+
+```ts
+// src/renderers/lazy.ts
+import { defineAsyncComponent } from 'vue';
+
+const wrap = (loader: () => Promise<any>) =>
+  defineAsyncComponent({
+    loader,
+    loadingComponent: RendererLoading,
+    delay: 0
+  });
+
+export const CustomRenderer = wrap(() => import('./Custom/index.vue'));
+```
+
+```vue
+<!-- src/FilePreviewContent.vue -->
+<script setup>
+import { CustomRenderer } from './renderers/lazy';  // ✅ 懒加载导入
+// 禁止: import CustomRenderer from './renderers/Custom/index.vue';  // ❌ 直接导入会破坏代码分割
+</script>
+
+<template>
+  <CustomRenderer
+    v-if="fileType === 'custom'"
+    ref="rendererRef"
+    :url="currentFile.url"
+  />
+</template>
+```
+
+**用于自定义渲染器：**
+
+如果你希望自定义渲染器也享受代码分割，可以使用相同的模式：
+
+```vue
+<script setup>
+import { defineAsyncComponent } from 'vue';
+
+const MyCustomRenderer = defineAsyncComponent(() => import('./MyCustomRenderer.vue'));
+
+const files = [...];
+</script>
+
+<template>
+  <FilePreviewModal
+    :files="files"
+    :custom-renderers="[
+      {
+        test: (file) => file.type === 'application/custom',
+        component: MyCustomRenderer
+      }
+    ]"
+  />
+</template>
+```
+
+### i18n 集成
+
+自定义渲染器可以通过 `useTranslator()` composable 访问本库的 i18n 系统，实现一致的多语言支持。
+
+**架构：**
+
+- **字典源**：`file-preview-core/src/i18n/messages/`（zh-CN.ts、en-US.ts）
+- **禁止硬编码**：所有用户可见文案必须使用翻译 key
+- **自动切换语言**：跟随 `FilePreviewModal` 的 `locale` prop
+
+**在自定义渲染器中使用：**
+
+```vue
+<script setup lang="ts">
+import { ref } from 'vue';
+import { useTranslator } from '@eternalheart/vue-file-preview';
+
+interface Props {
+  url: string;
+}
+
+const props = defineProps<Props>();
+const { t } = useTranslator();
+const error = ref<string | null>(null);
+</script>
+
+<template>
+  <div v-if="error" class="vfp-text-fg-primary">
+    {{ t('custom.load_failed') }}: {{ error }}
+  </div>
+  <div v-else>
+    <button>{{ t('common.download') }}</button>
+    <span>{{ t('custom.loading') }}</span>
+  </div>
+</template>
+```
+
+**使用说明：**
+
+- 在 `<template>` 中：直接使用 `t('key')`（自动解包）
+- 在 `<script>` 中：命令式调用使用 `t.value('key')`
+
+**新增翻译 key：**
+
+1. 在 `file-preview-core/src/i18n/messages/` 的 `zh-CN.ts` 和 `en-US.ts` 中同时添加 key
+2. 使用 `<scope>.<snake_name>` 格式（如 `custom.load_failed`、`custom.parse_error`）
+3. 已有通用 key：`common.loading`、`common.download`、`common.close`、`toolbar.*`
+
+**参数化翻译：**
+
+```vue
+<template>
+  <!-- 字典: 'custom.file_size': '文件大小: {size} KB' -->
+  <span>{{ t('custom.file_size', { size: 1024 }) }}</span>
+  <!-- → "文件大小: 1024 KB" -->
+</template>
+```
+
+**工具栏集成：**
+
+工具栏项也应使用翻译字符串：
+
+```ts
+const getToolbarGroups = (): ToolbarGroup[] => [
+  {
+    items: [
+      {
+        type: 'button',
+        icon: Download,
+        tooltip: t.value('common.download'),  // ✅ 已翻译（script 中用 .value）
+        action: handleDownload
+      }
+    ]
+  }
+];
+```
+
+### 主题适配
+
+自定义渲染器必须使用语义化颜色 token 以支持本库的 `'auto' | 'dark' | 'light'` 主题系统。
+
+**语义化 Token 系统：**
+
+所有颜色定义为 CSS 变量（`--fp-*`），通过 Tailwind 类暴露，前缀为 `vfp-`：
+
+| 用途 | 类名 | 说明 |
+|------|------|------|
+| **文字（fg）** | | |
+| 主文本 | `vfp-text-fg-primary` | 最高对比度 |
+| 正文 | `vfp-text-fg-secondary` | 默认文字 |
+| 次要文本 | `vfp-text-fg-tertiary` | 副本、计数器 |
+| 弱化文本 | `vfp-text-fg-muted` | 占位符 |
+| 禁用文本 | `vfp-text-fg-disabled` | 禁用按钮 |
+| **背景（surface）** | | |
+| 表面层 1 | `vfp-bg-surface-1` | 卡片、最弱 |
+| 表面层 2 | `vfp-bg-surface-2` | hover 状态 |
+| 表面层 3 | `vfp-bg-surface-3` | 强调 |
+| 工具栏 | `vfp-bg-surface-toolbar` | 顶部工具栏 |
+| **边框** | | |
+| 弱边框 | `vfp-border-line-weak` | 细线 |
+| 标准边框 | `vfp-border-line` | 默认边框 |
+| 强边框 | `vfp-border-line-strong` | 强调 |
+| **代码** | | |
+| 代码背景 | `vfp-bg-code-bg` | Dark：#1e1e1e / Light：#f6f8fa |
+| 代码文字 | `vfp-text-code-fg` | 跟随主题 |
+| **强调（accent）** | | |
+| 强调背景 | `vfp-bg-accent` | 主按钮 |
+| 强调 hover | `vfp-bg-accent-hover` | hover 状态 |
+
+**✅ 正确用法：**
+
+```vue
+<template>
+  <div class="vfp-bg-surface-1 vfp-border vfp-border-line-weak vfp-rounded">
+    <h2 class="vfp-text-fg-primary vfp-text-lg">标题</h2>
+    <p class="vfp-text-fg-secondary">正文内容</p>
+    <button class="vfp-bg-surface-2 hover:vfp-bg-surface-3 vfp-text-fg-primary">
+      点击
+    </button>
+    <pre class="vfp-bg-code-bg vfp-text-code-fg">{{ code }}</pre>
+  </div>
+</template>
+```
+
+**对于 `<style scoped>` 块**，使用 CSS 变量：
+
+```vue
+<style scoped>
+.my-block {
+  color: var(--fp-fg-primary);
+  background: var(--fp-surface-2);
+  border: 1px solid var(--fp-line);
+}
+
+.my-code {
+  background: var(--fp-code-bg);
+  color: var(--fp-code-fg);
+}
+</style>
+```
+
+**❌ 错误用法（禁止使用）：**
+
+```vue
+<!-- ❌ 字面色类 — 会破坏主题切换 -->
+<div class="vfp-text-white/90 vfp-bg-white/10 vfp-border-white/15">
+<div class="vfp-text-gray-700 vfp-bg-gray-100">
+
+<!-- ❌ 内联字面色 -->
+<div :style="{ color: '#ffffff', background: '#1f2937' }">
+
+<!-- ❌ scoped style 中硬编码暗色 -->
+<style scoped>
+.foo { color: rgba(255, 255, 255, 0.75); }   /* 应该用 var(--fp-fg-secondary) */
+.foo { background: #1e1e1e; }                 /* 应该用 var(--fp-code-bg) */
+</style>
+```
+
+**支持主题的三方库：**
+
+对于具有 theme prop 的库（如 `shiki`），使用 `useResolvedTheme()`：
+
+```vue
+<script setup lang="ts">
+import { ref, watch } from 'vue';
+import { codeToHtml } from 'shiki';
+import { useResolvedTheme } from '@eternalheart/vue-file-preview';
+
+const props = defineProps<{ code: string; lang: string }>();
+const resolvedTheme = useResolvedTheme();  // Ref<'dark' | 'light'>
+const highlighted = ref('');
+
+const highlightCode = async () => {
+  highlighted.value = await codeToHtml(props.code, {
+    lang: props.lang,
+    theme: resolvedTheme.value === 'light' ? 'github-light' : 'dark-plus'
+  });
+};
+
+// 主题切换时重新高亮
+watch(resolvedTheme, highlightCode, { immediate: true });
+</script>
+
+<template>
+  <div v-html="highlighted"></div>
+</template>
+```
+
+**测试：**
+
+务必在 Light 和 Dark 两个主题下测试你的自定义渲染器：
+
+```vue
+<FilePreviewModal
+  :files="files"
+  theme="light"  // 在 'light'、'dark'、'auto' 间切换
+  :custom-renderers="[...]"
+/>
+```
+
+验证：
+- 文字在两个主题下都可读（无白底白字或黑底黑字）
+- 边框和分隔线清晰可见
+- hover 状态有足够对比度
+- 代码块跟随主题（不固定为暗色）
 
 ## ⌨️ 键盘快捷键
 

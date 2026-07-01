@@ -4,24 +4,23 @@
 
 一个现代化、功能丰富的 React 文件预览组件,支持图片、视频、音频、PDF、Office 文档(Word、Excel、PowerPoint)、Markdown 和代码文件预览。
 
-## ✨ 特性
+## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/2728.svg" width="20" height="20" alt="✨" /> 特性
 
-- 🎨 **现代化 UI** - Apple 风格的简约设计,毛玻璃效果
-- 📁 **多格式支持** - 支持 20+ 种文件格式
-- 🪟 **两种展示模式** - 全屏弹窗 **或** 嵌入式内联预览
-- 🖼️ **强大的图片查看器** - 缩放、旋转、拖拽、滚轮缩放
-- 🎬 **自定义视频播放器** - 基于 Video.js,支持多种视频格式
-- 🎵 **自定义音频播放器** - 精美的音频控制界面
-- 📄 **PDF 查看器** - 支持分页浏览
-- 📊 **Office 文档支持** - Word、Excel、PowerPoint 文件预览
-- 📝 **Markdown 渲染** - 支持 GitHub Flavored Markdown
-- 💻 **代码高亮** - 支持 40+ 种编程语言
-- 🎭 **流畅动画** - 基于 Framer Motion
-- 📱 **响应式设计** - 适配各种屏幕尺寸
-- ⌨️ **键盘导航** - 支持方向键和 ESC 键
-- 🎯 **拖拽上传** - 支持拖拽文件上传
+<img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f3a8.svg" width="16" height="16" alt="🎨" style="vertical-align: middle;" /> **现代化 UI** - 简洁现代的界面设计，流畅动画
+<img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f4c1.svg" width="16" height="16" alt="📁" style="vertical-align: middle;" /> **多格式支持** - 支持 20+ 种文件格式
+<img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1fa9f.svg" width="16" height="16" alt="🪟" style="vertical-align: middle;" /> **两种展示模式** - 全屏弹窗 **或** 嵌入式内联预览
+<img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f5bc.svg" width="16" height="16" alt="🖼️" style="vertical-align: middle;" /> **强大的图片查看器** - 缩放、旋转、拖拽、滚轮缩放
+<img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f3ac.svg" width="16" height="16" alt="🎬" style="vertical-align: middle;" /> **自定义视频播放器** - 基于 Video.js,支持多种视频格式
+<img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f3b5.svg" width="16" height="16" alt="🎵" style="vertical-align: middle;" /> **自定义音频播放器** - 精美的音频控制界面
+<img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f4c4.svg" width="16" height="16" alt="📄" style="vertical-align: middle;" /> **PDF 查看器** - 支持分页浏览
+<img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f4ca.svg" width="16" height="16" alt="📊" style="vertical-align: middle;" /> **Office 文档支持** - Word、Excel、PowerPoint 文件预览
+<img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f4dd.svg" width="16" height="16" alt="📝" style="vertical-align: middle;" /> **Markdown 渲染** - 支持 GitHub Flavored Markdown
+<img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f4bb.svg" width="16" height="16" alt="💻" style="vertical-align: middle;" /> **代码高亮** - 支持 40+ 种编程语言
+<img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f3ad.svg" width="16" height="16" alt="🎭" style="vertical-align: middle;" /> **流畅动画** - 基于 Framer Motion
+<img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f4f1.svg" width="16" height="16" alt="📱" style="vertical-align: middle;" /> **响应式设计** - 适配各种屏幕尺寸
+<img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/2328.svg" width="16" height="16" alt="⌨️" style="vertical-align: middle;" /> **键盘导航** - 支持方向键和 ESC 键
 
-## 📦 安装
+## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f4e6.svg" width="20" height="20" alt="📦" /> 安装
 
 ```bash
 # 使用 npm
@@ -136,7 +135,7 @@ export default defineConfig({
 
 > 说明:`@jsquash/avif` 仅在浏览器不原生支持 AVIF 时作为兜底使用(Chrome 85+、Firefox 93+、Safari 16+ 均已原生支持)。如果你的目标浏览器都覆盖原生支持范围,也可以直接从依赖中移除 `@jsquash/avif`。
 
-## 🚀 快速开始
+## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f680.svg" width="20" height="20" alt="🚀" /> 快速开始
 
 📖 **第一次使用？** 查看 [快速开始指南](./QUICK_START.md) 获取 5 分钟入门教程！
 
@@ -256,7 +255,7 @@ function InlinePreview() {
 <FilePreviewEmbed files={files} width={800} height={500} />
 ```
 
-## 💡 使用示例
+## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f4a1.svg" width="20" height="20" alt="💡" /> 使用示例
 
 ### 预览 PowerPoint 文件
 
@@ -309,7 +308,7 @@ const files = [
 />
 ```
 
-## 📖 支持的文件格式
+## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f4d6.svg" width="20" height="20" alt="📖" /> 支持的文件格式
 
 ### 图片
 - **格式**: JPG, PNG, GIF, WebP, SVG, BMP, ICO
@@ -358,7 +357,7 @@ const files = [
 ### 电子书
 - **EPUB**: 章节导航、翻页
 
-## 🎮 API 参考
+## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f3ae.svg" width="20" height="20" alt="🎮" /> API 参考
 
 ### FilePreviewModal Props
 
@@ -374,6 +373,7 @@ const files = [
 | `messages` | `Partial<Record<Locale, Partial<Messages>>>` | ❌ | 自定义翻译覆盖 |
 | `headless` | `boolean` | ❌ | 无头模式，隐藏工具栏和导航箭头 |
 | `theme` | `Theme` | ❌ | 主题模式: `'auto' \| 'dark' \| 'light'`（默认 `'dark'`） |
+| `showDownload` | `boolean` | ❌ | 是否显示下载按钮（默认 `true`） |
 
 ### FilePreviewEmbed Props
 
@@ -391,6 +391,7 @@ const files = [
 | `messages` | `Partial<Record<Locale, Partial<Messages>>>` | ❌ | - | 自定义翻译覆盖 |
 | `headless` | `boolean` | ❌ | `false` | 无头模式，隐藏工具栏和导航箭头 |
 | `theme` | `Theme` | ❌ | `'dark'` | 主题模式: `'auto' \| 'dark' \| 'light'` |
+| `showDownload` | `boolean` | ❌ | `true` | 是否显示下载按钮 |
 
 > `FilePreviewEmbed` 没有 `isOpen` / `onClose`,若要显示/隐藏,请在父组件中条件渲染。同时它不会显示工具栏上的关闭按钮。
 
@@ -510,7 +511,7 @@ const files = [
 #### 电子书
 - **EPUB**: `application/epub+zip` (.epub)
 
-## 🌐 国际化（i18n）
+## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f310.svg" width="20" height="20" alt="🌐" /> 国际化（i18n）
 
 内置中文（默认）和英文，零外部依赖。
 
@@ -528,7 +529,332 @@ const files = [
 
 在自定义渲染器中可通过 `useTranslator()` hook 获取翻译函数。
 
-## 🎨 自定义样式
+## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f9e9.svg" width="20" height="20" alt="🧩" /> 自定义渲染器
+
+本库支持自定义渲染器以处理内置不支持的文件类型。自定义渲染器可以可选地提供工具栏配置并集成到本库的架构中。
+
+### 事件驱动的工具栏更新
+
+自定义渲染器可以通过事件驱动机制实现实时工具栏更新：
+
+**优势：**
+- **实时更新**：工具栏立即反映状态变化
+- **更好的性能**：无轮询开销或不必要的重新渲染
+- **类型安全**：完整的 TypeScript 接口支持
+
+**实现方式：**
+
+```tsx
+import { forwardRef, useImperativeHandle, useState, useEffect, useMemo, useCallback } from 'react';
+import { ToolbarEventEmitter } from '@eternalheart/react-file-preview';
+import type { RendererHandle, ToolbarGroup } from '@eternalheart/react-file-preview';
+
+interface CustomRendererProps {
+  url: string;
+  onPageChange?: (current: number, total: number) => void;
+}
+
+export const CustomRenderer = forwardRef<RendererHandle, CustomRendererProps>((props, ref) => {
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(10);
+  const emitter = useMemo(() => new ToolbarEventEmitter(), []);
+  
+  // 状态变化时通知工具栏
+  useEffect(() => {
+    emitter.notify();
+    props.onPageChange?.(currentPage, totalPages);
+  }, [currentPage, totalPages, emitter, props]);
+  
+  const getToolbarGroups = useCallback((): ToolbarGroup[] => [
+    {
+      items: [
+        {
+          type: 'button',
+          icon: <ChevronLeft className="w-4 h-4" />,
+          tooltip: '上一页',
+          action: () => setCurrentPage(p => Math.max(1, p - 1)),
+          disabled: currentPage <= 1
+        },
+        {
+          type: 'text',
+          content: `${currentPage} / ${totalPages}`,
+          minWidth: '4rem'
+        },
+        {
+          type: 'button',
+          icon: <ChevronRight className="w-4 h-4" />,
+          tooltip: '下一页',
+          action: () => setCurrentPage(p => Math.min(totalPages, p + 1)),
+          disabled: currentPage >= totalPages
+        }
+      ]
+    }
+  ], [currentPage, totalPages]);
+  
+  useImperativeHandle(ref, () => ({
+    getToolbarGroups,
+    onToolbarChange: (listener) => emitter.subscribe(listener)
+  }), [getToolbarGroups, emitter]);
+  
+  return <div>你的自定义渲染器 UI</div>;
+});
+```
+
+**主组件使用：**
+
+```tsx
+import { CustomRenderer } from './CustomRenderer';
+
+<FilePreviewModal
+  files={files}
+  customRenderers={[
+    {
+      test: (file) => file.type === 'application/custom',
+      component: CustomRenderer
+    }
+  ]}
+/>
+```
+
+主组件会自动检测 `onToolbarChange` 并订阅事件。如果未实现，则回退到轮询以保持向后兼容。
+
+### Renderer 懒加载
+
+所有内置渲染器通过 `React.lazy` 实现代码分割，以最小化主包体积并提升初始加载性能。
+
+**架构：**
+
+- **注册**：渲染器在 `src/renderers/lazy.tsx` 中注册，使用 named export 并通过 `React.lazy` 包装
+- **加载**：每个渲染器是独立的 chunk，按需加载
+- **回退**：`<Suspense>` 配合 `<RendererLoading />` 处理加载状态
+
+**打包体积影响：**
+
+- 主入口：gzip ≤ 80 KB（CI 强制约束）
+- 每个渲染器：独立异步 chunk
+- 整个库：gzip ≤ 800 KB（所有渲染器合计）
+
+**实现示例：**
+
+```tsx
+// src/renderers/lazy.tsx
+import { lazy } from 'react';
+import type { CustomRenderer as CustomRendererImpl } from './Custom';
+
+export const CustomRenderer: Lazy<typeof CustomRendererImpl> = lazy(() =>
+  import('./Custom').then((m) => ({ default: m.CustomRenderer }))
+);
+```
+
+```tsx
+// src/FilePreviewContent.tsx
+import { CustomRenderer } from './renderers/lazy';  // ✅ 懒加载导入
+// 禁止: import { CustomRenderer } from './renderers/Custom';  // ❌ 直接导入会破坏代码分割
+
+<Suspense fallback={<RendererLoading />}>
+  {fileType === 'custom' && <CustomRenderer ref={rendererRef} url={currentFile.url} />}
+</Suspense>
+```
+
+**用于自定义渲染器：**
+
+如果你希望自定义渲染器也享受代码分割，可以使用相同的模式：
+
+```tsx
+import { lazy, Suspense } from 'react';
+
+const MyCustomRenderer = lazy(() => import('./MyCustomRenderer'));
+
+<FilePreviewModal
+  files={files}
+  customRenderers={[
+    {
+      test: (file) => file.type === 'application/custom',
+      component: (props) => (
+        <Suspense fallback={<div>加载中...</div>}>
+          <MyCustomRenderer {...props} />
+        </Suspense>
+      )
+    }
+  ]}
+/>
+```
+
+### i18n 集成
+
+自定义渲染器可以通过 `useTranslator()` hook 访问本库的 i18n 系统，实现一致的多语言支持。
+
+**架构：**
+
+- **字典源**：`file-preview-core/src/i18n/messages/`（zh-CN.ts、en-US.ts）
+- **禁止硬编码**：所有用户可见文案必须使用翻译 key
+- **自动切换语言**：跟随 `FilePreviewModal` 的 `locale` prop
+
+**在自定义渲染器中使用：**
+
+```tsx
+import { useTranslator } from '@eternalheart/react-file-preview';
+
+export const CustomRenderer = forwardRef<RendererHandle, Props>((props, ref) => {
+  const t = useTranslator();
+  const [error, setError] = useState<string | null>(null);
+  
+  if (error) {
+    return (
+      <div className="rfp-text-fg-primary">
+        {t('custom.load_failed')}: {error}
+      </div>
+    );
+  }
+  
+  return (
+    <div>
+      <button>{t('common.download')}</button>
+      <span>{t('custom.loading')}</span>
+    </div>
+  );
+});
+```
+
+**新增翻译 key：**
+
+1. 在 `file-preview-core/src/i18n/messages/` 的 `zh-CN.ts` 和 `en-US.ts` 中同时添加 key
+2. 使用 `<scope>.<snake_name>` 格式（如 `custom.load_failed`、`custom.parse_error`）
+3. 已有通用 key：`common.loading`、`common.download`、`common.close`、`toolbar.*`
+
+**参数化翻译：**
+
+```tsx
+// 字典: 'custom.file_size': '文件大小: {size} KB'
+t('custom.file_size', { size: 1024 })  // → "文件大小: 1024 KB"
+```
+
+**工具栏集成：**
+
+工具栏项也应使用翻译字符串：
+
+```tsx
+const getToolbarGroups = useCallback((): ToolbarGroup[] => [
+  {
+    items: [
+      {
+        type: 'button',
+        icon: <Download className="rfp-w-4 rfp-h-4" />,
+        tooltip: t('common.download'),  // ✅ 已翻译
+        action: handleDownload
+      }
+    ]
+  }
+], [t]);
+```
+
+### 主题适配
+
+自定义渲染器必须使用语义化颜色 token 以支持本库的 `'auto' | 'dark' | 'light'` 主题系统。
+
+**语义化 Token 系统：**
+
+所有颜色定义为 CSS 变量（`--fp-*`），通过 Tailwind 类暴露，前缀为 `rfp-`：
+
+| 用途 | 类名 | 说明 |
+|------|------|------|
+| **文字（fg）** | | |
+| 主文本 | `rfp-text-fg-primary` | 最高对比度 |
+| 正文 | `rfp-text-fg-secondary` | 默认文字 |
+| 次要文本 | `rfp-text-fg-tertiary` | 副本、计数器 |
+| 弱化文本 | `rfp-text-fg-muted` | 占位符 |
+| 禁用文本 | `rfp-text-fg-disabled` | 禁用按钮 |
+| **背景（surface）** | | |
+| 表面层 1 | `rfp-bg-surface-1` | 卡片、最弱 |
+| 表面层 2 | `rfp-bg-surface-2` | hover 状态 |
+| 表面层 3 | `rfp-bg-surface-3` | 强调 |
+| 工具栏 | `rfp-bg-surface-toolbar` | 顶部工具栏 |
+| **边框** | | |
+| 弱边框 | `rfp-border-line-weak` | 细线 |
+| 标准边框 | `rfp-border-line` | 默认边框 |
+| 强边框 | `rfp-border-line-strong` | 强调 |
+| **代码** | | |
+| 代码背景 | `rfp-bg-code-bg` | Dark：#1e1e1e / Light：#f6f8fa |
+| 代码文字 | `rfp-text-code-fg` | 跟随主题 |
+| **强调（accent）** | | |
+| 强调背景 | `rfp-bg-accent` | 主按钮 |
+| 强调 hover | `rfp-bg-accent-hover` | hover 状态 |
+
+**✅ 正确用法：**
+
+```tsx
+export const CustomRenderer = forwardRef<RendererHandle, Props>((props, ref) => {
+  return (
+    <div className="rfp-bg-surface-1 rfp-border rfp-border-line-weak rfp-rounded">
+      <h2 className="rfp-text-fg-primary rfp-text-lg">标题</h2>
+      <p className="rfp-text-fg-secondary">正文内容</p>
+      <button className="rfp-bg-surface-2 hover:rfp-bg-surface-3 rfp-text-fg-primary">
+        点击
+      </button>
+      <pre className="rfp-bg-code-bg rfp-text-code-fg">
+        {code}
+      </pre>
+    </div>
+  );
+});
+```
+
+**❌ 错误用法（禁止使用）：**
+
+```tsx
+// ❌ 字面色类 — 会破坏主题切换
+<div className="rfp-text-white/90 rfp-bg-white/10 rfp-border-white/15">
+<div className="rfp-text-gray-700 rfp-bg-gray-100">
+
+// ❌ 内联字面色
+<div style={{ color: '#ffffff', background: '#1f2937' }}>
+
+// ❌ 硬编码暗色
+<div style={{ background: '#1e1e1e' }}>  // 应改用 rfp-bg-code-bg
+```
+
+**支持主题的三方库：**
+
+对于具有 theme prop 的库（如 `react-syntax-highlighter`），使用 `useResolvedTheme()`：
+
+```tsx
+import { useResolvedTheme } from '@eternalheart/react-file-preview';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { vscDarkPlus, vs } from 'react-syntax-highlighter/dist/esm/styles/prism';
+
+export const CodeRenderer = forwardRef<RendererHandle, Props>((props, ref) => {
+  const resolvedTheme = useResolvedTheme();  // 'dark' | 'light'
+  
+  return (
+    <SyntaxHighlighter
+      language="javascript"
+      style={resolvedTheme === 'light' ? vs : vscDarkPlus}
+    >
+      {code}
+    </SyntaxHighlighter>
+  );
+});
+```
+
+**测试：**
+
+务必在 Light 和 Dark 两个主题下测试你的自定义渲染器：
+
+```tsx
+<FilePreviewModal
+  files={files}
+  theme="light"  // 在 'light'、'dark'、'auto' 间切换
+  customRenderers={[...]}
+/>
+```
+
+验证：
+- 文字在两个主题下都可读（无白底白字或黑底黑字）
+- 边框和分隔线清晰可见
+- hover 状态有足够对比度
+- 代码块跟随主题（不固定为暗色）
+
+## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f3a8.svg" width="20" height="20" alt="🎨" /> 自定义样式
 
 组件使用 Tailwind CSS 构建,您可以通过覆盖 CSS 变量来自定义样式:
 
@@ -540,18 +866,18 @@ const files = [
 }
 ```
 
-## ⌨️ 键盘快捷键
+## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/2328.svg" width="20" height="20" alt="⌨️" /> 键盘快捷键
 
 - `ESC` - 关闭预览
 - `←` - 上一个文件
 - `→` - 下一个文件
 - `滚轮` - 缩放图片 (仅图片预览)
 
-## 📚 文档
+## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f4da.svg" width="20" height="20" alt="📚" /> 文档
 
 - [在线演示](https://wh131462.github.io/file-preview) - 在线 Demo
 
-## 🤖 Context7 支持
+## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f916.svg" width="20" height="20" alt="🤖" /> Context7 支持
 
 本项目支持 [Context7](https://context7.com) MCP Server。如果你正在使用 AI 编程助手（如 Claude Code、Cursor 等），可以配置 Context7 MCP Server 来获取 `@eternalheart/react-file-preview` 的最新文档和代码示例，从而获得更好的 AI 辅助开发体验。
 
@@ -563,7 +889,7 @@ const files = [
 
 > 更多关于 Context7 的配置方式，请访问 [Context7 官方文档](https://github.com/upstash/context7)。
 
-## 📦 包信息
+## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f4e6.svg" width="20" height="20" alt="📦" /> 包信息
 
 ### 打包体积
 
@@ -589,7 +915,7 @@ const files = [
 }
 ```
 
-## 🛠️ 开发
+## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f6e0.svg" width="20" height="20" alt="🛠️" /> 开发
 
 ### 库开发
 
@@ -627,15 +953,15 @@ react-file-preview/
 └── vite.config.lib.ts        # 库构建配置
 ```
 
-## 📄 许可证
+## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f4c4.svg" width="20" height="20" alt="📄" /> 许可证
 
 [MIT](./LICENSE) © [EternalHeart](https://github.com/wh131462)
 
-## 🤝 贡献
+## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f91d.svg" width="20" height="20" alt="🤝" /> 贡献
 
 欢迎提交 Issue 和 Pull Request!
 
-## 🔗 相关链接
+## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f517.svg" width="20" height="20" alt="🔗" /> 相关链接
 
 - [GitHub](https://github.com/wh131462/file-preview)
 - [npm](https://www.npmjs.com/package/@eternalheart/react-file-preview)

@@ -384,6 +384,203 @@ function onCustomEvent(e: CustomRendererEventPayload) {
 - 旧版 `render: (file) => <Comp />` 仍然可用；`ctx` 是可选参数
 - 不声明 `getToolbarGroups` / `events` / 不绑定事件出口时，行为与旧版完全一致
 
+## 内置渲染器架构（v2.0+）
+
+从 v2.0 开始，内置渲染器采用新架构，自定义渲染器也可参考这些模式以获得更好的性能和一致性。
+
+### 事件驱动的工具栏更新
+
+新架构使用事件驱动机制替代轮询，实现实时工具栏更新：
+
+**React 实现：**
+
+```tsx
+import { forwardRef, useImperativeHandle, useState, useEffect, useMemo, useCallback } from 'react';
+import { ToolbarEventEmitter } from '@eternalheart/react-file-preview';
+import type { RendererHandle, ToolbarGroup } from '@eternalheart/react-file-preview';
+
+export const CustomRenderer = forwardRef<RendererHandle, Props>((props, ref) => {
+  const [zoom, setZoom] = useState(1);
+  const emitter = useMemo(() => new ToolbarEventEmitter(), []);
+  
+  // 状态变化时通知工具栏
+  useEffect(() => {
+    emitter.notify();
+  }, [zoom, emitter]);
+  
+  const getToolbarGroups = useCallback((): ToolbarGroup[] => [
+    {
+      items: [
+        { type: 'text', content: `${Math.round(zoom * 100)}%` },
+        { type: 'button', icon: <ZoomIn />, tooltip: 'Zoom In', action: () => setZoom(z => z * 1.1) }
+      ]
+    }
+  ], [zoom]);
+  
+  useImperativeHandle(ref, () => ({
+    getToolbarGroups,
+    onToolbarChange: (listener) => emitter.subscribe(listener)
+  }), [getToolbarGroups, emitter]);
+  
+  return <div style={{ transform: `scale(${zoom})` }}>内容</div>;
+});
+```
+
+**Vue 实现：**
+
+```vue
+<script setup lang="ts">
+import { ref, watch } from 'vue';
+import type { ToolbarGroup } from '@eternalheart/vue-file-preview';
+
+const zoom = ref(1);
+
+const getToolbarGroups = (): ToolbarGroup[] => [
+  {
+    items: [
+      { type: 'text', content: `${Math.round(zoom.value * 100)}%` },
+      { type: 'button', icon: ZoomIn, tooltip: '放大', action: () => zoom.value *= 1.1 }
+    ]
+  }
+];
+
+defineExpose({ getToolbarGroups });
+</script>
+
+<template>
+  <div :style="{ transform: `scale(${zoom})` }">内容</div>
+</template>
+```
+
+**优势：**
+- 实���更新：状态变化立即反映到工具栏
+- 更好的性能：无轮询开销
+- 类型安全：完整的 TypeScript 支持
+
+### Renderer 懒加载
+
+所有内置渲染器通过 `React.lazy` / `defineAsyncComponent` 实现代码分割：
+
+**React 注册：**
+
+```tsx
+// src/renderers/lazy.tsx
+import { lazy } from 'react';
+import type { CustomRenderer as CustomRendererImpl } from './Custom';
+
+export const CustomRenderer: Lazy<typeof CustomRendererImpl> = lazy(() =>
+  import('./Custom').then((m) => ({ default: m.CustomRenderer }))
+);
+```
+
+**Vue 注册：**
+
+```ts
+// src/renderers/lazy.ts
+import { defineAsyncComponent } from 'vue';
+
+export const CustomRenderer = defineAsyncComponent({
+  loader: () => import('./Custom/index.vue'),
+  loadingComponent: RendererLoading,
+  delay: 0
+});
+```
+
+**体积影响：**
+- React 主入口：gzip ≤ 80 KB
+- Vue 主入口：gzip ≤ 60 KB
+- 每个渲染器：独立异步 chunk
+
+### i18n 集成
+
+自定义渲染器可以访问内置 i18n 系统：
+
+**React：**
+
+```tsx
+import { useTranslator } from '@eternalheart/react-file-preview';
+
+export const CustomRenderer = forwardRef<RendererHandle, Props>((props, ref) => {
+  const t = useTranslator();
+  
+  return (
+    <div>
+      <button>{t('common.download')}</button>
+      <span>{t('custom.loading')}</span>
+    </div>
+  );
+});
+```
+
+**Vue：**
+
+```vue
+<script setup lang="ts">
+import { useTranslator } from '@eternalheart/vue-file-preview';
+
+const { t } = useTranslator();
+</script>
+
+<template>
+  <div>
+    <button>{{ t('common.download') }}</button>
+    <span>{{ t('custom.loading') }}</span>
+  </div>
+</template>
+```
+
+**字典位置：** `file-preview-core/src/i18n/messages/zh-CN.ts` 和 `en-US.ts`
+
+### 主题适配
+
+必须使用语义化 token 以支持 `'auto' | 'dark' | 'light'` 主题：
+
+**React 示例：**
+
+```tsx
+export const CustomRenderer = forwardRef<RendererHandle, Props>((props, ref) => {
+  return (
+    <div className="rfp-bg-surface-1 rfp-text-fg-primary rfp-border rfp-border-line">
+      <button className="rfp-bg-surface-2 hover:rfp-bg-surface-3">
+        {props.label}
+      </button>
+    </div>
+  );
+});
+```
+
+**Vue 示例：**
+
+```vue
+<template>
+  <div class="vfp-bg-surface-1 vfp-text-fg-primary vfp-border vfp-border-line">
+    <button class="vfp-bg-surface-2 hover:vfp-bg-surface-3">
+      {{ label }}
+    </button>
+  </div>
+</template>
+
+<style scoped>
+.custom-block {
+  color: var(--fp-fg-primary);
+  background: var(--fp-surface-2);
+}
+</style>
+```
+
+**禁止使用：**
+- ❌ 字面色类：`text-white/90`、`bg-gray-100`
+- ❌ 硬编码颜色：`color: '#ffffff'` 或类似的 style 内联字面色
+
+**主题切换库：**
+
+```tsx
+import { useResolvedTheme } from '@eternalheart/react-file-preview';
+
+const resolvedTheme = useResolvedTheme();  // 'dark' | 'light'
+<SyntaxHighlighter style={resolvedTheme === 'light' ? vs : vscDarkPlus} />
+```
+
 ## 下一步
 
 - [主题定制](./theming) - 了解如何自定义组件样式

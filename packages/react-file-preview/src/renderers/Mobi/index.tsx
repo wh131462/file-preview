@@ -217,13 +217,13 @@ export const MobiRenderer = forwardRef<MobiRendererHandle, MobiRendererProps>(
 
             const currentView = viewRef.current;
             const sectionCount = currentView?.book?.sections.length ?? 0;
-            const renderer = currentView?.renderer as
-              | {
-                  page?: number;
-                  pages?: number;
-                  getContents?: () => Array<{ index: number }>;
-                }
-              | undefined;
+            const renderer = (currentView as unknown as {
+              renderer?: {
+                page?: number;
+                pages?: number;
+                getContents?: () => Array<{ index: number }>;
+              };
+            } | null)?.renderer;
 
             // 用 Paginator 的 page/pages 得到精确翻页数：
             // - 单 section：pages - 2 就是全书总页数

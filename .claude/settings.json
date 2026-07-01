@@ -71,7 +71,8 @@
       "Read(//var/folders/41/c117cgt92nzc9gyyqx7njqth0000gn/T/chrome-devtools-mcp-wbItqa/**)",
       "Read(//private/var/folders/41/c117cgt92nzc9gyyqx7njqth0000gn/T/chrome-devtools-mcp-wbItqa/**)",
       "Read(//var/folders/41/c117cgt92nzc9gyyqx7njqth0000gn/T/chrome-devtools-mcp-MaPF8N/**)",
-      "Read(//private/var/folders/41/c117cgt92nzc9gyyqx7njqth0000gn/T/chrome-devtools-mcp-MaPF8N/**)"
+      "Read(//private/var/folders/41/c117cgt92nzc9gyyqx7njqth0000gn/T/chrome-devtools-mcp-MaPF8N/**)",
+      "Bash(git log *)"
     ],
     "additionalDirectories": [
       "/Users/eternalheart/workspace/wh131462/file-preview/.claude/skills/support-type"

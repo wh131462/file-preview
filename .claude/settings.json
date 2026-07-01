@@ -50,7 +50,23 @@
       "Bash(ls */toolbar.ts)",
       "Bash(kill 82168)",
       "Bash(kill 42901)",
-      "Bash(chmod +x /Users/eternalheart/workspace/wh131462/file-preview/scripts/kill-ports.sh)"
+      "Bash(chmod +x /Users/eternalheart/workspace/wh131462/file-preview/scripts/kill-ports.sh)",
+      "Bash(grep -c '```' /Users/eternalheart/workspace/wh131462/file-preview/packages/react-file-preview/README.md)",
+      "Bash(grep -c '```')",
+      "Bash(sed -n '/### 3.5 工具栏配置规范/,/### 3.6/p' /Users/eternalheart/workspace/wh131462/file-preview/.claude/skills/support-type/SKILL.md | grep -c \"React\\\\|Vue\\\\|❌\")",
+      "Bash(for section *)",
+      "Bash(sed -n '/### 3.5 工具栏配置规范/,/### 3.6/p' /Users/eternalheart/workspace/wh131462/file-preview/.claude/skills/support-type/SKILL.md | grep -E \"React|Vue\" | head -5)",
+      "Bash(sed -i '' -e '9,21s/^<img /- <img /' /Users/eternalheart/workspace/wh131462/file-preview/packages/vue-file-preview/README.md)",
+      "Bash(sed -i '' -e '9,21s/^<img /- <img /' /Users/eternalheart/workspace/wh131462/file-preview/packages/vue-file-preview/README.zh-CN.md)",
+      "Bash(sed -i '' 's/Apple-inspired minimalist design with glassmorphism effects/Clean and modern interface with smooth animations/g' /Users/eternalheart/workspace/wh131462/file-preview/README.md /Users/eternalheart/workspace/wh131462/file-preview/packages/react-file-preview/README.md /Users/eternalheart/workspace/wh131462/file-preview/packages/vue-file-preview/README.md)",
+      "Bash(sed -i '' 's/Apple 风格极简设计，毛玻璃效果/简洁现代的界面设计，流畅动画/g' /Users/eternalheart/workspace/wh131462/file-preview/README.zh-CN.md)",
+      "Bash(awk 'BEGIN{inblock=0} /^```/{inblock=!inblock; next} !inblock && /\\\\{\\\\{/ {print NR\": \"$0}' /Users/eternalheart/workspace/wh131462/file-preview/packages/docs/guide/custom-renderers.md)",
+      "Bash(openspec sync-specs *)",
+      "Bash(openspec --help)",
+      "Bash(openspec archive *)"
+    ],
+    "additionalDirectories": [
+      "/Users/eternalheart/workspace/wh131462/file-preview/.claude/skills/support-type"
     ]
   }
 }

@@ -30,6 +30,11 @@ export default defineConfig(({ mode }) => {
   const CHUNK_INLINED_FOR_ESM: (string | RegExp)[] = [
     '@kenjiuno/msgreader',
     'opentype.js',
+  ];
+
+  // 完全内联（ESM/CJS 都打包）的依赖：
+  // x-data-spreadsheet 在 Next.js 等环境下依赖解析有问题，直接打包避免用户安装
+  const ALWAYS_INLINE: (string | RegExp)[] = [
     'x-data-spreadsheet',
   ];
 
@@ -69,7 +74,15 @@ export default defineConfig(({ mode }) => {
     // 主 bundle 与 chunks 中均不再引用，故无需在 external 中列出。
   ];
 
-  const external = isEsm ? baseExternal : [...baseExternal, ...CHUNK_INLINED_FOR_ESM];
+  const external = isEsm
+    ? baseExternal.filter(dep => !ALWAYS_INLINE.some(inline =>
+        typeof inline === 'string' ? dep === inline : inline.test(String(dep))
+      ))
+    : [...baseExternal, ...CHUNK_INLINED_FOR_ESM].filter(dep =>
+        !ALWAYS_INLINE.some(inline =>
+          typeof inline === 'string' ? dep === inline : inline.test(String(dep))
+        )
+      );
 
   const esmOutput = {
     format: 'es' as const,

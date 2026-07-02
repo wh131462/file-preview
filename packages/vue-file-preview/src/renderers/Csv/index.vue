@@ -4,7 +4,6 @@ import type { ToolbarGroup } from '../toolbar.types';
 
 import { ref, watch, onMounted, onBeforeUnmount } from 'vue';
 import Spreadsheet from 'x-data-spreadsheet';
-import 'x-data-spreadsheet/dist/xspreadsheet.css';
 import {
   parseCsv,
   guessCsvDelimiter,

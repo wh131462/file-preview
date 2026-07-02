@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef, useCallback, forwardRef, useImperativeHandle } from 'react';
 import Spreadsheet from 'x-data-spreadsheet';
-import 'x-data-spreadsheet/dist/xspreadsheet.css';
 import {
   parseCsv,
   guessCsvDelimiter,

@@ -30,6 +30,7 @@ export default defineConfig(({ mode }) => {
   const CHUNK_INLINED_FOR_ESM: (string | RegExp)[] = [
     '@kenjiuno/msgreader',
     'opentype.js',
+    'x-data-spreadsheet',
   ];
 
   // 基础 external 列表（ESM/CJS 都 external）。
@@ -58,8 +59,6 @@ export default defineConfig(({ mode }) => {
     'jszip',
     // 视频
     'video.js',
-    // 电子表格
-    'x-data-spreadsheet',
     // 高级图片格式解码库（动态 import，按需加载）
     'heic2any',
     '@jsquash/avif',

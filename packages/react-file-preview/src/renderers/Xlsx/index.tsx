@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef, useCallback, forwardRef, useImperativeHandle } from 'react';
 import ExcelJS from 'exceljs';
 import Spreadsheet from 'x-data-spreadsheet';
-import 'x-data-spreadsheet/dist/xspreadsheet.css';
 import { convertWorkbookToSpreadsheetData } from '../../utils/excelDataConverter';
 import { useTranslator } from '../../i18n/LocaleContext';
 import { useFetcher } from '../../RequestContext';

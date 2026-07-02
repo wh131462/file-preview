@@ -5,7 +5,6 @@ import type { ToolbarGroup } from '../toolbar.types';
 import { ref, watch, onMounted, onBeforeUnmount } from 'vue';
 import ExcelJS from 'exceljs';
 import Spreadsheet from 'x-data-spreadsheet';
-import 'x-data-spreadsheet/dist/xspreadsheet.css';
 import { convertWorkbookToSpreadsheetData } from '@eternalheart/file-preview-core';
 import { useTranslator } from '../../composables/useTranslator';
 import { useFetcher } from '../../composables/useRequest';

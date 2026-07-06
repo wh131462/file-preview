@@ -259,6 +259,23 @@ export const PdfRenderer = forwardRef<PdfRendererHandle, PdfRendererProps>(({
     }
 
     try {
+      // 确保 GlobalWorkerOptions 已配置（延迟初始化）
+      if (!pdfjsLib.GlobalWorkerOptions.workerSrc) {
+        // 自动配置：使用 CDN 作为默认值
+        const version = pdfjsLib.version || '6.1.200';
+        pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${version}/build/pdf.worker.min.mjs`;
+
+        // 开发环境提示
+        const isDev = typeof process !== 'undefined' && process.env?.NODE_ENV === 'development';
+        if (isDev) {
+          console.warn(
+            '[react-file-preview] PDF worker 自动配置为 CDN。若环境存在 CSP 限制或加载失败，请配置同源本地文件：\n' +
+            `import { configurePdfjs } from '@eternalheart/react-file-preview';\n` +
+            `configurePdfjs({ workerSrc: '/pdfjs/pdf.worker.min.mjs' });`
+          );
+        }
+      }
+
       const loadingTask = pdfjsLib.getDocument({ url });
       pdfDocRef.current = (await loadingTask.promise) as PdfDocumentProxy;
       const total = pdfDocRef.current.numPages;

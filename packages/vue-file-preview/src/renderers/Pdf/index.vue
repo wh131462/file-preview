@@ -10,9 +10,6 @@ import { ToolbarEventEmitter } from '../base.types';
 import type { RendererHandle } from '../base.types';
 import type { ToolbarGroup } from '../toolbar.types';
 
-// 在模块加载时配置 PDF.js worker（默认走 CDN）
-configurePdfWorker(pdfjsLib);
-
 interface PdfOutlineItem {
   title: string;
   dest: any;
@@ -409,6 +406,23 @@ const loadPdf = async () => {
   }
 
   try {
+    // 确保 GlobalWorkerOptions 已配置（延迟初始化）
+    if (!pdfjsLib.GlobalWorkerOptions.workerSrc) {
+      // 自动配置：使用 CDN 作为默认值（不覆盖用户已配置的值）
+      configurePdfWorker(pdfjsLib);
+
+      // 开发环境提示
+      const isDev = typeof process !== 'undefined' && process.env?.NODE_ENV === 'development';
+      if (isDev) {
+        console.warn(
+          '[vue-file-preview] PDF worker 自动配置为 CDN。若环境存在 CSP 限制或加载失败，请配置同源本地文件：\n' +
+          `import { configurePdfWorker } from '@eternalheart/vue-file-preview';\n` +
+          `import * as pdfjsLib from 'pdfjs-dist/build/pdf.mjs';\n` +
+          `configurePdfWorker(pdfjsLib, { workerSrc: '/pdfjs/pdf.worker.min.mjs' });`
+        );
+      }
+    }
+
     const loadingTask = pdfjsLib.getDocument({ url: props.url });
     pdfDoc = (await loadingTask.promise) as PdfDocumentProxy;
     const total = pdfDoc.numPages;

@@ -7,13 +7,6 @@ import packageJson from '../package.json';
 // 导出版本号
 export const VERSION = packageJson.version;
 
-// 自动配置 PDF.js worker（使用 CDN 默认配置）
-// 用户可以通过调用 configurePdfjs() 覆盖此配置
-import { configurePdfjs } from './utils/pdfConfig';
-if (typeof window !== 'undefined') {
-  configurePdfjs();
-}
-
 // 导出主组件
 export { FilePreviewModal } from './FilePreviewModal';
 export { FilePreviewEmbed } from './FilePreviewEmbed';

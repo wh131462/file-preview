@@ -7,6 +7,15 @@ import packageJson from '../package.json';
 // 导出版本号
 export const VERSION = packageJson.version;
 
+// 自动配置 PDF.js worker（使用 CDN 默认配置）
+// 用户可以通过调用 configurePdfWorker() 覆盖此配置
+// @ts-ignore - pdfjs-dist 类型路径
+import * as pdfjsLib from 'pdfjs-dist/build/pdf.mjs';
+import { configurePdfWorker } from '@eternalheart/file-preview-core';
+if (typeof window !== 'undefined') {
+  configurePdfWorker(pdfjsLib);
+}
+
 // 导出主组件
 export { default as FilePreviewModal } from './FilePreviewModal.vue';
 export { default as FilePreviewEmbed } from './FilePreviewEmbed.vue';

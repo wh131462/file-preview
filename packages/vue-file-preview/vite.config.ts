@@ -30,6 +30,8 @@ export default defineConfig(({ mode }) => {
   const CHUNK_INLINED_FOR_ESM: (string | RegExp)[] = [
     '@kenjiuno/msgreader',
     'opentype.js',
+    'pdfjs-dist',  // ESM 模式下打成 chunk，避免用户侧模块解析问题
+    /^pdfjs-dist\//,  // 包括所有 pdfjs-dist 子路径
   ];
 
   // 完全内联（ESM/CJS 都打包）的依赖：
@@ -51,7 +53,8 @@ export default defineConfig(({ mode }) => {
     // 代码高亮
     'shiki',
     /^shiki(\/.*)?$/,
-    // PDF.js
+    // PDF.js 在 ESM 模式会从 baseExternal 中移除，打成 chunk
+    // CJS 模式仍然 external
     /^pdfjs-dist(\/.*)?$/,
     // Office / 电子书 / 压缩
     'mammoth',
@@ -74,14 +77,52 @@ export default defineConfig(({ mode }) => {
     // 主 bundle 与 chunks 中均不再引用，故无需在 external 中列出。
   ];
 
+  // 辅助函数：检查模块 ID 是否匹配规则列表
+  const matchesAny = (id: string, patterns: (string | RegExp)[]): boolean => {
+    return patterns.some(pattern =>
+      typeof pattern === 'string' ? id === pattern : pattern.test(id)
+    );
+  };
+
   const external = isEsm
-    ? baseExternal.filter(dep => !ALWAYS_INLINE.some(inline =>
-        typeof inline === 'string' ? dep === inline : inline.test(String(dep))
-      ))
+    ? baseExternal.filter(dep => {
+        // ESM 模式：移除 CHUNK_INLINED_FOR_ESM 和 ALWAYS_INLINE 中的项
+        // 对于正则，检查是否与 CHUNK_INLINED_FOR_ESM 中的模式重叠
+        if (typeof dep === 'string') {
+          return !matchesAny(dep, [...CHUNK_INLINED_FOR_ESM, ...ALWAYS_INLINE]);
+        } else {
+          // 如果是正则，检查它是否匹配需要 inline 的模式
+          // 例如：/^pdfjs-dist(\/.*)?$/ 应该被移除，因为 pdfjs-dist 在 CHUNK_INLINED_FOR_ESM 中
+          return !CHUNK_INLINED_FOR_ESM.some(inline => {
+            if (typeof inline === 'string') {
+              return dep.test(inline);
+            } else {
+              // 两个正则：如果 source 相似则认为匹配
+              return dep.source === inline.source;
+            }
+          }) && !ALWAYS_INLINE.some(inline => {
+            if (typeof inline === 'string') {
+              return dep.test(inline);
+            } else {
+              return dep.source === inline.source;
+            }
+          });
+        }
+      })
     : [...baseExternal, ...CHUNK_INLINED_FOR_ESM].filter(dep =>
-        !ALWAYS_INLINE.some(inline =>
-          typeof inline === 'string' ? dep === inline : inline.test(String(dep))
-        )
+        {
+          if (typeof dep === 'string') {
+            return !matchesAny(dep, ALWAYS_INLINE);
+          } else {
+            return !ALWAYS_INLINE.some(inline => {
+              if (typeof inline === 'string') {
+                return dep.test(inline);
+              } else {
+                return dep.source === inline.source;
+              }
+            });
+          }
+        }
       );
 
   const esmOutput = {

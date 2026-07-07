@@ -38,6 +38,8 @@ pnpm add @eternalheart/vue-file-preview
 import '@eternalheart/vue-file-preview/style.css';
 ```
 
+> **说明：** PDF 预览所需的 `pdfjs-dist` 依赖会自动安装，无需额外操作。
+
 ### PDF.js 配置（可选）
 
 如果你需要预览 PDF 文件，建议配置 PDF.js 使用本地静态文件以提高性能和稳定性：

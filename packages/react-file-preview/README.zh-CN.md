@@ -24,20 +24,22 @@
 
 ```bash
 # 使用 npm
-npm install react-file-preview
+npm install @eternalheart/react-file-preview
 
 # 使用 yarn
-yarn add react-file-preview
+yarn add @eternalheart/react-file-preview
 
 # 使用 pnpm
-pnpm add react-file-preview
+pnpm add @eternalheart/react-file-preview
 ```
 
 **重要提示：** 你还需要导入 CSS 文件：
 
 ```tsx
-import 'react-file-preview/style.css';
+import '@eternalheart/react-file-preview/style.css';
 ```
+
+> **说明：** PDF 预览所需的 `pdfjs-dist` 依赖会自动安装，无需额外操作。
 
 ### PDF.js 配置（可选）
 

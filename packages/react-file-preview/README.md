@@ -41,6 +41,8 @@ pnpm add @eternalheart/react-file-preview
 import '@eternalheart/react-file-preview/style.css';
 ```
 
+> **Note:** The `pdfjs-dist` dependency will be automatically installed for PDF preview support. No additional installation is required.
+
 ### PDF.js Configuration (Optional)
 
 If you need to preview PDF files, it's recommended to configure PDF.js to use local static files for better performance and stability:

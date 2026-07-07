@@ -5,7 +5,48 @@ import { X, ZoomIn, ZoomOut, ChevronLeft, ChevronRight, Menu, RefreshCw } from '
 import type { RendererHandle } from '../base.types';
 import type { ToolbarGroup } from '../toolbar.types';
 // @ts-ignore - pdfjs-dist 类型路径
-import * as pdfjsLib from 'pdfjs-dist/build/pdf.mjs';
+// Electron 环境使用 legacy 构建版本以避免 Web Streams API 兼容性问题
+// 参考: https://github.com/mozilla/pdf.js/issues/16214
+import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
+import { installUint8ArrayHexBase64Polyfill } from '@eternalheart/file-preview-core';
+
+// 立即安装 Uint8Array hex/base64 polyfill。
+// pdfjs 6.x 依赖 ES2025 的 Uint8Array.prototype.toHex/toBase64/fromBase64 等方法，
+// 其 legacy 构建自带的 core-js polyfill 在 webpack/umi 二次打包时可能被 tree-shake，
+// 导致 `TypeError: a.toHex is not a function`。此处主动安装（运行时调用，无法被消除）。
+installUint8ArrayHexBase64Polyfill();
+
+/**
+ * 准备 PDF worker。
+ *
+ * - 浏览器环境：使用 CDN 上的 legacy worker（独立 worker 线程，自带 polyfill，性能好）。
+ * - Electron 环境：worker 运行在缺少 Uint8Array hex/base64 polyfill 的独立作用域，
+ *   会抛 `toHex is not a function`。此处将 worker 模块挂到 `globalThis.pdfjsWorker`，
+ *   强制 pdfjs 在主线程执行 worker 逻辑（见 pdf.mjs PDFWorker#initialize），
+ *   从而复用主线程已安装的 polyfill，并彻底绕开 CDN / worker 作用域问题。
+ */
+let pdfWorkerPrepared: Promise<void> | null = null;
+function preparePdfWorker(): Promise<void> {
+  if (pdfWorkerPrepared) return pdfWorkerPrepared;
+  pdfWorkerPrepared = (async () => {
+    const isElectron = typeof navigator !== 'undefined' && /electron/i.test(navigator.userAgent);
+    if (isElectron) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const g = globalThis as any;
+      if (typeof globalThis !== 'undefined' && !g.pdfjsWorker) {
+        // @ts-ignore - pdfjs worker 无类型声明
+        const workerModule = await import(/* webpackChunkName: "pdf.worker" */ /* @vite-ignore */ 'pdfjs-dist/legacy/build/pdf.worker.mjs');
+        g.pdfjsWorker = workerModule;
+      }
+      return;
+    }
+    if (!pdfjsLib.GlobalWorkerOptions.workerSrc) {
+      const version = pdfjsLib.version || '6.1.200';
+      pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${version}/legacy/build/pdf.worker.min.mjs`;
+    }
+  })();
+  return pdfWorkerPrepared;
+}
 
 interface PdfOutlineItem {
   title: string;
@@ -259,25 +300,14 @@ export const PdfRenderer = forwardRef<PdfRendererHandle, PdfRendererProps>(({
     }
 
     try {
-      // 确保 GlobalWorkerOptions 已配置（延迟初始化）
+      // 准备 worker（浏览器用 CDN worker 线程；Electron 走主线程 worker 以复用 polyfill）
+      // 若用户已通过 configurePdfjs 显式配置 workerSrc，则尊重其配置
       if (!pdfjsLib.GlobalWorkerOptions.workerSrc) {
-        // 自动配置：使用 CDN 作为默认值
-        const version = pdfjsLib.version || '6.1.200';
-        pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${version}/build/pdf.worker.min.mjs`;
-
-        // 开发环境提示
-        const isDev = typeof process !== 'undefined' && process.env?.NODE_ENV === 'development';
-        if (isDev) {
-          console.warn(
-            '[react-file-preview] PDF worker 自动配置为 CDN。若环境存在 CSP 限制或加载失败，请配置同源本地文件：\n' +
-            `import { configurePdfjs } from '@eternalheart/react-file-preview';\n` +
-            `configurePdfjs({ workerSrc: '/pdfjs/pdf.worker.min.mjs' });`
-          );
-        }
+        await preparePdfWorker();
       }
 
       const loadingTask = pdfjsLib.getDocument({ url });
-      pdfDocRef.current = (await loadingTask.promise) as PdfDocumentProxy;
+      pdfDocRef.current = await loadingTask.promise as unknown as PdfDocumentProxy;
       const total = pdfDocRef.current.numPages;
 
       setNumPages(total);

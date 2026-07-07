@@ -71,6 +71,9 @@ export { convertWorkbookToSpreadsheetData, convertCsvToSpreadsheetData } from '.
 export { configurePdfWorker } from './utils/pdfWorker';
 export type { PdfWorkerOptions } from './utils/pdfWorker';
 
+// 导出 Uint8Array hex/base64 polyfill（pdfjs 6.x 在 webpack/umi 环境下必需）
+export { installUint8ArrayHexBase64Polyfill } from './utils/uint8ArrayPolyfill';
+
 // 导出 i18n 国际化
 export { createTranslator, builtInMessages } from './i18n';
 export type {

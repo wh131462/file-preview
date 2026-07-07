@@ -1,3 +1,5 @@
+import { installUint8ArrayHexBase64Polyfill } from './uint8ArrayPolyfill';
+
 /**
  * PDF.js Worker 配置选项
  */
@@ -46,10 +48,14 @@ export function configurePdfWorker(
 ): void {
   if (typeof window === 'undefined') return;
 
+  // 优先安装 Uint8Array hex/base64 polyfill（pdfjs 6.x 依赖）
+  // webpack/umi 环境下 pdfjs legacy 自带的 core-js polyfill 可能被 tree-shake
+  installUint8ArrayHexBase64Polyfill();
+
   const version = pdfjs?.version || pdfjs?.GlobalWorkerOptions?.version || '';
 
   const {
-    workerSrc = `https://unpkg.com/pdfjs-dist@${version}/build/pdf.worker.min.mjs`,
+    workerSrc = `https://unpkg.com/pdfjs-dist@${version}/legacy/build/pdf.worker.min.mjs`,
     cMapUrl = `https://unpkg.com/pdfjs-dist@${version}/cmaps/`,
     cMapPacked = true,
   } = options || {};

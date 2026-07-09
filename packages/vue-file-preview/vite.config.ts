@@ -67,6 +67,10 @@ export default defineConfig(({ mode }) => {
     'jszip',
     // 视频
     'video.js',
+    // CAD / 3D
+    'three',
+    /^three(\/.*)?$/,
+    'three-dxf-loader',
     // 高级图片格式解码库（动态 import，按需加载）
     'heic2any',
     '@jsquash/avif',

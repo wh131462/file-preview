@@ -271,6 +271,10 @@ const files = [
 - **格式**: TTF, OTF, WOFF, WOFF2
 - **功能**: 字体元数据（字体家族、设计师、版本）、字符集预览、自定义文本输入、多字号展示
 
+### CAD / 3D 模型
+- **格式**: DXF, STL, OBJ, GLTF, GLB
+- **功能**: 交互式 3D 查看器（旋转/缩放/平移）、线框/实体切换、网格与坐标轴显示、自动居中
+
 ### 代码 & 文本
 - **Markdown**: GitHub Flavored Markdown,代码高亮
 - **代码文件**: JS, TS, Python, Java, C++, Go, Rust 等 40+ 种语言
@@ -360,6 +364,7 @@ const files = [
 | `headless` | `boolean` | ❌ | 无头模式，隐藏工具栏和导航箭头 |
 | `theme` | `Theme` | ❌ | 主题模式: `'auto' \| 'dark' \| 'light'`（默认 `'dark'`） |
 | `showDownload` | `boolean` | ❌ | 是否显示下载按钮（默认 `true`） |
+| `showClose` | `boolean` | ❌ | 是否显示关闭按钮（modal 模式默认 `true`） |
 
 ### FilePreviewModal 事件
 
@@ -382,6 +387,7 @@ const files = [
 | `headless` | `boolean` | ❌ | `false` | 无头模式，隐藏工具栏和导航箭头 |
 | `theme` | `Theme` | ❌ | `'dark'` | 主题模式: `'auto' \| 'dark' \| 'light'` |
 | `showDownload` | `boolean` | ❌ | `true` | 是否显示下载按钮 |
+| `showClose` | `boolean` | ❌ | `false` | 是否显示关闭按钮（embed 模式默认 `false`） |
 
 ### FilePreviewEmbed 事件
 

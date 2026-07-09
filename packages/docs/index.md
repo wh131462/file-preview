@@ -4,7 +4,7 @@ layout: home
 hero:
   name: File Preview
   text: 现代化的文件预览组件
-  tagline: 同时支持 React 与 Vue 3 · 图片、视频、音频、PDF、Office 文档、电子书、字体、Markdown 与代码文件
+  tagline: 同时支持 React 与 Vue 3 · 图片、视频、音频、PDF、Office 文档、电子书、字体、CAD/3D 模型、Markdown 与代码文件
   image:
     src: /icon.svg
     alt: File Preview
@@ -28,7 +28,7 @@ features:
       width: 48
       height: 48
     title: 多格式支持
-    details: 支持图片、视频、音频、PDF、Office 文档、EPUB / MOBI 电子书、字体文件、Markdown 与代码文件等多种格式
+    details: 支持图片、视频、音频、PDF、Office 文档、EPUB / MOBI 电子书、字体文件、CAD / 3D 模型、Markdown 与代码文件等多种格式
   - icon:
       src: /assets/icons/lightning.svg
       width: 48
@@ -189,6 +189,7 @@ const files = [
 - **文档**：PDF, Word (DOCX), Excel (XLSX), PowerPoint (PPT/PPTX), Outlook (MSG)
 - **电子书**：EPUB, MOBI, AZW, AZW3, KF8
 - **字体**：TTF, OTF, WOFF, WOFF2
+- **CAD / 3D 模型**：DXF, STL, OBJ, GLTF, GLB
 - **结构化数据**：JSON, CSV, TSV, XML
 - **字幕 / 歌词**：SRT, WebVTT, LRC, ELRC, ASS, SSA, TTML, DFXP
 - **压缩包**：ZIP

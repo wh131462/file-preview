@@ -343,6 +343,10 @@ const files = [
 - **Formats**: TTF, OTF, WOFF, WOFF2
 - **Features**: Font metadata (family, designer, version), character set preview, custom text input, multi-size display
 
+### CAD / 3D Models
+- **Formats**: DXF, STL, OBJ, GLTF, GLB
+- **Features**: Interactive 3D viewer with orbit/zoom/pan controls, wireframe/solid toggle, grid & axes display, auto-centering
+
 ### Code & Text
 - **Markdown**: GitHub Flavored Markdown, code highlighting
 - **Code Files**: JS, TS, Python, Java, C++, Go, Rust, and 40+ languages
@@ -434,6 +438,7 @@ const files = [
 | `headless` | `boolean` | ❌ | Headless mode — hides toolbar and navigation arrows |
 | `theme` | `Theme` | ❌ | Theme mode: `'auto' \| 'dark' \| 'light'` (default `'dark'`) |
 | `showDownload` | `boolean` | ❌ | Whether to show the download button (default `true`) |
+| `showClose` | `boolean` | ❌ | Whether to show the close button (default `true` for modal) |
 
 ### FilePreviewEmbed Props
 
@@ -452,8 +457,9 @@ const files = [
 | `headless` | `boolean` | ❌ | `false` | Headless mode — hides toolbar and navigation arrows |
 | `theme` | `Theme` | ❌ | `'dark'` | Theme mode: `'auto' \| 'dark' \| 'light'` |
 | `showDownload` | `boolean` | ❌ | `true` | Whether to show the download button |
+| `showClose` | `boolean` | ❌ | `false` | Whether to show the close button (default `false` for embed) |
 
-> `FilePreviewEmbed` has no `isOpen` / `onClose`. To hide/show it, conditionally render it from the parent. It also hides the close button in the toolbar.
+> `FilePreviewEmbed` has no `isOpen` / `onClose`. To hide/show it, conditionally render it from the parent. The close button is hidden by default but can be enabled via `showClose`.
 
 ### FilePreviewContent (advanced)
 
@@ -537,6 +543,13 @@ const files = [
 - **OpenType**: `application/x-font-otf`, `font/otf` (.otf)
 - **WOFF**: `application/font-woff`, `font/woff` (.woff)
 - **WOFF2**: `application/font-woff2`, `font/woff2` (.woff2)
+
+#### CAD / 3D Models
+- **DXF**: `application/dxf` (.dxf)
+- **STL**: `model/stl`, `application/vnd.ms-pki.stl` (.stl)
+- **OBJ**: `model/obj` (.obj)
+- **GLTF**: `model/gltf+json` (.gltf)
+- **GLB**: `model/gltf-binary` (.glb)
 
 #### Media Files
 - **Images**: `image/jpeg`, `image/png`, `image/gif`, `image/webp`, `image/svg+xml`, etc.

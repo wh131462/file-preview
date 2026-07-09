@@ -205,6 +205,21 @@ const customRenderers: CustomRenderer[] = [
 <FilePreviewModal showDownload={false} .../>
 ```
 
+#### showClose
+
+- **类型**: `boolean`
+- **必需**: 否
+- **默认值**: `undefined` (根据 `mode` 自动决定：modal 模式为 `true`，embed 模式为 `false`)
+- **描述**: 是否显示工具栏中的关闭按钮。显式设置此属性可以覆盖默认行为。
+
+```tsx
+// 显式隐藏关闭按钮（即使在 modal 模式）
+<FilePreviewModal showClose={false} .../>
+
+// 显式显示关闭按钮（即使在 embed 模式）
+<FilePreviewEmbed showClose={true} .../>
+```
+
 #### onCustomEvent
 
 - **类型**: `(event: CustomRendererEventPayload) => void`
@@ -377,6 +392,7 @@ function Panel() {
 | `headless` | `boolean` | ❌ | `false` | 无头模式,隐藏工具栏和导航箭头 |
 | `theme` | `Theme` | ❌ | `'dark'` | 主题模式: `'auto' \| 'dark' \| 'light'` |
 | `showDownload` | `boolean` | ❌ | `true` | 是否显示下载按钮 |
+| `showClose` | `boolean` | ❌ | `false` | 是否显示关闭按钮（embed 模式默认 `false`） |
 | `onCustomEvent` | `(e: CustomRendererEventPayload) => void` | ❌ | - | 自定义渲染器事件出口,载荷 `{ name, payload, file }` |
 | `requestInit` | `RequestInit \| (url) => RequestInit \| Promise<RequestInit>` | ❌ | - | 自定义 RequestInit，注入鉴权头等 |
 | `requestHandler` | `(url, init?) => Promise<Response>` | ❌ | - | 完全接管库内 fetch |
@@ -400,7 +416,7 @@ function Panel() {
 | 渲染位置 | Portal 到 `document.body` | 组件树内联 |
 | 背景遮罩 | 半透明黑色全屏遮罩 | 无 |
 | `isOpen` / `onClose` | 必填 | 不存在,由父组件控制是否渲染 |
-| 工具栏"关闭"按钮 | ✅ 显示 | ❌ 不显示 |
+| 工具栏"关闭"按钮 | ✅ 默认显示（可通过 `showClose={false}` 隐藏） | ❌ 默认隐藏（可通过 `showClose={true}` 显示） |
 | `Esc` 键关闭 | ✅ 支持(全局监听) | ❌ 不支持 |
 | ← → 键导航 | ✅ 全局 `window` 监听 | ✅ 仅容器 focus 时响应 |
 | body 滚动锁定 | ✅ 打开时锁定 | ❌ 不锁定 |
@@ -464,6 +480,7 @@ function DetailPanel() {
 | `headless` | `boolean` | ❌ | `false` | 无头模式,隐藏工具栏和导航箭头 |
 | `theme` | `Theme` | ❌ | `'dark'` | 主题模式: `'auto' \| 'dark' \| 'light'` |
 | `showDownload` | `boolean` | ❌ | `true` | 是否显示下载按钮 |
+| `showClose` | `boolean` | ❌ | `undefined` | 是否显示关闭按钮（未设置时根据 `mode` 决定：modal 为 `true`，embed 为 `false`） |
 | `locale` | `Locale` | ❌ | `'zh-CN'` | 界面语言 |
 | `messages` | `Partial<Record<Locale, Partial<Messages>>>` | ❌ | - | 自定义翻译字典 |
 | `onCustomEvent` | `(e: CustomRendererEventPayload) => void` | ❌ | - | 自定义渲染器事件出口 |
@@ -474,8 +491,8 @@ function DetailPanel() {
 
 **mode 差异:**
 
-- `mode='modal'`: 显示工具栏"关闭"按钮、全局监听键盘(Esc 关闭、←/→ 导航)
-- `mode='embed'`: 不显示"关闭"按钮、键盘事件绑定到组件根节点(需 focus),不监听 Esc
+- `mode='modal'`: 默认显示工具栏"关闭"按钮（可通过 `showClose={false}` 隐藏）、全局监听键盘(Esc 关闭、←/→ 导航)
+- `mode='embed'`: 默认不显示"关闭"按钮（可通过 `showClose={true}` 显示）、键盘事件绑定到组件根节点(需 focus),不监听 Esc
 
 ### 使用示例
 

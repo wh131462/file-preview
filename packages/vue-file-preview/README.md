@@ -271,6 +271,10 @@ Differences from `FilePreviewModal`:
 - **Formats**: TTF, OTF, WOFF, WOFF2
 - **Features**: Font metadata (family, designer, version), character set preview, custom text input, multi-size display
 
+### CAD / 3D Models
+- **Formats**: DXF, STL, OBJ, GLTF, GLB
+- **Features**: Interactive 3D viewer with orbit/zoom/pan controls, wireframe/solid toggle, grid & axes display, auto-centering
+
 ### Code & Text
 - **Markdown**: GitHub Flavored Markdown, code highlighting
 - **Code Files**: JS, TS, Python, Java, C++, Go, Rust, and 40+ languages
@@ -360,6 +364,7 @@ Differences from `FilePreviewModal`:
 | `headless` | `boolean` | ❌ | Headless mode — hides toolbar and navigation arrows |
 | `theme` | `Theme` | ❌ | Theme mode: `'auto' \| 'dark' \| 'light'` (default `'dark'`) |
 | `showDownload` | `boolean` | ❌ | Whether to show the download button (default `true`) |
+| `showClose` | `boolean` | ❌ | Whether to show the close button (default `true` for modal) |
 
 ### FilePreviewModal Events
 
@@ -382,6 +387,7 @@ Differences from `FilePreviewModal`:
 | `headless` | `boolean` | ❌ | `false` | Headless mode — hides toolbar and navigation arrows |
 | `theme` | `Theme` | ❌ | `'dark'` | Theme mode: `'auto' \| 'dark' \| 'light'` |
 | `showDownload` | `boolean` | ❌ | `true` | Whether to show the download button |
+| `showClose` | `boolean` | ❌ | `false` | Whether to show the close button (default `false` for embed) |
 
 ### FilePreviewEmbed Events
 

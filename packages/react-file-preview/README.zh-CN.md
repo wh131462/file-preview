@@ -341,6 +341,10 @@ const files = [
 - **格式**: TTF, OTF, WOFF, WOFF2
 - **功能**: 字体元数据（字体家族、设计师、版本）、字符集预览、自定义文本输入、多字号展示
 
+### CAD / 3D 模型
+- **格式**: DXF, STL, OBJ, GLTF, GLB
+- **功能**: 交互式 3D 查看器（旋转/缩放/平移）、线框/实体切换、网格与坐标轴显示、自动居中
+
 ### 代码 & 文本
 - **Markdown**: GitHub Flavored Markdown,代码高亮
 - **代码文件**: JS, TS, Python, Java, C++, Go, Rust 等 40+ 种语言
@@ -432,6 +436,7 @@ const files = [
 | `headless` | `boolean` | ❌ | 无头模式，隐藏工具栏和导航箭头 |
 | `theme` | `Theme` | ❌ | 主题模式: `'auto' \| 'dark' \| 'light'`（默认 `'dark'`） |
 | `showDownload` | `boolean` | ❌ | 是否显示下载按钮（默认 `true`） |
+| `showClose` | `boolean` | ❌ | 是否显示关闭按钮（modal 模式默认 `true`） |
 
 ### FilePreviewEmbed Props
 
@@ -450,8 +455,9 @@ const files = [
 | `headless` | `boolean` | ❌ | `false` | 无头模式，隐藏工具栏和导航箭头 |
 | `theme` | `Theme` | ❌ | `'dark'` | 主题模式: `'auto' \| 'dark' \| 'light'` |
 | `showDownload` | `boolean` | ❌ | `true` | 是否显示下载按钮 |
+| `showClose` | `boolean` | ❌ | `false` | 是否显示关闭按钮（embed 模式默认 `false`） |
 
-> `FilePreviewEmbed` 没有 `isOpen` / `onClose`,若要显示/隐藏,请在父组件中条件渲染。同时它不会显示工具栏上的关闭按钮。
+> `FilePreviewEmbed` 没有 `isOpen` / `onClose`,若要显示/隐藏,请在父组件中条件渲染。关闭按钮默认隐藏，但可通过 `showClose` 启用。
 
 ### FilePreviewContent（高级用法）
 
@@ -535,6 +541,13 @@ const files = [
 - **OpenType**: `application/x-font-otf`, `font/otf` (.otf)
 - **WOFF**: `application/font-woff`, `font/woff` (.woff)
 - **WOFF2**: `application/font-woff2`, `font/woff2` (.woff2)
+
+#### CAD / 3D 模型
+- **DXF**: `application/dxf` (.dxf)
+- **STL**: `model/stl`, `application/vnd.ms-pki.stl` (.stl)
+- **OBJ**: `model/obj` (.obj)
+- **GLTF**: `model/gltf+json` (.gltf)
+- **GLB**: `model/gltf-binary` (.glb)
 
 #### 媒体文件
 - **图片**: `image/jpeg`, `image/png`, `image/gif`, `image/webp`, `image/svg+xml`, 等

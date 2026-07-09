@@ -103,6 +103,7 @@ type FileType =
   | 'zip'         // ZIP 压缩包
   | 'text'        // 其他文本和代码文件
   | 'font'        // 字体文件 (TTF, OTF, WOFF, WOFF2)
+  | 'cad'         // CAD / 3D 模型 (DXF, STL, OBJ, GLTF, GLB)
   | 'unsupported' // 不支持的类型
 ```
 

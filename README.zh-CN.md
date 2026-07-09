@@ -147,6 +147,11 @@ import '@eternalheart/vue-file-preview/style.css';
   <td>时间轴解析、元数据提取、结构化显示</td>
 </tr>
 <tr>
+  <td><strong>CAD / 3D</strong></td>
+  <td>DXF, STL, OBJ, GLTF, GLB</td>
+  <td>交互式 3D 查看器、旋转/缩放/平移、线框切换、网格与坐标轴</td>
+</tr>
+<tr>
   <td><strong>其他</strong></td>
   <td>Markdown, CSV, JSON, XML, ZIP, MSG, EPUB, 字体</td>
   <td>渲染、格式化、树形视图、字符集预览</td>

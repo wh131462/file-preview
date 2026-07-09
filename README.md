@@ -147,6 +147,11 @@ import '@eternalheart/vue-file-preview/style.css';
   <td>Timeline parsing, metadata extraction, structured display</td>
 </tr>
 <tr>
+  <td><strong>CAD / 3D</strong></td>
+  <td>DXF, STL, OBJ, GLTF, GLB</td>
+  <td>Interactive 3D viewer, orbit/zoom/pan, wireframe toggle, grid &amp; axes</td>
+</tr>
+<tr>
   <td><strong>Others</strong></td>
   <td>Markdown, CSV, JSON, XML, ZIP, MSG, EPUB, Fonts</td>
   <td>Rendering, formatting, tree view, character set preview</td>

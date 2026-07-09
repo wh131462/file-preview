@@ -5,6 +5,7 @@ import {
   normalizeFiles,
   getFileType,
   downloadFileWithFetcher,
+  resolveShowClose,
   type PreviewFile,
   type PreviewFileInput,
   type Locale,
@@ -52,8 +53,10 @@ interface Props {
   shouldFetchAsBlob?: ShouldFetchAsBlob;
   /** 自定义下载回调；不传时库内默认通过 fetcher 拉 Blob 触发下载 */
   onDownload?: (file: PreviewFile) => void | Promise<void>;
-  /** 关闭回调：传入后工具栏显示关闭按钮 */
+  /** 关闭回调 */
   onClose?: () => void;
+  /** 是否显示关闭按钮，默认根据 mode 决定（modal: true, embed: false） */
+  showClose?: boolean;
   /** 是否显示下载按钮，默认 true */
   showDownload?: boolean;
 }
@@ -71,6 +74,7 @@ const props = withDefaults(defineProps<Props>(), {
   shouldFetchAsBlob: undefined,
   onDownload: undefined,
   onClose: undefined,
+  showClose: undefined,
   showDownload: true,
 });
 
@@ -273,7 +277,9 @@ const handleDownload = async () => {
   }
 };
 
-const showCloseButton = computed(() => !!props.onClose);
+const showCloseButton = computed(() =>
+  resolveShowClose(props.mode, props.showClose),
+);
 
 const epubCurrent = ref(0);
 const epubTotal = ref(0);
@@ -388,7 +394,7 @@ const hasToolGroups = computed(() => toolGroups.value.length > 0);
                 {{ (item as ToolbarTextItem).content }}
               </span>
             </template>
-            <div class="vfp-w-px vfp-h-4 vfp-mx-1 vfp-bg-divide" />
+            <div v-if="gi < toolGroups.length - 1 || actionGroups.length > 0" class="vfp-w-px vfp-h-4 vfp-mx-1 vfp-bg-divide" />
           </template>
           <template v-for="(group, gi) in actionGroups" :key="'d-action-' + gi">
             <template v-for="(item, ii) in group.items" :key="'d-action-' + gi + '-' + ii">

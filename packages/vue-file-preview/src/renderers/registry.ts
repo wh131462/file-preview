@@ -19,6 +19,7 @@ import {
   ZipRenderer,
   TextRenderer,
   FontRenderer,
+  CadRenderer,
 } from './lazy';
 
 /**
@@ -190,6 +191,15 @@ export const BUILTIN_RENDERERS: BuiltinRendererConfig[] = [
     component: FontRenderer,
     getProps: (ctx) => ({
       url: ctx.resolvedUrl,
+    }),
+  },
+  {
+    fileType: 'cad',
+    component: CadRenderer,
+    getProps: (ctx) => ({
+      url: ctx.resolvedUrl,
+      file: ctx.currentFile.file, // 传递原始 File 对象（如果有）
+      fileName: ctx.currentFile.name, // 传递原始文件名用于识别扩展名
     }),
   },
 ];

@@ -147,4 +147,13 @@ export const enUS: Messages = {
   'font.meta.glyphs': 'Glyphs',
   'font.meta.format': 'Format',
   'font.sample_text_placeholder': 'Type custom text...',
+
+  // ─────── cad ───────
+  'cad.loading': 'Loading CAD file...',
+  'cad.load_failed': 'Failed to load CAD file',
+  'cad.parse_failed': 'Failed to parse CAD file',
+  'cad.wireframe': 'Wireframe',
+  'cad.solid': 'Solid',
+  'cad.grid': 'Grid',
+  'cad.axes': 'Axes',
 };

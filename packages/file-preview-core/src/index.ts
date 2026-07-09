@@ -25,6 +25,10 @@ export {
   inferMimeType,
 } from './utils/fileNormalizer';
 
+// 导出预览模式工具（关闭按钮默认显隐判定等）
+export { resolveShowClose } from './utils/previewMode';
+export type { PreviewMode } from './utils/previewMode';
+
 // 导出文件类型识别 / 格式化工具
 export {
   getFileType,

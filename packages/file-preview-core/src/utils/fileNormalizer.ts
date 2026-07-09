@@ -119,6 +119,7 @@ export function normalizeFile(input: PreviewFileInput, index: number = 0): Previ
       url: URL.createObjectURL(input),
       type: input.type || inferMimeType(input.name),
       size: input.size,
+      file: input, // 保留原始 File 对象
     };
   }
 

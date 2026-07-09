@@ -147,4 +147,13 @@ export const zhCN: Messages = {
   'font.meta.glyphs': '字形数量',
   'font.meta.format': '格式',
   'font.sample_text_placeholder': '输入自定义文本...',
+
+  // ─────── cad ───────
+  'cad.loading': '加载 CAD 文件中...',
+  'cad.load_failed': 'CAD 文件加载失败',
+  'cad.parse_failed': 'CAD 文件解析失败',
+  'cad.wireframe': '线框',
+  'cad.solid': '实体',
+  'cad.grid': '网格',
+  'cad.axes': '坐标轴',
 };

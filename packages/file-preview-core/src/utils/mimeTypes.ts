@@ -91,6 +91,13 @@ export const EXTENSION_TO_MIME: Record<string, string> = {
   ssa: 'text/x-ssa',
   ttml: 'application/ttml+xml',
   dfxp: 'application/ttml+xml',
+
+  // CAD / 3D
+  dxf: 'application/dxf',
+  stl: 'model/stl',
+  obj: 'model/obj',
+  gltf: 'model/gltf+json',
+  glb: 'model/gltf-binary',
 };
 
 /**

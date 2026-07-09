@@ -14,6 +14,7 @@ export interface PreviewFile {
   url: string;
   type: string;
   size?: number;
+  file?: File; // 保留原始 File 对象（如果是从 File 对象创建的）
 }
 
 // 支持 File 对象、链接对象或 HTTP URL 字符串
@@ -38,6 +39,7 @@ export type FileType =
   | 'zip'
   | 'text'
   | 'font'
+  | 'cad'
   | 'unsupported';
 
 /**
@@ -62,6 +64,7 @@ export const SUPPORTED_FILE_TYPES: Exclude<FileType, 'unsupported'>[] = [
   'zip',
   'text',
   'font',
+  'cad',
 ] as const;
 
 export interface PreviewState {

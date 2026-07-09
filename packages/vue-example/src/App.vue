@@ -27,6 +27,7 @@ import {
   Code,
   Settings,
   Sparkles,
+  Link as LinkIcon,
 } from 'lucide-vue-next';
 import iconSvg from './assets/icon.svg';
 
@@ -42,6 +43,7 @@ const REACT_EXAMPLE_URL = isDev
 const isPreviewOpen = ref(false);
 const currentFileIndex = ref(0);
 const embedIndex = ref(0);
+const showEmbed = ref(false); // 默认关闭嵌入模式
 
 // 演示用自定义渲染器：命中文件名以 .demo 结尾的文件
 const DemoRenderer = defineComponent({
@@ -74,9 +76,9 @@ const DemoRenderer = defineComponent({
 
 const demoCustomRenderers: CustomRenderer[] = [
   {
-    test: (file) => file.name.toLowerCase().endsWith('.demo'),
+    test: (file: PreviewFile) => file.name.toLowerCase().endsWith('.demo'),
     render: () => DemoRenderer,
-    getToolbarGroups: (_file, ctx) => [
+    getToolbarGroups: (_file: PreviewFile, ctx: CustomRendererContext) => [
       {
         items: [
           {
@@ -101,6 +103,10 @@ const allFiles = ref<PreviewFileInput[]>([]);
 const isDragging = ref(false);
 let dragCounter = 0;
 const fileInputRef = ref<HTMLInputElement | null>(null);
+const urlInput = ref('');
+const showUrlInput = ref(false);
+// 每个文件的预览模式：true = File 对象，false = URL
+const filePreviewModes = ref<Map<string, boolean>>(new Map());
 const theme = ref<Theme>('dark');
 const headless = ref(false);
 const locale = ref<Locale>('zh-CN');
@@ -176,6 +182,8 @@ const getFileIcon = (type: string) => {
 };
 
 const handleFileClick = (index: number) => {
+  // 重新计算 allFiles，根据预览模式返回 File 或 PreviewFile
+  allFiles.value = uploadedFiles.value.map((f: PreviewFile) => getPreviewFile(f));
   currentFileIndex.value = index;
   isPreviewOpen.value = true;
 };
@@ -189,10 +197,50 @@ const processFiles = (files: FileList | null) => {
     url: URL.createObjectURL(file),
     type: file.type || 'application/octet-stream',
     size: file.size,
+    file: file, // ✅ 保留原始 File 对象
   }));
+
+  // 默认使用 File 对象预览
+  newFiles.forEach((f: PreviewFile) => filePreviewModes.value.set(f.id, true));
 
   uploadedFiles.value = [...uploadedFiles.value, ...newFiles];
   allFiles.value = [...allFiles.value, ...newFiles];
+};
+
+const addUrlFile = () => {
+  const url = urlInput.value.trim();
+  if (!url) return;
+
+  const newFile: PreviewFile = {
+    id: `url-${Date.now()}`,
+    name: url.split('/').pop() || 'file',
+    url,
+    type: 'application/octet-stream',
+  };
+
+  // URL 文件只能用 URL 预览
+  filePreviewModes.value.set(newFile.id, false);
+
+  uploadedFiles.value = [...uploadedFiles.value, newFile];
+  allFiles.value = [...allFiles.value, newFile];
+  urlInput.value = '';
+  showUrlInput.value = false;
+};
+
+const togglePreviewMode = (fileId: string) => {
+  const file = uploadedFiles.value.find((f: PreviewFile) => f.id === fileId);
+  if (!file || !file.file) return; // 仅 File 对象可切换
+
+  const currentMode = filePreviewModes.value.get(fileId) ?? true;
+  filePreviewModes.value.set(fileId, !currentMode);
+};
+
+const getPreviewFile = (file: PreviewFile): PreviewFileInput => {
+  const useFileObject = filePreviewModes.value.get(file.id) ?? true;
+  if (useFileObject && file.file) {
+    return file.file; // 返回 File 对象
+  }
+  return file; // 返回 PreviewFile（使用 url）
 };
 
 const handleFileUpload = (event: Event) => {
@@ -235,15 +283,18 @@ const handleDrop = (e: DragEvent) => {
 };
 
 const handleRemoveFile = (fileId: string) => {
-  const fileToRemove = uploadedFiles.value.find((f) => f.id === fileId);
-  if (fileToRemove) URL.revokeObjectURL(fileToRemove.url);
+  const fileToRemove = uploadedFiles.value.find((f: PreviewFile) => f.id === fileId);
+  if (fileToRemove && fileToRemove.file) {
+    URL.revokeObjectURL(fileToRemove.url);
+  }
 
-  uploadedFiles.value = uploadedFiles.value.filter((f) => f.id !== fileId);
-  allFiles.value = allFiles.value.filter((f) => {
+  uploadedFiles.value = uploadedFiles.value.filter((f: PreviewFile) => f.id !== fileId);
+  allFiles.value = allFiles.value.filter((f: PreviewFileInput) => {
     if (typeof f === 'string') return true;
     if (f instanceof File) return true;
     return (f as PreviewFile).id !== fileId;
   });
+  filePreviewModes.value.delete(fileId);
 };
 
 const formatFileSize = (bytes?: number) => {
@@ -253,9 +304,21 @@ const formatFileSize = (bytes?: number) => {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 };
 
+const getFileTypeDisplay = (file: PreviewFile) => {
+  const typePart = file.type.split('/')[1]?.toUpperCase();
+  if (typePart && typePart !== 'OCTET-STREAM') {
+    return typePart;
+  }
+  // 兜底：使用文件扩展名
+  const ext = file.name.split('.').pop()?.toUpperCase();
+  return ext || 'FILE';
+};
+
 onUnmounted(() => {
   // 释放所有 blob URL
-  uploadedFiles.value.forEach((f) => URL.revokeObjectURL(f.url));
+  uploadedFiles.value.forEach((f: PreviewFile) => {
+    if (f.file) URL.revokeObjectURL(f.url);
+  });
 });
 </script>
 
@@ -268,8 +331,8 @@ onUnmounted(() => {
           <div class="flex items-center gap-2 sm:gap-3 min-w-0 flex-1 overflow-hidden">
             <img :src="iconSvg" alt="logo" class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex-shrink-0" />
             <div class="flex flex-col items-start min-w-0 overflow-hidden">
-              <h1 class="text-base sm:text-xl font-bold text-white truncate w-full">Vue File Preview</h1>
-              <p class="text-[10px] sm:text-xs text-gray-400 truncate w-full">
+              <h1 class="text-base sm:text-xl font-bold text-white truncate w-full text-left">Vue File Preview</h1>
+              <p class="text-[10px] sm:text-xs text-gray-400 truncate w-full text-left">
                 @eternalheart/vue-file-preview@{{ VERSION }}
               </p>
             </div>
@@ -325,9 +388,9 @@ onUnmounted(() => {
     </nav>
 
     <div class="container mx-auto px-3 sm:px-4 py-8 sm:py-16">
-      <div class="text-center mb-8 sm:mb-12">
+      <div class="max-w-6xl mx-auto mb-8 sm:mb-12">
         <h2 class="text-2xl sm:text-4xl font-bold text-white mb-2 sm:mb-4">文件预览演示</h2>
-        <p class="text-gray-400 text-sm sm:text-lg px-4">
+        <p class="text-gray-400 text-sm sm:text-lg">
           支持
           <a
             :href="`${DOCS_URL}guide/supported-types`"
@@ -337,111 +400,175 @@ onUnmounted(() => {
           >
             {{ SUPPORTED_FILE_TYPES.length }}+ 种文件格式
           </a>
-          的现代化预览组件 · Vue 3 版本
+          的现代化预览组件
         </p>
       </div>
 
       <!-- 文件上传区域 -->
       <div class="max-w-6xl mx-auto mb-8 sm:mb-12">
+        <div class="relative">
+          <div
+            @dragenter="handleDragEnter"
+            @dragleave="handleDragLeave"
+            @dragover="handleDragOver"
+            @drop="handleDrop"
+            :class="[
+              'bg-white/5 backdrop-blur-sm rounded-xl sm:rounded-2xl p-5 sm:p-8 border-2 border-dashed transition-colors duration-200',
+              isDragging ? 'border-emerald-500 bg-emerald-500/10' : 'border-white/20 hover:border-white/40',
+            ]"
+          >
+            <input
+              ref="fileInputRef"
+              type="file"
+              multiple
+              class="hidden"
+              id="file-upload"
+              accept="*/*"
+              @change="handleFileUpload"
+            />
+            <label for="file-upload" class="flex flex-col items-center justify-center cursor-pointer">
+              <div
+                :class="[
+                  'w-14 h-14 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center mb-3 sm:mb-4 transition-transform',
+                  isDragging && 'scale-110',
+                ]"
+              >
+                <Upload class="w-7 h-7 sm:w-10 sm:h-10 text-white" />
+              </div>
+              <h3 class="text-white text-base sm:text-xl font-medium mb-1.5 sm:mb-2">
+                {{ isDragging ? '松开以上传文件' : '上传本地文件预览' }}
+              </h3>
+              <p class="text-gray-400 text-xs sm:text-sm mb-3 sm:mb-4 px-2">
+                {{ isDragging ? '将文件拖放到此处' : '支持图片、PDF、Word、Excel、视频、音频等格式' }}
+              </p>
+              <div
+                v-if="!isDragging"
+                class="px-5 py-2.5 sm:px-6 sm:py-3 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-lg text-white text-sm sm:text-base font-medium hover:shadow-lg hover:scale-105 active:scale-95 transition-all"
+              >
+                选择文件或拖拽到此处
+              </div>
+              <div
+                v-else
+                class="px-5 py-2.5 sm:px-6 sm:py-3 rounded-lg border border-emerald-400/40 bg-emerald-500/10 text-emerald-200 text-sm sm:text-base font-medium"
+              >
+                释放鼠标即可上传
+              </div>
+            </label>
+          </div>
+
+          <!-- 添加 URL 按钮 -->
+          <button
+            @click="showUrlInput = !showUrlInput"
+            :class="[
+              'absolute top-4 right-4 w-10 h-10 rounded-full flex items-center justify-center transition-all',
+              showUrlInput
+                ? 'bg-emerald-500 text-white shadow-lg'
+                : 'bg-white/10 hover:bg-white/20 text-gray-400 hover:text-white',
+            ]"
+            :title="showUrlInput ? '关闭 URL 输入' : '添加网络 URL'"
+          >
+            <LinkIcon class="w-5 h-5" />
+          </button>
+        </div>
+
+        <!-- URL 输入区域 -->
         <div
-          @dragenter="handleDragEnter"
-          @dragleave="handleDragLeave"
-          @dragover="handleDragOver"
-          @drop="handleDrop"
-          :class="[
-            'bg-white/5 backdrop-blur-sm rounded-xl sm:rounded-2xl p-5 sm:p-8 border-2 border-dashed transition-colors duration-200',
-            isDragging ? 'border-emerald-500 bg-emerald-500/10' : 'border-white/20 hover:border-white/40',
-          ]"
+          v-if="showUrlInput"
+          class="mt-4 flex gap-2 p-4 bg-white/5 backdrop-blur-sm rounded-xl border border-white/10"
         >
           <input
-            ref="fileInputRef"
-            type="file"
-            multiple
-            class="hidden"
-            id="file-upload"
-            accept="*/*"
-            @change="handleFileUpload"
+            v-model="urlInput"
+            type="text"
+            placeholder="输入文件 URL（如：https://example.com/file.pdf）"
+            class="flex-1 px-4 py-2 bg-white/5 border border-white/20 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-emerald-500"
+            @keyup.enter="addUrlFile"
           />
-          <label for="file-upload" class="flex flex-col items-center justify-center cursor-pointer">
-            <div
-              :class="[
-                'w-14 h-14 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center mb-3 sm:mb-4 transition-transform',
-                isDragging && 'scale-110',
-              ]"
-            >
-              <Upload class="w-7 h-7 sm:w-10 sm:h-10 text-white" />
-            </div>
-            <h3 class="text-white text-base sm:text-xl font-medium mb-1.5 sm:mb-2">
-              {{ isDragging ? '松开以上传文件' : '上传本地文件预览' }}
-            </h3>
-            <p class="text-gray-400 text-xs sm:text-sm mb-3 sm:mb-4 px-2">
-              {{ isDragging ? '将文件拖放到此处' : '支持图片、PDF、Word、Excel、视频、音频等格式' }}
-            </p>
-            <div
-              v-if="!isDragging"
-              class="px-5 py-2.5 sm:px-6 sm:py-3 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-lg text-white text-sm sm:text-base font-medium hover:shadow-lg hover:scale-105 active:scale-95 transition-all"
-            >
-              选择文件或拖拽到此处
-            </div>
-            <div
-              v-else
-              class="px-5 py-2.5 sm:px-6 sm:py-3 rounded-lg border border-emerald-400/40 bg-emerald-500/10 text-emerald-200 text-sm sm:text-base font-medium"
-            >
-              释放鼠标即可上传
-            </div>
-          </label>
+          <button
+            @click="addUrlFile"
+            class="px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-lg text-white font-medium hover:shadow-lg hover:scale-105 active:scale-95 transition-all whitespace-nowrap"
+          >
+            添加
+          </button>
         </div>
       </div>
 
       <!-- 已上传文件列表 -->
       <div v-if="uploadedFiles.length > 0" class="max-w-6xl mx-auto mb-8 sm:mb-12">
-        <h2 class="text-xl sm:text-2xl font-bold text-white mb-4 sm:mb-6">已上传的文件</h2>
+        <h2 class="text-xl sm:text-2xl font-bold text-white mb-4 sm:mb-6">已添加的文件</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
           <div
             v-for="(file, index) in uploadedFiles"
             :key="file.id"
-            class="group relative bg-white/5 backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-white/10 hover:border-white/30 active:bg-white/10 transition-all duration-300"
+            class="group relative bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 hover:border-emerald-400/50 transition-all duration-300 overflow-hidden"
           >
-            <button class="w-full text-left" @click="handleFileClick(index)">
-              <div class="flex items-start gap-3 sm:gap-4">
-                <div
-                  class="p-3 sm:p-4 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white group-hover:scale-110 transition-transform flex-shrink-0"
-                >
-                  <component :is="getFileIcon(file.type)" class="w-8 h-8" />
-                </div>
-                <div class="flex-1 min-w-0 pr-6 sm:pr-0">
-                  <h3 class="text-white font-medium text-base sm:text-lg mb-1 sm:mb-2 truncate">
-                    {{ file.name }}
-                  </h3>
-                  <p class="text-gray-400 text-xs sm:text-sm truncate">
-                    {{ file.type.split('/')[1]?.toUpperCase() || 'FILE' }}
-                  </p>
-                  <p v-if="file.size" class="text-gray-500 text-xs mt-1">
-                    {{ formatFileSize(file.size) }}
-                  </p>
-                </div>
-              </div>
-              <div class="mt-3 sm:mt-4 text-emerald-400 text-xs sm:text-sm font-medium group-hover:text-emerald-300">
-                点击预览 →
-              </div>
+            <!-- 删除按钮（右上角） -->
+            <button
+              @click="handleRemoveFile(file.id)"
+              class="absolute top-3 right-3 z-10 w-8 h-8 rounded-full bg-red-500/80 hover:bg-red-500 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity"
+              title="删除"
+            >
+              <X class="w-4 h-4" />
             </button>
 
-            <button
-              class="absolute top-3 right-3 sm:top-4 sm:right-4 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-red-500/80 hover:bg-red-500 flex items-center justify-center text-white opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all"
-              title="删除文件"
-              @click.stop="handleRemoveFile(file.id)"
-            >
-              <X class="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            </button>
+            <!-- 文件信息区域 -->
+            <div class="p-4">
+              <div class="flex items-center gap-3 mb-3">
+                <!-- 图标 -->
+                <div class="p-3 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex-shrink-0">
+                  <component :is="getFileIcon(file.type)" class="w-6 h-6" />
+                </div>
+
+                <div class="flex-1 min-w-0 text-left">
+                  <div class="flex items-center gap-2">
+                    <h3 class="text-white font-medium text-sm truncate text-left flex-1 min-w-0" :title="file.name">
+                      {{ file.name }}
+                    </h3>
+                    <!-- 模式标签 -->
+                    <span
+                      :class="[
+                        'text-[10px] px-1.5 py-0.5 rounded flex-shrink-0 font-medium',
+                        file.file
+                          ? (filePreviewModes.get(file.id) ? 'bg-emerald-500/20 text-emerald-300' : 'bg-blue-500/20 text-blue-300')
+                          : 'bg-blue-500/20 text-blue-300'
+                      ]"
+                    >
+                      {{ file.file ? (filePreviewModes.get(file.id) ? 'File' : 'URL') : 'URL' }}
+                    </span>
+                  </div>
+                  <p class="text-gray-400 text-xs mt-0.5 text-left">
+                    {{ getFileTypeDisplay(file) }}
+                    <span v-if="file.size" class="text-gray-500"> {{ formatFileSize(file.size) }}</span>
+                  </p>
+                </div>
+              </div>
+
+              <!-- 操作按钮区域 -->
+              <div class="flex gap-2">
+                <button
+                  @click="handleFileClick(index)"
+                  class="flex-1 px-3 py-2 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 rounded-lg text-emerald-300 text-xs font-medium transition-all"
+                >
+                  预览
+                </button>
+                <button
+                  v-if="file.file"
+                  @click="togglePreviewMode(file.id)"
+                  class="px-3 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-gray-400 hover:text-white text-xs transition-all"
+                  title="切换预览模式"
+                >
+                  切换
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
       <!-- 嵌入式预览演示 -->
-      <div v-if="allFiles.length > 0" class="max-w-6xl mx-auto mb-8 sm:mb-12">
+      <div v-if="allFiles.length > 0 && showEmbed" class="max-w-6xl mx-auto mb-8 sm:mb-12">
         <h2 class="text-xl sm:text-2xl font-bold text-white mb-2">嵌入式预览 (FilePreviewEmbed)</h2>
         <p class="text-gray-400 text-sm mb-4 sm:mb-6">
-          将预览组件直接嵌入到页面的 div 容器中,无需弹窗。下方容器高度固定为 520px。
+          将预览组件直接嵌入到页面的 div 容器中,无需弹窗。下方容器高度固定为 520px。通过右下角悬浮球控制显示/隐藏。
         </p>
 
         <div
@@ -486,7 +613,7 @@ onUnmounted(() => {
           >
             MIT License
           </a>
-          <span> · </span>
+          <span> </span>
           <a
             href="https://github.com/wh131462/file-preview"
             target="_blank"
@@ -495,7 +622,7 @@ onUnmounted(() => {
           >
             GitHub
           </a>
-          <span> · </span>
+          <span> </span>
           <a
             href="https://www.npmjs.com/package/@eternalheart/vue-file-preview"
             target="_blank"
@@ -504,7 +631,7 @@ onUnmounted(() => {
           >
             npm
           </a>
-          <span> · </span>
+          <span> </span>
           <a
             :href="DOCS_URL"
             target="_blank"
@@ -583,6 +710,19 @@ onUnmounted(() => {
           </button>
           <span class="text-gray-500 text-xs">{{ showDownload ? '显示' : '隐藏' }}</span>
         </div>
+        <template v-if="allFiles.length > 0">
+          <div class="border-t border-white/10 my-2" />
+          <div class="flex items-center gap-3">
+            <span class="text-gray-400 text-xs w-10 flex-shrink-0">嵌入</span>
+            <button
+              :class="['relative w-10 h-5 rounded-full transition-colors', showEmbed ? 'bg-emerald-500' : 'bg-white/20']"
+              @click="showEmbed = !showEmbed"
+            >
+              <span :class="['absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform', showEmbed ? 'translate-x-5' : '']" />
+            </button>
+            <span class="text-gray-500 text-xs">{{ showEmbed ? '显示' : '隐藏' }}</span>
+          </div>
+        </template>
       </div>
     </div>
 

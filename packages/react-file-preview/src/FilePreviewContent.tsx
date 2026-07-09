@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useRef, useState, useEffect } from 'react';
-import { getFileType, createTranslator, type Locale, type Messages, type Translator, type Theme, downloadFileWithFetcher } from '@eternalheart/file-preview-core';
+import { getFileType, createTranslator, resolveShowClose, type Locale, type Messages, type Translator, type Theme, downloadFileWithFetcher } from '@eternalheart/file-preview-core';
 import { LocaleProvider } from './i18n/LocaleContext';
 import { ThemeProvider } from './ThemeContext';
 import type { PreviewFileInput, CustomRenderer, CustomRendererContext } from './types';
@@ -36,6 +36,8 @@ export interface FilePreviewContentProps {
   shouldFetchAsBlob?: ShouldFetchAsBlob;
   onDownload?: (file: PreviewFile) => void;
   onError?: (error: Error, errorInfo: React.ErrorInfo) => void;
+  /** 是否显示关闭按钮，默认根据 mode 决定（modal: true, embed: false��� */
+  showClose?: boolean;
   showDownload?: boolean;
 }
 
@@ -67,6 +69,7 @@ const FilePreviewContentInner: React.FC<FilePreviewContentProps> = ({
   onCustomEvent,
   onDownload,
   onError,
+  showClose,
   showDownload = true,
   requestInit: _requestInit,
   requestHandler: _requestHandler,
@@ -220,6 +223,7 @@ const FilePreviewContentInner: React.FC<FilePreviewContentProps> = ({
               t={t}
               onDownload={handleDownload}
               onClose={onClose}
+              showClose={resolveShowClose(mode, showClose)}
               showDownload={showDownload}
             />
           )}

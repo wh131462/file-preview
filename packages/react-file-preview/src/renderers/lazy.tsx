@@ -20,6 +20,7 @@ import type { SubtitleRenderer as SubtitleRendererImpl } from './Subtitle';
 import type { ZipRenderer as ZipRendererImpl } from './Zip';
 import type { TextRenderer as TextRendererImpl } from './Text';
 import type { FontRenderer as FontRendererImpl } from './Font';
+import type { CadRenderer as CadRendererImpl } from './Cad';
 
 type Lazy<T> = LazyExoticComponent<T extends ComponentType<infer P> ? ComponentType<P> : never>;
 
@@ -93,4 +94,8 @@ export const TextRenderer: Lazy<typeof TextRendererImpl> = lazy(() =>
 
 export const FontRenderer: Lazy<typeof FontRendererImpl> = lazy(() =>
   import('./Font').then((m) => ({ default: m.FontRenderer })),
+);
+
+export const CadRenderer: Lazy<typeof CadRendererImpl> = lazy(() =>
+  import('./Cad').then((m) => ({ default: m.CadRenderer })),
 );

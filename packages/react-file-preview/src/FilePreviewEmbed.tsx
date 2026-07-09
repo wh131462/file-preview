@@ -32,8 +32,10 @@ interface FilePreviewEmbedProps {
   shouldFetchAsBlob?: ShouldFetchAsBlob;
   /** 自定义下载回调；不传时库内默认通过 fetcher 拉 Blob 触发下载 */
   onDownload?: (file: PreviewFile) => void | Promise<void>;
-  /** 关闭回调：传入后工具栏显示关闭按钮 */
+  /** 关闭回调 */
   onClose?: () => void;
+  /** 是否显示关闭按钮，默认根据 mode 决定（embed: false） */
+  showClose?: boolean;
   /** 是否显示下载按钮，默认 true */
   showDownload?: boolean;
 }
@@ -57,6 +59,7 @@ export const FilePreviewEmbed: React.FC<FilePreviewEmbedProps> = ({
   shouldFetchAsBlob,
   onDownload,
   onClose,
+  showClose,
   showDownload,
 }) => {
   const [systemDark, setSystemDark] = useState(() =>
@@ -98,6 +101,7 @@ export const FilePreviewEmbed: React.FC<FilePreviewEmbedProps> = ({
           shouldFetchAsBlob={shouldFetchAsBlob}
           onDownload={onDownload}
           onClose={onClose}
+          showClose={showClose}
           showDownload={showDownload}
         />
       </div>

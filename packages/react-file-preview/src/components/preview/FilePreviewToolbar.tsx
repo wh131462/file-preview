@@ -13,6 +13,7 @@ export interface FilePreviewToolbarProps {
   t: Translator;
   onDownload: () => void;
   onClose?: () => void;
+  showClose: boolean;
   showDownload: boolean;
 }
 
@@ -29,9 +30,10 @@ export const FilePreviewToolbar: React.FC<FilePreviewToolbarProps> = ({
   t,
   onDownload,
   onClose,
+  showClose,
   showDownload,
 }) => {
-  const showCloseButton = !!onClose;
+  const showCloseButton = showClose;
 
   // 操作组：下载、关闭（通用，不属于任何 Renderer）
   const actionGroups: ToolbarGroup[] = [
@@ -98,7 +100,7 @@ export const FilePreviewToolbar: React.FC<FilePreviewToolbarProps> = ({
         {/* 桌面端：所有工具按钮 */}
         <div className="rfp-hidden md:rfp-flex rfp-items-center rfp-gap-1 rfp-flex-shrink-0">
           {renderToolbarItems(toolGroups, 'rfp-mx-1')}
-          {toolGroups.length > 0 && (
+          {toolGroups.length > 0 && actionGroups.length > 0 && (
             <div className="rfp-w-px rfp-h-4 rfp-mx-1 rfp-bg-divide" />
           )}
           {renderToolbarItems(actionGroups, 'rfp-mx-1')}

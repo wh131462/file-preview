@@ -1,7 +1,13 @@
 <script setup lang="ts">
 import { ref, watch, onMounted, onBeforeUnmount, computed } from 'vue';
 import { Loader2, ZoomIn, ZoomOut, RotateCw, RotateCcw, Scan, RefreshCw, Maximize2 } from 'lucide-vue-next';
-import { formatFileSize, detectImageFormat, getLoaderForMimeType } from '@eternalheart/file-preview-core';
+import {
+  decodeInWorker,
+  detectImageFormat,
+  formatFileSize,
+  getLoaderForMimeType,
+  shouldUseWorker,
+} from '@eternalheart/file-preview-core';
 import type { PreviewFile } from '@eternalheart/file-preview-core';
 import { useTranslator } from '../../composables/useTranslator';
 import RendererError from '../RendererError.vue';
@@ -248,14 +254,30 @@ watch(
         }
       }
 
-      // 调用 loader 解码（第 1 页 / 缩略图模式）
-      const decodedBlob = await loader.decode(fileBlob, {
+      const decodeOptions = {
         page: 1,
         fullQuality: false,
         onProgress: (percent: number) => {
           decodeProgress.value = percent;
         },
-      });
+      };
+
+      // 耗时格式优先使用共享 Worker；Worker/CSP/第三方库不兼容时回退主线程。
+      // onProgress 是函数，不能通过 Worker 的结构化克隆传递。
+      let decodedBlob;
+      if (shouldUseWorker(mimeType)) {
+        try {
+          decodedBlob = await decodeInWorker(
+            mimeType,
+            await fileBlob.arrayBuffer(),
+            { page: 1, fullQuality: false },
+          );
+        } catch {
+          decodedBlob = await loader.decode(fileBlob, decodeOptions);
+        }
+      } else {
+        decodedBlob = await loader.decode(fileBlob, decodeOptions);
+      }
 
       // 生成 blob URL
       const url = typeof decodedBlob === 'string'

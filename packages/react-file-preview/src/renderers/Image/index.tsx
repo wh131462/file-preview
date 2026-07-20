@@ -2,7 +2,12 @@ import { useState, useEffect, useRef, useCallback, useImperativeHandle, forwardR
 import { motion } from 'framer-motion';
 import { Loader2, ZoomIn, ZoomOut, RotateCw, RotateCcw, Scan, RefreshCw } from 'lucide-react';
 import { useTranslator } from '../../i18n/LocaleContext';
-import { detectImageFormat, getLoaderForMimeType } from '@eternalheart/file-preview-core';
+import {
+  decodeInWorker,
+  detectImageFormat,
+  getLoaderForMimeType,
+  shouldUseWorker,
+} from '@eternalheart/file-preview-core';
 import type { PreviewFile } from '@eternalheart/file-preview-core';
 import { RendererError } from '../RendererError';
 import type { RendererHandle } from '../base.types';
@@ -150,10 +155,6 @@ export const ImageRenderer = forwardRef<ImageRendererHandle, ImageRendererProps>
         fileBlobRef.current = fileBlob;
         loaderRef.current = loader;
 
-        // 缓存 Blob 与 loader 以便后续翻页
-        fileBlobRef.current = fileBlob;
-        loaderRef.current = loader;
-
         // 获取元数据（用于检测多页 TIFF）
         if (loader.getMetadata) {
           try {
@@ -166,8 +167,7 @@ export const ImageRenderer = forwardRef<ImageRendererHandle, ImageRendererProps>
           }
         }
 
-        // 调用 loader 解码（第 1 页 / 缩略图模式）
-        const decodedBlob = await loader.decode(fileBlob, {
+        const decodeOptions = {
           page: 1,
           fullQuality: false,
           onProgress: (percent: number) => {
@@ -175,7 +175,25 @@ export const ImageRenderer = forwardRef<ImageRendererHandle, ImageRendererProps>
               setDecodeProgress(percent);
             }
           },
-        });
+        };
+
+        // HEIC/RAW/PSD 等耗时格式优先在 Worker 中解码。
+        // Worker 消息不能传递回调函数，因此只传递可结构化克隆的选项；
+        // CSP、旧浏览器或第三方库不兼容 Worker 时回退主线程。
+        let decodedBlob;
+        if (shouldUseWorker(mimeType)) {
+          try {
+            decodedBlob = await decodeInWorker(
+              mimeType,
+              await fileBlob.arrayBuffer(),
+              { page: 1, fullQuality: false },
+            );
+          } catch {
+            decodedBlob = await loader.decode(fileBlob, decodeOptions);
+          }
+        } else {
+          decodedBlob = await loader.decode(fileBlob, decodeOptions);
+        }
 
         if (cancelled) return;
 

@@ -112,3 +112,6 @@ export type {
   ImageMetadata,
   LoaderRegistry,
 } from './loaders/types';
+
+// 导出耗时图片格式的 Worker 解码能力
+export { shouldUseWorker, decodeInWorker } from './workers/workerClient';

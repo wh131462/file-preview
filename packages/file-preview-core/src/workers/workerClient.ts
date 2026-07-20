@@ -1,4 +1,7 @@
 import type { DecodeOptions } from '../loaders/types';
+// 内联 Worker，避免 core 产物被上层 React/Vue 包再次打包时丢失相对资源路径。
+// @ts-ignore - Vite 虚拟模块，无类型声明
+import AdvancedImageDecoderWorker from './imageDecoder.worker?worker&inline';
 
 /**
  * 应该使用 Worker 解码的 MIME 类型（耗时较长的格式）
@@ -38,11 +41,7 @@ export async function decodeInWorker(
   return new Promise((resolve, reject) => {
     let worker: Worker;
     try {
-      // 使用 Vite/webpack 5 兼容的 Worker URL 语法
-      worker = new Worker(
-        new URL('./imageDecoder.worker.ts', import.meta.url),
-        { type: 'module' }
-      );
+      worker = new AdvancedImageDecoderWorker();
     } catch (err: any) {
       reject(new Error(`无法创建 Worker: ${err?.message || '未知错误'}`));
       return;

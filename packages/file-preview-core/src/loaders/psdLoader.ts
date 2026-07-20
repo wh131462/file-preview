@@ -27,33 +27,21 @@ class PsdLoader implements ImageDecoder {
       const psd = readPsd(arrayBuffer, {
         skipLayerImageData: true, // 不需要单独图层数据
         skipCompositeImageData: false, // 需要合并预览
-        skipThumbnail: false,
+        skipThumbnail: true,
+        // 保留像素数据，避免 Worker 环境依赖 document/HTMLCanvasElement
+        useImageData: true,
       });
 
-      // 优先使用合并 canvas
-      const canvas: HTMLCanvasElement | undefined = psd.canvas;
-      if (!canvas) {
-        // 退回：尝试从 imageData 构建 canvas
-        if (psd.imageData && psd.width && psd.height) {
-          const fallback = document.createElement('canvas');
-          fallback.width = psd.width;
-          fallback.height = psd.height;
-          const ctx = fallback.getContext('2d');
-          if (!ctx) throw new Error('无法创建 Canvas 2D 上下文');
-
-          const imageData = new ImageData(
-            new Uint8ClampedArray(psd.imageData.data || psd.imageData),
-            psd.width,
-            psd.height
-          );
-          ctx.putImageData(imageData, 0, 0);
-          return await canvasToBlob(fallback, options?.outputFormat || 'image/png');
-        }
-
-        throw new Error('PSD 文件不包含合并的预览图像（可能仅含图层数据）');
+      if (psd.imageData && psd.width && psd.height) {
+        const imageData = new ImageData(
+          new Uint8ClampedArray(psd.imageData.data || psd.imageData),
+          psd.width,
+          psd.height,
+        );
+        return await imageDataToBlob(imageData, options?.outputFormat || 'image/png');
       }
 
-      return await canvasToBlob(canvas, options?.outputFormat || 'image/png');
+      throw new Error('PSD 文件不包含合并的预览图像（可能仅含图层数据）');
     } catch (error: any) {
       throw new Error(`PSD 解码失败: ${error?.message || '未知错误'}`);
     }
@@ -86,7 +74,26 @@ class PsdLoader implements ImageDecoder {
   }
 }
 
-function canvasToBlob(canvas: HTMLCanvasElement, type: string): Promise<Blob> {
+async function imageDataToBlob(imageData: ImageData, type: string): Promise<Blob> {
+  if (typeof OffscreenCanvas !== 'undefined') {
+    const canvas = new OffscreenCanvas(imageData.width, imageData.height);
+    const context = canvas.getContext('2d');
+    if (!context) throw new Error('无法创建 OffscreenCanvas 2D 上下文');
+    context.putImageData(imageData, 0, 0);
+    return canvas.convertToBlob({ type });
+  }
+
+  if (typeof document === 'undefined') {
+    throw new Error('当前 Worker 环境不支持 OffscreenCanvas');
+  }
+
+  const canvas = document.createElement('canvas');
+  canvas.width = imageData.width;
+  canvas.height = imageData.height;
+  const context = canvas.getContext('2d');
+  if (!context) throw new Error('无法创建 Canvas 2D 上下文');
+  context.putImageData(imageData, 0, 0);
+
   return new Promise<Blob>((resolve, reject) => {
     canvas.toBlob(
       (blob) => {

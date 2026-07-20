@@ -109,9 +109,15 @@ importers:
       '@types/node':
         specifier: ^24.10.1
         version: 24.12.2
+      ag-psd:
+        specifier: ^30.1.1
+        version: 30.1.1
       exceljs:
         specifier: ^4.4.0
         version: 4.4.0
+      heic2any:
+        specifier: ^0.0.4
+        version: 0.0.4
       jszip:
         specifier: ^3.10.1
         version: 3.10.1

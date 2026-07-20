@@ -24,6 +24,7 @@
     "preview:docs": "pnpm --filter @eternalheart/react-file-preview-docs preview",
     "clean": "find packages -type d \\( -name dist -o -name lib -o -name .vitepress/dist \\) -prune -exec rm -rf {} + && find packages -type d -name node_modules -prune -exec rm -rf {} + && rm -rf node_modules dist-deploy",
     "lint": "eslint packages --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "test": "pnpm --filter @eternalheart/file-preview-core build && node --test tests/*.test.mjs",
     "gh": "bash scripts/deploy.sh",
     "version:patch:react": "pnpm --filter @eternalheart/react-file-preview version:patch",
     "version:minor:react": "pnpm --filter @eternalheart/react-file-preview version:minor",

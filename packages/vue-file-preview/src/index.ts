@@ -23,6 +23,11 @@ export type {
   CustomRenderer,
   CustomRendererContext,
   CustomRendererEventPayload,
+  RequestHandler,
+  RequestInitFactory,
+  RequestOptions,
+  Fetcher,
+  ShouldFetchAsBlob,
 } from './types';
 
 // 导出工具函数和常量

@@ -119,7 +119,7 @@ import '@eternalheart/vue-file-preview/style.css';
 <tr>
   <td><strong>Images</strong></td>
   <td>JPG, PNG, GIF, WebP, SVG, BMP, ICO, AVIF, HEIC</td>
-  <td>Zoom (0.1x-10x), rotate, drag, mouse wheel zoom</td>
+  <td>Zoom (0.01x-10x), rotate, drag, mouse wheel zoom</td>
 </tr>
 <tr>
   <td><strong>Videos</strong></td>
@@ -158,7 +158,7 @@ import '@eternalheart/vue-file-preview/style.css';
 </tr>
 </table>
 
-<img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f449.svg" width="16" height="16" alt="👉" style="vertical-align: middle;" /> [View complete format list and examples](https://wh131462.github.io/file-preview/docs/guide/supported-formats.html)
+<img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f449.svg" width="16" height="16" alt="👉" style="vertical-align: middle;" /> [View complete format list and examples](https://wh131462.github.io/file-preview/docs/guide/supported-types.html)
 
 ---
 
@@ -206,8 +206,9 @@ pnpm preview:example  # Preview example build
 pnpm preview:docs     # Preview docs build
 
 # Deploy and publish
-pnpm deploy           # Deploy examples and docs to GitHub Pages
-pnpm pub              # Publish library to npm
+pnpm gh               # Build and deploy examples and docs to GitHub Pages
+pnpm pub:react        # Publish the React package to npm
+pnpm pub:vue          # Publish the Vue package to npm
 ```
 
 ### Contributing
@@ -235,11 +236,17 @@ import { FilePreviewModal } from '@eternalheart/react-file-preview';
 const customRenderers = [
   {
     test: (file) => file.type === 'application/custom',
-    component: ({ url }) => <div>Custom render: {url}</div>
+    render: (file) => <div>Custom render: {file.url}</div>
   }
 ];
 
-<FilePreviewModal files={files} customRenderers={customRenderers} />
+<FilePreviewModal
+  files={files}
+  currentIndex={0}
+  isOpen={true}
+  onClose={() => setIsOpen(false)}
+  customRenderers={customRenderers}
+/>
 ```
 
 **Vue Example:**
@@ -256,13 +263,19 @@ const CustomRenderer = {
 const customRenderers = [
   {
     test: (file) => file.type === 'application/custom',
-    component: CustomRenderer
+    render: () => CustomRenderer
   }
 ];
 </script>
 
 <template>
-  <FilePreviewModal :files="files" :custom-renderers="customRenderers" />
+  <FilePreviewModal
+    :files="files"
+    :current-index="0"
+    :is-open="true"
+    :custom-renderers="customRenderers"
+    @close="isOpen = false"
+  />
 </template>
 ```
 

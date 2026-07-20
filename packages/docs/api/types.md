@@ -247,62 +247,7 @@ function onCustomEvent(e: CustomRendererEventPayload) {
 
 ## 请求与鉴权
 
-以下类型用于配置库内请求行为，详见 [鉴权与自定义请求](./components#鉴权与自定义请求)。
-
-### RequestInitFactory
-
-```typescript
-type RequestInitFactory =
-  | RequestInit
-  | ((url: string) => RequestInit | Promise<RequestInit>)
-```
-
-- 固定对象或按 URL 异步推导的工厂
-- 与库内传入的 init 合并，库内 init 优先；`headers` 走 `Headers` 合并语义
-
-### RequestHandler
-
-```typescript
-type RequestHandler = (
-  url: string,
-  init?: RequestInit,
-) => Promise<Response>
-```
-
-- 完全接管库内请求，返回标准 `Response`
-- 与 `requestInit` 同时存在时，handler 接收已合并的 init
-
-### Fetcher
-
-```typescript
-type Fetcher = (url: string, init?: RequestInit) => Promise<Response>
-```
-
-- 与原生 `fetch` 同签名；`createFetcher(options)` 的返回值
-- 内部 hook（`useFetcher` / 注入的 `fetcher`）也是此类型
-
-### RequestOptions
-
-```typescript
-interface RequestOptions {
-  requestInit?: RequestInitFactory
-  requestHandler?: RequestHandler
-}
-```
-
-传给 `createFetcher(options)` 的入参类型。
-
-### ShouldFetchAsBlob
-
-```typescript
-type ShouldFetchAsBlob = (file: PreviewFile) => boolean
-```
-
-返回 `true` 时，该文件会先经 fetcher 拉成 `blob:` URL 再喂给 image / video / audio / pdf renderer。命中后 blob URL 生命周期由库内自动管理。
-
-## 请求与鉴权
-
-以下类型用于配置库内请求行为，详见 [鉴权与自定义请求](./components#鉴权与自定义请求)。
+以下类型用于配置库内请求行为，详见 [鉴权与自定义请求](/guide/authentication)。
 
 ### RequestInitFactory
 
@@ -420,7 +365,7 @@ const files: PreviewFileInput[] = [
 ]
 ```
 
-## 内置渲染器架构类型（v2.0+）
+## 内置渲染器架构类型
 
 ### RendererHandle
 

@@ -322,8 +322,9 @@ const files = [
 ## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f4d6.svg" width="20" height="20" alt="📖" /> Supported File Formats
 
 ### Images
-- **Formats**: JPG, PNG, GIF, WebP, SVG, BMP, ICO
-- **Features**: Zoom (0.1x - 10x), rotate, drag, mouse wheel zoom, double-click reset
+- **Formats**: JPG, PNG, GIF, WebP, SVG, BMP, ICO, HEIC/HEIF, AVIF, TIFF, RAW, PSD, JPEG 2000
+- **Features**: Zoom (0.01x - 10x), rotate, drag, mouse wheel zoom, double-click reset, multi-page TIFF
+- **Decoding**: HEIC/RAW/PSD use a Worker-first path with a main-thread fallback; other advanced formats are loaded on demand
 
 ### Videos
 - **Formats**: MP4, WebM, OGG, MOV, AVI, MKV, M4V, 3GP, FLV
@@ -683,13 +684,13 @@ import { CustomRenderer } from './CustomRenderer';
   customRenderers={[
     {
       test: (file) => file.type === 'application/custom',
-      component: CustomRenderer
+      render: () => <CustomRenderer />
     }
   ]}
 />
 ```
 
-The main component automatically detects `onToolbarChange` and subscribes to events. If not implemented, it falls back to polling for backward compatibility.
+Custom renderers that need top-level toolbar actions should implement `getToolbarGroups(file, ctx)` on the renderer descriptor. `onToolbarChange` is an internal mechanism for built-in RendererHandle implementations.
 
 ### Renderer Lazy Loading
 
@@ -705,7 +706,7 @@ All built-in renderers use code-splitting via `React.lazy` to minimize the main 
 
 - Main entry point: gzip ≤ 80 KB (strictly enforced by CI)
 - Each renderer: separate async chunk
-- Total library: gzip ≤ 800 KB (all renderers combined)
+- Total library: gzip ≤ 3 MB (all ESM chunks and CSS combined)
 
 **Implementation Example:**
 
@@ -743,9 +744,9 @@ const MyCustomRenderer = lazy(() => import('./MyCustomRenderer'));
   customRenderers={[
     {
       test: (file) => file.type === 'application/custom',
-      component: (props) => (
+      render: () => (
         <Suspense fallback={<div>Loading...</div>}>
-          <MyCustomRenderer {...props} />
+          <MyCustomRenderer />
         </Suspense>
       )
     }

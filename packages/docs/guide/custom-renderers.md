@@ -384,7 +384,7 @@ function onCustomEvent(e: CustomRendererEventPayload) {
 - 旧版 `render: (file) => <Comp />` 仍然可用；`ctx` 是可选参数
 - 不声明 `getToolbarGroups` / `events` / 不绑定事件出口时，行为与旧版完全一致
 
-## 内置渲染器架构（v2.0+）
+## 内置渲染器架构
 
 从 v2.0 开始，内置渲染器采用新架构，自定义渲染器也可参考这些模式以获得更好的性能和一致性。
 
@@ -585,4 +585,3 @@ const resolvedTheme = useResolvedTheme();  // 'dark' | 'light'
 
 - [主题定制](./theming) - 了解如何自定义组件样式
 - [API 参考](../api/components) - 查看完整的 API 文档
-

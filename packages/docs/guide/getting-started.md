@@ -28,7 +28,7 @@ pnpm add @eternalheart/vue-file-preview
 ::: tip 哪个版本适合我？
 - 你的项目是 **React 18+** → 选 `@eternalheart/react-file-preview`
 - 你的项目是 **Vue 3.4+** → 选 `@eternalheart/vue-file-preview`
-- 两个版本的 props/组件名/行为**完全一致**，仅 API 风格遵循各自框架的惯例
+- 两个版本提供等价能力；事件和组件属性命名遵循各自框架惯例
 :::
 
 ## 在线示例

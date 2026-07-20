@@ -1,4 +1,8 @@
-## ADDED Requirements
+## Purpose
+
+定义 React 与 Vue 图片渲染器在触摸设备上的单指拖拽、双指缩放、双击复位、事件冲突处理、浏览器默认行为抑制及交互性能要求，确保两个框架提供一致的移动端图片预览体验。
+
+## Requirements
 
 ### Requirement: Single finger drag to pan image
 The system SHALL support single finger drag gesture to pan the image within the viewport.

@@ -119,7 +119,7 @@ import '@eternalheart/vue-file-preview/style.css';
 <tr>
   <td><strong>图片</strong></td>
   <td>JPG, PNG, GIF, WebP, SVG, BMP, ICO, AVIF, HEIC</td>
-  <td>缩放 (0.1x-10x)、旋转、拖拽、鼠标滚轮缩放</td>
+  <td>缩放 (0.01x-10x)、旋转、拖拽、鼠标滚轮缩放</td>
 </tr>
 <tr>
   <td><strong>视频</strong></td>
@@ -158,7 +158,7 @@ import '@eternalheart/vue-file-preview/style.css';
 </tr>
 </table>
 
-<img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f449.svg" width="16" height="16" alt="👉" style="vertical-align: middle;" /> [查看完整格式列表和示例](https://wh131462.github.io/file-preview/docs/guide/supported-formats.html)
+<img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f449.svg" width="16" height="16" alt="👉" style="vertical-align: middle;" /> [查看完整格式列表和示例](https://wh131462.github.io/file-preview/docs/guide/supported-types.html)
 
 ---
 
@@ -206,8 +206,9 @@ pnpm preview:example  # 预览示例构建
 pnpm preview:docs     # 预览文档构建
 
 # 部署和发布
-pnpm deploy           # 部署示例和文档到 GitHub Pages
-pnpm pub              # 发布库到 npm
+pnpm gh               # 构建并部署示例和文档到 GitHub Pages
+pnpm pub:react        # 发布 React 包到 npm
+pnpm pub:vue          # 发布 Vue 包到 npm
 ```
 
 ### 贡献流程
@@ -235,11 +236,17 @@ import { FilePreviewModal } from '@eternalheart/react-file-preview';
 const customRenderers = [
   {
     test: (file) => file.type === 'application/custom',
-    component: ({ url }) => <div>自定义渲染: {url}</div>
+    render: (file) => <div>自定义渲染: {file.url}</div>
   }
 ];
 
-<FilePreviewModal files={files} customRenderers={customRenderers} />
+<FilePreviewModal
+  files={files}
+  currentIndex={0}
+  isOpen={true}
+  onClose={() => setIsOpen(false)}
+  customRenderers={customRenderers}
+/>
 ```
 
 **Vue 示例：**
@@ -256,13 +263,19 @@ const CustomRenderer = {
 const customRenderers = [
   {
     test: (file) => file.type === 'application/custom',
-    component: CustomRenderer
+    render: () => CustomRenderer
   }
 ];
 </script>
 
 <template>
-  <FilePreviewModal :files="files" :custom-renderers="customRenderers" />
+  <FilePreviewModal
+    :files="files"
+    :current-index="0"
+    :is-open="true"
+    :custom-renderers="customRenderers"
+    @close="isOpen = false"
+  />
 </template>
 ```
 

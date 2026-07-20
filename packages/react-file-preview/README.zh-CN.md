@@ -320,8 +320,9 @@ const files = [
 ## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f4d6.svg" width="20" height="20" alt="📖" /> 支持的文件格式
 
 ### 图片
-- **格式**: JPG, PNG, GIF, WebP, SVG, BMP, ICO
-- **功能**: 缩放 (0.1x - 10x)、旋转、拖拽、滚轮缩放、双击重置
+- **格式**: JPG, PNG, GIF, WebP, SVG, BMP, ICO, HEIC/HEIF, AVIF, TIFF, RAW, PSD, JPEG 2000
+- **功能**: 缩放 (0.01x - 10x)、旋转、拖拽、滚轮缩放、双击重置、多页 TIFF
+- **解码**: HEIC/RAW/PSD 优先通过 Worker 解码，失败时回退主线程；其他高级格式按需加载
 
 ### 视频
 - **格式**: MP4, WebM, OGG, MOV, AVI, MKV, M4V, 3GP, FLV
@@ -681,13 +682,13 @@ import { CustomRenderer } from './CustomRenderer';
   customRenderers={[
     {
       test: (file) => file.type === 'application/custom',
-      component: CustomRenderer
+      render: () => <CustomRenderer />
     }
   ]}
 />
 ```
 
-主组件会自动检测 `onToolbarChange` 并订阅事件。如果未实现，则回退到轮询以保持向后兼容。
+自定义渲染器如需扩展顶层工具栏，应在 renderer 描述对象上实现 `getToolbarGroups(file, ctx)`；`onToolbarChange` 是内置 RendererHandle 的内部机制。
 
 ### Renderer 懒加载
 
@@ -703,7 +704,7 @@ import { CustomRenderer } from './CustomRenderer';
 
 - 主入口：gzip ≤ 80 KB（CI 强制约束）
 - 每个渲染器：独立异步 chunk
-- 整个库：gzip ≤ 800 KB（所有渲染器合计）
+- 整个库：gzip ≤ 3 MB（所有 ESM chunk 与 CSS 合计）
 
 **实现示例：**
 
@@ -741,9 +742,9 @@ const MyCustomRenderer = lazy(() => import('./MyCustomRenderer'));
   customRenderers={[
     {
       test: (file) => file.type === 'application/custom',
-      component: (props) => (
+      render: () => (
         <Suspense fallback={<div>加载中...</div>}>
-          <MyCustomRenderer {...props} />
+          <MyCustomRenderer />
         </Suspense>
       )
     }
@@ -1033,4 +1034,3 @@ react-file-preview/
 - [npm](https://www.npmjs.com/package/@eternalheart/react-file-preview)
 - [在线演示](https://wh131462.github.io/file-preview)
 - [问题反馈](https://github.com/wh131462/file-preview/issues)
-

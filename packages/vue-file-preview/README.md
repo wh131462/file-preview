@@ -250,8 +250,9 @@ Differences from `FilePreviewModal`:
 ## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f4d6.svg" width="20" height="20" alt="📖" /> Supported File Formats
 
 ### Images
-- **Formats**: JPG, PNG, GIF, WebP, SVG, BMP, ICO
-- **Features**: Zoom (0.1x - 10x), rotate, drag, mouse wheel zoom, double-click reset
+- **Formats**: JPG, PNG, GIF, WebP, SVG, BMP, ICO, HEIC/HEIF, AVIF, TIFF, RAW, PSD, JPEG 2000
+- **Features**: Zoom (0.01x - 10x), rotate, drag, mouse wheel zoom, double-click reset, multi-page TIFF
+- **Decoding**: HEIC/RAW/PSD use a Worker-first path with a main-thread fallback; other advanced formats are loaded on demand
 
 ### Videos
 - **Formats**: MP4, WebM, OGG, MOV, AVI, MKV, M4V, 3GP, FLV
@@ -522,7 +523,7 @@ const files = [
     :custom-renderers="[
       {
         test: (file) => file.type === 'application/custom',
-        component: CustomRenderer
+        render: () => CustomRenderer
       }
     ]"
   />
@@ -545,7 +546,7 @@ All built-in renderers use code-splitting via `defineAsyncComponent` to minimize
 
 - Main entry point: gzip ≤ 60 KB (strictly enforced by CI)
 - Each renderer: separate async chunk
-- Total library: gzip ≤ 500 KB (all renderers combined)
+- Total library: gzip ≤ 3 MB (all ESM chunks and CSS combined)
 
 **Implementation Example:**
 
@@ -598,7 +599,7 @@ const files = [...];
     :custom-renderers="[
       {
         test: (file) => file.type === 'application/custom',
-        component: MyCustomRenderer
+        render: () => MyCustomRenderer
       }
     ]"
   />

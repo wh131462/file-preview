@@ -250,8 +250,9 @@ const files = [
 ## 📖 支持的文件格式
 
 ### 图片
-- **格式**: JPG, PNG, GIF, WebP, SVG, BMP, ICO
-- **功能**: 缩放 (0.1x - 10x)、旋转、拖拽、滚轮缩放、双击重置
+- **格式**: JPG, PNG, GIF, WebP, SVG, BMP, ICO, HEIC/HEIF, AVIF, TIFF, RAW, PSD, JPEG 2000
+- **功能**: 缩放 (0.01x - 10x)、旋转、拖拽、滚轮缩放、双击重置、多页 TIFF
+- **解码**: HEIC/RAW/PSD 优先通过 Worker 解码，失败时回退主线程；其他高级格式按需加载
 
 ### 视频
 - **格式**: MP4, WebM, OGG, MOV, AVI, MKV, M4V, 3GP, FLV
@@ -522,7 +523,7 @@ const files = [
     :custom-renderers="[
       {
         test: (file) => file.type === 'application/custom',
-        component: CustomRenderer
+        render: () => CustomRenderer
       }
     ]"
   />
@@ -545,7 +546,7 @@ const files = [
 
 - 主入口：gzip ≤ 60 KB（CI 强制约束）
 - 每个渲染器：独立异步 chunk
-- 整个库：gzip ≤ 500 KB（所有渲染器合计）
+- 整个库：gzip ≤ 3 MB（所有 ESM chunk 与 CSS 合计）
 
 **实现示例：**
 
@@ -598,7 +599,7 @@ const files = [...];
     :custom-renderers="[
       {
         test: (file) => file.type === 'application/custom',
-        component: MyCustomRenderer
+        render: () => MyCustomRenderer
       }
     ]"
   />

@@ -100,7 +100,6 @@ export default defineConfig(({ mode }) => {
   const external = isEsm
     ? baseExternal.filter(dep => {
         // ESM 模式：移除 CHUNK_INLINED_FOR_ESM 和 ALWAYS_INLINE 中的项
-        const depStr = typeof dep === 'string' ? dep : dep.source;
         // 对于正则，检查是否与 CHUNK_INLINED_FOR_ESM 中的模式重叠
         if (typeof dep === 'string') {
           return !matchesAny(dep, [...CHUNK_INLINED_FOR_ESM, ...ALWAYS_INLINE]);

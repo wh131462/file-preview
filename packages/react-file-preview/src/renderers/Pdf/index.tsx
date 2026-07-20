@@ -31,7 +31,6 @@ function preparePdfWorker(): Promise<void> {
   pdfWorkerPrepared = (async () => {
     const isElectron = typeof navigator !== 'undefined' && /electron/i.test(navigator.userAgent);
     if (isElectron) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const g = globalThis as any;
       if (typeof globalThis !== 'undefined' && !g.pdfjsWorker) {
         // @ts-ignore - pdfjs worker 无类型声明
@@ -222,7 +221,7 @@ export const PdfRenderer = forwardRef<PdfRendererHandle, PdfRendererProps>(({
         if (item.items && item.items.length > 0) {
           await buildOutlinePageMap(item.items, pdfDoc, depth + 1);
         }
-      } catch (err) {
+      } catch {
         // 静默失败，某些大纲项可能无法映射到页码
       }
     }

@@ -318,7 +318,6 @@ export function convertWorkbookToSpreadsheetData(
     cols['len'] = Math.max(colCount, 26) as unknown as number;
 
     const mergeMap = new Map<string, [number, number]>();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const worksheetModel = (worksheet as any).model;
     const mergeRanges: string[] = worksheetModel?.merges || [];
 

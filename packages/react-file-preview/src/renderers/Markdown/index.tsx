@@ -206,7 +206,7 @@ export const MarkdownRenderer = forwardRef<RendererHandle, MarkdownRendererProps
             remarkPlugins={[remarkGfm, remarkMath]}
             rehypePlugins={[rehypeRaw, rehypeKatex]}
             components={{
-              code({ node, inline, className, children, ...props }: any) {
+              code({ node: _node, inline, className, children, ...props }: any) {
                 const match = /language-(\w+)/.exec(className || '');
                 const codeString = String(children).replace(/\n$/, '');
                 // react-markdown v9 不再传 inline，需要兜底判断：

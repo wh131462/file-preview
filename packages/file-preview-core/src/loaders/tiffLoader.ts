@@ -93,7 +93,7 @@ class TiffLoader implements ImageDecoder {
         width: firstIfd?.width,
         height: firstIfd?.height,
       };
-    } catch (error) {
+    } catch {
       return {
         format: 'tiff',
         pageCount: 1,

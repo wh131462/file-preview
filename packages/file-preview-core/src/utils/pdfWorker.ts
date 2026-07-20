@@ -42,7 +42,6 @@ export interface PdfWorkerOptions {
  * ```
  */
 export function configurePdfWorker(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   pdfjs: any,
   options?: PdfWorkerOptions
 ): void {

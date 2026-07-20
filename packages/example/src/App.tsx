@@ -42,7 +42,6 @@ const demoCustomRenderers: CustomRenderer[] = [
 ];
 
 const handleCustomEvent = (e: CustomRendererEventPayload) => {
-  // eslint-disable-next-line no-console
   console.log('[FilePreview custom-event]', e);
 };
 
@@ -737,4 +736,3 @@ function App() {
 }
 
 export default App;
-

@@ -72,8 +72,8 @@ export type { ZipEntryInfo, ZipTreeNode } from './utils/zipReader';
 export { convertWorkbookToSpreadsheetData, convertCsvToSpreadsheetData } from './utils/excelDataConverter';
 
 // 导出 PDF.js Worker 配置
-export { configurePdfWorker } from './utils/pdfWorker';
-export type { PdfWorkerOptions } from './utils/pdfWorker';
+export { configurePdfWorker, getPdfDocumentOptions } from './utils/pdfWorker';
+export type { PdfWorkerOptions, PdfDocumentOptions } from './utils/pdfWorker';
 
 // 导出 Uint8Array hex/base64 polyfill（pdfjs 6.x 在 webpack/umi 环境下必需）
 export { installUint8ArrayHexBase64Polyfill } from './utils/uint8ArrayPolyfill';

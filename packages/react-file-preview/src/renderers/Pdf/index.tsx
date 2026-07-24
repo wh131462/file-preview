@@ -8,7 +8,11 @@ import type { ToolbarGroup } from '../toolbar.types';
 // Electron 环境使用 legacy 构建版本以避免 Web Streams API 兼容性问题
 // 参考: https://github.com/mozilla/pdf.js/issues/16214
 import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
-import { installUint8ArrayHexBase64Polyfill } from '@eternalheart/file-preview-core';
+import {
+  configurePdfWorker,
+  getPdfDocumentOptions,
+  installUint8ArrayHexBase64Polyfill,
+} from '@eternalheart/file-preview-core';
 
 // 立即安装 Uint8Array hex/base64 polyfill。
 // pdfjs 6.x 依赖 ES2025 的 Uint8Array.prototype.toHex/toBase64/fromBase64 等方法，
@@ -37,12 +41,13 @@ function preparePdfWorker(): Promise<void> {
         const workerModule = await import(/* webpackChunkName: "pdf.worker" */ /* @vite-ignore */ 'pdfjs-dist/legacy/build/pdf.worker.mjs');
         g.pdfjsWorker = workerModule;
       }
-      return;
     }
-    if (!pdfjsLib.GlobalWorkerOptions.workerSrc) {
-      const version = pdfjsLib.version || '6.1.200';
-      pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${version}/legacy/build/pdf.worker.min.mjs`;
-    }
+
+    const configuredOptions = getPdfDocumentOptions();
+    configurePdfWorker(pdfjsLib, {
+      ...configuredOptions,
+      workerSrc: pdfjsLib.GlobalWorkerOptions.workerSrc || undefined,
+    });
   })();
   return pdfWorkerPrepared;
 }
@@ -301,11 +306,12 @@ export const PdfRenderer = forwardRef<PdfRendererHandle, PdfRendererProps>(({
     try {
       // 准备 worker（浏览器用 CDN worker 线程；Electron 走主线程 worker 以复用 polyfill）
       // 若用户已通过 configurePdfjs 显式配置 workerSrc，则尊重其配置
-      if (!pdfjsLib.GlobalWorkerOptions.workerSrc) {
-        await preparePdfWorker();
-      }
+      await preparePdfWorker();
 
-      const loadingTask = pdfjsLib.getDocument({ url });
+      const loadingTask = pdfjsLib.getDocument({
+        url,
+        ...getPdfDocumentOptions(),
+      });
       pdfDocRef.current = await loadingTask.promise as unknown as PdfDocumentProxy;
       const total = pdfDocRef.current.numPages;
 

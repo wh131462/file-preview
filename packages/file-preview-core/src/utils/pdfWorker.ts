@@ -21,10 +21,24 @@ export interface PdfWorkerOptions {
    * 默认: true
    */
   cMapPacked?: boolean;
+
+  /**
+   * PDF.js 标准字体文件目录路径
+   * 默认使用 CDN
+   */
+  standardFontDataUrl?: string;
 }
 
+export interface PdfDocumentOptions {
+  cMapUrl: string;
+  cMapPacked: boolean;
+  standardFontDataUrl: string;
+}
+
+let pdfDocumentOptions: PdfDocumentOptions | null = null;
+
 /**
- * 配置 PDF.js GlobalWorkerOptions（框架无关）
+ * 配置 PDF.js Worker 和文档资源参数（框架无关）
  *
  * @param pdfjs - pdfjs-dist 模块（由调用方传入，避免 core 包硬依赖 pdfjs-dist）
  * @param options - 配置选项
@@ -38,6 +52,7 @@ export interface PdfWorkerOptions {
  *   workerSrc: '/pdfjs/pdf.worker.min.mjs',
  *   cMapUrl: '/pdfjs/cmaps/',
  *   cMapPacked: true,
+ *   standardFontDataUrl: '/pdfjs/standard_fonts/',
  * });
  * ```
  */
@@ -57,11 +72,20 @@ export function configurePdfWorker(
     workerSrc = `https://unpkg.com/pdfjs-dist@${version}/legacy/build/pdf.worker.min.mjs`,
     cMapUrl = `https://unpkg.com/pdfjs-dist@${version}/cmaps/`,
     cMapPacked = true,
+    standardFontDataUrl = `https://unpkg.com/pdfjs-dist@${version}/standard_fonts/`,
   } = options || {};
 
   if (pdfjs.GlobalWorkerOptions) {
     pdfjs.GlobalWorkerOptions.workerSrc = workerSrc;
-    pdfjs.GlobalWorkerOptions.cMapUrl = cMapUrl;
-    pdfjs.GlobalWorkerOptions.cMapPacked = cMapPacked;
   }
+
+  // cMapUrl 等资源参数不属于 GlobalWorkerOptions，必须传给 getDocument。
+  pdfDocumentOptions = { cMapUrl, cMapPacked, standardFontDataUrl };
+}
+
+/**
+ * 获取应传给 PDF.js getDocument 的资源配置。
+ */
+export function getPdfDocumentOptions(): PdfDocumentOptions | null {
+  return pdfDocumentOptions ? { ...pdfDocumentOptions } : null;
 }

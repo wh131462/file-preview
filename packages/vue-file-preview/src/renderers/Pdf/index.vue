@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import { ref, watch, onMounted, onBeforeUnmount, nextTick } from 'vue';
-import { configurePdfWorker, installUint8ArrayHexBase64Polyfill } from '@eternalheart/file-preview-core';
+import {
+  configurePdfWorker,
+  getPdfDocumentOptions,
+  installUint8ArrayHexBase64Polyfill,
+} from '@eternalheart/file-preview-core';
 // @ts-ignore - pdfjs-dist 类型路径
 // Electron 环境使用 legacy 构建版本以避免 Web Streams API 兼容性问题
 // 参考: https://github.com/mozilla/pdf.js/issues/16214
@@ -34,9 +38,13 @@ function preparePdfWorker(): Promise<void> {
         const workerModule = await import(/* webpackChunkName: "pdf.worker" */ /* @vite-ignore */ 'pdfjs-dist/legacy/build/pdf.worker.mjs');
         g.pdfjsWorker = workerModule;
       }
-      return;
     }
-    configurePdfWorker(pdfjsLib);
+
+    const configuredOptions = getPdfDocumentOptions();
+    configurePdfWorker(pdfjsLib, {
+      ...configuredOptions,
+      workerSrc: pdfjsLib.GlobalWorkerOptions.workerSrc || undefined,
+    });
   })();
   return pdfWorkerPrepared;
 }
@@ -440,11 +448,12 @@ const loadPdf = async () => {
   try {
     // 准备 worker（浏览器用 CDN worker 线程；Electron 走主线程 worker 以复用 polyfill）
     // 若用户已显式配置 workerSrc，则尊重其配置
-    if (!pdfjsLib.GlobalWorkerOptions.workerSrc) {
-      await preparePdfWorker();
-    }
+    await preparePdfWorker();
 
-    const loadingTask = pdfjsLib.getDocument({ url: props.url });
+    const loadingTask = pdfjsLib.getDocument({
+      url: props.url,
+      ...getPdfDocumentOptions(),
+    });
     pdfDoc = await loadingTask.promise as unknown as PdfDocumentProxy;
     const total = pdfDoc.numPages;
 

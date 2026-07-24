@@ -26,6 +26,12 @@ export interface PdfConfigOptions {
    * 默认: true
    */
   cMapPacked?: boolean;
+
+  /**
+   * PDF.js 标准字体文件目录路径
+   * 默认使用 CDN: `https://unpkg.com/pdfjs-dist@${version}/standard_fonts/`
+   */
+  standardFontDataUrl?: string;
 }
 
 /**
@@ -40,7 +46,8 @@ export interface PdfConfigOptions {
  * configurePdfjs({
  *   workerSrc: '/pdfjs/pdf.worker.min.mjs', // 确保使用 legacy/build/pdf.worker.min.mjs
  *   cMapUrl: '/pdfjs/cmaps/',
- *   cMapPacked: true
+ *   cMapPacked: true,
+ *   standardFontDataUrl: '/pdfjs/standard_fonts/',
  * });
  * ```
  *

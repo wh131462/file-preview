@@ -1,0 +1,22 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-family: 'IBM Plex Sans', 'Noto Sans SC', system-ui, sans-serif;
+  color-scheme: dark;
+  color: rgba(255, 255, 255, 0.9);
+  background: #0c0d10;
+}
+
+html, body {
+  margin: 0;
+  min-height: 100vh;
+}
+
+body {
+  background:
+    radial-gradient(1200px 600px at 10% -10%, rgba(79, 70, 229, 0.18), transparent 50%),
+    radial-gradient(900px 500px at 100% 0%, rgba(14, 165, 233, 0.12), transparent 45%),
+    #0c0d10;
+}

@@ -1,11 +1,11 @@
 # 快速开始
 
-File Preview 是一个现代化的文件预览组件，提供功能完全对等的 **React** 和 **Vue 3** 两个版本。
+File Preview 是一个现代化的文件预览组件，提供功能对等的 **React**、**Vue 3** 与 **Angular** 三个版本。
 
 ## 特性
 
 - <img src="/assets/icons/picture.svg" width="20" height="20" style="display:inline;vertical-align:middle" /> **多格式支持** - 支持图片、视频、音频、PDF、Office 文档、Markdown 和代码文件
-- <img src="/assets/icons/lightning.svg" width="20" height="20" style="display:inline;vertical-align:middle" /> **双框架** - React 18+ 与 Vue 3 完整对等版本
+- <img src="/assets/icons/lightning.svg" width="20" height="20" style="display:inline;vertical-align:middle" /> **三框架** - React 18+、Vue 3 与 Angular 19+ 完整对等版本
 - <img src="/assets/icons/palette.svg" width="20" height="20" style="display:inline;vertical-align:middle" /> **可定制** - 支持自定义渲染器和主题
 - <img src="/assets/icons/mobile.svg" width="20" height="20" style="display:inline;vertical-align:middle" /> **响应式** - 完美适配桌面和移动设备
 - <img src="/assets/icons/wrench.svg" width="20" height="20" style="display:inline;vertical-align:middle" /> **易于集成** - 简单的 API 设计
@@ -23,18 +23,24 @@ pnpm add @eternalheart/react-file-preview
 pnpm add @eternalheart/vue-file-preview
 ```
 
+```bash [Angular]
+pnpm add @eternalheart/angular-file-preview
+```
+
 :::
 
 ::: tip 哪个版本适合我？
 - 你的项目是 **React 18+** → 选 `@eternalheart/react-file-preview`
 - 你的项目是 **Vue 3.4+** → 选 `@eternalheart/vue-file-preview`
-- 两个版本提供等价能力；事件和组件属性命名遵循各自框架惯例
+- 你的项目是 **Angular 19+** → 选 `@eternalheart/angular-file-preview`
+- 三个版本提供等价能力；事件和组件属性命名遵循各自框架惯例
 :::
 
 ## 在线示例
 
 - [React 在线示例](https://wh131462.github.io/file-preview/)
 - [Vue 在线示例](https://wh131462.github.io/file-preview/vue/)
+- [Angular 在线示例](https://wh131462.github.io/file-preview/angular/)
 
 ## 下一步
 

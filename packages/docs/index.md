@@ -4,7 +4,7 @@ layout: home
 hero:
   name: File Preview
   text: 现代化的文件预览组件
-  tagline: 同时支持 React 与 Vue 3 · 图片、视频、音频、PDF、Office 文档、电子书、字体、CAD/3D 模型、Markdown 与代码文件
+  tagline: 同时支持 React、Vue 3 与 Angular · 图片、视频、音频、PDF、Office 文档、电子书、字体、CAD/3D 模型、Markdown 与代码文件
   image:
     src: /icon.svg
     alt: File Preview
@@ -18,6 +18,9 @@ hero:
     - theme: alt
       text: Vue 在线示例
       link: https://wh131462.github.io/file-preview/vue/
+    - theme: alt
+      text: Angular 在线示例
+      link: https://wh131462.github.io/file-preview/angular/
     - theme: alt
       text: GitHub
       link: https://github.com/wh131462/file-preview
@@ -33,8 +36,8 @@ features:
       src: /assets/icons/lightning.svg
       width: 48
       height: 48
-    title: React + Vue 双框架
-    details: 提供功能完全对等的 React 和 Vue 3 两个版本，共享底层 core 包
+    title: React + Vue + Angular
+    details: 提供功能对等的 React、Vue 3 与 Angular 三个版本，共享底层 core 包
   - icon:
       src: /assets/icons/palette.svg
       width: 48
@@ -73,6 +76,10 @@ pnpm add @eternalheart/react-file-preview
 
 ```bash [Vue 3 · pnpm]
 pnpm add @eternalheart/vue-file-preview
+```
+
+```bash [Angular · pnpm]
+pnpm add @eternalheart/angular-file-preview
 ```
 
 ```bash [React · npm]
@@ -137,6 +144,30 @@ const files = [
     @close="isOpen = false"
   />
 </template>
+```
+
+```ts [Angular]
+import { Component, signal } from '@angular/core'
+import { FilePreviewModal } from '@eternalheart/angular-file-preview'
+import '@eternalheart/angular-file-preview/style.css'
+
+@Component({
+  standalone: true,
+  imports: [FilePreviewModal],
+  template: `
+    <button (click)="isOpen.set(true)">预览文件</button>
+    <afp-file-preview-modal
+      [isOpen]="isOpen()"
+      [files]="files"
+      [currentIndex]="0"
+      (close)="isOpen.set(false)"
+    />
+  `,
+})
+export class AppComponent {
+  isOpen = signal(false)
+  files = [{ url: 'https://example.com/document.pdf', name: 'document.pdf' }]
+}
 ```
 
 :::

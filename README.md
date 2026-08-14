@@ -7,7 +7,7 @@
 
 English | [简体中文](./README.zh-CN.md)
 
-A modern, feature-rich file preview component library with **first-class support for both React and Vue**. Preview images, videos, audio, PDFs, Office documents (Word, Excel, PowerPoint), Markdown, and code files — through a shared core and framework-specific bindings.
+A modern, feature-rich file preview component library with **first-class support for React, Vue, and Angular**. Preview images, videos, audio, PDFs, Office documents (Word, Excel, PowerPoint), Markdown, and code files — through a shared core and framework-specific bindings.
 
 ---
 
@@ -16,7 +16,7 @@ A modern, feature-rich file preview component library with **first-class support
 - <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f3a8.svg" width="16" height="16" alt="🎨" style="vertical-align: middle;" /> **Modern UI** — Clean and modern interface with smooth animations
 - <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f4c1.svg" width="16" height="16" alt="📁" style="vertical-align: middle;" /> **20+ Format Support** — Images, videos, audio, PDF, Office, code, e-books, and more
 - <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1fa9f.svg" width="16" height="16" alt="🪟" style="vertical-align: middle;" /> **Dual Display Modes** — Full-screen modal or inline embedded preview
-- <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f3af.svg" width="16" height="16" alt="🎯" style="vertical-align: middle;" /> **Multi-framework Support** — React and Vue share core logic with consistent APIs
+- <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f3af.svg" width="16" height="16" alt="🎯" style="vertical-align: middle;" /> **Multi-framework Support** — React, Vue, and Angular share core logic with consistent APIs
 - <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/2328.svg" width="16" height="16" alt="⌨️" style="vertical-align: middle;" /> **Full Interaction** — Keyboard navigation, drag-and-drop, zoom/rotate, custom players
 
 ---
@@ -33,11 +33,13 @@ A modern, feature-rich file preview component library with **first-class support
   <td>
     &bull; <a href="https://wh131462.github.io/file-preview/docs/">Full Documentation</a><br>
     &bull; <a href="https://wh131462.github.io/file-preview/">React Demo</a><br>
-    &bull; <a href="https://wh131462.github.io/file-preview/vue/">Vue Demo</a>
+    &bull; <a href="https://wh131462.github.io/file-preview/vue/">Vue Demo</a><br>
+    &bull; <a href="https://wh131462.github.io/file-preview/angular/">Angular Demo</a>
   </td>
   <td>
     &bull; <a href="https://www.npmjs.com/package/@eternalheart/react-file-preview">React Package</a><br>
     &bull; <a href="https://www.npmjs.com/package/@eternalheart/vue-file-preview">Vue Package</a><br>
+    &bull; <a href="https://www.npmjs.com/package/@eternalheart/angular-file-preview">Angular Package</a><br>
     &bull; <a href="https://github.com/wh131462/file-preview/issues">Issue Tracker</a>
   </td>
   <td>
@@ -96,6 +98,32 @@ import '@eternalheart/vue-file-preview/style.css';
 
 <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f449.svg" width="16" height="16" alt="👉" style="vertical-align: middle;" /> [View Vue Full Documentation](./packages/vue-file-preview/README.md) | [Live Demo](https://wh131462.github.io/file-preview/vue/)
 
+### Angular
+
+```bash
+npm install @eternalheart/angular-file-preview
+```
+
+```ts
+import { FilePreviewModal } from '@eternalheart/angular-file-preview';
+import '@eternalheart/angular-file-preview/style.css';
+
+@Component({
+  standalone: true,
+  imports: [FilePreviewModal],
+  template: `
+    <afp-file-preview-modal
+      [files]="files"
+      [currentIndex]="0"
+      [isOpen]="true"
+      (close)="isOpen = false"
+    />
+  `,
+})
+```
+
+<img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f449.svg" width="16" height="16" alt="👉" style="vertical-align: middle;" /> [View Angular Full Documentation](./packages/angular-file-preview/README.md) | [Live Demo](https://wh131462.github.io/file-preview/angular/)
+
 ---
 
 ## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f4e6.svg" width="20" height="20" alt="📦" /> Package Overview
@@ -104,6 +132,7 @@ import '@eternalheart/vue-file-preview/style.css';
 |---------|-------------|---------|---------------|
 | [@eternalheart/react-file-preview](https://www.npmjs.com/package/@eternalheart/react-file-preview) | React component library | [![npm](https://img.shields.io/npm/v/@eternalheart/react-file-preview.svg)](https://www.npmjs.com/package/@eternalheart/react-file-preview) | [README](./packages/react-file-preview/README.md) |
 | [@eternalheart/vue-file-preview](https://www.npmjs.com/package/@eternalheart/vue-file-preview) | Vue 3 component library | [![npm](https://img.shields.io/npm/v/@eternalheart/vue-file-preview.svg)](https://www.npmjs.com/package/@eternalheart/vue-file-preview) | [README](./packages/vue-file-preview/README.md) |
+| [@eternalheart/angular-file-preview](https://www.npmjs.com/package/@eternalheart/angular-file-preview) | Angular component library | [![npm](https://img.shields.io/npm/v/@eternalheart/angular-file-preview.svg)](https://www.npmjs.com/package/@eternalheart/angular-file-preview) | [README](./packages/angular-file-preview/README.md) |
 | file-preview-core | Framework-agnostic core | Internal | - |
 
 ---
@@ -172,8 +201,10 @@ file-preview/
 │   ├── file-preview-core/     # Framework-agnostic core (types, detection, parsers)
 │   ├── react-file-preview/    # React bindings → @eternalheart/react-file-preview
 │   ├── vue-file-preview/      # Vue bindings → @eternalheart/vue-file-preview
+│   ├── angular-file-preview/  # Angular bindings → @eternalheart/angular-file-preview
 │   ├── example/               # React demo app (deployed to GitHub Pages)
 │   ├── vue-example/           # Vue demo app (deployed to GitHub Pages /vue)
+│   ├── angular-example/       # Angular demo app (deployed to GitHub Pages /angular)
 │   └── docs/                  # VitePress documentation site
 └── openspec/                  # OpenSpec change records
 ```
@@ -194,6 +225,7 @@ pnpm install
 # Start dev servers
 pnpm dev              # React demo
 pnpm dev:vue          # Vue demo
+pnpm dev:angular      # Angular demo
 pnpm dev:docs         # Documentation site
 
 # Build
@@ -209,6 +241,7 @@ pnpm preview:docs     # Preview docs build
 pnpm gh               # Build and deploy examples and docs to GitHub Pages
 pnpm pub:react        # Publish the React package to npm
 pnpm pub:vue          # Publish the Vue package to npm
+pnpm pub:angular      # Publish the Angular package to npm
 ```
 
 ### Contributing

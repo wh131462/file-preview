@@ -1,0 +1,857 @@
+@tailwind components;
+@tailwind utilities;
+
+/* 作用域内的 Tailwind CSS 变量声明 */
+.afp-root,
+.afp-root *,
+.afp-root ::before,
+.afp-root ::after {
+  --tw-border-spacing-x: 0;
+  --tw-border-spacing-y: 0;
+  --tw-translate-x: 0;
+  --tw-translate-y: 0;
+  --tw-rotate: 0;
+  --tw-skew-x: 0;
+  --tw-skew-y: 0;
+  --tw-scale-x: 1;
+  --tw-scale-y: 1;
+  --tw-pan-x: ;
+  --tw-pan-y: ;
+  --tw-pinch-zoom: ;
+  --tw-scroll-snap-strictness: proximity;
+  --tw-gradient-from-position: ;
+  --tw-gradient-via-position: ;
+  --tw-gradient-to-position: ;
+  --tw-ordinal: ;
+  --tw-slashed-zero: ;
+  --tw-numeric-figure: ;
+  --tw-numeric-spacing: ;
+  --tw-numeric-fraction: ;
+  --tw-ring-inset: ;
+  --tw-ring-offset-width: 0px;
+  --tw-ring-offset-color: #fff;
+  --tw-ring-color: rgb(59 130 246 / 0.5);
+  --tw-ring-offset-shadow: 0 0 #0000;
+  --tw-ring-shadow: 0 0 #0000;
+  --tw-shadow: 0 0 #0000;
+  --tw-shadow-colored: 0 0 #0000;
+  --tw-blur: ;
+  --tw-brightness: ;
+  --tw-contrast: ;
+  --tw-grayscale: ;
+  --tw-hue-rotate: ;
+  --tw-invert: ;
+  --tw-saturate: ;
+  --tw-sepia: ;
+  --tw-drop-shadow: ;
+  --tw-backdrop-blur: ;
+  --tw-backdrop-brightness: ;
+  --tw-backdrop-contrast: ;
+  --tw-backdrop-grayscale: ;
+  --tw-backdrop-hue-rotate: ;
+  --tw-backdrop-invert: ;
+  --tw-backdrop-opacity: ;
+  --tw-backdrop-saturate: ;
+  --tw-backdrop-sepia: ;
+  --tw-contain-size: ;
+  --tw-contain-layout: ;
+  --tw-contain-paint: ;
+  --tw-contain-style: ;
+  box-sizing: border-box;
+}
+
+/* 组件根元素基础样式 */
+.afp-root {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-text-size-adjust: 100%;
+  tab-size: 4;
+  text-align: left;
+}
+
+/* 作用域化 Preflight Reset —— 防止父页面 CSS 污染 */
+.afp-root *,
+.afp-root ::before,
+.afp-root ::after {
+  border-width: 0;
+  border-style: solid;
+}
+
+.afp-root p,
+.afp-root h1,
+.afp-root h2,
+.afp-root h3,
+.afp-root h4,
+.afp-root h5,
+.afp-root h6,
+.afp-root ul,
+.afp-root ol,
+.afp-root li,
+.afp-root dl,
+.afp-root dt,
+.afp-root dd,
+.afp-root blockquote,
+.afp-root figure,
+.afp-root fieldset,
+.afp-root legend {
+  margin: 0;
+  padding: 0;
+}
+
+.afp-root h1,
+.afp-root h2,
+.afp-root h3,
+.afp-root h4,
+.afp-root h5,
+.afp-root h6 {
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+.afp-root a {
+  color: inherit;
+  text-decoration: inherit;
+}
+
+.afp-root ul,
+.afp-root ol {
+  list-style: none;
+}
+
+.afp-root img,
+.afp-root video {
+  max-width: 100%;
+  height: auto;
+}
+
+.afp-root button,
+.afp-root [type='button'],
+.afp-root [type='reset'],
+.afp-root [type='submit'] {
+  -webkit-appearance: button;
+  background-color: transparent;
+  background-image: none;
+  cursor: pointer;
+}
+
+.afp-root input,
+.afp-root textarea,
+.afp-root select {
+  font-family: inherit;
+  font-size: 100%;
+  font-weight: inherit;
+  line-height: inherit;
+  color: inherit;
+  margin: 0;
+  padding: 0;
+}
+
+.afp-root table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+.afp-root pre,
+.afp-root code,
+.afp-root kbd,
+.afp-root samp {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+  font-size: 1em;
+}
+
+/* 作用域内滚动条样式 */
+.afp-root ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.afp-root ::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+}
+
+.afp-root ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+}
+
+.afp-root ::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+/* Light 主题滚动条 */
+.afp-root[data-theme="light"] ::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.afp-root[data-theme="light"] ::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.afp-root[data-theme="light"] ::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.35);
+}
+
+/* 唱片旋转动画 */
+@keyframes afp-vinyl-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* 进出场过渡 (Vue Transition) */
+.afp-fade-enter-active,
+.afp-fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.afp-fade-enter-from,
+.afp-fade-leave-to {
+  opacity: 0;
+}
+
+/* 音频播放器进度条样式 */
+.afp-root .audio-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 16px;
+  border-radius: 3px;
+  background: transparent;
+  outline: none;
+  cursor: pointer;
+  position: relative;
+}
+
+.afp-root .audio-slider:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.afp-root .audio-slider::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 5px;
+  border-radius: 3px;
+  background: transparent;
+}
+
+.afp-root .audio-slider::-moz-range-track {
+  width: 100%;
+  height: 5px;
+  border-radius: 3px;
+  background: transparent;
+}
+
+.afp-root .audio-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #818cf8, #6366f1);
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.5);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  margin-top: -5px;
+}
+
+.afp-root .audio-slider::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #818cf8, #6366f1);
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.5);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.afp-root .audio-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.25);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.7);
+}
+
+.afp-root .audio-slider::-moz-range-thumb:hover {
+  transform: scale(1.25);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.7);
+}
+
+/* 垂直音量滑块样式 */
+.afp-root .volume-slider-vertical {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  outline: none;
+  cursor: pointer;
+}
+
+.afp-root .volume-slider-vertical::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 3px;
+  border-radius: 2px;
+  background: transparent;
+}
+
+.afp-root .volume-slider-vertical::-moz-range-track {
+  width: 100%;
+  height: 3px;
+  border-radius: 2px;
+  background: transparent;
+}
+
+.afp-root .volume-slider-vertical::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #818cf8;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(99, 102, 241, 0.5);
+  transition: all 0.15s ease;
+  margin-top: -6px;
+}
+
+.afp-root .volume-slider-vertical::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #818cf8;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 2px 6px rgba(99, 102, 241, 0.5);
+  transition: all 0.15s ease;
+}
+
+.afp-root .pptx-preview-wrapper {
+  overflow-y: initial !important;
+}
+
+/* 隐藏滚动条样式 */
+.afp-root .scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.afp-root .scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* x-data-spreadsheet 样式覆盖 */
+.afp-root .xlsx-spreadsheet-container {
+  overflow: hidden;
+}
+
+.afp-root .xlsx-spreadsheet-container .x-spreadsheet {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.afp-root .xlsx-spreadsheet-container .x-spreadsheet-sheet {
+  overflow: hidden;
+}
+
+.afp-root .xlsx-spreadsheet-container .x-spreadsheet-bottombar .x-spreadsheet-menu > li:first-child > .x-spreadsheet-icon {
+  display: none;
+}
+
+.afp-root .xlsx-spreadsheet-container .x-spreadsheet-bottombar .x-spreadsheet-menu > li {
+  pointer-events: auto;
+}
+
+.afp-root .xlsx-spreadsheet-container .x-spreadsheet-bottombar .x-spreadsheet-menu {
+  display: flex;
+  width: 100%;
+  overflow: visible;
+  flex-wrap: nowrap;
+}
+
+.afp-root .xlsx-spreadsheet-container .x-spreadsheet-bottombar .x-spreadsheet-menu > li:first-child {
+  order: 999;
+  margin-left: auto;
+}
+
+.afp-root .xlsx-spreadsheet-container .x-spreadsheet-bottombar {
+  padding: 0 8px;
+  overflow: visible;
+}
+
+.afp-root .xlsx-spreadsheet-container .x-spreadsheet-bottombar .x-spreadsheet-dropdown.top-left .x-spreadsheet-dropdown-content {
+  left: auto;
+  right: 0;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.afp-root .xlsx-spreadsheet-container .x-spreadsheet-bottombar .x-spreadsheet-contextmenu {
+  display: none !important;
+}
+
+.afp-root .xlsx-spreadsheet-container .x-spreadsheet-scrollbar {
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+.afp-root .xlsx-spreadsheet-container .x-spreadsheet-scrollbar.vertical > div,
+.afp-root .xlsx-spreadsheet-container .x-spreadsheet-scrollbar.horizontal > div {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* Light 主题 xlsx 滚动条 */
+.afp-root[data-theme="light"] .xlsx-spreadsheet-container .x-spreadsheet-scrollbar {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.afp-root[data-theme="light"] .xlsx-spreadsheet-container .x-spreadsheet-scrollbar.vertical > div,
+.afp-root[data-theme="light"] .xlsx-spreadsheet-container .x-spreadsheet-scrollbar.horizontal > div {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+@media (max-width: 640px) {
+  .afp-root .xlsx-spreadsheet-container .x-spreadsheet-bottombar {
+    padding: 0 4px;
+    font-size: 12px;
+  }
+
+  .afp-root .xlsx-spreadsheet-container .x-spreadsheet-bottombar .x-spreadsheet-menu > li {
+    padding: 0 6px;
+    font-size: 12px;
+    min-width: 0;
+    white-space: nowrap;
+  }
+}
+
+/* ============================================================
+ * 语义化主题 token (CSS 变量) — 与 react-file-preview 同结构
+ * 详见 packages/react-file-preview/src/index.css 顶部注释
+ * ============================================================ */
+
+.afp-root {
+  /* 文字前景 */
+  --fp-fg-primary:    rgb(255 255 255 / 0.9);
+  --fp-fg-secondary:  rgb(255 255 255 / 0.75);
+  --fp-fg-tertiary:   rgb(255 255 255 / 0.6);
+  --fp-fg-muted:      rgb(255 255 255 / 0.4);
+  --fp-fg-disabled:   rgb(255 255 255 / 0.3);
+  --fp-fg-inverse:    rgb(23 23 23);
+
+  /* 表面背景层级 */
+  --fp-surface-1:        rgb(255 255 255 / 0.05);
+  --fp-surface-2:        rgb(255 255 255 / 0.1);
+  --fp-surface-3:        rgb(255 255 255 / 0.15);
+  --fp-surface-toolbar:  rgb(0 0 0 / 0.5);
+  --fp-surface-overlay:  rgb(0 0 0 / 0.8);
+  --fp-surface-nav:      rgb(0 0 0 / 0.4);
+  --fp-surface-nav-hover: rgb(0 0 0 / 0.6);
+
+  /* 边框 / 分隔 */
+  --fp-line-weak:    rgb(255 255 255 / 0.08);
+  --fp-line:         rgb(255 255 255 / 0.1);
+  --fp-line-strong:  rgb(255 255 255 / 0.2);
+  --fp-divide:       rgb(255 255 255 / 0.1);
+
+  /* 品牌强调色 */
+  --fp-accent:        rgb(99 102 241);
+  --fp-accent-hover:  rgb(129 140 248);
+  --fp-accent-soft:   rgb(99 102 241 / 0.15);
+
+  /* 代码块（跟随主题切换） */
+  --fp-code-bg:       #1e1e1e;
+  --fp-code-fg:       rgb(255 255 255 / 0.85);
+  --fp-code-header:   rgb(255 255 255 / 0.08);
+  --fp-media-bg:      #000;
+
+  /* loading spinner */
+  --fp-spinner-track: rgb(255 255 255 / 0.2);
+  --fp-spinner-head:  rgb(255 255 255 / 0.85);
+}
+
+.afp-root[data-theme="light"] {
+  --fp-fg-primary:    rgb(23 23 23 / 0.9);
+  --fp-fg-secondary:  rgb(23 23 23 / 0.78);
+  --fp-fg-tertiary:   rgb(23 23 23 / 0.6);
+  --fp-fg-muted:      rgb(23 23 23 / 0.45);
+  --fp-fg-disabled:   rgb(23 23 23 / 0.3);
+  --fp-fg-inverse:    rgb(255 255 255);
+
+  --fp-surface-1:        rgb(0 0 0 / 0.04);
+  --fp-surface-2:        rgb(0 0 0 / 0.06);
+  --fp-surface-3:        rgb(0 0 0 / 0.1);
+  --fp-surface-toolbar:  rgb(255 255 255 / 0.8);
+  --fp-surface-overlay:  rgb(255 255 255 / 0.6);
+  --fp-surface-nav:      rgb(255 255 255 / 0.7);
+  --fp-surface-nav-hover: rgb(255 255 255 / 0.9);
+
+  --fp-line-weak:    rgb(0 0 0 / 0.06);
+  --fp-line:         rgb(0 0 0 / 0.1);
+  --fp-line-strong:  rgb(0 0 0 / 0.18);
+  --fp-divide:       rgb(0 0 0 / 0.08);
+
+  --fp-spinner-track: rgb(0 0 0 / 0.1);
+  --fp-spinner-head:  rgb(23 23 23 / 0.85);
+
+  /* 代码块在 light 下取 GitHub Light 风格 */
+  --fp-code-bg:       #f6f8fa;
+  --fp-code-fg:       rgb(36 41 47 / 0.95);
+  --fp-code-header:   rgb(0 0 0 / 0.04);
+  /* media-bg 仍保持 #000（视频/音频画布天然黑底，不切换） */
+}
+
+/* Markdown 内容样式 — 全部走语义 token，主题切换由变量驱动 */
+.afp-root .markdown-body h1 {
+  font-size: 1.875rem;
+  font-weight: 600;
+  margin: 1.5rem 0 1rem 0;
+  color: var(--fp-fg-primary);
+}
+.afp-root .markdown-body h1:first-child { margin-top: 0; }
+
+.afp-root .markdown-body h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 2rem 0 0.75rem 0;
+  color: var(--fp-fg-primary);
+}
+
+.afp-root .markdown-body h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 1.5rem 0 0.5rem 0;
+  color: var(--fp-fg-primary);
+}
+
+.afp-root .markdown-body h4 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 1rem 0 0.5rem 0;
+  color: var(--fp-fg-primary);
+}
+
+.afp-root .markdown-body p {
+  color: var(--fp-fg-secondary);
+  margin-bottom: 1rem;
+  line-height: 1.75;
+}
+
+.afp-root .markdown-body a {
+  color: var(--fp-accent-hover);
+  text-decoration: underline;
+  text-decoration-color: var(--fp-accent);
+}
+
+.afp-root .markdown-body a:hover {
+  color: var(--fp-accent);
+}
+
+.afp-root .markdown-body ul {
+  list-style: disc;
+  padding-left: 1.5rem;
+  margin-bottom: 1rem;
+  color: var(--fp-fg-secondary);
+}
+
+.afp-root .markdown-body ol {
+  list-style: decimal;
+  padding-left: 1.5rem;
+  margin-bottom: 1rem;
+  color: var(--fp-fg-secondary);
+}
+
+.afp-root .markdown-body li {
+  line-height: 1.75;
+  margin-bottom: 0.25rem;
+}
+
+.afp-root .markdown-body blockquote {
+  border-left: 4px solid var(--fp-line-strong);
+  padding-left: 1rem;
+  color: var(--fp-fg-tertiary);
+  margin: 1rem 0;
+  font-style: italic;
+}
+
+.afp-root .markdown-body table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+  border: 1px solid var(--fp-line);
+  border-radius: 0.375rem;
+  overflow: hidden;
+}
+
+.afp-root .markdown-body thead {
+  background: var(--fp-surface-1);
+}
+
+.afp-root .markdown-body th {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--fp-fg-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--fp-line);
+}
+
+.afp-root .markdown-body td {
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  color: var(--fp-fg-secondary);
+  border-bottom: 1px solid var(--fp-line-weak);
+}
+
+.afp-root .markdown-body tbody tr:hover {
+  background: var(--fp-surface-1);
+}
+
+.afp-root .markdown-body hr {
+  border-color: var(--fp-line);
+  margin: 1.5rem 0;
+}
+
+.afp-root .markdown-body img {
+  border-radius: 0.375rem;
+  max-width: 100%;
+  height: auto;
+  margin: 1rem auto;
+  display: block;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+
+.afp-root .markdown-body strong {
+  font-weight: 600;
+  color: var(--fp-fg-primary);
+}
+
+.afp-root .markdown-body em {
+  font-style: italic;
+}
+
+.afp-root .markdown-body del {
+  text-decoration: line-through;
+  color: var(--fp-fg-muted);
+}
+
+.afp-root .markdown-body code:not(pre code) {
+  background: var(--fp-surface-2);
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  color: var(--fp-fg-primary);
+  border: 1px solid var(--fp-line);
+}
+
+.afp-root .markdown-body pre {
+  margin: 1rem 0;
+  border-radius: 0.375rem;
+  border: 1px solid var(--fp-line-weak);
+  overflow: auto;
+  position: relative;
+  background-color: var(--fp-code-bg);
+}
+
+.afp-root .markdown-body pre code {
+  display: block;
+  padding: 1rem;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  overflow-x: auto;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  color: var(--fp-code-fg);
+}
+
+.afp-root .markdown-body .code-block-wrapper {
+  position: relative;
+  margin: 1rem 0;
+}
+
+.afp-root .markdown-body .code-block-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.375rem 1rem;
+  background: var(--fp-code-header);
+  border: 1px solid var(--fp-line-weak);
+  border-bottom: 0;
+  border-top-left-radius: 0.375rem;
+  border-top-right-radius: 0.375rem;
+  font-size: 0.75rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+.afp-root .markdown-body .code-block-header > span {
+  /* header 在 light 主题下底色仍是 code-header (浅白半透明在浅底上显示)，
+     为保证对比度，header 字色固定走 code-fg（亮色） */
+  color: var(--fp-code-fg);
+  user-select: none;
+}
+
+.afp-root .markdown-body .code-block-wrapper pre {
+  margin: 0;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  border-top: 0;
+}
+
+.afp-root .markdown-body .code-copy-btn {
+  background: transparent;
+  border: 0;
+  padding: 0.25rem;
+  color: var(--fp-code-fg);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 0.25rem;
+  transition: all 0.15s ease;
+  opacity: 0.6;
+}
+
+.afp-root .markdown-body .code-copy-btn:hover {
+  opacity: 1;
+  background: var(--fp-surface-2);
+}
+
+.afp-root .markdown-body .code-copy-float {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  z-index: 2;
+  background: var(--fp-surface-2);
+  border: 1px solid var(--fp-line);
+}
+
+.afp-root .markdown-body .code-block-wrapper:hover .code-copy-float {
+  opacity: 0.85;
+}
+
+/* ============================================================
+ * 双列 Grid 行号布局（Text/Xml 渲染器使用）
+ *
+ * DOM 结构：
+ *   <div class="afp-code-block with-line-numbers [no-wrap]">
+ *     <span class="afp-code-gutter">1</span>
+ *     <span class="afp-code-line">...shiki HTML...</span>
+ *     <span class="afp-code-gutter">2</span>
+ *     <span class="afp-code-line">...</span>
+ *     ...
+ *   </div>
+ *
+ * 关键：
+ *   - Grid 两列：max-content（gutter） + 1fr（code）
+ *   - 同一逻辑行的 gutter 和 code 在同一 grid row → 高度自动同步
+ *   - border-right 画在每个 gutter cell 上，行间无 gap → 连续贯穿
+ * ============================================================ */
+
+.afp-root .afp-code-block {
+  background: var(--fp-code-bg);
+  color: var(--fp-code-fg);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  overflow: auto;
+}
+
+.afp-root .afp-code-block.with-line-numbers {
+  display: grid;
+  grid-template-columns: max-content minmax(20ch, 1fr);
+  align-content: start;
+  min-height: 100%;
+}
+
+.afp-root .afp-code-block.with-line-numbers.no-wrap {
+  grid-template-columns: max-content max-content;
+}
+
+.afp-root .afp-code-block.with-line-numbers > .afp-code-gutter {
+  padding-left: 1em;
+  padding-right: 1em;
+  text-align: right;
+  border-right: 1px solid var(--fp-line);
+  color: var(--fp-fg-disabled);
+  user-select: none;
+  white-space: nowrap;
+  min-width: 3.5em;
+}
+
+/* 占位行：撑满剩余高度，让 gutter border 延伸到底部 */
+.afp-root .afp-code-block.with-line-numbers > .afp-code-gutter-filler {
+  border-right: 1px solid var(--fp-line);
+  min-height: 1.5rem;
+}
+
+.afp-root .afp-code-block.with-line-numbers > .afp-code-line-filler {
+  min-height: 1.5rem;
+}
+
+.afp-root .afp-code-block.with-line-numbers > .afp-code-line {
+  padding-left: 1em;
+  padding-right: 1em;
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  min-height: 1.5em;
+  min-width: 0;
+}
+
+.afp-root .afp-code-block.with-line-numbers.no-wrap > .afp-code-line {
+  white-space: pre;
+  word-break: normal;
+  overflow-wrap: normal;
+}
+
+/* 首行：上 padding；占位 filler 提供底部呼吸 */
+.afp-root .afp-code-block.with-line-numbers > :nth-child(-n+2) {
+  padding-top: 1.5rem;
+}
+
+/* ============================================================
+ * PDF / Docx 容器响应式 padding（容器宽度 < 794px 时逐渐减小）
+ * ============================================================ */
+
+.afp-root .afp-docx-container,
+.afp-root .afp-pdf-container {
+  container-type: inline-size;
+  /* 使用 clamp 实现平滑过渡：最小0，最大1.5rem，中间线性变化 */
+  padding-top: clamp(0rem, calc((100cqw - 794px) / 100 * 1.5), 1.5rem);
+  padding-bottom: clamp(0rem, calc((100cqw - 794px) / 100 * 1.5), 1.5rem);
+  padding-left: clamp(0rem, calc((100cqw - 794px) / 100 * 1), 1rem);
+  padding-right: clamp(0rem, calc((100cqw - 794px) / 100 * 1), 1rem);
+}
+
+/* PDF 页面占位符：使用 aspect-ratio 让高度随宽度等比缩放 */
+.afp-root .afp-pdf-page-placeholder {
+  /* A4 纸张比例约为 1:1.414 (√2) */
+  aspect-ratio: 1 / 1.414;
+  width: 100%;
+  max-width: 1200px;
+  min-height: 400px;
+}
+
+/* 降级方案：如果浏览器不支持 container queries，使用媒体查询分段 */
+@supports not (container-type: inline-size) {
+  .afp-root .afp-docx-container,
+  .afp-root .afp-pdf-container {
+    padding: 1.5rem 1rem;
+  }
+
+  @media (max-width: 893px) {
+    .afp-root .afp-docx-container,
+    .afp-root .afp-pdf-container {
+      padding: 1rem 0.5rem;
+    }
+  }
+
+  @media (max-width: 794px) {
+    .afp-root .afp-docx-container,
+    .afp-root .afp-pdf-container {
+      padding: 0;
+    }
+  }
+}

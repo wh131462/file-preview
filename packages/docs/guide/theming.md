@@ -38,6 +38,15 @@ import { FilePreviewModal } from '@eternalheart/react-file-preview'
 <FilePreviewEmbed theme="light" :files="files" />
 ```
 
+```ts [Angular]
+import { FilePreviewModal, FilePreviewEmbed } from '@eternalheart/angular-file-preview'
+
+// template:
+// <afp-file-preview-modal theme="light" [files]="files" ... />
+// <afp-file-preview-modal theme="auto" [files]="files" ... />
+// <afp-file-preview-embed theme="light" [files]="files" />
+```
+
 :::
 
 ### auto 模式

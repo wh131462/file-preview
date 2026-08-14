@@ -22,6 +22,10 @@ pnpm --filter @eternalheart/react-file-preview build
 echo "构建 vue-file-preview..."
 pnpm --filter @eternalheart/vue-file-preview build
 
+# 构建 Angular 核心库
+echo "构建 angular-file-preview..."
+pnpm --filter @eternalheart/angular-file-preview build
+
 # 构建 React 示例项目
 echo "构建 React 示例项目..."
 pnpm --filter @eternalheart/react-file-preview-example build
@@ -29,6 +33,10 @@ pnpm --filter @eternalheart/react-file-preview-example build
 # 构建 Vue 示例项目
 echo "构建 Vue 示例项目..."
 pnpm --filter @eternalheart/vue-file-preview-example build
+
+# 构建 Angular 示例项目
+echo "构建 Angular 示例项目..."
+pnpm --filter @eternalheart/angular-file-preview-example build
 
 # 复制 React 示例项目到部署目录根路径
 echo "复制 React 示例项目..."
@@ -38,6 +46,11 @@ cp -r packages/example/dist/* dist-deploy/
 echo "复制 Vue 示例项目..."
 mkdir -p dist-deploy/vue
 cp -r packages/vue-example/dist/* dist-deploy/vue/
+
+# 复制 Angular 示例项目到 /angular 子路径
+echo "复制 Angular 示例项目..."
+mkdir -p dist-deploy/angular
+cp -r packages/angular-example/dist/* dist-deploy/angular/
 
 # 构建文档站点
 echo "构建文档站点..."
@@ -73,4 +86,5 @@ rm -rf dist-deploy
 echo "部署完成！"
 echo "React 示例: https://wh131462.github.io/file-preview/"
 echo "Vue 示例:   https://wh131462.github.io/file-preview/vue/"
+echo "Angular 示例: https://wh131462.github.io/file-preview/angular/"
 echo "文档站点:   https://wh131462.github.io/file-preview/docs/"

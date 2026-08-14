@@ -14,6 +14,8 @@
 
 主要的文件预览模态框组件。
 
+Angular 选择器为 `afp-file-preview-modal`，输入名与下表一致，关闭/导航走 `(close)` / `(navigate)` 输出（对应 React 的 `onClose` / `onNavigate`）。
+
 ### Props
 
 #### files

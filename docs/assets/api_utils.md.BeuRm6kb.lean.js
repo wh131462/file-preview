@@ -1,0 +1,1 @@
+import{_ as i,o as a,c as n,ag as e}from"./chunks/framework.CKZNj4UW.js";const o=JSON.parse('{"title":"工具函数","description":"","frontmatter":{},"headers":[],"relativePath":"api/utils.md","filePath":"api/utils.md"}'),l={name:"api/utils.md"};function h(t,s,p,k,d,r){return a(),n("div",null,[...s[0]||(s[0]=[e("",83)])])}const E=i(l,[["render",h]]);export{o as __pageData,E as default};

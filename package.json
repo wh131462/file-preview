@@ -59,7 +59,7 @@
     "pub:angular": "pnpm --filter @eternalheart/angular-file-preview pub",
     "pub:patch:angular": "pnpm version:patch:angular && pnpm pub:angular",
     "pub:minor:angular": "pnpm version:minor:angular && pnpm pub:angular",
-    "pub:major:angular": "pnpm version:major:angular && pnpm pub:angular",       
+    "pub:major:angular": "pnpm version:major:angular && pnpm pub:angular"
   },
   "repository": {
     "type": "git",

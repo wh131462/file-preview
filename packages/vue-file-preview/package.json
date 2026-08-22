@@ -82,7 +82,7 @@
     "jszip": "^3.10.1",
     "katex": "^0.16.45",
     "lucide-vue-next": "^0.460.0",
-    "mammoth": "^1.8.0",
+    "mammoth": "^1.12.1",
     "markdown-it": "^14.1.0",
     "opentype.js": "^2.0.0",
     "pdfjs-dist": "6.1.200",

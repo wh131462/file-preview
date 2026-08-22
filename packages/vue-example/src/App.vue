@@ -39,6 +39,9 @@ const DOCS_URL = isDev
 const REACT_EXAMPLE_URL = isDev
   ? 'http://localhost:4800/'
   : 'https://wh131462.github.io/file-preview/';
+const ANGULAR_EXAMPLE_URL = isDev
+  ? 'http://localhost:4803/'
+  : 'https://wh131462.github.io/file-preview/angular/';
 
 const isPreviewOpen = ref(false);
 const currentFileIndex = ref(0);
@@ -353,6 +356,13 @@ onUnmounted(() => {
               >
                 Vue
               </span>
+              <a
+                :href="ANGULAR_EXAMPLE_URL"
+                class="px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-md text-xs sm:text-sm font-medium text-gray-400 hover:text-white hover:bg-white/5 transition-all"
+                title="切换到 Angular 版本"
+              >
+                Angular
+              </a>
             </div>
 
             <a

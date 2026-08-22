@@ -1,0 +1,27 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "declaration": true,
+    "declarationMap": false,
+    "inlineSources": true,
+    "emitDeclarationOnly": false,
+    "outDir": "./out-tsc/lib"
+  },
+  "angularCompilerOptions": {
+    "compilationMode": "partial",
+    "strictTemplates": true,
+    "strictInjectionParameters": true
+  },
+  "files": [
+    "src/types/three.d.ts",
+    "src/types/foliate-js.d.ts",
+    "src/types/markdown-it-katex.d.ts",
+    "src/types/x-data-spreadsheet.d.ts",
+    "src/css.d.ts"
+  ],
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.d.ts"
+  ],
+  "exclude": ["src/**/*.test.ts"]
+}

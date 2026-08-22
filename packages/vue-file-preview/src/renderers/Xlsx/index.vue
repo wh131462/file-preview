@@ -5,7 +5,12 @@ import type { ToolbarGroup } from '../toolbar.types';
 import { ref, watch, onMounted, onBeforeUnmount } from 'vue';
 import ExcelJS from 'exceljs';
 import Spreadsheet from 'x-data-spreadsheet';
-import { convertWorkbookToSpreadsheetData } from '@eternalheart/file-preview-core';
+import {
+  convertLegacyXlsToSpreadsheetData,
+  convertWorkbookToSpreadsheetData,
+  isLegacyXls,
+  parseLegacyXls,
+} from '@eternalheart/file-preview-core';
 import { useTranslator } from '../../composables/useTranslator';
 import { useFetcher } from '../../composables/useRequest';
 import RendererError from '../RendererError.vue';
@@ -91,9 +96,9 @@ const loadExcel = async () => {
       throw new Error('文件为空');
     }
 
-    const workbook = new ExcelJS.Workbook();
-    await workbook.xlsx.load(arrayBuffer);
-    const data = convertWorkbookToSpreadsheetData(workbook);
+    const data = isLegacyXls(arrayBuffer)
+      ? convertLegacyXlsToSpreadsheetData(parseLegacyXls(arrayBuffer))
+      : convertWorkbookToSpreadsheetData(await new ExcelJS.Workbook().xlsx.load(arrayBuffer));
 
     sheetData = data as unknown as Record<string, unknown>[];
     mountSpreadsheet();

@@ -1,0 +1,34 @@
+{
+  "$schema": "./node_modules/ng-packagr/ng-package.schema.json",
+  "dest": "lib",
+  "deleteDestPath": false,
+  "lib": {
+    "entryFile": "src/index.ts"
+  },
+  "allowedNonPeerDependencies": [
+    "@eternalheart/file-preview-core",
+    "@jsquash/avif",
+    "@kenjiuno/msgreader",
+    "@likecoin/epub-ts",
+    "@traptitech/markdown-it-katex",
+    "ag-psd",
+    "exceljs",
+    "foliate-js",
+    "heic2any",
+    "jszip",
+    "jsonc-parser",
+    "katex",
+    "lucide-angular",
+    "mammoth",
+    "markdown-it",
+    "opentype.js",
+    "pdfjs-dist",
+    "pptx-preview",
+    "shiki",
+    "three",
+    "three-dxf-loader",
+    "utif",
+    "video.js",
+    "x-data-spreadsheet"
+  ]
+}

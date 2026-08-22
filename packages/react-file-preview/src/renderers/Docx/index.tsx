@@ -1,5 +1,6 @@
-import { useState, useEffect, useRef, useCallback, forwardRef, useImperativeHandle } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo, forwardRef, useImperativeHandle } from 'react';
 import mammoth from 'mammoth';
+import { DOCX_MAMMOTH_STYLE_MAP, docxThemeToCssVars, readDocxTheme, type DocxTheme } from '@eternalheart/file-preview-core';
 import { useTranslator } from '../../i18n/LocaleContext';
 import { useFetcher } from '../../RequestContext';
 import { RendererError } from '../RendererError';
@@ -16,11 +17,9 @@ const PAGE_PADDING_X = 50;
 const PAGE_CONTENT_HEIGHT = PAGE_HEIGHT - PAGE_PADDING_Y * 2;
 const PAGE_GAP = 24;
 
-const contentStyle: React.CSSProperties = {
-  fontFamily: 'system-ui, -apple-system, sans-serif',
-  lineHeight: '1.8',
-  color: '#333',
-};
+function themeToContentStyle(theme: DocxTheme): React.CSSProperties {
+  return docxThemeToCssVars(theme) as React.CSSProperties;
+}
 
 export const DocxRenderer = forwardRef<RendererHandle, DocxRendererProps>(({ url }, ref) => {
   const t = useTranslator();
@@ -29,7 +28,9 @@ export const DocxRenderer = forwardRef<RendererHandle, DocxRendererProps>(({ url
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [pages, setPages] = useState<string[]>([]);
+  const [theme, setTheme] = useState<DocxTheme>({});
   const measureRef = useRef<HTMLDivElement>(null);
+  const contentStyle = useMemo(() => themeToContentStyle(theme), [theme]);
 
   useEffect(() => {
     // 只有 URL 有效时才加载（避免空字符串或已 revoke 的 blob URL）
@@ -39,6 +40,7 @@ export const DocxRenderer = forwardRef<RendererHandle, DocxRendererProps>(({ url
       setLoading(true);
       setError(null);
       setHtml('');
+      setTheme({});
 
       try {
         const response = await fetcher(url);
@@ -47,8 +49,12 @@ export const DocxRenderer = forwardRef<RendererHandle, DocxRendererProps>(({ url
         }
 
         const arrayBuffer = await response.arrayBuffer();
-        const result = await mammoth.convertToHtml({ arrayBuffer });
-        setHtml(result.value);
+        const [converted, nextTheme] = await Promise.all([
+          mammoth.convertToHtml({ arrayBuffer }, { styleMap: DOCX_MAMMOTH_STYLE_MAP }),
+          readDocxTheme(arrayBuffer).catch(() => ({} as DocxTheme)),
+        ]);
+        setTheme(nextTheme);
+        setHtml(converted.value);
       } catch (err) {
         console.error('Docx 解析错误:', err);
         setError(t('docx.parse_failed'));

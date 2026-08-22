@@ -187,7 +187,9 @@ const fileType = computed(() => (currentFile.value ? getFileType(currentFile.val
 
 // 从注册表中查找匹配当前 fileType 的内置渲染器
 const builtinRenderer = computed(() =>
-  BUILTIN_RENDERERS.find((r) => r.fileType === fileType.value) ?? null,
+  BUILTIN_RENDERERS.find((r) => r.fileType === fileType.value) ??
+  (fileType.value === 'xls' ? BUILTIN_RENDERERS.find((r) => r.fileType === 'xlsx') : null) ??
+  null,
 );
 
 // 计算传给内置渲染器的 props

@@ -1,6 +1,6 @@
 # 安装
 
-本库提供 **React** 和 **Vue 3** 两个版本，根据你的项目选择对应的包。
+本库提供 **React**、**Vue 3** 和 **Angular** 三个版本，根据你的项目选择对应的包。
 
 ## 环境要求
 
@@ -13,6 +13,10 @@ React DOM >= 18.0.0
 
 ```text [Vue 3]
 Vue >= 3.4.0
+```
+
+```text [Angular]
+Angular >= 19.0.0
 ```
 
 :::
@@ -29,6 +33,10 @@ pnpm add @eternalheart/react-file-preview
 pnpm add @eternalheart/vue-file-preview
 ```
 
+```bash [Angular · pnpm]
+pnpm add @eternalheart/angular-file-preview
+```
+
 ```bash [React · npm]
 npm install @eternalheart/react-file-preview
 ```
@@ -37,12 +45,20 @@ npm install @eternalheart/react-file-preview
 npm install @eternalheart/vue-file-preview
 ```
 
+```bash [Angular · npm]
+npm install @eternalheart/angular-file-preview
+```
+
 ```bash [React · yarn]
 yarn add @eternalheart/react-file-preview
 ```
 
 ```bash [Vue 3 · yarn]
 yarn add @eternalheart/vue-file-preview
+```
+
+```bash [Angular · yarn]
+yarn add @eternalheart/angular-file-preview
 ```
 
 :::
@@ -59,6 +75,10 @@ import '@eternalheart/react-file-preview/style.css'
 
 ```ts [Vue 3]
 import '@eternalheart/vue-file-preview/style.css'
+```
+
+```ts [Angular]
+import '@eternalheart/angular-file-preview/style.css'
 ```
 
 :::
@@ -93,6 +113,17 @@ configurePdfjs({
 
 ```ts [Vue 3]
 import { configurePdfWorker } from '@eternalheart/vue-file-preview'
+import * as pdfjsLib from 'pdfjs-dist/build/pdf.mjs'
+
+configurePdfWorker(pdfjsLib, {
+  workerSrc: '/pdfjs/pdf.worker.min.mjs',
+  cMapUrl: '/pdfjs/cmaps/',
+  cMapPacked: true,
+})
+```
+
+```ts [Angular]
+import { configurePdfWorker } from '@eternalheart/angular-file-preview'
 import * as pdfjsLib from 'pdfjs-dist/build/pdf.mjs'
 
 configurePdfWorker(pdfjsLib, {
@@ -154,6 +185,33 @@ const isOpen = ref(false)
     />
   </div>
 </template>
+```
+
+```ts [Angular]
+import { Component, signal } from '@angular/core'
+import { FilePreviewModal } from '@eternalheart/angular-file-preview'
+import '@eternalheart/angular-file-preview/style.css'
+
+@Component({
+  selector: 'app-root',
+  standalone: true,
+  imports: [FilePreviewModal],
+  template: `
+    <div>
+      <button (click)="isOpen.set(true)">打开预览</button>
+      <FilePreviewModal
+        [isOpen]="isOpen()"
+        [files]="files"
+        [currentIndex]="0"
+        (close)="isOpen.set(false)"
+      />
+    </div>
+  `,
+})
+export class App {
+  isOpen = signal(false)
+  files = [{ url: 'https://via.placeholder.com/800', name: 'test.png' }]
+}
 ```
 
 :::

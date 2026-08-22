@@ -4,6 +4,7 @@ import type { ToolbarGroup } from '../toolbar.types';
 
 import { ref, watch, onMounted, onBeforeUnmount } from 'vue';
 import { init } from 'pptx-preview';
+import { readPptxSlideSize } from '@eternalheart/file-preview-core';
 import { useTranslator } from '../../composables/useTranslator';
 import { useFetcher } from '../../composables/useRequest';
 import RendererError from '../RendererError.vue';
@@ -28,13 +29,14 @@ let resizeObserver: ResizeObserver | null = null;
 let arrayBufferRef: ArrayBuffer | null = null;
 let resizeTimeout: number | null = null;
 let lastDimensions = { width: 0, height: 0 };
+let slideRatio = 9 / 16;
 
 const calculateDimensions = () => {
   if (!containerRef.value) return { width: 960, height: 540 };
   const rawWidth = containerRef.value.clientWidth;
   const parentWidth = containerRef.value.parentElement?.clientWidth || 0;
   const containerWidth = rawWidth > 100 ? rawWidth : parentWidth > 100 ? parentWidth : 300;
-  const height = Math.floor((containerWidth * 9) / 16);
+  const height = Math.floor(containerWidth * slideRatio);
   return { width: containerWidth, height };
 };
 
@@ -94,6 +96,7 @@ const loadPptx = async () => {
     if (arrayBuffer.byteLength === 0) throw new Error('文件为空');
 
     arrayBufferRef = arrayBuffer;
+    slideRatio = (await readPptxSlideSize(arrayBuffer)).ratio;
 
     // 步骤 1: 创建隐藏容器获取 slideCount
     const hiddenContainer = document.createElement('div');

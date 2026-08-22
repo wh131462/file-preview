@@ -70,6 +70,37 @@ export type { ZipEntryInfo, ZipTreeNode } from './utils/zipReader';
 
 // 导出 Excel 数据转换
 export { convertWorkbookToSpreadsheetData, convertCsvToSpreadsheetData } from './utils/excelDataConverter';
+export type { XSheetData } from './utils/excelDataConverter';
+
+// 导出旧版 Office（.doc / .ppt / .xls）解析
+export {
+  parseLegacyDoc,
+  legacyDocToHtml,
+  renderLegacyDocHtml,
+  parseLegacyPpt,
+  legacyPptToHtml,
+  renderLegacyPptHtml,
+  parseLegacyXls,
+  convertLegacyXlsToSpreadsheetData,
+  isLegacyXls,
+} from './utils/legacy-office';
+export type {
+  LegacyDocPreview,
+  LegacyDocTheme,
+  LegacyPptPreview,
+  LegacyPptSlide,
+  LegacyPptTheme,
+  LegacyPptTable,
+  LegacyPptSize,
+  LegacyXlsWorkbook,
+  LegacyXlsSheet,
+  LegacyXlsCell,
+  LegacyXlsMerge,
+} from './utils/legacy-office';
+
+// 导出 OOXML（.docx / .pptx 尺寸）
+export { readDocxTheme, docxThemeToCssVars, DOCX_MAMMOTH_STYLE_MAP, readPptxSlideSize } from './utils/ooxml';
+export type { DocxTheme, PptxSlideSize } from './utils/ooxml';
 
 // 导出 PDF.js Worker 配置
 export { configurePdfWorker, getPdfDocumentOptions } from './utils/pdfWorker';

@@ -5,14 +5,24 @@ const specialCodeFileLanguages: Record<string, string> = {
   makefile: 'makefile',
 };
 
+function fileExtension(fileName: string): string {
+  const base = fileName.split(/[\\/]/).pop() || '';
+  const clean = base.split('?')[0].split('#')[0];
+  return clean.split('.').pop()?.toLowerCase() || '';
+}
+
+function baseMime(mimeType: string): string {
+  return mimeType.split(';')[0].trim().toLowerCase();
+}
+
 /**
  * 根据 PreviewFile 的 mime 类型和文件名后缀推断文件类型
  */
 export function getFileType(file: PreviewFile): FileType {
-  const ext = file.name.split('.').pop()?.toLowerCase() || '';
+  const ext = fileExtension(file.name);
   const lowerFileName = file.name.toLowerCase();
   const lowerBaseName = lowerFileName.split(/[\\/]/).pop() || '';
-  const mimeType = file.type.toLowerCase();
+  const mimeType = baseMime(file.type);
 
   if (
     mimeType.startsWith('image/') ||
@@ -34,11 +44,35 @@ export function getFileType(file: PreviewFile): FileType {
   if (mimeType.includes('wordprocessingml') || ext === 'docx') {
     return 'docx';
   }
+  if (
+    ext === 'doc' ||
+    mimeType === 'application/msword' ||
+    mimeType === 'application/vnd.ms-word'
+  ) {
+    return 'doc';
+  }
   if (mimeType.includes('spreadsheetml') || ext === 'xlsx') {
     return 'xlsx';
   }
-  if (mimeType.includes('presentationml') || ext === 'pptx' || ext === 'ppt') {
+  if (
+    ext === 'xls' ||
+    mimeType === 'application/vnd.ms-excel' ||
+    mimeType === 'application/excel' ||
+    mimeType === 'application/x-excel' ||
+    mimeType === 'application/x-msexcel'
+  ) {
+    // Route legacy BIFF through the existing Xlsx renderer (isLegacyXls).
+    return 'xlsx';
+  }
+  if (mimeType.includes('presentationml') || ext === 'pptx') {
     return 'pptx';
+  }
+  if (
+    ext === 'ppt' ||
+    mimeType === 'application/vnd.ms-powerpoint' ||
+    mimeType === 'application/mspowerpoint'
+  ) {
+    return 'ppt';
   }
   if (mimeType.includes('ms-outlook') || ext === 'msg') {
     return 'msg';

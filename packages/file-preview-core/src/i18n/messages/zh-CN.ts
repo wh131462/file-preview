@@ -47,11 +47,23 @@ export const zhCN: Messages = {
   // ─────── docx ───────
   'docx.parse_failed': 'Word 文档解析失败',
 
+  // ─────── doc ───────
+  'doc.parse_failed': '旧版 Word 文档解析失败',
+  'doc.loading': '加载 Word 文档中...',
+
+  // ─────── ppt ───────
+  'ppt.parse_failed': '旧版 PowerPoint 解析失败',
+  'ppt.loading': '加载 PPT 中...',
+
   // ─────── xlsx ───────
   'xlsx.loading': '加载 Excel 中...',
   'xlsx.load_failed': 'Excel 加载失败',
   'xlsx.parse_failed': 'Excel 文件解析失败',
   'xlsx.not_found': 'Excel 文件不存在',
+
+  // ─────── xls ───────
+  'xls.parse_failed': '旧版 Excel 解析失败',
+  'xls.loading': '加载 Excel 中...',
 
   // ─────── pptx ───────
   'pptx.loading': '加载 PPT 中...',

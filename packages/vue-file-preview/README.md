@@ -264,9 +264,9 @@ Differences from `FilePreviewModal`:
 
 ### Documents
 - **PDF**: Pagination, zoom
-- **Word**: DOCX format support
-- **Excel**: XLSX format support
-- **PowerPoint**: PPTX/PPT format support, slide preview
+- **Word**: DOCX and legacy DOC (97–2003) support
+- **Excel**: XLSX and legacy XLS (97–2003) support
+- **PowerPoint**: PPTX and legacy PPT (97–2003) slide preview
 
 ### Fonts
 - **Formats**: TTF, OTF, WOFF, WOFF2

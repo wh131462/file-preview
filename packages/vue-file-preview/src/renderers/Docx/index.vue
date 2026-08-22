@@ -2,8 +2,9 @@
 import type { RendererHandle } from '../base.types';
 import type { ToolbarGroup } from '../toolbar.types';
 
-import { ref, watch, nextTick } from 'vue';
+import { ref, computed, watch, nextTick } from 'vue';
 import mammoth from 'mammoth';
+import { DOCX_MAMMOTH_STYLE_MAP, docxThemeToCssVars, readDocxTheme, type DocxTheme } from '@eternalheart/file-preview-core';
 import { useTranslator } from '../../composables/useTranslator';
 import { useFetcher } from '../../composables/useRequest';
 import RendererError from '../RendererError.vue';
@@ -25,6 +26,7 @@ const html = ref('');
 const loading = ref(true);
 const error = ref<string | null>(null);
 const pages = ref<string[]>([]);
+const theme = ref<DocxTheme>({});
 const measureRef = ref<HTMLDivElement | null>(null);
 
 const loadDocx = async () => {
@@ -32,13 +34,18 @@ const loadDocx = async () => {
   error.value = null;
   html.value = '';
   pages.value = [];
+  theme.value = {};
 
   try {
     const response = await fetcher.value(props.url);
     if (!response.ok) throw new Error('文件加载失败');
     const arrayBuffer = await response.arrayBuffer();
-    const result = await mammoth.convertToHtml({ arrayBuffer });
-    html.value = result.value;
+    const [converted, nextTheme] = await Promise.all([
+      mammoth.convertToHtml({ arrayBuffer }, { styleMap: DOCX_MAMMOTH_STYLE_MAP }),
+      readDocxTheme(arrayBuffer).catch(() => ({} as DocxTheme)),
+    ]);
+    theme.value = nextTheme;
+    html.value = converted.value;
   } catch (err) {
     console.error('Docx 解析错误:', err);
     error.value = t.value('docx.parse_failed');
@@ -88,19 +95,15 @@ watch(html, async () => {
   requestAnimationFrame(() => paginate());
 });
 
-const contentStyle = {
-  fontFamily: 'system-ui, -apple-system, sans-serif',
-  lineHeight: '1.8',
-  color: '#333',
-};
+const contentStyle = computed(() => docxThemeToCssVars(theme.value));
 
-const measureStyle = {
-  ...contentStyle,
+const measureStyle = computed(() => ({
+  ...contentStyle.value,
   position: 'absolute' as const,
   visibility: 'hidden' as const,
   width: `${794 - PAGE_PADDING_X * 2}px`,
   pointerEvents: 'none' as const,
-};
+}));
 
 const pageStyle = {
   width: '100%',

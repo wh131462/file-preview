@@ -253,9 +253,11 @@ const FilePreviewContentInner: React.FC<FilePreviewContentProps> = ({
                 }
 
                 // 从注册表查找匹配的渲染器
-                const rendererConfig = BUILTIN_RENDERERS.find(
-                  (r) => r.fileType === fileType,
-                );
+                const rendererConfig =
+                  BUILTIN_RENDERERS.find((r) => r.fileType === fileType) ??
+                  (fileType === 'xls'
+                    ? BUILTIN_RENDERERS.find((r) => r.fileType === 'xlsx')
+                    : undefined);
 
                 if (rendererConfig) {
                   const RendererComponent = rendererConfig.component;

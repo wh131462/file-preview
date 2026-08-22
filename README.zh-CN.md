@@ -4,10 +4,11 @@
 [![license](https://img.shields.io/npm/l/@eternalheart/react-file-preview.svg)](https://github.com/wh131462/file-preview/blob/master/LICENSE)
 [![react-file-preview downloads](https://img.shields.io/npm/dm/@eternalheart/react-file-preview.svg?label=@eternalheart/react-file-preview)](https://www.npmjs.com/package/@eternalheart/react-file-preview)
 [![vue-file-preview downloads](https://img.shields.io/npm/dm/@eternalheart/vue-file-preview.svg?label=@eternalheart/vue-file-preview)](https://www.npmjs.com/package/@eternalheart/vue-file-preview)
+[![angular-file-preview downloads](https://img.shields.io/npm/dm/@eternalheart/angular-file-preview.svg?label=@eternalheart/angular-file-preview)](https://www.npmjs.com/package/@eternalheart/angular-file-preview)
 
 [English](./README.md) | 简体中文
 
-现代化、功能丰富的文件预览组件库，**同时支持 React 和 Vue 框架**。通过共享核心和框架专用绑定，实现图片、视频、音频、PDF、Office 文档（Word、Excel、PowerPoint）、Markdown 和代码文件的预览。
+现代化、功能丰富的文件预览组件库，**同时支持 React、Vue 和 Angular**。通过共享核心和框架专用绑定，实现图片、视频、音频、PDF、Office 文档（DOC/DOCX、XLS/XLSX、PPT/PPTX）、Markdown 和代码文件的预览。
 
 ---
 
@@ -16,7 +17,8 @@
 - <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f3a8.svg" width="20" height="20" alt="🎨" /> **现代化 UI** — 简洁现代的界面设计，流畅动画
 - <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f4c1.svg" width="20" height="20" alt="📁" /> **20+ 格式支持** — 图片、视频、音频、PDF、Office、代码、电子书等
 - <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1fa9f.svg" width="20" height="20" alt="🪟" /> **双模式显示** — 全屏弹窗或内嵌容器两种模式
-- <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f3af.svg" width="20" height="20" alt="🎯" /> **多框架支持** — React 和 Vue 共享核心逻辑，API 一致
+- <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f3af.svg" width="20" height="20" alt="🎯" /> **多框架支持** — React、Vue、Angular 共享核心逻辑，API 一致
+- <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f4c4.svg" width="20" height="20" alt="📄" /> **旧版 Office** — 内置 OLE/BIFF 预览 Word 97–2003（`.doc`）、PowerPoint 97–2003（`.ppt`）、Excel 97–2003（`.xls`）
 - <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/2328.svg" width="20" height="20" alt="⌨️" /> **完整交互** — 键盘导航、拖放上传、缩放旋转、自定义播放器
 
 ---
@@ -33,11 +35,13 @@
   <td>
     • <a href="https://wh131462.github.io/file-preview/docs/">完整文档</a><br>
     • <a href="https://wh131462.github.io/file-preview/">React 在线演示</a><br>
-    • <a href="https://wh131462.github.io/file-preview/vue/">Vue 在线演示</a>
+    • <a href="https://wh131462.github.io/file-preview/vue/">Vue 在线演示</a><br>
+    • <a href="https://wh131462.github.io/file-preview/angular/">Angular 在线演示</a>
   </td>
   <td>
     • <a href="https://www.npmjs.com/package/@eternalheart/react-file-preview">React 包</a><br>
     • <a href="https://www.npmjs.com/package/@eternalheart/vue-file-preview">Vue 包</a><br>
+    • <a href="https://www.npmjs.com/package/@eternalheart/angular-file-preview">Angular 包</a><br>
     • <a href="https://github.com/wh131462/file-preview/issues">问题反馈</a>
   </td>
   <td>
@@ -96,6 +100,28 @@ import '@eternalheart/vue-file-preview/style.css';
 
 <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f449.svg" width="16" height="16" alt="👉" style="vertical-align: middle;" /> [查看 Vue 完整文档](./packages/vue-file-preview/README.zh-CN.md) | [在线演示](https://wh131462.github.io/file-preview/vue/)
 
+### Angular
+
+```bash
+npm install @eternalheart/angular-file-preview
+```
+
+```ts
+import { FilePreviewModal } from '@eternalheart/angular-file-preview';
+import '@eternalheart/angular-file-preview/style.css';
+```
+
+```html
+<FilePreviewModal
+  [files]="[file]"
+  [currentIndex]="0"
+  [isOpen]="true"
+  (close)="isOpen = false"
+/>
+```
+
+<img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f449.svg" width="16" height="16" alt="👉" style="vertical-align: middle;" /> [查看 Angular 完整文档](./packages/angular-file-preview/README.zh-CN.md) | [在线演示](https://wh131462.github.io/file-preview/angular/)
+
 ---
 
 ## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f4e6.svg" width="20" height="20" alt="📦" /> 包概览
@@ -104,6 +130,7 @@ import '@eternalheart/vue-file-preview/style.css';
 |------|------|------|------|
 | [@eternalheart/react-file-preview](https://www.npmjs.com/package/@eternalheart/react-file-preview) | React 组件库 | [![npm](https://img.shields.io/npm/v/@eternalheart/react-file-preview.svg)](https://www.npmjs.com/package/@eternalheart/react-file-preview) | [README](./packages/react-file-preview/README.zh-CN.md) |
 | [@eternalheart/vue-file-preview](https://www.npmjs.com/package/@eternalheart/vue-file-preview) | Vue 3 组件库 | [![npm](https://img.shields.io/npm/v/@eternalheart/vue-file-preview.svg)](https://www.npmjs.com/package/@eternalheart/vue-file-preview) | [README](./packages/vue-file-preview/README.zh-CN.md) |
+| [@eternalheart/angular-file-preview](https://www.npmjs.com/package/@eternalheart/angular-file-preview) | Angular 组件库 | [![npm](https://img.shields.io/npm/v/@eternalheart/angular-file-preview.svg)](https://www.npmjs.com/package/@eternalheart/angular-file-preview) | [README](./packages/angular-file-preview/README.zh-CN.md) |
 | file-preview-core | 框架无关核心 | 内部包 | - |
 
 ---
@@ -133,8 +160,8 @@ import '@eternalheart/vue-file-preview/style.css';
 </tr>
 <tr>
   <td><strong>文档</strong></td>
-  <td>PDF, DOCX, XLSX, PPTX/PPT</td>
-  <td>分页、缩放、幻灯片预览、表格查看</td>
+  <td>PDF, DOC/DOCX, XLS/XLSX, PPT/PPTX</td>
+  <td>分页、缩放、幻灯片预览、表格查看；旧版 DOC/PPT/XLS 走 OLE/BIFF</td>
 </tr>
 <tr>
   <td><strong>代码</strong></td>
@@ -172,8 +199,10 @@ file-preview/
 │   ├── file-preview-core/     # 框架无关核心（类型、文件检测、解析器）
 │   ├── react-file-preview/    # React 绑定 → @eternalheart/react-file-preview
 │   ├── vue-file-preview/      # Vue 绑定 → @eternalheart/vue-file-preview
+│   ├── angular-file-preview/  # Angular 绑定 → @eternalheart/angular-file-preview
 │   ├── example/               # React 示例应用（部署到 GitHub Pages）
 │   ├── vue-example/           # Vue 示例应用（部署到 GitHub Pages /vue）
+│   ├── angular-example/       # Angular 示例应用（部署到 GitHub Pages /angular）
 │   └── docs/                  # VitePress 文档站
 └── openspec/                  # OpenSpec 变更记录
 ```
@@ -194,7 +223,10 @@ pnpm install
 # 启动开发服务器
 pnpm dev              # React 示例
 pnpm dev:vue          # Vue 示例
+pnpm dev:angular      # Angular 示例
+pnpm dev:all          # React + Vue + Angular 示例
 pnpm dev:docs         # 文档站
+pnpm kill:dev         # 终止 4800–4803 端口上的示例服务
 
 # 构建
 pnpm build            # 构建所有包
@@ -209,6 +241,7 @@ pnpm preview:docs     # 预览文档构建
 pnpm gh               # 构建并部署示例和文档到 GitHub Pages
 pnpm pub:react        # 发布 React 包到 npm
 pnpm pub:vue          # 发布 Vue 包到 npm
+pnpm pub:angular      # 发布 Angular 包到 npm
 ```
 
 ### 贡献流程
@@ -279,7 +312,28 @@ const customRenderers = [
 </template>
 ```
 
-<img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f449.svg" width="16" height="16" alt="👉" style="vertical-align: middle;" /> 详细文档：[React 自定义渲染器](./packages/react-file-preview/README.zh-CN.md#-自定义渲染器) | [Vue 自定义渲染器](./packages/vue-file-preview/README.zh-CN.md#-自定义渲染器)
+**Angular 示例：**
+
+```ts
+const customRenderers = [
+  {
+    test: (file) => file.type === 'application/custom',
+    render: () => CustomRenderer,
+  },
+];
+```
+
+```html
+<FilePreviewModal
+  [files]="files"
+  [currentIndex]="0"
+  [isOpen]="true"
+  [customRenderers]="customRenderers"
+  (close)="isOpen = false"
+/>
+```
+
+<img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f449.svg" width="16" height="16" alt="👉" style="vertical-align: middle;" /> 详细文档：[React 自定义渲染器](./packages/react-file-preview/README.zh-CN.md#-自定义渲染器) | [Vue 自定义渲染器](./packages/vue-file-preview/README.zh-CN.md#-自定义渲染器) | [Angular README](./packages/angular-file-preview/README.zh-CN.md)
 
 
 ---
@@ -304,6 +358,9 @@ const customRenderers = [
 
 - **GitHub**：[wh131462/file-preview](https://github.com/wh131462/file-preview)
 - **文档**：[wh131462.github.io/file-preview/docs](https://wh131462.github.io/file-preview/docs/)
+- **React 演示**：[wh131462.github.io/file-preview](https://wh131462.github.io/file-preview/)
+- **Vue 演示**：[wh131462.github.io/file-preview/vue](https://wh131462.github.io/file-preview/vue/)
+- **Angular 演示**：[wh131462.github.io/file-preview/angular](https://wh131462.github.io/file-preview/angular/)
 - **问题反馈**：[Issue Tracker](https://github.com/wh131462/file-preview/issues)
 - **社区**：[Linux.do](https://linux.do/)
 

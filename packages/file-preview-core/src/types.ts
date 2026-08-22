@@ -24,8 +24,11 @@ export type FileType =
   | 'image'
   | 'pdf'
   | 'docx'
+  | 'doc'
   | 'xlsx'
+  | 'xls'
   | 'pptx'
+  | 'ppt'
   | 'msg'
   | 'epub'
   | 'mobi'
@@ -49,8 +52,11 @@ export const SUPPORTED_FILE_TYPES: Exclude<FileType, 'unsupported'>[] = [
   'image',
   'pdf',
   'docx',
+  'doc',
   'xlsx',
+  'xls',
   'pptx',
+  'ppt',
   'msg',
   'epub',
   'mobi',

@@ -1,0 +1,1392 @@
+@tailwind components;
+@tailwind utilities;
+
+/* 作用域内的 Tailwind CSS 变量声明 */
+.afp-root,
+.afp-root *,
+.afp-root ::before,
+.afp-root ::after {
+  --tw-border-spacing-x: 0;
+  --tw-border-spacing-y: 0;
+  --tw-translate-x: 0;
+  --tw-translate-y: 0;
+  --tw-rotate: 0;
+  --tw-skew-x: 0;
+  --tw-skew-y: 0;
+  --tw-scale-x: 1;
+  --tw-scale-y: 1;
+  --tw-pan-x: ;
+  --tw-pan-y: ;
+  --tw-pinch-zoom: ;
+  --tw-scroll-snap-strictness: proximity;
+  --tw-gradient-from-position: ;
+  --tw-gradient-via-position: ;
+  --tw-gradient-to-position: ;
+  --tw-ordinal: ;
+  --tw-slashed-zero: ;
+  --tw-numeric-figure: ;
+  --tw-numeric-spacing: ;
+  --tw-numeric-fraction: ;
+  --tw-ring-inset: ;
+  --tw-ring-offset-width: 0px;
+  --tw-ring-offset-color: #fff;
+  --tw-ring-color: rgb(59 130 246 / 0.5);
+  --tw-ring-offset-shadow: 0 0 #0000;
+  --tw-ring-shadow: 0 0 #0000;
+  --tw-shadow: 0 0 #0000;
+  --tw-shadow-colored: 0 0 #0000;
+  --tw-blur: ;
+  --tw-brightness: ;
+  --tw-contrast: ;
+  --tw-grayscale: ;
+  --tw-hue-rotate: ;
+  --tw-invert: ;
+  --tw-saturate: ;
+  --tw-sepia: ;
+  --tw-drop-shadow: ;
+  --tw-backdrop-blur: ;
+  --tw-backdrop-brightness: ;
+  --tw-backdrop-contrast: ;
+  --tw-backdrop-grayscale: ;
+  --tw-backdrop-hue-rotate: ;
+  --tw-backdrop-invert: ;
+  --tw-backdrop-opacity: ;
+  --tw-backdrop-saturate: ;
+  --tw-backdrop-sepia: ;
+  --tw-contain-size: ;
+  --tw-contain-layout: ;
+  --tw-contain-paint: ;
+  --tw-contain-style: ;
+  box-sizing: border-box;
+}
+
+/* 组件根元素基础样式 */
+.afp-root {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-text-size-adjust: 100%;
+  tab-size: 4;
+  text-align: left;
+}
+
+/* 作用域化 Preflight Reset —— 防止父页面 CSS 污染 */
+.afp-root *,
+.afp-root ::before,
+.afp-root ::after {
+  border-width: 0;
+  border-style: solid;
+}
+
+.afp-root p,
+.afp-root h1,
+.afp-root h2,
+.afp-root h3,
+.afp-root h4,
+.afp-root h5,
+.afp-root h6,
+.afp-root ul,
+.afp-root ol,
+.afp-root li,
+.afp-root dl,
+.afp-root dt,
+.afp-root dd,
+.afp-root blockquote,
+.afp-root figure,
+.afp-root fieldset,
+.afp-root legend {
+  margin: 0;
+  padding: 0;
+}
+
+.afp-root h1,
+.afp-root h2,
+.afp-root h3,
+.afp-root h4,
+.afp-root h5,
+.afp-root h6 {
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+.afp-root a {
+  color: inherit;
+  text-decoration: inherit;
+}
+
+.afp-root ul,
+.afp-root ol {
+  list-style: none;
+}
+
+.afp-root img,
+.afp-root video {
+  max-width: 100%;
+  height: auto;
+}
+
+.afp-root button,
+.afp-root [type='button'],
+.afp-root [type='reset'],
+.afp-root [type='submit'] {
+  -webkit-appearance: button;
+  background-color: transparent;
+  background-image: none;
+  cursor: pointer;
+}
+
+.afp-root input,
+.afp-root textarea,
+.afp-root select {
+  font-family: inherit;
+  font-size: 100%;
+  font-weight: inherit;
+  line-height: inherit;
+  color: inherit;
+  margin: 0;
+  padding: 0;
+}
+
+.afp-root table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+.afp-root pre,
+.afp-root code,
+.afp-root kbd,
+.afp-root samp {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+  font-size: 1em;
+}
+
+/* 作用域内滚动条样式 */
+.afp-root ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.afp-root ::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+}
+
+.afp-root ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+}
+
+.afp-root ::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+/* Light 主题滚动条 */
+.afp-root[data-theme="light"] ::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.afp-root[data-theme="light"] ::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.afp-root[data-theme="light"] ::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.35);
+}
+
+/* 唱片旋转动画 */
+@keyframes afp-vinyl-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* 进出场过渡 (Vue Transition) */
+.afp-fade-enter-active,
+.afp-fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.afp-fade-enter-from,
+.afp-fade-leave-to {
+  opacity: 0;
+}
+
+/* 音频播放器进度条样式 */
+.afp-root .audio-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 16px;
+  border-radius: 3px;
+  background: transparent;
+  outline: none;
+  cursor: pointer;
+  position: relative;
+}
+
+.afp-root .audio-slider:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.afp-root .audio-slider::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 5px;
+  border-radius: 3px;
+  background: transparent;
+}
+
+.afp-root .audio-slider::-moz-range-track {
+  width: 100%;
+  height: 5px;
+  border-radius: 3px;
+  background: transparent;
+}
+
+.afp-root .audio-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--fp-accent-gradient);
+  cursor: pointer;
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--fp-accent) 50%, transparent);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  margin-top: -5px;
+}
+
+.afp-root .audio-slider::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--fp-accent-gradient);
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--fp-accent) 50%, transparent);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.afp-root .audio-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.25);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--fp-accent) 70%, transparent);
+}
+
+.afp-root .audio-slider::-moz-range-thumb:hover {
+  transform: scale(1.25);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--fp-accent) 70%, transparent);
+}
+
+/* 垂直音量滑块样式 */
+.afp-root .volume-slider-vertical {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  outline: none;
+  cursor: pointer;
+}
+
+.afp-root .volume-slider-vertical::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 3px;
+  border-radius: 2px;
+  background: transparent;
+}
+
+.afp-root .volume-slider-vertical::-moz-range-track {
+  width: 100%;
+  height: 3px;
+  border-radius: 2px;
+  background: transparent;
+}
+
+.afp-root .volume-slider-vertical::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--fp-accent-hover);
+  cursor: pointer;
+  box-shadow: 0 2px 6px color-mix(in srgb, var(--fp-accent) 50%, transparent);
+  transition: all 0.15s ease;
+  margin-top: -6px;
+}
+
+.afp-root .volume-slider-vertical::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--fp-accent-hover);
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 2px 6px color-mix(in srgb, var(--fp-accent) 50%, transparent);
+  transition: all 0.15s ease;
+}
+
+.afp-root .pptx-wrapper,
+.afp-root .pptx-preview-wrapper {
+  overflow-y: initial !important;
+  font-family: initial;
+  font-size: initial;
+  line-height: initial;
+  color: initial;
+}
+
+.afp-root .pptx-wrapper a,
+.afp-root .pptx-preview-wrapper a {
+  color: initial;
+  text-decoration: initial;
+}
+
+.afp-root .pptx-wrapper h1,
+.afp-root .pptx-wrapper h2,
+.afp-root .pptx-wrapper h3,
+.afp-root .pptx-wrapper h4,
+.afp-root .pptx-wrapper h5,
+.afp-root .pptx-wrapper h6,
+.afp-root .pptx-preview-wrapper h1,
+.afp-root .pptx-preview-wrapper h2,
+.afp-root .pptx-preview-wrapper h3,
+.afp-root .pptx-preview-wrapper h4,
+.afp-root .pptx-preview-wrapper h5,
+.afp-root .pptx-preview-wrapper h6 {
+  font-size: initial;
+  font-weight: initial;
+}
+
+/* 隐藏滚动条样式 */
+.afp-root .scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.afp-root .scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* x-data-spreadsheet 样式覆盖 */
+.afp-root .xlsx-spreadsheet-container {
+  overflow: hidden;
+}
+
+.afp-root .xlsx-spreadsheet-container .x-spreadsheet {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.afp-root .xlsx-spreadsheet-container .x-spreadsheet-sheet {
+  overflow: hidden;
+}
+
+.afp-root .xlsx-spreadsheet-container .x-spreadsheet-bottombar .x-spreadsheet-menu > li:first-child > .x-spreadsheet-icon {
+  display: none;
+}
+
+.afp-root .xlsx-spreadsheet-container .x-spreadsheet-bottombar .x-spreadsheet-menu > li {
+  pointer-events: auto;
+}
+
+.afp-root .xlsx-spreadsheet-container .x-spreadsheet-bottombar .x-spreadsheet-menu {
+  display: flex;
+  width: 100%;
+  overflow: visible;
+  flex-wrap: nowrap;
+}
+
+.afp-root .xlsx-spreadsheet-container .x-spreadsheet-bottombar .x-spreadsheet-menu > li:first-child {
+  order: 999;
+  margin-left: auto;
+}
+
+.afp-root .xlsx-spreadsheet-container .x-spreadsheet-bottombar {
+  padding: 0 8px;
+  overflow: visible;
+}
+
+.afp-root .xlsx-spreadsheet-container .x-spreadsheet-bottombar .x-spreadsheet-dropdown.top-left .x-spreadsheet-dropdown-content {
+  left: auto;
+  right: 0;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.afp-root .xlsx-spreadsheet-container .x-spreadsheet-bottombar .x-spreadsheet-contextmenu {
+  display: none !important;
+}
+
+.afp-root .xlsx-spreadsheet-container .x-spreadsheet-scrollbar {
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+.afp-root .xlsx-spreadsheet-container .x-spreadsheet-scrollbar.vertical > div,
+.afp-root .xlsx-spreadsheet-container .x-spreadsheet-scrollbar.horizontal > div {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* Light 主题 xlsx 滚动条 */
+.afp-root[data-theme="light"] .xlsx-spreadsheet-container .x-spreadsheet-scrollbar {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.afp-root[data-theme="light"] .xlsx-spreadsheet-container .x-spreadsheet-scrollbar.vertical > div,
+.afp-root[data-theme="light"] .xlsx-spreadsheet-container .x-spreadsheet-scrollbar.horizontal > div {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+@media (max-width: 640px) {
+  .afp-root .xlsx-spreadsheet-container .x-spreadsheet-bottombar {
+    padding: 0 4px;
+    font-size: 12px;
+  }
+
+  .afp-root .xlsx-spreadsheet-container .x-spreadsheet-bottombar .x-spreadsheet-menu > li {
+    padding: 0 6px;
+    font-size: 12px;
+    min-width: 0;
+    white-space: nowrap;
+  }
+}
+
+/* ============================================================
+ * 语义化主题 token (CSS 变量) — 与 react-file-preview 同结构
+ * 详见 packages/react-file-preview/src/index.css 顶部注释
+ * ============================================================ */
+
+.afp-root {
+  /* 文字前景 */
+  --fp-fg-primary:    rgb(255 255 255 / 0.9);
+  --fp-fg-secondary:  rgb(255 255 255 / 0.75);
+  --fp-fg-tertiary:   rgb(255 255 255 / 0.6);
+  --fp-fg-muted:      rgb(255 255 255 / 0.4);
+  --fp-fg-disabled:   rgb(255 255 255 / 0.3);
+  --fp-fg-inverse:    rgb(23 23 23);
+
+  /* 表面背景层级 */
+  --fp-surface-1:        rgb(255 255 255 / 0.05);
+  --fp-surface-2:        rgb(255 255 255 / 0.1);
+  --fp-surface-3:        rgb(255 255 255 / 0.15);
+  --fp-surface-toolbar:  rgb(0 0 0 / 0.5);
+  --fp-surface-overlay:  rgb(0 0 0 / 0.8);
+  --fp-surface-nav:      rgb(0 0 0 / 0.4);
+  --fp-surface-nav-hover: rgb(0 0 0 / 0.6);
+
+  /* 边框 / 分隔 */
+  --fp-line-weak:    rgb(255 255 255 / 0.08);
+  --fp-line:         rgb(255 255 255 / 0.1);
+  --fp-line-strong:  rgb(255 255 255 / 0.2);
+  --fp-divide:       rgb(255 255 255 / 0.1);
+
+  /* 品牌强调色 — Angular 官方 banner：红 → 品红 → 紫 */
+  --fp-accent:          rgb(241 7 18);
+  --fp-accent-hover:    rgb(234 5 96);
+  --fp-accent-end:      rgb(136 34 255);
+  --fp-accent-soft:     rgb(241 7 18 / 0.18);
+  --fp-accent-gradient: linear-gradient(90deg, var(--fp-accent), var(--fp-accent-hover), var(--fp-accent-end));
+
+  /* 代码块（跟随主题切换） */
+  --fp-code-bg:       #1e1e1e;
+  --fp-code-fg:       rgb(255 255 255 / 0.85);
+  --fp-code-header:   rgb(255 255 255 / 0.08);
+  --fp-media-bg:      #000;
+
+  /* loading spinner */
+  --fp-spinner-track: rgb(255 255 255 / 0.2);
+  --fp-spinner-head:  rgb(255 255 255 / 0.85);
+}
+
+.afp-root[data-theme="light"] {
+  --fp-fg-primary:    rgb(23 23 23 / 0.9);
+  --fp-fg-secondary:  rgb(23 23 23 / 0.78);
+  --fp-fg-tertiary:   rgb(23 23 23 / 0.6);
+  --fp-fg-muted:      rgb(23 23 23 / 0.45);
+  --fp-fg-disabled:   rgb(23 23 23 / 0.3);
+  --fp-fg-inverse:    rgb(255 255 255);
+
+  --fp-surface-1:        rgb(0 0 0 / 0.04);
+  --fp-surface-2:        rgb(0 0 0 / 0.06);
+  --fp-surface-3:        rgb(0 0 0 / 0.1);
+  --fp-surface-toolbar:  rgb(255 255 255 / 0.8);
+  --fp-surface-overlay:  rgb(255 255 255 / 0.6);
+  --fp-surface-nav:      rgb(255 255 255 / 0.7);
+  --fp-surface-nav-hover: rgb(255 255 255 / 0.9);
+
+  --fp-line-weak:    rgb(0 0 0 / 0.06);
+  --fp-line:         rgb(0 0 0 / 0.1);
+  --fp-line-strong:  rgb(0 0 0 / 0.18);
+  --fp-divide:       rgb(0 0 0 / 0.08);
+
+  --fp-spinner-track: rgb(0 0 0 / 0.1);
+  --fp-spinner-head:  rgb(23 23 23 / 0.85);
+
+  /* 代码块在 light 下取 GitHub Light 风格 */
+  --fp-code-bg:       #f6f8fa;
+  --fp-code-fg:       rgb(36 41 47 / 0.95);
+  --fp-code-header:   rgb(0 0 0 / 0.04);
+  /* media-bg 仍保持 #000（视频/音频画布天然黑底，不切换） */
+}
+
+/* Markdown 内容样式 — 全部走语义 token，主题切换由变量驱动 */
+.afp-root .markdown-body h1 {
+  font-size: 1.875rem;
+  font-weight: 600;
+  margin: 1.5rem 0 1rem 0;
+  color: var(--fp-fg-primary);
+}
+.afp-root .markdown-body h1:first-child { margin-top: 0; }
+
+.afp-root .markdown-body h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 2rem 0 0.75rem 0;
+  color: var(--fp-fg-primary);
+}
+
+.afp-root .markdown-body h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 1.5rem 0 0.5rem 0;
+  color: var(--fp-fg-primary);
+}
+
+.afp-root .markdown-body h4 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 1rem 0 0.5rem 0;
+  color: var(--fp-fg-primary);
+}
+
+.afp-root .markdown-body p {
+  color: var(--fp-fg-secondary);
+  margin-bottom: 1rem;
+  line-height: 1.75;
+}
+
+.afp-root .markdown-body a {
+  color: var(--fp-accent-hover);
+  text-decoration: underline;
+  text-decoration-color: var(--fp-accent);
+}
+
+.afp-root .markdown-body a:hover {
+  color: var(--fp-accent);
+}
+
+.afp-root .markdown-body ul {
+  list-style: disc;
+  padding-left: 1.5rem;
+  margin-bottom: 1rem;
+  color: var(--fp-fg-secondary);
+}
+
+.afp-root .markdown-body ol {
+  list-style: decimal;
+  padding-left: 1.5rem;
+  margin-bottom: 1rem;
+  color: var(--fp-fg-secondary);
+}
+
+.afp-root .markdown-body li {
+  line-height: 1.75;
+  margin-bottom: 0.25rem;
+}
+
+.afp-root .markdown-body blockquote {
+  border-left: 4px solid var(--fp-line-strong);
+  padding-left: 1rem;
+  color: var(--fp-fg-tertiary);
+  margin: 1rem 0;
+  font-style: italic;
+}
+
+.afp-root .markdown-body table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+  border: 1px solid var(--fp-line);
+  border-radius: 0.375rem;
+  overflow: hidden;
+}
+
+.afp-root .markdown-body thead {
+  background: var(--fp-surface-1);
+}
+
+.afp-root .markdown-body th {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--fp-fg-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--fp-line);
+}
+
+.afp-root .markdown-body td {
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  color: var(--fp-fg-secondary);
+  border-bottom: 1px solid var(--fp-line-weak);
+}
+
+.afp-root .markdown-body tbody tr:hover {
+  background: var(--fp-surface-1);
+}
+
+.afp-root .markdown-body hr {
+  border-color: var(--fp-line);
+  margin: 1.5rem 0;
+}
+
+.afp-root .markdown-body img {
+  border-radius: 0.375rem;
+  max-width: 100%;
+  height: auto;
+  margin: 1rem auto;
+  display: block;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+
+.afp-root .markdown-body strong {
+  font-weight: 600;
+  color: var(--fp-fg-primary);
+}
+
+.afp-root .markdown-body em {
+  font-style: italic;
+}
+
+.afp-root .markdown-body del {
+  text-decoration: line-through;
+  color: var(--fp-fg-muted);
+}
+
+.afp-root .markdown-body code:not(pre code) {
+  background: var(--fp-surface-2);
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  color: var(--fp-fg-primary);
+  border: 1px solid var(--fp-line);
+}
+
+.afp-root .markdown-body pre {
+  margin: 1rem 0;
+  border-radius: 0.375rem;
+  border: 1px solid var(--fp-line-weak);
+  overflow: auto;
+  position: relative;
+  background-color: var(--fp-code-bg);
+}
+
+.afp-root .markdown-body pre code {
+  display: block;
+  padding: 1rem;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  overflow-x: auto;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  color: var(--fp-code-fg);
+}
+
+.afp-root .markdown-body .code-block-wrapper {
+  position: relative;
+  margin: 1rem 0;
+}
+
+.afp-root .markdown-body .code-block-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.375rem 1rem;
+  background: var(--fp-code-header);
+  border: 1px solid var(--fp-line-weak);
+  border-bottom: 0;
+  border-top-left-radius: 0.375rem;
+  border-top-right-radius: 0.375rem;
+  font-size: 0.75rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+.afp-root .markdown-body .code-block-header > span {
+  /* header 在 light 主题下底色仍是 code-header (浅白半透明在浅底上显示)，
+     为保证对比度，header 字色固定走 code-fg（亮色） */
+  color: var(--fp-code-fg);
+  user-select: none;
+}
+
+.afp-root .markdown-body .code-block-wrapper pre {
+  margin: 0;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  border-top: 0;
+}
+
+.afp-root .markdown-body .code-copy-btn {
+  background: transparent;
+  border: 0;
+  padding: 0.25rem;
+  color: var(--fp-code-fg);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 0.25rem;
+  transition: all 0.15s ease;
+  opacity: 0.6;
+}
+
+.afp-root .markdown-body .code-copy-btn:hover {
+  opacity: 1;
+  background: var(--fp-surface-2);
+}
+
+.afp-root .markdown-body .code-copy-float {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  z-index: 2;
+  background: var(--fp-surface-2);
+  border: 1px solid var(--fp-line);
+}
+
+.afp-root .markdown-body .code-block-wrapper:hover .code-copy-float {
+  opacity: 0.85;
+}
+
+/* ============================================================
+ * 双列 Grid 行号布局（Text/Xml 渲染器使用）
+ *
+ * DOM 结构：
+ *   <div class="afp-code-block with-line-numbers [no-wrap]">
+ *     <span class="afp-code-gutter">1</span>
+ *     <span class="afp-code-line">...shiki HTML...</span>
+ *     <span class="afp-code-gutter">2</span>
+ *     <span class="afp-code-line">...</span>
+ *     ...
+ *   </div>
+ *
+ * 关键：
+ *   - Grid 两列：max-content（gutter） + 1fr（code）
+ *   - 同一逻辑行的 gutter 和 code 在同一 grid row → 高度自动同步
+ *   - border-right 画在每个 gutter cell 上，行间无 gap → 连续贯穿
+ * ============================================================ */
+
+.afp-root .afp-code-block {
+  background: var(--fp-code-bg);
+  color: var(--fp-code-fg);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  overflow: auto;
+}
+
+.afp-root .afp-code-block.with-line-numbers {
+  display: grid;
+  grid-template-columns: max-content minmax(20ch, 1fr);
+  align-content: start;
+  min-height: 100%;
+}
+
+.afp-root .afp-code-block.with-line-numbers.no-wrap {
+  grid-template-columns: max-content max-content;
+}
+
+.afp-root .afp-code-block.with-line-numbers > .afp-code-gutter {
+  padding-left: 1em;
+  padding-right: 1em;
+  text-align: right;
+  border-right: 1px solid var(--fp-line);
+  color: var(--fp-fg-disabled);
+  user-select: none;
+  white-space: nowrap;
+  min-width: 3.5em;
+}
+
+/* 占位行：撑满剩余高度，让 gutter border 延伸到底部 */
+.afp-root .afp-code-block.with-line-numbers > .afp-code-gutter-filler {
+  border-right: 1px solid var(--fp-line);
+  min-height: 1.5rem;
+}
+
+.afp-root .afp-code-block.with-line-numbers > .afp-code-line-filler {
+  min-height: 1.5rem;
+}
+
+.afp-root .afp-code-block.with-line-numbers > .afp-code-line {
+  padding-left: 1em;
+  padding-right: 1em;
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  min-height: 1.5em;
+  min-width: 0;
+}
+
+.afp-root .afp-code-block.with-line-numbers.no-wrap > .afp-code-line {
+  white-space: pre;
+  word-break: normal;
+  overflow-wrap: normal;
+}
+
+/* 首行：上 padding；占位 filler 提供底部呼吸 */
+.afp-root .afp-code-block.with-line-numbers > :nth-child(-n+2) {
+  padding-top: 1.5rem;
+}
+
+/* ============================================================
+ * PDF / Docx 容器响应式 padding（容器宽度 < 794px 时逐渐减小）
+ * ============================================================ */
+
+.afp-root .afp-docx-container,
+.afp-root .afp-pdf-container {
+  container-type: inline-size;
+  /* 使用 clamp 实现平滑过渡：最小0，最大1.5rem，中间线性变化 */
+  padding-top: clamp(0rem, calc((100cqw - 794px) / 100 * 1.5), 1.5rem);
+  padding-bottom: clamp(0rem, calc((100cqw - 794px) / 100 * 1.5), 1.5rem);
+  padding-left: clamp(0rem, calc((100cqw - 794px) / 100 * 1), 1rem);
+  padding-right: clamp(0rem, calc((100cqw - 794px) / 100 * 1), 1rem);
+}
+
+/* PDF 页面占位符：使用 aspect-ratio 让高度随宽度等比缩放 */
+.afp-root .afp-pdf-page-placeholder {
+  /* A4 纸张比例约为 1:1.414 (√2) */
+  aspect-ratio: 1 / 1.414;
+  width: 100%;
+  max-width: 1200px;
+  min-height: 400px;
+}
+
+/* 降级方案：如果浏览器不支持 container queries，使用媒体查询分段 */
+@supports not (container-type: inline-size) {
+  .afp-root .afp-docx-container,
+  .afp-root .afp-pdf-container {
+    padding: 1.5rem 1rem;
+  }
+
+  @media (max-width: 893px) {
+    .afp-root .afp-docx-container,
+    .afp-root .afp-pdf-container {
+      padding: 1rem 0.5rem;
+    }
+  }
+
+  @media (max-width: 794px) {
+    .afp-root .afp-docx-container,
+    .afp-root .afp-pdf-container {
+      padding: 0;
+    }
+  }
+}
+
+/* ============================================================
+ * Legacy Office (.doc / .ppt)
+ * ============================================================ */
+
+.afp-root .afp-legacy-doc-paper {
+  width: 100%;
+  max-width: 794px;
+  background: #fff;
+  box-shadow: 0 4px 6px rgb(0 0 0 / 0.07), 0 10px 20px rgb(0 0 0 / 0.10);
+  padding: 48px 56px 56px;
+  line-height: 1.55;
+}
+
+.afp-root .legacy-doc__title {
+  margin: 0 0 1.15rem;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.015em;
+}
+
+.afp-root .legacy-doc__heading {
+  margin: 1.6rem 0 0.65rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.afp-root .legacy-doc__p {
+  margin: 0 0 0.9rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.afp-root .legacy-doc__p strong,
+.afp-root .legacy-doc__list strong {
+  font-weight: 700;
+}
+
+.afp-root .legacy-doc__link {
+  color: var(--doc-link);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  word-break: break-word;
+}
+
+.afp-root .legacy-doc__list {
+  margin: 0 0 1.15rem;
+  padding-left: 1.5rem;
+}
+
+.afp-root .legacy-doc__list--toc {
+  list-style: decimal;
+  padding-left: 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.afp-root .legacy-doc__list--disc {
+  list-style: disc;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.afp-root .legacy-doc__list--emoji {
+  list-style: none;
+  margin: 0.35rem 0 1.15rem;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.afp-root .legacy-doc__emoji-item {
+  display: grid;
+  grid-template-columns: 1.6rem minmax(0, 1fr);
+  column-gap: 0.55rem;
+  align-items: start;
+}
+
+.afp-root .legacy-doc__table-wrap {
+  margin: 0.65rem 0 1.4rem;
+  overflow-x: auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+}
+
+.afp-root .legacy-doc__table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.afp-root .legacy-doc__table th,
+.afp-root .legacy-doc__table td {
+  padding: 10px 14px;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid #eef2f7;
+}
+
+.afp-root .legacy-doc__table th {
+  background: #f5f7fa;
+  font-weight: 700;
+}
+
+.afp-root .ooxml-doc__title,
+.afp-root .afp-docx-container h1.ooxml-doc__title {
+  margin: 0 0 1.15rem;
+  line-height: 1.25;
+  font-family: var(--docx-title-font, var(--docx-heading-font, var(--docx-font)));
+  font-size: var(--docx-title-size);
+  color: var(--docx-title-color, var(--docx-color));
+  font-weight: 700;
+}
+
+.afp-root .ooxml-doc__heading,
+.afp-root .afp-docx-container h1,
+.afp-root .afp-docx-container h2,
+.afp-root .afp-docx-container h3 {
+  margin: 1.6rem 0 0.65rem;
+  line-height: 1.35;
+  font-family: var(--docx-heading-font, var(--docx-font));
+  font-weight: 700;
+}
+
+.afp-root .afp-docx-container h1,
+.afp-root .ooxml-doc__heading--h1 {
+  font-size: var(--docx-h1-size);
+  color: var(--docx-color);
+}
+
+.afp-root .afp-docx-container h2,
+.afp-root .ooxml-doc__heading--h2 {
+  font-size: var(--docx-h2-size);
+  color: var(--docx-color);
+}
+
+.afp-root .afp-docx-container h3,
+.afp-root .ooxml-doc__heading--h3 {
+  font-size: var(--docx-h3-size);
+  color: var(--docx-h3-color, var(--docx-color));
+}
+
+.afp-root .ooxml-doc__p,
+.afp-root .afp-docx-container p {
+  margin: 0 0 0.9rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.afp-root .ooxml-doc__link,
+.afp-root .afp-docx-container a {
+  color: var(--docx-link);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  word-break: break-word;
+}
+
+.afp-root .ooxml-doc__list,
+.afp-root .afp-docx-container ul,
+.afp-root .afp-docx-container ol {
+  margin: 0 0 1.15rem;
+  padding-left: 1.5rem;
+}
+
+.afp-root .ooxml-doc__list--disc,
+.afp-root .afp-docx-container ul {
+  list-style: disc;
+}
+
+.afp-root .ooxml-doc__list--ordered,
+.afp-root .afp-docx-container ol {
+  list-style: decimal;
+}
+
+.afp-root .ooxml-doc__table-wrap,
+.afp-root .afp-docx-container table {
+  margin: 0.65rem 0 1.4rem;
+}
+
+.afp-root .ooxml-doc__table,
+.afp-root .afp-docx-container table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.afp-root .ooxml-doc__table th,
+.afp-root .ooxml-doc__table td,
+.afp-root .afp-docx-container th,
+.afp-root .afp-docx-container td {
+  padding: 6px 10px;
+  text-align: left;
+  vertical-align: top;
+  border: 1px solid currentColor;
+}
+
+.afp-root .ooxml-doc__img,
+.afp-root .afp-docx-container img {
+  max-width: 100%;
+  height: auto;
+}
+
+.afp-root .afp-legacy-ppt-wrap {
+  width: 100%;
+  max-width: 72rem;
+  margin: 0 auto;
+}
+
+.afp-root .legacy-ppt {
+  --ppt-ratio: 4 / 3;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  font-family: var(--ppt-font);
+}
+
+.afp-root .legacy-ppt__slide {
+  container-type: inline-size;
+  container-name: ppt-slide;
+  position: relative;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  background: var(--ppt-bg, var(--ppt-surface));
+  box-shadow: 0 1px 2px rgb(16 24 40 / 0.06), 0 10px 28px rgb(16 24 40 / 0.1);
+}
+
+.afp-root .legacy-ppt__viewport {
+  width: 100%;
+  aspect-ratio: var(--ppt-ratio, 4 / 3);
+  position: relative;
+  overflow: hidden;
+}
+
+.afp-root .legacy-ppt__canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--ppt-bg, var(--ppt-surface));
+  display: flex;
+  align-items: stretch;
+}
+
+.afp-root .legacy-ppt__slide--positioned .legacy-ppt__canvas {
+  display: block;
+}
+
+.afp-root .legacy-ppt__frame { display: none; pointer-events: none; }
+
+.afp-root .legacy-ppt__content {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  padding: 5.2cqi 6cqi 4.2cqi;
+  display: flex;
+  flex-direction: column;
+  gap: 1.4cqi;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.afp-root .legacy-ppt__shape {
+  position: absolute;
+  box-sizing: border-box;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  z-index: 1;
+}
+
+.afp-root .legacy-ppt__shape--image { z-index: 0; }
+
+.afp-root .legacy-ppt__shape--center {
+  align-items: center;
+  text-align: center;
+}
+
+.afp-root .legacy-ppt__shape--title {
+  overflow: visible;
+  font-weight: 700;
+  line-height: 1.12;
+  justify-content: flex-start;
+  z-index: 2;
+}
+
+.afp-root .legacy-ppt__shape--subtitle {
+  font-weight: 600;
+  line-height: 1.25;
+  justify-content: center;
+}
+
+.afp-root .legacy-ppt__shape--body {
+  line-height: 1.32;
+}
+
+.afp-root .legacy-ppt__shape--meta {
+  line-height: 1.2;
+}
+
+.afp-root .legacy-ppt__shape .legacy-ppt__title,
+.afp-root .legacy-ppt__shape .legacy-ppt__subtitle,
+.afp-root .legacy-ppt__shape .legacy-ppt__meta,
+.afp-root .legacy-ppt__shape .legacy-ppt__text,
+.afp-root .legacy-ppt__shape .legacy-ppt__list,
+.afp-root .legacy-ppt__shape .legacy-ppt__kicker {
+  margin: 0;
+  font-size: inherit;
+  font-weight: inherit;
+  color: inherit;
+  line-height: inherit;
+}
+
+.afp-root .legacy-ppt__slide--hero .legacy-ppt__canvas,
+.afp-root .legacy-ppt__slide--section .legacy-ppt__canvas {
+  background: var(--ppt-brand);
+}
+
+.afp-root .legacy-ppt__slide--positioned.legacy-ppt__slide--hero .legacy-ppt__canvas,
+.afp-root .legacy-ppt__slide--positioned.legacy-ppt__slide--section .legacy-ppt__canvas {
+  background: var(--ppt-bg, var(--ppt-surface));
+}
+
+.afp-root .legacy-ppt__slide--hero .legacy-ppt__frame {
+  display: block;
+  position: absolute;
+  inset: 7%;
+  border: 0.25cqi solid var(--ppt-on-brand);
+  z-index: 0;
+}
+
+.afp-root .legacy-ppt__slide--hero .legacy-ppt__content,
+.afp-root .legacy-ppt__slide--section .legacy-ppt__content {
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.afp-root .legacy-ppt__slide--hero:not(.legacy-ppt__slide--positioned) .legacy-ppt__title,
+.afp-root .legacy-ppt__slide--section:not(.legacy-ppt__slide--positioned) .legacy-ppt__title {
+  color: var(--ppt-on-brand);
+  font-family: var(--ppt-title-font, var(--ppt-font));
+  font-size: var(--ppt-title-size);
+  font-weight: 700;
+  line-height: 1.08;
+  margin: 0;
+}
+
+.afp-root .legacy-ppt__slide--hero:not(.legacy-ppt__slide--positioned) .legacy-ppt__subtitle {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 11%;
+  margin: 0;
+  color: var(--ppt-on-brand);
+  font-family: var(--ppt-body-font, var(--ppt-font));
+  font-size: var(--ppt-body-size);
+  font-weight: 600;
+}
+
+.afp-root .legacy-ppt__slide--content:not(.legacy-ppt__slide--positioned) .legacy-ppt__title,
+.afp-root .legacy-ppt__slide--image:not(.legacy-ppt__slide--positioned) .legacy-ppt__title,
+.afp-root .legacy-ppt__slide--table:not(.legacy-ppt__slide--positioned) .legacy-ppt__title {
+  color: var(--ppt-title);
+  font-family: var(--ppt-title-font, var(--ppt-font));
+  font-size: var(--ppt-title-size);
+  font-weight: 700;
+  line-height: 1.15;
+  margin: 0;
+  flex: 0 0 auto;
+}
+
+.afp-root .legacy-ppt__subtitle,
+.afp-root .legacy-ppt__meta {
+  margin: 0;
+}
+
+.afp-root .legacy-ppt__slide:not(.legacy-ppt__slide--positioned) .legacy-ppt__subtitle,
+.afp-root .legacy-ppt__slide:not(.legacy-ppt__slide--positioned) .legacy-ppt__meta,
+.afp-root .legacy-ppt__slide:not(.legacy-ppt__slide--positioned) .legacy-ppt__kicker,
+.afp-root .legacy-ppt__slide:not(.legacy-ppt__slide--positioned) .legacy-ppt__text,
+.afp-root .legacy-ppt__slide:not(.legacy-ppt__slide--positioned) .legacy-ppt__list {
+  color: var(--ppt-body);
+}
+
+.afp-root .legacy-ppt__text {
+  margin: 0;
+  font-size: var(--ppt-body-size);
+  line-height: 1.42;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.afp-root .legacy-ppt__list {
+  margin: 0;
+  padding-left: 1.15em;
+  font-size: inherit;
+  display: flex;
+  flex-direction: column;
+  gap: 0.18em;
+  height: 100%;
+}
+
+.afp-root .legacy-ppt__list li::marker { color: inherit; }
+.afp-root .legacy-ppt__shape--shadow {
+  text-shadow: 0.1em 0.1em 0.16em rgb(0 0 0 / 0.55);
+}
+.afp-root .legacy-ppt__list li[data-lvl="1"] { padding-left: 1.2em; list-style-type: circle; }
+.afp-root .legacy-ppt__list li[data-lvl="2"] { padding-left: 2.4em; list-style-type: square; }
+.afp-root .legacy-ppt__list li[data-lvl="3"],
+.afp-root .legacy-ppt__list li[data-lvl="4"] { padding-left: 3.6em; }
+.afp-root .legacy-ppt__list li.legacy-ppt__li--gap {
+  list-style: none;
+  flex: 1 1 auto;
+  min-height: 0.35em;
+  visibility: hidden;
+}
+
+.afp-root .legacy-ppt__shape--wash .legacy-ppt__image {
+  opacity: 0.28;
+}
+
+.afp-root .legacy-ppt__media {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.afp-root .legacy-ppt__image {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
+
+.afp-root .legacy-ppt__shape--image .legacy-ppt__image {
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+}
+
+.afp-root .legacy-ppt__gallery {
+  display: grid;
+  gap: 1.2cqi;
+  width: 100%;
+  height: 100%;
+}
+
+.afp-root .legacy-ppt__gallery--2,
+.afp-root .legacy-ppt__gallery--3,
+.afp-root .legacy-ppt__gallery--4 {
+  grid-template-columns: 1fr 1fr;
+}
+
+.afp-root .legacy-ppt__shape--table .legacy-ppt__table-wrap,
+.afp-root .legacy-ppt__table-wrap {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+}
+
+.afp-root .legacy-ppt__table {
+  width: 100%;
+  height: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: 1.55cqi;
+}
+
+.afp-root .legacy-ppt__shape--table .legacy-ppt__table {
+  font-size: min(6.2cqh, 2.3cqi);
+}
+
+.afp-root .legacy-ppt__table th,
+.afp-root .legacy-ppt__table td {
+  border: 0.12cqi solid color-mix(in srgb, var(--ppt-body) 22%, transparent);
+  padding: 0.7cqi 0.9cqi;
+  text-align: center;
+  vertical-align: middle;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--ppt-body);
+}
+
+.afp-root .legacy-ppt__table th {
+  background: var(--ppt-brand);
+  color: var(--ppt-on-brand);
+  font-weight: 700;
+}
+
+.afp-root .legacy-ppt__table tbody tr:nth-child(even) td {
+  background: color-mix(in srgb, var(--ppt-brand) 9%, var(--ppt-surface));
+}
+
+@media (max-width: 768px) {
+  .afp-root .afp-legacy-doc-paper {
+    padding: 28px 20px 36px;
+  }
+}

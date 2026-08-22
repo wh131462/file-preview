@@ -69,6 +69,36 @@ const files = [
 </template>
 ```
 
+```ts [Angular]
+import { Component, signal } from '@angular/core'
+import { FilePreviewModal } from '@eternalheart/angular-file-preview'
+import '@eternalheart/angular-file-preview/style.css'
+
+@Component({
+  selector: 'app-root',
+  standalone: true,
+  imports: [FilePreviewModal],
+  template: `
+    <button (click)="isOpen.set(true)">预览文件</button>
+    <FilePreviewModal
+      [isOpen]="isOpen()"
+      [files]="files"
+      [currentIndex]="currentIndex()"
+      (close)="isOpen.set(false)"
+      (navigate)="currentIndex.set($event)"
+    />
+  `,
+})
+export class App {
+  isOpen = signal(false)
+  currentIndex = signal(0)
+  files = [
+    { url: 'https://example.com/image.jpg', name: 'image.jpg' },
+    { url: 'https://example.com/document.pdf', name: 'document.pdf' }
+  ]
+}
+```
+
 :::
 
 ## 文件对象格式
@@ -210,6 +240,34 @@ const files = [
 </template>
 ```
 
+```ts [Angular]
+import { Component, signal } from '@angular/core'
+import { FilePreviewEmbed } from '@eternalheart/angular-file-preview'
+import '@eternalheart/angular-file-preview/style.css'
+
+@Component({
+  selector: 'app-inline-preview',
+  standalone: true,
+  imports: [FilePreviewEmbed],
+  template: `
+    <div style="width: 100%; height: 520px">
+      <FilePreviewEmbed
+        [files]="files"
+        [currentIndex]="index()"
+        (navigate)="index.set($event)"
+      />
+    </div>
+  `,
+})
+export class InlinePreview {
+  index = signal(0)
+  files = [
+    'https://example.com/image.jpg',
+    { name: 'doc.pdf', url: '/doc.pdf', type: 'application/pdf' }
+  ]
+}
+```
+
 :::
 
 ### 显式指定尺寸
@@ -224,6 +282,10 @@ const files = [
 
 ```vue [Vue 3]
 <FilePreviewEmbed :files="files" :width="800" :height="500" />
+```
+
+```html [Angular]
+<FilePreviewEmbed [files]="files" [width]="800" [height]="500" />
 ```
 
 :::
@@ -342,7 +404,7 @@ const customRenderers: CustomRenderer[] = [
 
 ### Portal / Teleport 渲染
 
-`FilePreviewModal` 使用 React Portal（或 Vue Teleport）将模态框渲染到 `document.body`，这确保了：
+`FilePreviewModal` 使用 React Portal、Vue Teleport 或 Angular 全屏 overlay 将模态框渲染到视口顶层，这确保了：
 
 - <img src="/assets/icons/check.svg" width="18" height="18" style="display:inline;vertical-align:middle" /> **最高层级**: 模态框始终显示在页面最上层，不受父元素 `z-index` 影响
 - <img src="/assets/icons/check.svg" width="18" height="18" style="display:inline;vertical-align:middle" /> **样式隔离**: 避免父元素的 CSS 样式（如 `overflow: hidden`）影响模态框

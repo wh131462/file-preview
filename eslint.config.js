@@ -12,6 +12,8 @@ export default [
       '**/.vitepress/dist/**',
       '**/node_modules/**',
       '**/*.d.ts',
+      'packages/angular-file-preview/**',
+      'packages/angular-example/**',
     ],
   },
   {

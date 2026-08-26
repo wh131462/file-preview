@@ -47,11 +47,23 @@ export const enUS: Messages = {
   // ─────── docx ───────
   'docx.parse_failed': 'Failed to parse Word document',
 
+  // ─────── doc ───────
+  'doc.parse_failed': 'Failed to parse legacy Word document',
+  'doc.loading': 'Loading Word document...',
+
+  // ─────── ppt ───────
+  'ppt.parse_failed': 'Failed to parse legacy PowerPoint',
+  'ppt.loading': 'Loading PPT...',
+
   // ─────── xlsx ───────
   'xlsx.loading': 'Loading Excel...',
   'xlsx.load_failed': 'Failed to load Excel',
   'xlsx.parse_failed': 'Failed to parse Excel file',
   'xlsx.not_found': 'Excel file not found',
+
+  // ─────── xls ───────
+  'xls.parse_failed': 'Failed to parse legacy Excel',
+  'xls.loading': 'Loading Excel...',
 
   // ─────── pptx ───────
   'pptx.loading': 'Loading PPT...',

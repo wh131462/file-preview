@@ -8,12 +8,15 @@ const REACT_EXAMPLE_URL = isDev
 const VUE_EXAMPLE_URL = isDev
   ? 'http://localhost:4802/'
   : 'https://wh131462.github.io/file-preview/vue/'
+const ANGULAR_EXAMPLE_URL = isDev
+  ? 'http://localhost:4803/'
+  : 'https://wh131462.github.io/file-preview/angular/'
 
 const base = '/file-preview/docs/'
 
 export default defineConfig({
   title: 'File Preview',
-  description: 'A modern, feature-rich file preview component for React & Vue 3',
+  description: 'A modern, feature-rich file preview component for React, Vue 3 & Angular',
   base,
 
   head: [
@@ -39,6 +42,7 @@ export default defineConfig({
         items: [
           { text: 'React 版本', link: REACT_EXAMPLE_URL, target: '_blank' },
           { text: 'Vue 3 版本', link: VUE_EXAMPLE_URL, target: '_blank' },
+          { text: 'Angular 版本', link: ANGULAR_EXAMPLE_URL, target: '_blank' },
         ],
       },
       {
@@ -46,6 +50,7 @@ export default defineConfig({
         items: [
           { text: 'React (@eternalheart/react-file-preview)', link: 'https://www.npmjs.com/package/@eternalheart/react-file-preview', target: '_blank' },
           { text: 'Vue 3 (@eternalheart/vue-file-preview)', link: 'https://www.npmjs.com/package/@eternalheart/vue-file-preview', target: '_blank' },
+          { text: 'Angular (@eternalheart/angular-file-preview)', link: 'https://www.npmjs.com/package/@eternalheart/angular-file-preview', target: '_blank' },
         ],
       },
     ],

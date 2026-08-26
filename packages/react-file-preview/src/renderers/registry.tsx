@@ -20,6 +20,8 @@ import {
   TextRenderer,
   FontRenderer,
   CadRenderer,
+  DocRenderer,
+  PptRenderer,
 } from './lazy';
 
 /**
@@ -81,7 +83,21 @@ export const BUILTIN_RENDERERS: BuiltinRendererConfig[] = [
     }),
   },
   {
+    fileType: 'doc',
+    component: DocRenderer,
+    getProps: (ctx) => ({
+      url: ctx.resolvedUrl,
+    }),
+  },
+  {
     fileType: 'xlsx',
+    component: XlsxRenderer,
+    getProps: (ctx) => ({
+      url: ctx.resolvedUrl,
+    }),
+  },
+  {
+    fileType: 'xls',
     component: XlsxRenderer,
     getProps: (ctx) => ({
       url: ctx.resolvedUrl,
@@ -90,6 +106,13 @@ export const BUILTIN_RENDERERS: BuiltinRendererConfig[] = [
   {
     fileType: 'pptx',
     component: PptxRenderer,
+    getProps: (ctx) => ({
+      url: ctx.resolvedUrl,
+    }),
+  },
+  {
+    fileType: 'ppt',
+    component: PptRenderer,
     getProps: (ctx) => ({
       url: ctx.resolvedUrl,
     }),

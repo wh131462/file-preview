@@ -53,6 +53,9 @@ const DOCS_URL = isDev
 const VUE_EXAMPLE_URL = isDev
   ? 'http://localhost:4802/'
   : 'https://wh131462.github.io/file-preview/vue/';
+const ANGULAR_EXAMPLE_URL = isDev
+  ? 'http://localhost:4803/'
+  : 'https://wh131462.github.io/file-preview/angular/';
 
 function App() {
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
@@ -336,6 +339,13 @@ function App() {
                   title="切换到 Vue 版本"
                 >
                   Vue
+                </a>
+                <a
+                  href={ANGULAR_EXAMPLE_URL}
+                  className="px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-md text-xs sm:text-sm font-medium text-gray-400 hover:text-white hover:bg-white/5 transition-all"
+                  title="切换到 Angular 版本"
+                >
+                  Angular
                 </a>
               </div>
 

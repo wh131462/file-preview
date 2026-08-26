@@ -1,7 +1,12 @@
 import { useState, useEffect, useRef, useCallback, forwardRef, useImperativeHandle } from 'react';
 import ExcelJS from 'exceljs';
 import Spreadsheet from 'x-data-spreadsheet';
-import { convertWorkbookToSpreadsheetData } from '../../utils/excelDataConverter';
+import {
+  convertLegacyXlsToSpreadsheetData,
+  convertWorkbookToSpreadsheetData,
+  isLegacyXls,
+  parseLegacyXls,
+} from '@eternalheart/file-preview-core';
 import { useTranslator } from '../../i18n/LocaleContext';
 import { useFetcher } from '../../RequestContext';
 import { RendererError } from '../RendererError';
@@ -151,12 +156,9 @@ export const XlsxRenderer = forwardRef<RendererHandle, XlsxRendererProps>(({ url
           throw new Error('文件为空');
         }
 
-        // 使用 exceljs 解析
-        const workbook = new ExcelJS.Workbook();
-        await workbook.xlsx.load(arrayBuffer);
-
-        // 转换为 x-data-spreadsheet 数据格式
-        const sheetData = convertWorkbookToSpreadsheetData(workbook);
+        const sheetData = isLegacyXls(arrayBuffer)
+          ? convertLegacyXlsToSpreadsheetData(parseLegacyXls(arrayBuffer))
+          : convertWorkbookToSpreadsheetData(await new ExcelJS.Workbook().xlsx.load(arrayBuffer));
 
         if (!isMounted) return;
 

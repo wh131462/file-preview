@@ -569,8 +569,11 @@ function CustomDrawer({ files, currentIndex, onNavigate, onClose }) {
 
 #### Office 文档
 - **Word (DOCX)**: 通过 mammoth 库渲染为 HTML
+- **Word (DOC)**: 旧版 Word 97–2003，OLE 解析为结构化 HTML
 - **Excel (XLSX)**: 多工作表切换，表格渲染
-- **PowerPoint (PPT/PPTX)**: 平铺/幻灯片两种显示模式，16:9 宽高比
+- **Excel (XLS)**: 旧版 Excel 97–2003，OLE/BIFF 解析后走同一套表格预览
+- **PowerPoint (PPTX)**: 平铺/幻灯片两种显示模式，16:9 宽高比
+- **PowerPoint (PPT)**: 旧版 PowerPoint 97–2003，OLE 解析幻灯片文字 / 主题 / 嵌入图
 
 #### Outlook 邮件
 - **MSG**: 解析邮件头信息（发件人、收件人、主题、日期）

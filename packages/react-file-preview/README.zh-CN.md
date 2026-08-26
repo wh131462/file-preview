@@ -334,9 +334,9 @@ const files = [
 
 ### 文档
 - **PDF**: 分页浏览、缩放
-- **Word**: DOCX 格式支持
-- **Excel**: XLSX 格式支持
-- **PowerPoint**: PPTX/PPT 格式支持、幻灯片预览
+- **Word**: DOCX 与旧版 DOC（97–2003）支持
+- **Excel**: XLSX 与旧版 XLS（97–2003）支持
+- **PowerPoint**: PPTX 与旧版 PPT（97–2003）幻灯片预览
 
 ### 字体
 - **格式**: TTF, OTF, WOFF, WOFF2
@@ -530,7 +530,9 @@ const files = [
 
 #### Office 文档
 - **Word**: `application/vnd.openxmlformats-officedocument.wordprocessingml.document` (.docx)
+- **Word (旧版)**: `application/msword` (.doc)
 - **Excel**: `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet` (.xlsx)
+- **Excel (旧版)**: `application/vnd.ms-excel` (.xls)
 - **PowerPoint**: `application/vnd.openxmlformats-officedocument.presentationml.presentation` (.pptx)
 - **PowerPoint (旧版)**: `application/vnd.ms-powerpoint` (.ppt)
 

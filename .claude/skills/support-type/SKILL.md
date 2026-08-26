@@ -1,17 +1,18 @@
 ---
 name: support-type
-description: 为 file-preview 新增文件类型支持时使用。必须同时在 core / react / vue 三个包中完成类型声明、类型识别、渲染器实现与接入，保证 React 和 Vue 两个框架同步支持。当用户提到"支持 xxx 类型"、"新增文件类型"、"添加 xxx 预览"时使用。
+description: 为 file-preview 新增文件类型支持时使用。必须同时在 core / react / vue / angular 四个包中完成类型声明、类型识别、渲染器实现与接入，保证 React、Vue、Angular 三个框架同步支持。当用户提到"支持 xxx 类型"、"新增文件类型"、"添加 xxx 预览"时使用。
 ---
 
-# 同步新增文件类型支持 (React + Vue)
+# 同步新增文件类型支持 (React + Vue + Angular)
 
-本项目是 monorepo，包含三个核心包：
+本项目是 monorepo，包含四个核心包：
 
 - `packages/file-preview-core/` — 共享类型、工具、文件识别
 - `packages/react-file-preview/` — React 实现
 - `packages/vue-file-preview/` — Vue 实现
+- `packages/angular-file-preview/` — Angular 实现
 
-**核心原则：新增任何文件类型支持，必须 React + Vue 同时实现，不允许只做一个框架。**
+**核心原则：新增任何文件类型支持，必须 React + Vue + Angular 同时实现，不允许只做一个框架。**
 
 ## 强制检查清单
 
@@ -75,6 +76,20 @@ description: 为 file-preview 新增文件类型支持时使用。必须同时�
 - [ ] `packages/vue-file-preview/package.json` — 新增必要依赖
   - **重型 npm 依赖必须放在 `dependencies`**，**禁止**放在 `devDependencies`（详见 §3.9）
   - 同时在 `packages/vue-file-preview/vite.config.ts` 的 `rollupOptions.external` 中加入对应条目（详见 §3.9）
+
+### 4. Angular 包
+
+- [ ] `packages/angular-file-preview/src/renderers/Xxx/index.ts` — 新增 Angular 渲染器
+  - 目录约定：每个 renderer 是 `renderers/Xxx/` 子目录，主入口固定为 `index.ts`
+  - 行为、inputs、toolbar handle 要与 React / Vue 版本**完全对齐**
+  - 样式类名必须使用 `afp-` 前缀
+  - **导出形式**：`export class XxxRenderer implements RendererHandle`（named export）
+  - **禁止中文/英文文案硬编码**，用 `LocaleService` / `getFallbackTranslator()` + `t('xxx.key')`
+  - **主题适配**：颜色只能用语义 token 类（`afp-text-fg-*` / `afp-bg-surface-*` / `afp-border-line-*` 等）
+- [ ] `packages/angular-file-preview/src/renderers/Xxx/toolbar.ts` — **如需工具栏，必加** 伴生 toolbar 配置（详见 §3.5）
+- [ ] `packages/angular-file-preview/src/renderers/lazy.ts` + `registry.ts` — **必加** lazy 注册项
+- [ ] `packages/angular-file-preview/package.json` — 新增必要依赖（放 `dependencies`，并加入 `ng-package.json` 的 `allowedNonPeerDependencies`）
+- [ ] 改完后执行 `pnpm --filter @eternalheart/angular-file-preview build:esm`
 
 ### 3.5 工具栏配置规范（数据驱动，沉到 renderer 伴生文件）
 

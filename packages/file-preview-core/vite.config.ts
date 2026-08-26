@@ -74,8 +74,8 @@ export default defineConfig({
       },
     },
     sourcemap: false,
-    // dev 脚本通过 CLI 覆盖为 false，watch 时不会短暂清空 lib。
-    emptyOutDir: true,
+    // Keep lib/*.d.ts (emitted by tsc). Wiping lib races ng-packagr watch.
+    emptyOutDir: false,
     outDir: 'lib',
   },
 });

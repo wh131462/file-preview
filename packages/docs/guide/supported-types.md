@@ -1,6 +1,6 @@
 # 支持的文件类型
 
-File Preview 支持多种常见文件格式，React 与 Vue 版本共享类型识别和解析核心，并提供等价的预览能力。
+File Preview 支持多种常见文件格式，React、Vue 与 Angular 版本共享类型识别和解析核心，并提供等价的预览能力。
 
 ## 图片格式
 
@@ -124,15 +124,17 @@ File Preview 支持多种常见文件格式，React 与 Vue 版本共享类型�
 ### Word 文档
 
 - **DOCX** - `.docx`
+- **DOC** - `.doc`（Word 97–2003，OLE 解析，结构化 HTML 预览）
 
 ### Excel 表格
 
 - **XLSX** - `.xlsx`
+- **XLS** - `.xls`（Excel 97–2003，OLE/BIFF 解析，表格预览）
 
 ### PowerPoint 演示文稿
 
 - **PPTX** - `.pptx`
-- **PPT** - `.ppt`
+- **PPT** - `.ppt`（PowerPoint 97–2003，OLE 解析，按幻灯片提取文字 / 主题色 / 嵌入图）
 
 ### 特性
 
@@ -140,7 +142,8 @@ File Preview 支持多种常见文件格式，React 与 Vue 版本共享类型�
 - 支持图片和表格
 - 响应式布局
 - 显示所有工作表（Excel）
-- 平铺/幻灯片两种显示模式（PowerPoint，16:9 宽高比）
+- 平铺/幻灯片两种显示模式（PowerPoint OOXML，16:9 宽高比）
+- 旧版 `.doc` / `.ppt` / `.xls` 走内置 OLE 解析器，不依赖 Microsoft Office / LibreOffice
 
 ## Outlook 邮件
 
@@ -372,9 +375,12 @@ File Preview 支持多种常见文件格式，React 与 Vue 版本共享类型�
 
 - `image` - 图片文件
 - `pdf` - PDF 文档
-- `docx` - Word 文档
-- `xlsx` - Excel 表格
-- `pptx` - PowerPoint 演示文稿
+- `docx` - Word 文档（OOXML）
+- `doc` - 旧版 Word 文档（97–2003）
+- `xlsx` - Excel 表格（OOXML）
+- `xls` - 旧版 Excel 表格（97–2003）
+- `pptx` - PowerPoint 演示文稿（OOXML）
+- `ppt` - 旧版 PowerPoint 演示文稿（97–2003）
 - `msg` - Outlook 邮件
 - `epub` - EPUB 电子书
 - `mobi` - MOBI / AZW / AZW3 / KF8 电子书

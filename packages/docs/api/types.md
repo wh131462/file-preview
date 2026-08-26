@@ -88,8 +88,11 @@ type FileType =
   | 'image'       // 图片 (JPG, PNG, GIF, WebP, SVG, BMP, ICO)
   | 'pdf'         // PDF 文档
   | 'docx'        // Word 文档 (DOCX)
+  | 'doc'         // 旧版 Word 文档 (DOC, 97–2003)
   | 'xlsx'        // Excel 表格 (XLSX)
-  | 'pptx'        // PowerPoint 演示文稿 (PPTX, PPT)
+  | 'xls'         // 旧版 Excel 表格 (XLS, 97–2003)
+  | 'pptx'        // PowerPoint 演示文稿 (PPTX)
+  | 'ppt'         // 旧版 PowerPoint 演示文稿 (PPT, 97–2003)
   | 'msg'         // Outlook 邮件 (MSG)
   | 'epub'        // EPUB 电子书
   | 'mobi'        // MOBI / AZW / AZW3 / KF8 电子书

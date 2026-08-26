@@ -154,8 +154,11 @@ const normalized = normalizeFiles(inputs)
 ### 文档
 - `.pdf` → `application/pdf`
 - `.docx` → `application/vnd.openxmlformats-officedocument.wordprocessingml.document`
+- `.doc` → `application/msword`
 - `.xlsx` → `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`
-- `.pptx`, `.ppt` → `application/vnd.openxmlformats-officedocument.presentationml.presentation`
+- `.xls` → `application/vnd.ms-excel`
+- `.pptx` → `application/vnd.openxmlformats-officedocument.presentationml.presentation`
+- `.ppt` → `application/vnd.ms-powerpoint`
 - `.msg` → `application/vnd.ms-outlook`
 
 ### 视频

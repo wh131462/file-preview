@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback, forwardRef, useImperativeHandle } from 'react';
 import { init } from 'pptx-preview';
+import { readPptxSlideSize } from '@eternalheart/file-preview-core';
 import { useTranslator } from '../../i18n/LocaleContext';
 import { useFetcher } from '../../RequestContext';
 import { RendererError } from '../RendererError';
@@ -23,6 +24,7 @@ export const PptxRenderer = forwardRef<RendererHandle, PptxRendererProps>(({ url
   const arrayBufferRef = useRef<ArrayBuffer | null>(null);
   const resizeTimeoutRef = useRef<number | null>(null);
   const lastDimensionsRef = useRef({ width: 0, height: 0 });
+  const slideRatioRef = useRef(9 / 16);
 
   // 计算容器尺寸，带回退逻辑
   const calculateDimensions = useCallback(() => {
@@ -31,8 +33,7 @@ export const PptxRenderer = forwardRef<RendererHandle, PptxRendererProps>(({ url
     const parentWidth = containerRef.current.parentElement?.clientWidth || 0;
     // 如果容器宽度太小，回退到父容器宽度或默认最小值
     const containerWidth = rawWidth > 100 ? rawWidth : (parentWidth > 100 ? parentWidth : 300);
-    // 16:9 比例
-    const height = Math.floor(containerWidth * 9 / 16);
+    const height = Math.floor(containerWidth * slideRatioRef.current);
     return { width: containerWidth, height };
   }, []);
 
@@ -179,6 +180,7 @@ export const PptxRenderer = forwardRef<RendererHandle, PptxRendererProps>(({ url
         }
 
         arrayBufferRef.current = arrayBuffer;
+        slideRatioRef.current = (await readPptxSlideSize(arrayBuffer)).ratio;
 
         if (!isMounted) return;
 

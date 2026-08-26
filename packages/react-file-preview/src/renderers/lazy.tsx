@@ -21,6 +21,8 @@ import type { ZipRenderer as ZipRendererImpl } from './Zip';
 import type { TextRenderer as TextRendererImpl } from './Text';
 import type { FontRenderer as FontRendererImpl } from './Font';
 import type { CadRenderer as CadRendererImpl } from './Cad';
+import type { DocRenderer as DocRendererImpl } from './Doc';
+import type { PptRenderer as PptRendererImpl } from './Ppt';
 
 type Lazy<T> = LazyExoticComponent<T extends ComponentType<infer P> ? ComponentType<P> : never>;
 
@@ -98,4 +100,12 @@ export const FontRenderer: Lazy<typeof FontRendererImpl> = lazy(() =>
 
 export const CadRenderer: Lazy<typeof CadRendererImpl> = lazy(() =>
   import('./Cad').then((m) => ({ default: m.CadRenderer })),
+);
+
+export const DocRenderer: Lazy<typeof DocRendererImpl> = lazy(() =>
+  import('./Doc').then((m) => ({ default: m.DocRenderer })),
+);
+
+export const PptRenderer: Lazy<typeof PptRendererImpl> = lazy(() =>
+  import('./Ppt').then((m) => ({ default: m.PptRenderer })),
 );

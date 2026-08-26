@@ -31,3 +31,5 @@ export const ZipRenderer = wrap(() => import('./Zip/index.vue'));
 export const TextRenderer = wrap(() => import('./Text/index.vue'));
 export const FontRenderer = wrap(() => import('./Font/index.vue'));
 export const CadRenderer = wrap(() => import('./Cad/index.vue'));
+export const DocRenderer = wrap(() => import('./Doc/index.vue'));
+export const PptRenderer = wrap(() => import('./Ppt/index.vue'));

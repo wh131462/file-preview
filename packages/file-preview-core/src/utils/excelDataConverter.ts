@@ -34,7 +34,7 @@ interface XRowData {
   cells: Record<string, XCellData>;
 }
 
-interface XSheetData {
+export interface XSheetData {
   name: string;
   styles?: XCellStyle[];
   merges?: string[];

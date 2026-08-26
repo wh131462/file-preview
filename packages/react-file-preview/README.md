@@ -336,9 +336,9 @@ const files = [
 
 ### Documents
 - **PDF**: Pagination, zoom
-- **Word**: DOCX format support
-- **Excel**: XLSX format support
-- **PowerPoint**: PPTX/PPT format support, slide preview
+- **Word**: DOCX and legacy DOC (97–2003) support
+- **Excel**: XLSX and legacy XLS (97–2003) support
+- **PowerPoint**: PPTX and legacy PPT (97–2003) slide preview
 
 ### Fonts
 - **Formats**: TTF, OTF, WOFF, WOFF2
@@ -532,7 +532,9 @@ const files = [
 
 #### Office Documents
 - **Word**: `application/vnd.openxmlformats-officedocument.wordprocessingml.document` (.docx)
+- **Word (Legacy)**: `application/msword` (.doc)
 - **Excel**: `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet` (.xlsx)
+- **Excel (Legacy)**: `application/vnd.ms-excel` (.xls)
 - **PowerPoint**: `application/vnd.openxmlformats-officedocument.presentationml.presentation` (.pptx)
 - **PowerPoint (Legacy)**: `application/vnd.ms-powerpoint` (.ppt)
 

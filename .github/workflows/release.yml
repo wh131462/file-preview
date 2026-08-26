@@ -54,7 +54,8 @@ jobs:
           CURRENT_TAG=${{ steps.extract-version.outputs.version }}
           NPM_REACT="https://www.npmjs.com/package/@eternalheart/react-file-preview"
           NPM_VUE="https://www.npmjs.com/package/@eternalheart/vue-file-preview"
-          NPM_LINKS=$'npm(react):'"$NPM_REACT"$'\nnpm(vue):'"$NPM_VUE"
+          NPM_ANGULAR="https://www.npmjs.com/package/@eternalheart/angular-file-preview"
+          NPM_LINKS=$'npm(react):'"$NPM_REACT"$'\nnpm(vue):'"$NPM_VUE"$'\nnpm(angular):'"$NPM_ANGULAR"
           # 获取最近的合法版本标签
           git fetch --tags
           PREVIOUS_TAG=$(git tag --sort=-v:refname | grep -E '^v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$' | sed -n 2p)

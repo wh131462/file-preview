@@ -7,6 +7,10 @@ const SIGNATURE = [0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1];
 const ENDOFCHAIN = 0xfffffffe;
 const FREESECT = 0xffffffff;
 const MAX_CHAIN = 1_000_000;
+const MAX_OLE_FILE_BYTES = 256 * 1024 * 1024;
+const MAX_STREAM_BYTES = 64 * 1024 * 1024;
+const MAX_DIRECTORY_BYTES = 16 * 1024 * 1024;
+const MAX_MINI_FAT_BYTES = 16 * 1024 * 1024;
 const DIR_ENTRY_SIZE = 128;
 const HEADER_DIFAT_COUNT = 109;
 
@@ -44,7 +48,7 @@ function sectorOffset(sector: number, sectorSize: number): number {
 }
 
 function readHeader(bytes: Uint8Array): OleHeader | null {
-  if (bytes.length < 512) {
+  if (bytes.length < 512 || bytes.length > MAX_OLE_FILE_BYTES) {
     return null;
   }
 
@@ -130,18 +134,25 @@ function readSectorChain(
   }
 
   const chunks: Uint8Array[] = [];
+  const visited = new Set<number>();
   let sector = startSector;
   let total = 0;
   let guard = 0;
+  const outputLimit = Math.min(maxBytes ?? bytes.length, bytes.length, MAX_OLE_FILE_BYTES);
+
+  if (!Number.isSafeInteger(outputLimit) || outputLimit < 0) {
+    return null;
+  }
 
   while (sector < ENDOFCHAIN && sector !== FREESECT && guard++ < MAX_CHAIN) {
-    if (sector >= fat.length) {
-      break;
+    if (sector >= fat.length || visited.has(sector)) {
+      return null;
     }
+    visited.add(sector);
 
     const base = sectorOffset(sector, sectorSize);
-    if (base >= bytes.length) {
-      break;
+    if (!Number.isSafeInteger(base) || base < 512 || base >= bytes.length) {
+      return null;
     }
 
     const end = Math.min(base + sectorSize, bytes.length);
@@ -149,7 +160,7 @@ function readSectorChain(
     chunks.push(slice);
     total += slice.length;
 
-    if (maxBytes !== undefined && total >= maxBytes) {
+    if (total >= outputLimit) {
       break;
     }
 
@@ -160,7 +171,7 @@ function readSectorChain(
     return new Uint8Array(0);
   }
 
-  const out = new Uint8Array(maxBytes !== undefined ? Math.min(total, maxBytes) : total);
+  const out = new Uint8Array(Math.min(total, outputLimit));
   let offset = 0;
   for (const chunk of chunks) {
     const take = Math.min(chunk.length, out.length - offset);
@@ -181,7 +192,8 @@ function buildMiniFat(bytes: Uint8Array, header: OleHeader, fat: number[]): numb
     bytes,
     fat,
     header.firstMiniFatSector,
-    header.sectorSize
+    header.sectorSize,
+    MAX_MINI_FAT_BYTES
   );
 
   if (!miniFatBytes) {
@@ -253,22 +265,28 @@ function readMiniStreamChain(
   startSector: number,
   miniSectorSize: number,
   streamSize: number
-): Uint8Array {
+): Uint8Array | null {
   const out = new Uint8Array(streamSize);
+  const visited = new Set<number>();
   let sector = startSector;
   let offset = 0;
   let guard = 0;
   while (sector < ENDOFCHAIN && sector !== FREESECT && offset < streamSize && guard++ < MAX_CHAIN) {
     const base = sector * miniSectorSize;
-    if (base >= miniStream.length) {
-      break;
+    if (
+      sector >= miniFat.length ||
+      visited.has(sector) ||
+      !Number.isSafeInteger(base) ||
+      base < 0 ||
+      base >= miniStream.length
+    ) {
+      return null;
     }
+    visited.add(sector);
+
     const take = Math.min(miniSectorSize, streamSize - offset, miniStream.length - base);
     out.set(miniStream.subarray(base, base + take), offset);
     offset += take;
-    if (sector >= miniFat.length) {
-      break;
-    }
     sector = miniFat[sector];
   }
   return out.subarray(0, offset);
@@ -304,7 +322,8 @@ export function readOleStream(data: ArrayBuffer | Uint8Array, streamName: string
       bytes,
       fat,
       header.firstDirectorySector,
-      header.sectorSize
+      header.sectorSize,
+      MAX_DIRECTORY_BYTES
     );
     if (!dirBytes) {
       return null;
@@ -312,7 +331,12 @@ export function readOleStream(data: ArrayBuffer | Uint8Array, streamName: string
 
     const entries = parseDirectory(dirBytes);
     const entry = findEntryByName(entries, streamName);
-    if (!entry || entry.streamSize <= 0) {
+    if (
+      !entry ||
+      entry.streamSize <= 0 ||
+      entry.streamSize > bytes.length ||
+      entry.streamSize > MAX_STREAM_BYTES
+    ) {
       return null;
     }
 
@@ -322,11 +346,20 @@ export function readOleStream(data: ArrayBuffer | Uint8Array, streamName: string
         return null;
       }
 
+      if (
+        root.streamSize <= 0 ||
+        root.streamSize > bytes.length ||
+        root.streamSize > MAX_STREAM_BYTES
+      ) {
+        return null;
+      }
+
       const miniStream = readSectorChain(
         bytes,
         fat,
         root.startSector,
-        header.sectorSize
+        header.sectorSize,
+        root.streamSize
       );
       if (!miniStream) {
         return null;

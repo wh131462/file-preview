@@ -71,6 +71,27 @@ const READER_CSS = `
 `;
 
 const A4_WIDTH = 794;
+const INITIAL_RENDER_TIMEOUT_MS = 10_000;
+
+async function renderInitialPage(renderer: { next?: () => Promise<void> }): Promise<void> {
+  const nextPromise = renderer.next?.();
+  if (!nextPromise) return;
+
+  let timer: number | undefined;
+  try {
+    await Promise.race([
+      nextPromise,
+      new Promise<never>((_, reject) => {
+        timer = window.setTimeout(
+          () => reject(new Error('MOBI initial render timed out')),
+          INITIAL_RENDER_TIMEOUT_MS,
+        );
+      }),
+    ]);
+  } finally {
+    if (timer !== undefined) window.clearTimeout(timer);
+  }
+}
 
 @Component({
   selector: 'afp-mobi-toc-list',
@@ -327,8 +348,9 @@ export class MobiRenderer implements RendererHandle {
   }
 
   private reportProgress(current: number, total: number): void {
-    if (total > 0) this.totalLocations = total;
-    this.currentChapter.set(Math.max(1, current + 1));
+    if (Number.isFinite(total) && total > 0) this.totalLocations = total;
+    const safeCurrent = Number.isFinite(current) ? current : 0;
+    this.currentChapter.set(Math.max(1, safeCurrent + 1));
     this.totalChapters.set(this.totalLocations);
   }
 
@@ -340,6 +362,9 @@ export class MobiRenderer implements RendererHandle {
     this.toc.set([]);
     this.showToc.set(false);
     this.activeTocHref.set('');
+    this.totalLocations = 1;
+    this.currentChapter.set(1);
+    this.totalChapters.set(1);
     host.replaceChildren();
     this.viewInstance = null;
     let progressReported = false;
@@ -367,7 +392,9 @@ export class MobiRenderer implements RendererHandle {
         if (
           renderer
           && typeof renderer.page === 'number'
+          && Number.isFinite(renderer.page)
           && typeof renderer.pages === 'number'
+          && Number.isFinite(renderer.pages)
           && renderer.pages > 2
           && sectionIdx >= 0
         ) {
@@ -410,7 +437,13 @@ export class MobiRenderer implements RendererHandle {
         }
 
         const loc = detail.location as { current?: number; total?: number } | undefined;
-        if (loc && typeof loc.current === 'number' && typeof loc.total === 'number') {
+        if (
+          loc
+          && typeof loc.current === 'number'
+          && Number.isFinite(loc.current)
+          && typeof loc.total === 'number'
+          && Number.isFinite(loc.total)
+        ) {
           progressReported = true;
           const atEnd = (detail.fraction ?? 0) >= 0.999;
           const actualTotal = atEnd ? loc.current + 1 : loc.total;
@@ -445,7 +478,7 @@ export class MobiRenderer implements RendererHandle {
         renderer.setAttribute('max-inline-size', '720');
         renderer.setAttribute('margin', '48');
         renderer.setAttribute('gap', '5%');
-        await renderer.next?.();
+        await renderInitialPage(renderer);
         renderer.setStyles?.(READER_CSS);
       }
 

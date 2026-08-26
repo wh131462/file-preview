@@ -40,6 +40,27 @@ const READER_CSS = `
 `;
 
 const A4_WIDTH = 794;
+const INITIAL_RENDER_TIMEOUT_MS = 10_000;
+
+async function renderInitialPage(renderer: { next?: () => Promise<void> }): Promise<void> {
+  const nextPromise = renderer.next?.();
+  if (!nextPromise) return;
+
+  let timer: number | undefined;
+  try {
+    await Promise.race([
+      nextPromise,
+      new Promise<never>((_, reject) => {
+        timer = window.setTimeout(
+          () => reject(new Error('MOBI initial render timed out')),
+          INITIAL_RENDER_TIMEOUT_MS,
+        );
+      }),
+    ]);
+  } finally {
+    if (timer !== undefined) window.clearTimeout(timer);
+  }
+}
 
 export interface MobiRendererHandle extends RendererHandle {
   prevPage: () => void;
@@ -75,8 +96,9 @@ export const MobiRenderer = forwardRef<MobiRendererHandle, MobiRendererProps>(
     isFullWidthRef.current = isFullWidth;
 
     const reportProgress = useCallback((current: number, total: number) => {
-      if (total > 0) totalLocationsRef.current = total;
-      setCurrentChapter(Math.max(1, current + 1));
+      if (Number.isFinite(total) && total > 0) totalLocationsRef.current = total;
+      const safeCurrent = Number.isFinite(current) ? current : 0;
+      setCurrentChapter(Math.max(1, safeCurrent + 1));
       setTotalChapters(totalLocationsRef.current);
     }, []);
 
@@ -203,6 +225,9 @@ export const MobiRenderer = forwardRef<MobiRendererHandle, MobiRendererProps>(
         setToc([]);
         setShowToc(false);
         setActiveTocHref('');
+        totalLocationsRef.current = 1;
+        setCurrentChapter(1);
+        setTotalChapters(1);
         host.replaceChildren();
 
         try {
@@ -232,7 +257,9 @@ export const MobiRenderer = forwardRef<MobiRendererHandle, MobiRendererProps>(
             if (
               renderer
               && typeof renderer.page === 'number'
+              && Number.isFinite(renderer.page)
               && typeof renderer.pages === 'number'
+              && Number.isFinite(renderer.pages)
               && renderer.pages > 2
               && sectionIdx >= 0
             ) {
@@ -283,7 +310,13 @@ export const MobiRenderer = forwardRef<MobiRendererHandle, MobiRendererProps>(
 
             // 兜底：SectionProgress.location（基于字符数估算）
             const loc = detail.location as { current?: number; total?: number } | undefined;
-            if (loc && typeof loc.current === 'number' && typeof loc.total === 'number') {
+            if (
+              loc
+              && typeof loc.current === 'number'
+              && Number.isFinite(loc.current)
+              && typeof loc.total === 'number'
+              && Number.isFinite(loc.total)
+            ) {
               progressReported = true;
               // 当翻到末尾时（fraction 达到 1 表示全书 100%），用 current + 1 作为实际可达的 total，
               // 覆盖 SectionProgress 基于字符数向上取整的估算值（会高估）
@@ -334,7 +367,7 @@ export const MobiRenderer = forwardRef<MobiRendererHandle, MobiRendererProps>(
             renderer.setAttribute('margin', '48');
             renderer.setAttribute('gap', '5%');
             // 必须调 next() 渲染首页
-            await renderer.next?.();
+            await renderInitialPage(renderer);
             // setStyles 依赖 view.document 存在，必须在 next() 触发首次渲染后调用
             renderer.setStyles?.(READER_CSS);
           }

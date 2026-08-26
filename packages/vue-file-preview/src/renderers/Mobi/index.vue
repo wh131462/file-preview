@@ -58,6 +58,27 @@ const READER_CSS = `
 `;
 
 const A4_WIDTH = 794;
+const INITIAL_RENDER_TIMEOUT_MS = 10_000;
+
+const renderInitialPage = async (renderer: { next?: () => Promise<void> }) => {
+  const nextPromise = renderer.next?.();
+  if (!nextPromise) return;
+
+  let timer: number | undefined;
+  try {
+    await Promise.race([
+      nextPromise,
+      new Promise<never>((_, reject) => {
+        timer = window.setTimeout(
+          () => reject(new Error('MOBI initial render timed out')),
+          INITIAL_RENDER_TIMEOUT_MS,
+        );
+      }),
+    ]);
+  } finally {
+    if (timer !== undefined) window.clearTimeout(timer);
+  }
+};
 
 const props = defineProps<{ url: string }>();
 
@@ -87,8 +108,9 @@ watch([currentChapter, totalChapters, isFullWidth, showToc, loading, () => toc.v
 });
 
 const reportProgress = (current: number, total: number) => {
-  if (total > 0) totalLocations = total;
-  currentChapter.value = Math.max(1, current + 1);
+  if (Number.isFinite(total) && total > 0) totalLocations = total;
+  const safeCurrent = Number.isFinite(current) ? current : 0;
+  currentChapter.value = Math.max(1, safeCurrent + 1);
   totalChapters.value = totalLocations;
 };
 
@@ -185,6 +207,9 @@ const load = async () => {
   toc.value = [];
   showToc.value = false;
   activeTocHref.value = '';
+  totalLocations = 1;
+  currentChapter.value = 1;
+  totalChapters.value = 1;
   host.replaceChildren();
   viewInstance = null;
   let progressReported = false;
@@ -217,7 +242,9 @@ const load = async () => {
       if (
         renderer
         && typeof renderer.page === 'number'
+        && Number.isFinite(renderer.page)
         && typeof renderer.pages === 'number'
+        && Number.isFinite(renderer.pages)
         && renderer.pages > 2
         && sectionIdx >= 0
       ) {
@@ -268,7 +295,13 @@ const load = async () => {
 
       // 兜底：SectionProgress.location（基于字符数估算）
       const loc = detail.location as { current?: number; total?: number } | undefined;
-      if (loc && typeof loc.current === 'number' && typeof loc.total === 'number') {
+      if (
+        loc
+        && typeof loc.current === 'number'
+        && Number.isFinite(loc.current)
+        && typeof loc.total === 'number'
+        && Number.isFinite(loc.total)
+      ) {
         progressReported = true;
         // 当翻到末尾时（fraction 达到 1 表示全书 100%），用 current + 1 作为实际可达的 total，
         // 覆盖 SectionProgress 基于字符数向上取整的估算值（会高估）
@@ -305,7 +338,7 @@ const load = async () => {
       renderer.setAttribute('max-inline-size', '720');
       renderer.setAttribute('margin', '48');
       renderer.setAttribute('gap', '5%');
-      await renderer.next?.();
+      await renderInitialPage(renderer);
       // setStyles 依赖 view.document 存在，必须在 next() 触发首次渲染后调用
       renderer.setStyles?.(READER_CSS);
     }

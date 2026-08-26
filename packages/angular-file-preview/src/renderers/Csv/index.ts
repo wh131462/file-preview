@@ -3,6 +3,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
+  ElementRef,
   effect,
   inject,
   input,
@@ -71,7 +72,7 @@ export class CsvRenderer implements RendererHandle {
 
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
-  private readonly container = viewChild<HTMLDivElement>('container');
+  private readonly container = viewChild<ElementRef<HTMLDivElement>>('container');
 
   private sheetData: Record<string, unknown>[] | null = null;
   private resizeObserver: ResizeObserver | null = null;
@@ -81,7 +82,7 @@ export class CsvRenderer implements RendererHandle {
 
   constructor() {
     afterNextRender(() => {
-      const el = this.container();
+      const el = this.container()?.nativeElement;
       if (!el) return;
 
       let isInitialRender = true;
@@ -129,7 +130,7 @@ export class CsvRenderer implements RendererHandle {
       this.resizeObserver = null;
       if (this.resizeTimeout !== null) clearTimeout(this.resizeTimeout);
       this.sheetData = null;
-      const el = this.container();
+      const el = this.container()?.nativeElement;
       if (el) el.innerHTML = '';
     });
   }
@@ -137,7 +138,7 @@ export class CsvRenderer implements RendererHandle {
   getToolbarGroups = (): ToolbarGroup[] => [];
 
   private calculateDimensions() {
-    const el = this.container();
+    const el = this.container()?.nativeElement;
     if (!el) return { width: 800, height: 600 };
     const rawWidth = el.clientWidth;
     const rawHeight = el.clientHeight;
@@ -147,7 +148,7 @@ export class CsvRenderer implements RendererHandle {
   }
 
   private mountSpreadsheet(): void {
-    const el = this.container();
+    const el = this.container()?.nativeElement;
     if (!el || !this.sheetData) return;
 
     el.innerHTML = '';
@@ -180,7 +181,7 @@ export class CsvRenderer implements RendererHandle {
   }
 
   private async loadCsv(): Promise<void> {
-    if (!this.container()) return;
+    if (!this.container()?.nativeElement) return;
 
     this.loading.set(true);
     this.error.set(null);

@@ -3,6 +3,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  ElementRef,
   effect,
   inject,
   Injector,
@@ -142,7 +143,7 @@ export class MarkdownRenderer implements RendererHandle {
   readonly highlightedSource = signal('');
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
-  private readonly container = viewChild<HTMLDivElement>('container');
+  private readonly container = viewChild<ElementRef<HTMLDivElement>>('container');
 
   readonly shikiTheme = computed(() =>
     (this.themeService?.theme() ?? 'dark') === 'light' ? 'github-light' : 'github-dark',
@@ -312,7 +313,7 @@ export class MarkdownRenderer implements RendererHandle {
   }
 
   private async highlightAndInjectCopyButtons(): Promise<void> {
-    const el = this.container();
+    const el = this.container()?.nativeElement;
     if (!el) return;
 
     const pending = el.querySelectorAll<HTMLPreElement>('pre[data-shiki-pending="1"]');

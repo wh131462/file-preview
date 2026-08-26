@@ -143,6 +143,8 @@ export const ImageRenderer = forwardRef<ImageRendererHandle, ImageRendererProps>
         let fileBlob: Blob;
         if (file instanceof Blob) {
           fileBlob = file;
+        } else if (file.file instanceof Blob) {
+          fileBlob = file.file;
         } else {
           const response = await fetch(url);
           if (!response.ok) throw new Error('Failed to fetch file');

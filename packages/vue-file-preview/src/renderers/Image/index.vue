@@ -226,6 +226,8 @@ watch(
       let fileBlob: Blob;
       if (props.file instanceof Blob) {
         fileBlob = props.file;
+      } else if (props.file.file instanceof Blob) {
+        fileBlob = props.file.file;
       } else {
         const response = await fetch(props.url);
         if (!response.ok) throw new Error('Failed to fetch file');

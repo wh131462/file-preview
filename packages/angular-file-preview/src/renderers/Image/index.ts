@@ -342,6 +342,8 @@ export class ImageRenderer implements RendererHandle {
       let fileBlob: Blob;
       if (file instanceof Blob) {
         fileBlob = file;
+      } else if (file.file instanceof Blob) {
+        fileBlob = file.file;
       } else {
         const fetcher = this.request?.fetcher() ?? ((u: string, init?: RequestInit) => fetch(u, init));
         const response = await fetcher(this.url());

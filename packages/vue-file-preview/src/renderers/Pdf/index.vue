@@ -58,7 +58,11 @@ interface PdfOutlineItem {
 
 interface PdfPageProxy {
   getViewport(opts: { scale: number }): { width: number; height: number };
-  render(opts: { canvasContext: CanvasRenderingContext2D; viewport: { width: number; height: number } }): {
+  render(opts: {
+    canvasContext: CanvasRenderingContext2D;
+    viewport: { width: number; height: number };
+    transform?: [number, number, number, number, number, number];
+  }): {
     promise: Promise<void>;
     cancel(): void;
   };
@@ -351,10 +355,18 @@ const renderPage = async (pageNumber: number, scale: number) => {
   try {
     const page = await pdfDoc.getPage(pageNumber);
     const viewport = page.getViewport({ scale });
+    const outputScale = typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1;
+
+    // 占位符不能假定所有页面都是 A4 竖版，按当前页面真实比例布局。
+    state.element.style.aspectRatio = `${viewport.width} / ${viewport.height}`;
+    state.element.style.minHeight = '0';
 
     const canvas = document.createElement('canvas');
-    canvas.width = viewport.width;
-    canvas.height = viewport.height;
+    // Canvas 位图按 DPR 放大，避免 Retina 等高 DPI 屏幕把 1x 位图插值放大后发糊。
+    canvas.width = Math.ceil(viewport.width * outputScale);
+    canvas.height = Math.ceil(viewport.height * outputScale);
+    // CSS 尺寸仍使用 PDF 页面尺寸，避免把高分辨率位图拉伸变形。
+    canvas.style.width = `${viewport.width}px`;
     canvas.style.maxWidth = '100%';
     canvas.style.height = 'auto';
     canvas.style.borderRadius = '0';
@@ -363,7 +375,11 @@ const renderPage = async (pageNumber: number, scale: number) => {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const renderTask = page.render({ canvasContext: ctx, viewport });
+    const renderTask = page.render({
+      canvasContext: ctx,
+      viewport,
+      transform: outputScale === 1 ? undefined : [outputScale, 0, 0, outputScale, 0, 0],
+    });
     state.renderTask = renderTask;
     await renderTask.promise;
 

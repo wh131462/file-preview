@@ -788,10 +788,8 @@
   padding-right: clamp(0rem, calc((100cqw - 794px) / 100 * 1), 1rem);
 }
 
-/* PDF 页面占位符：使用 aspect-ratio 让高度随宽度等比缩放 */
+/* PDF 页面占位符：实际比例由 PDF 页面渲染时动态设置，不能写死为 A4 竖版 */
 .rfp-root .rfp-pdf-page-placeholder {
-  /* A4 纸张比例约为 1:1.414 (√2) */
-  aspect-ratio: 1 / 1.414;
   width: 100%;
   max-width: 1200px;
   min-height: 400px;

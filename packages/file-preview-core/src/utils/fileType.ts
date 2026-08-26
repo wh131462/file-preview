@@ -25,6 +25,17 @@ export function getFileType(file: PreviewFile): FileType {
   const mimeType = baseMime(file.type);
 
   if (
+    ['dxf', 'stl', 'obj', 'gltf', 'glb'].includes(ext) ||
+    mimeType === 'application/dxf' ||
+    mimeType === 'application/vnd.ms-pki.stl' ||
+    mimeType === 'model/stl' ||
+    mimeType === 'model/obj' ||
+    mimeType === 'model/gltf+json' ||
+    mimeType === 'model/gltf-binary'
+  ) {
+    return 'cad';
+  }
+  if (
     mimeType.startsWith('image/') ||
     [
       'jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp', 'ico',
@@ -114,17 +125,6 @@ export function getFileType(file: PreviewFile): FileType {
     mimeType === 'application/font-sfnt'
   ) {
     return 'font';
-  }
-  if (
-    ['dxf', 'stl', 'obj', 'gltf', 'glb'].includes(ext) ||
-    mimeType === 'application/dxf' ||
-    mimeType === 'application/vnd.ms-pki.stl' ||
-    mimeType === 'model/stl' ||
-    mimeType === 'model/obj' ||
-    mimeType === 'model/gltf+json' ||
-    mimeType === 'model/gltf-binary'
-  ) {
-    return 'cad';
   }
   if (mimeType.startsWith('video/') || ['mp4', 'webm', 'ogg', 'ogv', 'mov', 'avi', 'mkv', 'm4v', '3gp', 'flv'].includes(ext)) {
     return 'video';

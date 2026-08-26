@@ -1,4 +1,4 @@
-export const VERSION = '1.6.4';
+export { VERSION } from './version';
 
 export { FilePreviewModal } from './file-preview-modal';
 export { FilePreviewEmbed } from './file-preview-embed';

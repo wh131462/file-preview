@@ -3,6 +3,8 @@ import { rmSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import './sync-angular-version.mjs';
+
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '..');
 const pkgDir = join(repoRoot, 'packages/angular-file-preview');
 const require = createRequire(join(pkgDir, 'package.json'));

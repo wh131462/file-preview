@@ -19,12 +19,15 @@ import type { LucideIconData } from 'lucide-angular';
       [attr.aria-pressed]="active()"
       [attr.aria-keyshortcuts]="ariaKeyshortcuts() || null"
       [attr.aria-disabled]="disabled()"
-      [attr.data-tooltip]="label()"
       class="toolbar-btn"
       [class.active]="active()"
       (click)="onClick()()"
     >
       <i-lucide [img]="icon()" class="afp-w-4 afp-h-4" />
+      <span class="toolbar-tooltip" aria-hidden="true">
+        <span class="toolbar-tooltip-arrow"></span>
+        <span class="toolbar-tooltip-label">{{ label() }}</span>
+      </span>
     </button>
   `,
   styles: [`
@@ -52,8 +55,7 @@ import type { LucideIconData } from 'lucide-angular';
       color: var(--fp-fg-disabled);
       cursor: not-allowed;
     }
-    .toolbar-btn[data-tooltip]::after {
-      content: attr(data-tooltip);
+    .toolbar-tooltip {
       position: absolute;
       left: 50%;
       top: 100%;
@@ -72,29 +74,27 @@ import type { LucideIconData } from 'lucide-angular';
       transition: opacity 0.2s, visibility 0.2s;
       z-index: 50;
     }
-    .toolbar-btn[data-tooltip]::before {
-      content: '';
+
+    .toolbar-tooltip-arrow {
       position: absolute;
       left: 50%;
-      top: 100%;
-      transform: translateX(-50%);
-      margin-top: 2px;
-      border: 4px solid transparent;
-      border-bottom-color: var(--fp-fg-primary);
-      pointer-events: none;
-      opacity: 0;
-      visibility: hidden;
-      transition: opacity 0.2s, visibility 0.2s;
-      z-index: 50;
+      top: -4px;
+      width: 8px;
+      height: 8px;
+      transform: translateX(-50%) rotate(45deg);
+      background: var(--fp-fg-primary);
     }
-    .toolbar-btn[data-tooltip]:hover::after,
-    .toolbar-btn[data-tooltip]:hover::before {
+
+    .toolbar-tooltip-label {
+      position: relative;
+    }
+
+    .toolbar-btn:hover .toolbar-tooltip {
       opacity: 1;
       visibility: visible;
     }
     @media (max-width: 1023px) {
-      .toolbar-btn[data-tooltip]::after,
-      .toolbar-btn[data-tooltip]::before {
+      .toolbar-tooltip {
         display: none !important;
       }
     }

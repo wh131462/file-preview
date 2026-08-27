@@ -180,6 +180,34 @@ export class CadRenderer implements RendererHandle {
     this.toolbarEmitter.notify();
   }
 
+  // 根据模型包围盒调整参考物大小，避免 OBJ/STL 单位差异造成参考线比例失真
+  private updateReferenceHelpers(maxDim: number): void {
+    if (!this.scene) return;
+
+    const safeMaxDim = Number.isFinite(maxDim) && maxDim > 0 ? maxDim : 1;
+    const axesSize = safeMaxDim * 0.5;
+    const gridSize = safeMaxDim * 2;
+
+    if (this.grid) {
+      this.grid.geometry.dispose();
+      (this.grid.material as any).dispose();
+      this.scene.remove(this.grid);
+    }
+    if (this.axes) {
+      this.axes.geometry.dispose();
+      (this.axes.material as any).dispose();
+      this.scene.remove(this.axes);
+    }
+
+    this.grid = new THREE.GridHelper(gridSize, 20, 0x444444, 0x222222);
+    this.grid.visible = this.showGrid();
+    this.scene.add(this.grid);
+
+    this.axes = new THREE.AxesHelper(axesSize);
+    this.axes.visible = this.showAxes();
+    this.scene.add(this.axes);
+  }
+
   private disposeMaterial(material: any): void {
     if (material.map) material.map.dispose();
     if (material.lightMap) material.lightMap.dispose();
@@ -242,14 +270,6 @@ export class CadRenderer implements RendererHandle {
     const directionalLight2 = new THREE.DirectionalLight(0xffffff, 0.4);
     directionalLight2.position.set(-1, -1, -1);
     this.scene.add(directionalLight2);
-
-    this.grid = new THREE.GridHelper(200, 20, 0x444444, 0x222222);
-    this.grid.visible = this.showGrid();
-    this.scene.add(this.grid);
-
-    this.axes = new THREE.AxesHelper(100);
-    this.axes.visible = this.showAxes();
-    this.scene.add(this.axes);
 
     this.loadModel();
 
@@ -329,6 +349,7 @@ export class CadRenderer implements RendererHandle {
       const center = box.getCenter(new THREE.Vector3());
       const size = box.getSize(new THREE.Vector3());
       const maxDim = Math.max(size.x, size.y, size.z);
+      this.updateReferenceHelpers(maxDim);
       const fov = this.camera!.fov * (Math.PI / 180);
       let cameraZ = Math.abs(maxDim / 2 / Math.tan(fov / 2));
       cameraZ *= 1.5;

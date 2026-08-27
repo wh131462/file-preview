@@ -114,6 +114,34 @@ const toggleAxes = () => {
   toolbarEmitter.notify();
 };
 
+// 根据模型包围盒调整参考物大小，避免 OBJ/STL 单位差异造成参考线比例失真
+const updateReferenceHelpers = (maxDim: number) => {
+  if (!scene) return;
+
+  const safeMaxDim = Number.isFinite(maxDim) && maxDim > 0 ? maxDim : 1;
+  const axesSize = safeMaxDim * 0.5;
+  const gridSize = safeMaxDim * 2;
+
+  if (grid) {
+    grid.geometry.dispose();
+    (grid.material as any).dispose();
+    scene.remove(grid);
+  }
+  if (axes) {
+    axes.geometry.dispose();
+    (axes.material as any).dispose();
+    scene.remove(axes);
+  }
+
+  grid = new THREE.GridHelper(gridSize, 20, 0x444444, 0x222222);
+  grid.visible = showGrid.value;
+  scene.add(grid);
+
+  axes = new THREE.AxesHelper(axesSize);
+  axes.visible = showAxes.value;
+  scene.add(axes);
+};
+
 // 暴露 RendererHandle 接口
 defineExpose<RendererHandle>({
   getToolbarGroups: () => {
@@ -200,16 +228,6 @@ const initScene = () => {
   const directionalLight2 = new THREE.DirectionalLight(0xffffff, 0.4);
   directionalLight2.position.set(-1, -1, -1);
   scene.add(directionalLight2);
-
-  // 添加网格
-  grid = new THREE.GridHelper(200, 20, 0x444444, 0x222222);
-  grid.visible = showGrid.value;
-  scene.add(grid);
-
-  // 添加坐标轴
-  axes = new THREE.AxesHelper(100);
-  axes.visible = showAxes.value;
-  scene.add(axes);
 
   // 加载模型
   loadModel();
@@ -301,6 +319,7 @@ const loadModel = () => {
     const center = box.getCenter(new THREE.Vector3());
     const size = box.getSize(new THREE.Vector3());
     const maxDim = Math.max(size.x, size.y, size.z);
+    updateReferenceHelpers(maxDim);
     const fov = camera!.fov * (Math.PI / 180);
     let cameraZ = Math.abs(maxDim / 2 / Math.tan(fov / 2));
     cameraZ *= 1.5;

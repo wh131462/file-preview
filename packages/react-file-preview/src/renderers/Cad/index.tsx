@@ -27,6 +27,8 @@ export const CadRenderer = forwardRef<RendererHandle, CadRendererProps>(({ url, 
   const modelRef = useRef<THREE.Object3D | null>(null);
   const gridRef = useRef<THREE.GridHelper | null>(null);
   const axesRef = useRef<THREE.AxesHelper | null>(null);
+  const showGridRef = useRef(true);
+  const showAxesRef = useRef(true);
   const cadRef = useRef<any>(null);
 
   const [loading, setLoading] = useState(true);
@@ -130,6 +132,7 @@ export const CadRenderer = forwardRef<RendererHandle, CadRendererProps>(({ url, 
   const toggleGrid = useCallback(() => {
     setShowGrid((prev) => {
       const newShow = !prev;
+      showGridRef.current = newShow;
       if (gridRef.current) {
         gridRef.current.visible = newShow;
       }
@@ -142,6 +145,7 @@ export const CadRenderer = forwardRef<RendererHandle, CadRendererProps>(({ url, 
   const toggleAxes = useCallback(() => {
     setShowAxes((prev) => {
       const newShow = !prev;
+      showAxesRef.current = newShow;
       if (axesRef.current) {
         axesRef.current.visible = newShow;
       }
@@ -149,6 +153,34 @@ export const CadRenderer = forwardRef<RendererHandle, CadRendererProps>(({ url, 
       return newShow;
     });
   }, [notifyToolbarChange]);
+
+  // 根据模型包围盒调整参考物大小，避免 OBJ/STL 单位差异造成参考线比例失真
+  const updateReferenceHelpers = useCallback((maxDim: number, scene: THREE.Scene) => {
+    const safeMaxDim = Number.isFinite(maxDim) && maxDim > 0 ? maxDim : 1;
+    const axesSize = safeMaxDim * 0.5;
+    const gridSize = safeMaxDim * 2;
+
+    if (gridRef.current) {
+      gridRef.current.geometry.dispose();
+      (gridRef.current.material as any).dispose();
+      scene.remove(gridRef.current);
+    }
+    if (axesRef.current) {
+      axesRef.current.geometry.dispose();
+      (axesRef.current.material as any).dispose();
+      scene.remove(axesRef.current);
+    }
+
+    const grid = new THREE.GridHelper(gridSize, 20, 0x444444, 0x222222);
+    grid.visible = showGridRef.current;
+    scene.add(grid);
+    gridRef.current = grid;
+
+    const axes = new THREE.AxesHelper(axesSize);
+    axes.visible = showAxesRef.current;
+    scene.add(axes);
+    axesRef.current = axes;
+  }, []);
 
   // 构建 cadRef handle
   cadRef.current = {
@@ -226,18 +258,6 @@ export const CadRenderer = forwardRef<RendererHandle, CadRendererProps>(({ url, 
     const directionalLight2 = new THREE.DirectionalLight(0xffffff, 0.4);
     directionalLight2.position.set(-1, -1, -1);
     scene.add(directionalLight2);
-
-    // 添加网格
-    const grid = new THREE.GridHelper(200, 20, 0x444444, 0x222222);
-    grid.visible = showGrid;
-    scene.add(grid);
-    gridRef.current = grid;
-
-    // 添加坐标轴
-    const axes = new THREE.AxesHelper(100);
-    axes.visible = showAxes;
-    scene.add(axes);
-    axesRef.current = axes;
 
     // 加载模型 - 优先使用 File 对象，回退到 fetcher
     const ext = getExtension(url, fileName, file);
@@ -391,6 +411,7 @@ export const CadRenderer = forwardRef<RendererHandle, CadRendererProps>(({ url, 
       const center = box.getCenter(new THREE.Vector3());
       const size = box.getSize(new THREE.Vector3());
       const maxDim = Math.max(size.x, size.y, size.z);
+      updateReferenceHelpers(maxDim, scene);
       const fov = camera.fov * (Math.PI / 180);
       let cameraZ = Math.abs(maxDim / 2 / Math.tan(fov / 2));
       cameraZ *= 1.5;
@@ -468,7 +489,7 @@ export const CadRenderer = forwardRef<RendererHandle, CadRendererProps>(({ url, 
         container.removeChild(renderer.domElement);
       }
     };
-  }, [url, t, notifyToolbarChange, disposeThreeResources, file, fetcher]);
+  }, [url, t, notifyToolbarChange, disposeThreeResources, file, fetcher, updateReferenceHelpers]);
 
   return (
     <div ref={containerRef} className="rfp-relative rfp-w-full rfp-h-full rfp-bg-media-bg">

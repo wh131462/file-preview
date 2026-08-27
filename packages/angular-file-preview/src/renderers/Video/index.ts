@@ -121,7 +121,7 @@ export class VideoRenderer implements RendererHandle {
     }
 
     const videoElement = document.createElement('video-js');
-    videoElement.classList.add('vjs-big-play-centered', 'vjs-theme-apple');
+    videoElement.classList.add('vjs-big-play-centered', 'rfp-video-player');
     container.appendChild(videoElement);
 
     const videoType = getVideoMimeType(this.url());
@@ -148,11 +148,10 @@ export class VideoRenderer implements RendererHandle {
           'timeDivider',
           'durationDisplay',
           'progressControl',
-          'remainingTimeDisplay',
           'fullscreenToggle',
         ],
         volumePanel: {
-          inline: false,
+          inline: true,
         },
       },
       html5: {

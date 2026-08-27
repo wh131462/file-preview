@@ -68,7 +68,7 @@ export const VideoRenderer = forwardRef<RendererHandle, VideoRendererProps>(({ u
     // 确保 Video.js 播放器只初始化一次
     if (!playerRef.current && videoRef.current) {
       const videoElement = document.createElement('video-js');
-      videoElement.classList.add('vjs-big-play-centered', 'vjs-theme-apple');
+      videoElement.classList.add('vjs-big-play-centered', 'rfp-video-player');
       videoRef.current.appendChild(videoElement);
 
       const videoType = getVideoType(url);
@@ -98,11 +98,10 @@ export const VideoRenderer = forwardRef<RendererHandle, VideoRendererProps>(({ u
             'timeDivider',
             'durationDisplay',
             'progressControl',
-            'remainingTimeDisplay',
             'fullscreenToggle'
           ],
           volumePanel: {
-            inline: false
+            inline: true
           }
         },
         html5: {

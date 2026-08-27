@@ -12,6 +12,7 @@ if (import.meta.env.PROD) {
     workerSrc: '/file-preview/angular/pdfjs/pdf.worker.min.mjs',
     cMapUrl: '/file-preview/angular/pdfjs/cmaps/',
     cMapPacked: true,
+    wasmUrl: '/file-preview/angular/pdfjs/wasm/',
   });
 } else {
   configurePdfWorker(pdfjsLib);

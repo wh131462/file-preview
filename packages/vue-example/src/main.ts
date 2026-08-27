@@ -11,6 +11,7 @@ if (import.meta.env.PROD) {
     workerSrc: '/file-preview/vue/pdfjs/pdf.worker.min.mjs',
     cMapUrl: '/file-preview/vue/pdfjs/cmaps/',
     cMapPacked: true,
+    wasmUrl: '/file-preview/vue/pdfjs/wasm/',
   });
 } else {
   configurePdfWorker(pdfjsLib);

@@ -32,6 +32,12 @@ export interface PdfConfigOptions {
    * 默认使用 CDN: `https://unpkg.com/pdfjs-dist@${version}/standard_fonts/`
    */
   standardFontDataUrl?: string;
+
+  /**
+   * PDF.js WASM 文件目录路径（用于 JBIG2、JPEG 2000 等图像解码）
+   * 默认使用 CDN: `https://unpkg.com/pdfjs-dist@${version}/wasm/`
+   */
+  wasmUrl?: string;
 }
 
 /**
@@ -48,6 +54,7 @@ export interface PdfConfigOptions {
  *   cMapUrl: '/pdfjs/cmaps/',
  *   cMapPacked: true,
  *   standardFontDataUrl: '/pdfjs/standard_fonts/',
+ *   wasmUrl: '/pdfjs/wasm/',
  * });
  * ```
  *

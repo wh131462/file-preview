@@ -27,12 +27,19 @@ export interface PdfWorkerOptions {
    * 默认使用 CDN
    */
   standardFontDataUrl?: string;
+
+  /**
+   * PDF.js WASM 文件目录路径（用于 JBIG2、JPEG 2000 等图像解码）
+   * 默认使用 CDN
+   */
+  wasmUrl?: string;
 }
 
 export interface PdfDocumentOptions {
   cMapUrl: string;
   cMapPacked: boolean;
   standardFontDataUrl: string;
+  wasmUrl?: string;
 }
 
 let pdfDocumentOptions: PdfDocumentOptions | null = null;
@@ -53,6 +60,7 @@ let pdfDocumentOptions: PdfDocumentOptions | null = null;
  *   cMapUrl: '/pdfjs/cmaps/',
  *   cMapPacked: true,
  *   standardFontDataUrl: '/pdfjs/standard_fonts/',
+ *   wasmUrl: '/pdfjs/wasm/',
  * });
  * ```
  */
@@ -73,6 +81,7 @@ export function configurePdfWorker(
     cMapUrl = `https://unpkg.com/pdfjs-dist@${version}/cmaps/`,
     cMapPacked = true,
     standardFontDataUrl = `https://unpkg.com/pdfjs-dist@${version}/standard_fonts/`,
+    wasmUrl = `https://unpkg.com/pdfjs-dist@${version}/wasm/`,
   } = options || {};
 
   if (pdfjs.GlobalWorkerOptions) {
@@ -80,7 +89,7 @@ export function configurePdfWorker(
   }
 
   // cMapUrl 等资源参数不属于 GlobalWorkerOptions，必须传给 getDocument。
-  pdfDocumentOptions = { cMapUrl, cMapPacked, standardFontDataUrl };
+  pdfDocumentOptions = { cMapUrl, cMapPacked, standardFontDataUrl, wasmUrl };
 }
 
 /**

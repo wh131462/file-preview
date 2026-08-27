@@ -14,7 +14,7 @@ export default defineConfig({
   base: process.env.NODE_ENV === 'production' ? '/file-preview/' : '/',
   plugins: [
     react(),
-    // 复制 PDF.js worker 和 cmaps 文件到构建输出
+    // 复制 PDF.js worker、CMap 和 WASM 文件到构建输出
     viteStaticCopy({
       targets: [
         {
@@ -23,6 +23,10 @@ export default defineConfig({
         },
         {
           src: resolve(__dirname, '../react-file-preview/node_modules/pdfjs-dist/cmaps'),
+          dest: './pdfjs',
+        },
+        {
+          src: resolve(__dirname, '../react-file-preview/node_modules/pdfjs-dist/wasm'),
           dest: './pdfjs',
         },
       ],

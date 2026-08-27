@@ -24,6 +24,10 @@ export default defineConfig({
           src: resolve(__dirname, '../vue-file-preview/node_modules/pdfjs-dist/cmaps'),
           dest: './pdfjs',
         },
+        {
+          src: resolve(__dirname, '../vue-file-preview/node_modules/pdfjs-dist/wasm'),
+          dest: './pdfjs',
+        },
       ],
     }),
   ],

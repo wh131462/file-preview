@@ -9,7 +9,8 @@ if (import.meta.env.PROD) {
   configurePdfjs({
     workerSrc: '/file-preview/pdfjs/pdf.worker.min.mjs',
     cMapUrl: '/file-preview/pdfjs/cmaps/',
-    cMapPacked: true
+    cMapPacked: true,
+    wasmUrl: '/file-preview/pdfjs/wasm/'
   })
 } else {
   // 开发环境：使用 CDN（默认配置）
@@ -23,4 +24,3 @@ createRoot(document.getElementById('root')!).render(
     <App />
   </StrictMode>,
 )
-

@@ -197,12 +197,6 @@
   background: rgba(0, 0, 0, 0.35);
 }
 
-/* 唱片旋转动画 */
-@keyframes vfp-vinyl-spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
 /* 进出场过渡 (Vue Transition) */
 .vfp-fade-enter-active,
 .vfp-fade-leave-active {
@@ -212,6 +206,35 @@
 .vfp-fade-enter-from,
 .vfp-fade-leave-to {
   opacity: 0;
+}
+
+/* 音频播放器：紧凑、单色的媒体控件 */
+.vfp-root .vfp-audio-mark {
+  color: var(--fp-fg-secondary);
+  background: var(--fp-surface-2);
+  transition: color 160ms ease, background-color 160ms ease;
+}
+
+.vfp-root .vfp-audio-mark-playing {
+  color: var(--fp-fg-primary);
+  background: var(--fp-surface-3);
+}
+
+.vfp-root .vfp-audio-control {
+  border: 0;
+  cursor: pointer;
+  transition: color 160ms ease, background-color 160ms ease, filter 160ms ease;
+}
+
+.vfp-root .vfp-audio-control:hover {
+  filter: brightness(1.08);
+}
+
+.vfp-root .vfp-audio-control:focus-visible,
+.vfp-root .audio-slider:focus-visible,
+.vfp-root .volume-slider-vertical:focus-visible {
+  outline: 2px solid var(--fp-player-progress);
+  outline-offset: 2px;
 }
 
 /* 音频播放器进度条样式 */
@@ -224,7 +247,10 @@
   background: transparent;
   outline: none;
   cursor: pointer;
-  position: relative;
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  margin: 0;
 }
 
 .vfp-root .audio-slider:disabled {
@@ -234,14 +260,14 @@
 
 .vfp-root .audio-slider::-webkit-slider-runnable-track {
   width: 100%;
-  height: 5px;
+  height: 3px;
   border-radius: 3px;
   background: transparent;
 }
 
 .vfp-root .audio-slider::-moz-range-track {
   width: 100%;
-  height: 5px;
+  height: 3px;
   border-radius: 3px;
   background: transparent;
 }
@@ -249,35 +275,35 @@
 .vfp-root .audio-slider::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 14px;
-  height: 14px;
+  width: 12px;
+  height: 12px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #818cf8, #6366f1);
+  background: var(--fp-player-progress);
   cursor: pointer;
-  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.5);
+  box-shadow: 0 2px 8px var(--fp-player-progress-glow);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
-  margin-top: -5px;
+  margin-top: -4px;
 }
 
 .vfp-root .audio-slider::-moz-range-thumb {
-  width: 14px;
-  height: 14px;
+  width: 12px;
+  height: 12px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #818cf8, #6366f1);
+  background: var(--fp-player-progress);
   cursor: pointer;
   border: none;
-  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.5);
+  box-shadow: 0 2px 8px var(--fp-player-progress-glow);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .vfp-root .audio-slider::-webkit-slider-thumb:hover {
   transform: scale(1.25);
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.7);
+  box-shadow: 0 4px 12px var(--fp-player-progress-glow);
 }
 
 .vfp-root .audio-slider::-moz-range-thumb:hover {
   transform: scale(1.25);
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.7);
+  box-shadow: 0 4px 12px var(--fp-player-progress-glow);
 }
 
 /* 垂直音量滑块样式 */
@@ -309,9 +335,9 @@
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  background: #818cf8;
+  background: var(--fp-player-progress);
   cursor: pointer;
-  box-shadow: 0 2px 6px rgba(99, 102, 241, 0.5);
+  box-shadow: 0 2px 6px var(--fp-player-progress-glow);
   transition: all 0.15s ease;
   margin-top: -6px;
 }
@@ -320,12 +346,270 @@
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  background: #818cf8;
+  background: var(--fp-player-progress);
   cursor: pointer;
   border: none;
-  box-shadow: 0 2px 6px rgba(99, 102, 241, 0.5);
+  box-shadow: 0 2px 6px var(--fp-player-progress-glow);
   transition: all 0.15s ease;
 }
+
+/* Video.js controls: compact, monochrome player chrome */
+.vfp-root .rfp-video-player.video-js {
+  color: #fff;
+  background: #000;
+  font-family: inherit;
+}
+
+.vfp-root .rfp-video-player.video-js .vjs-tech {
+  object-fit: contain;
+}
+
+.vfp-root .rfp-video-player.video-js .vjs-control-bar {
+  height: 52px;
+  padding: 16px 12px 0;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  background: linear-gradient(180deg, transparent 0%, rgb(0 0 0 / 0.78) 38%, rgb(0 0 0 / 0.96) 100%);
+  font-size: 12px;
+}
+
+.vfp-root .rfp-video-player.video-js .vjs-progress-control {
+  position: absolute;
+  top: 0;
+  bottom: auto !important;
+  left: 12px;
+  right: 12px;
+  width: auto !important;
+  min-width: 0;
+  height: 8px !important;
+  margin: 0;
+  flex: none;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.vfp-root .rfp-video-player.video-js .vjs-progress-holder {
+  width: 100%;
+  height: 2px;
+  margin: 0;
+  background: rgb(255 255 255 / 0.28);
+  transition: height 120ms ease;
+}
+
+.vfp-root .rfp-video-player.video-js .vjs-progress-control:hover .vjs-progress-holder,
+.vfp-root .rfp-video-player.video-js .vjs-progress-control:focus .vjs-progress-holder {
+  height: 4px;
+}
+
+.vfp-root .rfp-video-player.video-js .vjs-play-progress,
+.vfp-root .rfp-video-player.video-js .vjs-load-progress {
+  background: #fff;
+}
+
+.vfp-root .rfp-video-player.video-js .vjs-load-progress {
+  opacity: 0.32;
+}
+
+.vfp-root .rfp-video-player.video-js .vjs-play-progress:before {
+  content: '';
+  top: 50%;
+  right: -5px;
+  width: 10px;
+  height: 10px;
+  margin-top: -5px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 0 1px rgb(0 0 0 / 0.28);
+}
+
+.vfp-root .rfp-video-player.video-js .vjs-control {
+  width: 34px;
+  height: 36px;
+  margin: 0;
+  padding: 0;
+  color: rgb(255 255 255 / 0.86);
+  border-radius: 6px;
+  transition: color 160ms ease, background-color 160ms ease;
+}
+
+.vfp-root .rfp-video-player.video-js .vjs-control:hover,
+.vfp-root .rfp-video-player.video-js .vjs-control:focus {
+  color: #fff;
+  background: rgb(255 255 255 / 0.12);
+}
+
+.vfp-root .rfp-video-player.video-js .vjs-play-control {
+  margin-right: 2px;
+}
+
+.vfp-root .rfp-video-player.video-js .vjs-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.vfp-root .rfp-video-player.video-js .vjs-button > .vjs-icon-placeholder {
+  position: relative;
+  display: block;
+  width: 22px;
+  height: 22px;
+}
+
+.vfp-root .rfp-video-player.video-js .vjs-button > .vjs-icon-placeholder:before {
+  inset: 0;
+  width: 22px;
+  height: 22px;
+  font-size: 20px;
+  line-height: 22px;
+  text-align: center;
+}
+
+.vfp-root .rfp-video-player.video-js .vjs-time-control {
+  width: auto !important;
+  height: 36px;
+  min-width: auto;
+  padding: 0 3px;
+  color: rgb(255 255 255 / 0.72);
+  line-height: 36px;
+  font-variant-numeric: tabular-nums;
+}
+
+.vfp-root .rfp-video-player.video-js .vjs-current-time,
+.vfp-root .rfp-video-player.video-js .vjs-time-divider,
+.vfp-root .rfp-video-player.video-js .vjs-duration {
+  display: block;
+}
+
+.vfp-root .rfp-video-player.video-js .vjs-time-divider {
+  padding: 0 1px;
+}
+
+.vfp-root .rfp-video-player.video-js .vjs-volume-panel {
+  width: 34px !important;
+  height: 36px;
+  margin: 0 6px 0 0;
+  flex: 0 0 34px;
+  display: flex;
+  align-items: center;
+  overflow: visible;
+  transition: width 160ms ease, flex-basis 160ms ease;
+}
+
+.vfp-root .rfp-video-player.video-js .vjs-volume-panel .vjs-mute-control {
+  flex: 0 0 34px;
+}
+
+.vfp-root .rfp-video-player.video-js .vjs-volume-panel .vjs-volume-control {
+  position: relative;
+  width: 0 !important;
+  height: 36px;
+  margin: 0;
+  flex: 0 0 0;
+  opacity: 0;
+  visibility: hidden;
+  overflow: hidden;
+  transition: width 160ms ease, flex-basis 160ms ease, opacity 120ms ease;
+}
+
+.vfp-root .rfp-video-player.video-js .vjs-volume-panel.vjs-volume-panel-horizontal:hover,
+.vfp-root .rfp-video-player.video-js .vjs-volume-panel.vjs-volume-panel-horizontal:focus,
+.vfp-root .rfp-video-player.video-js .vjs-volume-panel.vjs-volume-panel-horizontal.vjs-slider-active {
+  width: 102px !important;
+  flex-basis: 102px;
+}
+
+.vfp-root .rfp-video-player.video-js .vjs-volume-panel.vjs-volume-panel-horizontal:hover .vjs-volume-control,
+.vfp-root .rfp-video-player.video-js .vjs-volume-panel.vjs-volume-panel-horizontal:focus .vjs-volume-control,
+.vfp-root .rfp-video-player.video-js .vjs-volume-panel.vjs-volume-panel-horizontal.vjs-slider-active .vjs-volume-control {
+  width: 68px !important;
+  flex-basis: 68px;
+  opacity: 1;
+  visibility: visible;
+  overflow: visible;
+}
+
+.vfp-root .rfp-video-player.video-js .vjs-volume-bar {
+  position: relative;
+  width: 48px;
+  height: 3px;
+  margin: 16px 10px 0;
+}
+
+.vfp-root .rfp-video-player.video-js .vjs-slider {
+  background: rgb(255 255 255 / 0.28);
+}
+
+.vfp-root .rfp-video-player.video-js .vjs-volume-level {
+  height: 100%;
+  background: #fff;
+}
+
+.vfp-root .rfp-video-player.video-js .vjs-volume-level:before {
+  content: '';
+  top: 50%;
+  right: -4px;
+  width: 8px;
+  height: 8px;
+  margin-top: -4px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 0 1px rgb(0 0 0 / 0.28);
+}
+
+.vfp-root .rfp-video-player.video-js .vjs-fullscreen-control {
+  margin-left: auto;
+}
+
+.vfp-root .rfp-video-player.video-js .vjs-big-play-button {
+  width: 58px;
+  height: 58px;
+  margin: -29px 0 0 -29px;
+  padding: 0;
+  border: 1px solid rgb(255 255 255 / 0.55);
+  border-radius: 50%;
+  background: rgb(8 8 8 / 0.78);
+  color: #fff;
+  font-size: 26px;
+  line-height: 56px;
+  transition: transform 160ms ease, background-color 160ms ease, border-color 160ms ease;
+}
+
+.vfp-root .rfp-video-player.video-js .vjs-big-play-button .vjs-icon-placeholder:before {
+  inset: 0;
+  width: 56px;
+  height: 56px;
+  line-height: 56px;
+  text-align: center;
+}
+
+.vfp-root .rfp-video-player.video-js:hover .vjs-big-play-button,
+.vfp-root .rfp-video-player.video-js .vjs-big-play-button:focus {
+  border-color: #fff;
+  background: rgb(0 0 0 / 0.86);
+  transform: scale(1.04);
+}
+
+.vfp-root .rfp-video-player.video-js .vjs-menu-button-popup .vjs-menu {
+  bottom: 44px;
+  background: rgb(12 12 12 / 0.96);
+  border: 1px solid rgb(255 255 255 / 0.16);
+  border-radius: 4px;
+  box-shadow: 0 10px 28px rgb(0 0 0 / 0.4);
+}
+
+.vfp-root .rfp-video-player.video-js .vjs-menu li {
+  padding: 7px 12px;
+  color: rgb(255 255 255 / 0.76);
+}
+
+.vfp-root .rfp-video-player.video-js .vjs-menu li:hover,
+.vfp-root .rfp-video-player.video-js .vjs-menu li.vjs-selected {
+  background: rgb(255 255 255 / 0.14);
+  color: #fff;
+}
+
 
 .vfp-root .pptx-wrapper,
 .vfp-root .pptx-preview-wrapper {
@@ -494,6 +778,8 @@
   /* loading spinner */
   --fp-spinner-track: rgb(255 255 255 / 0.2);
   --fp-spinner-head:  rgb(255 255 255 / 0.85);
+  --fp-player-progress: rgb(255 255 255 / 0.92);
+  --fp-player-progress-glow: rgb(255 255 255 / 0.22);
 }
 
 .vfp-root[data-theme="light"] {
@@ -519,6 +805,8 @@
 
   --fp-spinner-track: rgb(0 0 0 / 0.1);
   --fp-spinner-head:  rgb(23 23 23 / 0.85);
+  --fp-player-progress: rgb(23 23 23 / 0.92);
+  --fp-player-progress-glow: rgb(0 0 0 / 0.2);
 
   /* 代码块在 light 下取 GitHub Light 风格 */
   --fp-code-bg:       #f6f8fa;

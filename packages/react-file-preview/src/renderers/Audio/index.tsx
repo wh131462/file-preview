@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Play, Pause, Volume2, VolumeX, Volume1, SkipBack, SkipForward, Repeat } from 'lucide-react';
+import { AudioLines, Play, Pause, Volume2, VolumeX, Volume1, SkipBack, SkipForward, Repeat } from 'lucide-react';
 import { useAudioPlayer } from '../../hooks/useAudioPlayer';
 import { useTranslator } from '../../i18n/LocaleContext';
 import { RendererError } from '../RendererError';
@@ -66,88 +66,6 @@ const MarqueeText: React.FC<{
   );
 };
 
-/** SVG 唱臂组件 */
-const Tonearm: React.FC<{ isPlaying: boolean }> = ({ isPlaying }) => (
-  <motion.div
-    className="rfp-absolute"
-    style={{
-      top: '-6px',
-      right: '2px',
-      width: '100px',
-      height: '120px',
-      transformOrigin: '76px 16px',
-      zIndex: 5,
-    }}
-    animate={{ rotate: isPlaying ? 16 : 0 }}
-    transition={{ duration: 0.8, ease: [0.4, 0, 0.2, 1] }}
-  >
-    <svg
-      width="100"
-      height="120"
-      viewBox="0 0 100 120"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      {/* 底座阴影 */}
-      <circle cx="76" cy="16" r="13" fill="rgba(0,0,0,0.3)" />
-      {/* 底座外圈 */}
-      <circle cx="76" cy="16" r="11" fill="url(#baseGrad)" />
-      {/* 底座内圈 */}
-      <circle cx="76" cy="16" r="6" fill="url(#baseInnerGrad)" />
-      {/* 底座中心轴 */}
-      <circle cx="76" cy="16" r="2.5" fill="#222" stroke="#555" strokeWidth="0.5" />
-
-      {/* 臂杆 */}
-      <path
-        d="M74 22 L56 88"
-        stroke="url(#armGrad)"
-        strokeWidth="3.5"
-        strokeLinecap="round"
-      />
-      {/* 臂杆高光 */}
-      <path
-        d="M74.8 22 L56.8 88"
-        stroke="rgba(255,255,255,0.06)"
-        strokeWidth="1"
-        strokeLinecap="round"
-      />
-
-      {/* 唱头座 (Headshell) */}
-      <rect x="50" y="86" width="12" height="7" rx="1.5" fill="url(#headGrad)" />
-      {/* 唱头 (Cartridge) */}
-      <rect x="52.5" y="92" width="7" height="9" rx="1" fill="url(#cartridgeGrad)" />
-      {/* 唱针 (Stylus) */}
-      <line x1="56" y1="101" x2="56" y2="105" stroke="#bbb" strokeWidth="1.2" strokeLinecap="round" />
-      <circle cx="56" cy="105.5" r="0.8" fill="#ddd" />
-
-      {/* 渐变定义 */}
-      <defs>
-        <radialGradient id="baseGrad" cx="40%" cy="35%">
-          <stop offset="0%" stopColor="#555" />
-          <stop offset="100%" stopColor="#1a1a1a" />
-        </radialGradient>
-        <radialGradient id="baseInnerGrad" cx="40%" cy="35%">
-          <stop offset="0%" stopColor="#666" />
-          <stop offset="100%" stopColor="#333" />
-        </radialGradient>
-        <linearGradient id="armGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#555" />
-          <stop offset="50%" stopColor="#444" />
-          <stop offset="100%" stopColor="#333" />
-        </linearGradient>
-        <linearGradient id="headGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#555" />
-          <stop offset="100%" stopColor="#333" />
-        </linearGradient>
-        <linearGradient id="cartridgeGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#444" />
-          <stop offset="100%" stopColor="#222" />
-        </linearGradient>
-      </defs>
-    </svg>
-  </motion.div>
-);
-
 interface AudioRendererProps {
   url: string;
   fileName: string;
@@ -175,43 +93,13 @@ export const AudioRenderer = forwardRef<RendererHandle, AudioRendererProps>(({ u
   } = useAudioPlayer({ url });
 
   const [showVolume, setShowVolume] = useState(false);
-  const [isCompact, setIsCompact] = useState(false);
-  const [controlScale, setControlScale] = useState(1);
   const [isDragging, setIsDragging] = useState(false);
   const [dragTime, setDragTime] = useState(0);
-  const containerRef = useRef<HTMLDivElement>(null);
   const volumeRef = useRef<HTMLDivElement>(null);
   const volumeTimerRef = useRef<ReturnType<typeof setTimeout>>();
 
   const displayTime = isDragging ? dragTime : currentTime;
   const progress = duration > 0 ? displayTime / duration : 0;
-
-  // 监听容器尺寸，自适应调整布局
-  useEffect(() => {
-    const checkSize = () => {
-      if (containerRef.current) {
-        const height = containerRef.current.clientHeight;
-        const width = containerRef.current.clientWidth;
-        // 高度小于 580px 时启用紧凑模式
-        setIsCompact(height < 580);
-        // 控制面板宽度自适应缩放
-        // 基础宽度 448px (max-w-md)，最小视觉宽度 320px，即最小 scale ≈ 0.714
-        const baseWidth = 464; // 448 + 左右各 8px 呼吸空间
-        const minVisualWidth = 320;
-        const minScale = minVisualWidth / baseWidth;
-        const scale = width >= baseWidth
-          ? 1
-          : Math.max(minScale, width / baseWidth);
-        setControlScale(scale);
-      }
-    };
-    checkSize();
-    const observer = new ResizeObserver(checkSize);
-    if (containerRef.current) {
-      observer.observe(containerRef.current);
-    }
-    return () => observer.disconnect();
-  }, []);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -245,161 +133,43 @@ export const AudioRenderer = forwardRef<RendererHandle, AudioRendererProps>(({ u
     return <RendererError message={error} />;
   }
 
-  // 根据紧凑模式动态计算尺寸
-  const vinylScale = isCompact ? 0.72 : 1;
-  const vinylBase = 260;
-  const vinylHeightBase = 240;
-
-  // 唱片跟随控制面板同步缩放，避免头重脚轻
-  const finalVinylScale = vinylScale * controlScale;
-
   return (
-    <div
-      ref={containerRef}
-      className={`rfp-flex rfp-flex-col rfp-items-center rfp-justify-center rfp-w-full rfp-h-full rfp-select-none rfp-overflow-auto ${
-        isCompact ? 'rfp-p-3 rfp-gap-3' : 'rfp-p-6 rfp-gap-6'
-      }`}
-    >
-      {/* 唱片机整体 */}
+    <div className="rfp-flex rfp-items-center rfp-justify-center rfp-w-full rfp-h-full rfp-p-4 rfp-select-none rfp-overflow-auto">
       <div
-        className="rfp-relative rfp-flex-shrink-0"
-        style={{
-          width: `${vinylBase}px`,
-          height: `${vinylHeightBase}px`,
-          transform: `scale(${finalVinylScale})`,
-          transformOrigin: 'center center',
-          marginTop: isCompact ? `${-(vinylHeightBase * (1 - finalVinylScale)) / 2}px` : 0,
-          marginBottom: isCompact ? `${-(vinylHeightBase * (1 - finalVinylScale)) / 2}px` : 0,
-        }}
+        className="rfp-w-full rfp-max-w-xl rfp-flex-shrink-0 rfp-rounded-lg rfp-border rfp-border-line-weak rfp-bg-surface-1 rfp-p-4"
       >
-        {/* 外圈光晕 */}
-        <motion.div
-          className="rfp-absolute rfp-rounded-full"
-          style={{
-            width: '220px',
-            height: '220px',
-            top: '18px',
-            left: '8px',
-            background: 'radial-gradient(circle, rgba(129,140,248,0.12) 0%, transparent 70%)',
-          }}
-          animate={isPlaying ? { scale: [1, 1.08, 1], opacity: [0.5, 1, 0.5] } : { scale: 1, opacity: 0.2 }}
-          transition={isPlaying ? { duration: 3, repeat: Infinity, ease: 'easeInOut' } : { duration: 0.5 }}
-        />
-
-        {/* 唱片主体 */}
-        <div
-          className="rfp-absolute rfp-rounded-full rfp-overflow-hidden"
-          style={{
-            width: '200px',
-            height: '200px',
-            top: '28px',
-            left: '18px',
-            background: `
-              radial-gradient(circle at center, transparent 95%, rgba(30,30,30,0.8) 95.5%, #111 97%),
-              radial-gradient(circle at center, transparent 38%, rgba(50,50,50,0.5) 38.15%, transparent 38.4%),
-              radial-gradient(circle at center, transparent 45%, rgba(50,50,50,0.3) 45.15%, transparent 45.4%),
-              radial-gradient(circle at center, transparent 52%, rgba(50,50,50,0.5) 52.15%, transparent 52.4%),
-              radial-gradient(circle at center, transparent 59%, rgba(50,50,50,0.3) 59.15%, transparent 59.4%),
-              radial-gradient(circle at center, transparent 66%, rgba(50,50,50,0.5) 66.15%, transparent 66.4%),
-              radial-gradient(circle at center, transparent 73%, rgba(50,50,50,0.3) 73.15%, transparent 73.4%),
-              radial-gradient(circle at center, transparent 80%, rgba(50,50,50,0.4) 80.15%, transparent 80.4%),
-              radial-gradient(circle at center, transparent 87%, rgba(50,50,50,0.3) 87.15%, transparent 87.4%),
-              conic-gradient(from 0deg, #1c1c1c, #232323, #1a1a1a, #262626, #1c1c1c, #212121, #1a1a1a, #252525, #1c1c1c, #232323, #1a1a1a, #262626, #1c1c1c)
-            `,
-            boxShadow: isPlaying
-              ? '0 0 36px rgba(129,140,248,0.1), 0 8px 32px rgba(0,0,0,0.4), inset 0 0 20px rgba(0,0,0,0.4)'
-              : '0 8px 32px rgba(0,0,0,0.4), inset 0 0 20px rgba(0,0,0,0.4)',
-            animation: 'rfp-vinyl-spin 8s linear infinite',
-            animationPlayState: isPlaying ? 'running' : 'paused',
-          }}
-        >
-          {/* 中心标签 */}
+        <div className="rfp-flex rfp-items-center rfp-gap-3 rfp-mb-4">
           <div
-            className="rfp-absolute rfp-rounded-full"
-            style={{
-              width: '34%',
-              height: '34%',
-              top: '33%',
-              left: '33%',
-              background: 'radial-gradient(circle at 40% 38%, #818cf8, #6366f1, #4f46e5, #4338ca)',
-              boxShadow: 'inset 0 1px 3px rgba(255,255,255,0.25), inset 0 -1px 3px rgba(0,0,0,0.3), 0 0 8px rgba(0,0,0,0.3)',
-            }}
+            aria-hidden="true"
+            className={`rfp-audio-mark rfp-w-10 rfp-h-10 rfp-flex rfp-items-center rfp-justify-center rfp-rounded-md rfp-flex-shrink-0 ${
+              isPlaying ? 'rfp-audio-mark-playing' : ''
+            } ${isLoading ? 'rfp-opacity-50' : ''}`}
           >
-            <div
-              className="rfp-absolute rfp-inset-0 rfp-rounded-full rfp-opacity-20"
-              style={{
-                background: `
-                  radial-gradient(circle at center, transparent 30%, rgba(0,0,0,0.3) 31%, transparent 32%),
-                  radial-gradient(circle at center, transparent 50%, rgba(0,0,0,0.2) 51%, transparent 52%),
-                  radial-gradient(circle at center, transparent 70%, rgba(0,0,0,0.3) 71%, transparent 72%),
-                  radial-gradient(circle at center, transparent 88%, rgba(0,0,0,0.2) 89%, transparent 90%)
-                `,
-              }}
-            />
-            <div
-              className="rfp-absolute rfp-rounded-full"
-              style={{
-                width: '14%',
-                height: '14%',
-                top: '43%',
-                left: '43%',
-                background: 'radial-gradient(circle at 40% 40%, #333, #0d0d0d)',
-                boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.9), 0 0 2px rgba(0,0,0,0.5)',
-              }}
+            <AudioLines className="rfp-w-5 rfp-h-5" />
+          </div>
+          <div className="rfp-min-w-0 rfp-flex-1">
+            <MarqueeText
+              text={fileName}
+              className="rfp-text-sm rfp-font-medium rfp-text-fg-primary"
             />
           </div>
-
-          {isLoading && (
-            <motion.div
-              className="rfp-absolute rfp-inset-0 rfp-rounded-full"
-              style={{ border: '2px solid rgba(129,140,248,0.3)' }}
-              animate={{ scale: [1, 1.02, 1], opacity: [0.3, 0.6, 0.3] }}
-              transition={{ duration: 1.5, repeat: Infinity }}
-            />
-          )}
         </div>
 
-        {/* 唱臂 */}
-        <Tonearm isPlaying={isPlaying} />
-      </div>
-
-      {/* 文件名 */}
-      <div className={`rfp-text-center rfp-max-w-md rfp-flex-shrink-0 ${isCompact ? 'rfp-px-2' : 'rfp-px-4'}`}>
-        <MarqueeText
-          text={fileName}
-          className={`rfp-font-medium rfp-text-fg-primary ${isCompact ? 'rfp-text-sm' : 'rfp-text-lg'}`}
-        />
-      </div>
-
-      {/* 控制面板 wrapper：按容器宽度整体缩放，保底视觉宽度 320px */}
-      <div
-        className="rfp-w-full rfp-flex rfp-justify-center rfp-flex-shrink-0"
-      >
-        <div
-          className={`rfp-rounded-2xl rfp-border rfp-bg-surface-1 rfp-border-line-weak ${
-            isCompact ? 'rfp-p-3' : 'rfp-p-5'
-          }`}
-          style={{
-            width: '448px',
-            backdropFilter: 'blur(16px)',
-            transform: controlScale < 1 ? `scale(${controlScale})` : undefined,
-            transformOrigin: 'top center',
-            marginBottom: controlScale < 1 ? `${-(1 - controlScale) * 100}px` : undefined,
-          }}
-        >
-        {/* 进度条 */}
-        <div className={isCompact ? 'rfp-mb-3' : 'rfp-mb-5'}>
-          <div className="rfp-relative rfp-h-4 rfp-flex rfp-items-center">
-            <div className="rfp-absolute rfp-w-full rfp-h-[5px] rfp-rounded-full rfp-bg-surface-2" />
-            <div
-              className="rfp-absolute rfp-h-[5px] rfp-rounded-full rfp-pointer-events-none"
-              style={{
-                width: `${progress * 100}%`,
-                background: 'linear-gradient(90deg, var(--fp-accent), var(--fp-accent-hover))',
-                boxShadow: isPlaying ? '0 0 8px rgba(129,140,248,0.4)' : 'none',
-                transition: isDragging ? 'none' : 'width 0.1s linear',
-              }}
-            />
+        <div className="rfp-flex rfp-items-center rfp-gap-3 rfp-mb-4">
+          <span className="rfp-w-9 rfp-flex-shrink-0 rfp-text-right rfp-text-[11px] rfp-text-fg-tertiary rfp-tabular-nums">
+            {formatTime(displayTime)}
+          </span>
+          <div className="rfp-relative rfp-h-4 rfp-flex rfp-flex-1 rfp-items-center">
+            <div className="rfp-absolute rfp-left-[6px] rfp-right-[6px] rfp-h-[3px] rfp-rounded-full rfp-bg-surface-3">
+              <div
+                className="rfp-h-full rfp-rounded-full rfp-pointer-events-none"
+                style={{
+                  width: `${progress * 100}%`,
+                  background: 'var(--fp-player-progress)',
+                  transition: isDragging ? 'none' : 'width 0.1s linear',
+                }}
+              />
+            </div>
             <input
               type="range"
               min="0"
@@ -429,80 +199,72 @@ export const AudioRenderer = forwardRef<RendererHandle, AudioRendererProps>(({ u
               className="audio-slider rfp-absolute rfp-w-full"
             />
           </div>
-          <div className={`rfp-flex rfp-justify-between rfp-text-fg-tertiary ${isCompact ? 'rfp-text-[10px] rfp-mt-1.5' : 'rfp-text-xs rfp-mt-2.5'}`}>
-            <span style={{ fontVariantNumeric: 'tabular-nums' }}>{formatTime(displayTime)}</span>
-            <span style={{ fontVariantNumeric: 'tabular-nums' }}>{duration > 0 ? formatTime(duration) : '--:--'}</span>
-          </div>
+          <span className="rfp-w-9 rfp-flex-shrink-0 rfp-text-[11px] rfp-text-fg-tertiary rfp-tabular-nums">
+            {duration > 0 ? formatTime(duration) : '--:--'}
+          </span>
         </div>
 
-        {/* 控制按钮 */}
-        <div className={`rfp-flex rfp-items-center rfp-justify-center ${isCompact ? 'rfp-gap-2' : 'rfp-gap-3'}`}>
-          {/* 循环 */}
+        <div className="rfp-flex rfp-items-center rfp-gap-1">
           <motion.button
-            onClick={toggleLoop}
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.92 }}
-            aria-label={isLoop ? t('audio.aria.loop_off') : t('audio.aria.loop_on')}
-            className={`rfp-rounded-full rfp-flex rfp-items-center rfp-justify-center rfp-transition-colors rfp-flex-shrink-0 ${
-              isCompact ? 'rfp-w-8 rfp-h-8' : 'rfp-w-9 rfp-h-9'
-            } ${
-              isLoop
-                ? 'rfp-bg-accent-soft rfp-text-accent'
-                : 'rfp-bg-surface-2 rfp-text-fg-tertiary'
-            }`}
-          >
-            <Repeat className={isCompact ? 'rfp-w-3.5 rfp-h-3.5' : 'rfp-w-4 rfp-h-4'} />
-          </motion.button>
-
-          {/* 后退 */}
-          <motion.button
-            onClick={() => skip(-10)}
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.92 }}
-            aria-label={t('audio.aria.backward_10')}
-            className={`rfp-rounded-full rfp-flex rfp-items-center rfp-justify-center rfp-transition-colors rfp-bg-surface-2 rfp-text-fg-secondary rfp-flex-shrink-0 ${
-              isCompact ? 'rfp-w-9 rfp-h-9' : 'rfp-w-10 rfp-h-10'
-            }`}
-          >
-            <SkipBack className={isCompact ? 'rfp-w-4 rfp-h-4' : 'rfp-w-[18px] rfp-h-[18px]'} />
-          </motion.button>
-
-          {/* 播放/暂停 */}
-          <motion.button
+            type="button"
             onClick={togglePlay}
-            whileHover={{ scale: 1.06 }}
-            whileTap={{ scale: 0.94 }}
+            whileTap={{ scale: 0.97 }}
+            title={isPlaying ? t('audio.aria.pause') : t('audio.aria.play')}
             aria-label={isPlaying ? t('audio.aria.pause') : t('audio.aria.play')}
-            className={`rfp-rounded-full rfp-flex rfp-items-center rfp-justify-center rfp-flex-shrink-0 ${
-              isCompact ? 'rfp-w-12 rfp-h-12' : 'rfp-w-14 rfp-h-14'
-            }`}
+            className="rfp-audio-control rfp-w-10 rfp-h-10 rfp-rounded-md rfp-flex rfp-items-center rfp-justify-center rfp-flex-shrink-0"
             style={{
-              background: 'linear-gradient(135deg, var(--fp-accent-hover), var(--fp-accent))',
-              color: '#fff',
-              boxShadow: '0 4px 20px rgba(99,102,241,0.35)',
+              background: 'var(--fp-player-progress)',
+              color: 'var(--fp-fg-inverse)',
             }}
           >
             {isPlaying ? (
-              <Pause className={isCompact ? 'rfp-w-5 rfp-h-5' : 'rfp-w-6 rfp-h-6'} />
+              <Pause className="rfp-w-5 rfp-h-5" />
             ) : (
-              <Play className={isCompact ? 'rfp-w-5 rfp-h-5 rfp-ml-0.5' : 'rfp-w-6 rfp-h-6 rfp-ml-0.5'} />
+              <Play className="rfp-w-5 rfp-h-5 rfp-ml-0.5" />
             )}
           </motion.button>
 
-          {/* 前进 */}
           <motion.button
-            onClick={() => skip(10)}
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.92 }}
-            aria-label={t('audio.aria.forward_10')}
-            className={`rfp-rounded-full rfp-flex rfp-items-center rfp-justify-center rfp-transition-colors rfp-bg-surface-2 rfp-text-fg-secondary rfp-flex-shrink-0 ${
-              isCompact ? 'rfp-w-9 rfp-h-9' : 'rfp-w-10 rfp-h-10'
-            }`}
+            type="button"
+            onClick={() => skip(-10)}
+            whileTap={{ scale: 0.96 }}
+            title={t('audio.aria.backward_10')}
+            aria-label={t('audio.aria.backward_10')}
+            className="rfp-audio-control rfp-w-9 rfp-h-9 rfp-rounded-md rfp-flex rfp-items-center rfp-justify-center rfp-transition-colors rfp-text-fg-secondary hover:rfp-bg-surface-3 rfp-flex-shrink-0"
           >
-            <SkipForward className={isCompact ? 'rfp-w-4 rfp-h-4' : 'rfp-w-[18px] rfp-h-[18px]'} />
+            <SkipBack className="rfp-w-[18px] rfp-h-[18px]" />
           </motion.button>
 
-          {/* 音量 */}
+          <motion.button
+            type="button"
+            onClick={() => skip(10)}
+            whileTap={{ scale: 0.96 }}
+            title={t('audio.aria.forward_10')}
+            aria-label={t('audio.aria.forward_10')}
+            className="rfp-audio-control rfp-w-9 rfp-h-9 rfp-rounded-md rfp-flex rfp-items-center rfp-justify-center rfp-transition-colors rfp-text-fg-secondary hover:rfp-bg-surface-3 rfp-flex-shrink-0"
+          >
+            <SkipForward className="rfp-w-[18px] rfp-h-[18px]" />
+          </motion.button>
+
+          <div className="rfp-w-px rfp-h-5 rfp-mx-1 rfp-bg-divide" />
+
+          <motion.button
+            type="button"
+            onClick={toggleLoop}
+            whileTap={{ scale: 0.96 }}
+            title={isLoop ? t('audio.aria.loop_off') : t('audio.aria.loop_on')}
+            aria-label={isLoop ? t('audio.aria.loop_off') : t('audio.aria.loop_on')}
+            className={`rfp-audio-control rfp-w-9 rfp-h-9 rfp-rounded-md rfp-flex rfp-items-center rfp-justify-center rfp-transition-colors rfp-flex-shrink-0 ${
+              isLoop
+                ? 'rfp-bg-surface-3 rfp-text-fg-primary'
+                : 'rfp-text-fg-tertiary hover:rfp-bg-surface-3'
+            }`}
+          >
+            <Repeat className="rfp-w-4 rfp-h-4" />
+          </motion.button>
+
+          <div className="rfp-flex-1" />
+
           <div
             ref={volumeRef}
             className="rfp-relative"
@@ -510,19 +272,18 @@ export const AudioRenderer = forwardRef<RendererHandle, AudioRendererProps>(({ u
             onMouseLeave={handleVolumeLeave}
           >
             <motion.button
+              type="button"
               onClick={toggleMute}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.92 }}
+              whileTap={{ scale: 0.96 }}
+              title={isMuted ? t('audio.aria.unmute') : t('audio.aria.mute')}
               aria-label={isMuted ? t('audio.aria.unmute') : t('audio.aria.mute')}
-              className={`rfp-rounded-full rfp-flex rfp-items-center rfp-justify-center rfp-transition-colors rfp-flex-shrink-0 ${
-                isCompact ? 'rfp-w-8 rfp-h-8' : 'rfp-w-9 rfp-h-9'
-              } ${
+              className={`rfp-audio-control rfp-w-9 rfp-h-9 rfp-rounded-md rfp-flex rfp-items-center rfp-justify-center rfp-transition-colors rfp-flex-shrink-0 ${
                 showVolume
-                  ? 'rfp-bg-accent-soft rfp-text-accent'
-                  : 'rfp-bg-surface-2 rfp-text-fg-secondary'
+                  ? 'rfp-bg-surface-3 rfp-text-fg-primary'
+                  : 'rfp-text-fg-secondary hover:rfp-bg-surface-3'
               }`}
             >
-              <VolumeIcon className={isCompact ? 'rfp-w-3.5 rfp-h-3.5' : 'rfp-w-4 rfp-h-4'} />
+              <VolumeIcon className="rfp-w-4 rfp-h-4" />
             </motion.button>
 
             <AnimatePresence>
@@ -532,11 +293,9 @@ export const AudioRenderer = forwardRef<RendererHandle, AudioRendererProps>(({ u
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.95 }}
                   transition={{ duration: 0.12 }}
-                  className="rfp-absolute rfp-bottom-full rfp-mb-2 rfp-rounded-xl rfp-p-3 rfp-border rfp-bg-surface-3 rfp-border-line"
+                  className="rfp-absolute rfp-right-0 rfp-bottom-full rfp-mb-2 rfp-rounded-md rfp-p-3 rfp-border rfp-bg-surface-toolbar rfp-border-line"
                   style={{
-                    left: '50%',
-                    marginLeft: '-27px',
-                    backdropFilter: 'blur(16px)',
+                    width: '54px',
                   }}
                   onMouseEnter={handleVolumeEnter}
                   onMouseLeave={handleVolumeLeave}
@@ -552,7 +311,7 @@ export const AudioRenderer = forwardRef<RendererHandle, AudioRendererProps>(({ u
                         style={{
                           width: '3px',
                           height: `${(isMuted ? 0 : volume) * 100}%`,
-                          background: 'var(--fp-accent-hover)',
+                          background: 'var(--fp-player-progress)',
                           transition: 'height 0.1s linear',
                         }}
                       />
@@ -582,8 +341,6 @@ export const AudioRenderer = forwardRef<RendererHandle, AudioRendererProps>(({ u
             </AnimatePresence>
           </div>
         </div>
-      </div>
-      {/* wrapper 闭合 */}
       </div>
 
       <audio ref={audioRef} src={url} className="rfp-hidden" />

@@ -134,6 +134,25 @@ test('root READMEs contain only current scripts, links, and renderer contract', 
   }
 });
 
+test('publishable package dependencies must not use workspace protocol', async () => {
+  for (const pkgPath of [
+    'packages/angular-file-preview/package.json',
+    'packages/react-file-preview/package.json',
+    'packages/vue-file-preview/package.json',
+    'packages/file-preview-core/package.json',
+  ]) {
+    const pkg = JSON.parse(await read(pkgPath));
+    for (const field of ['dependencies', 'peerDependencies', 'optionalDependencies']) {
+      for (const [name, version] of Object.entries(pkg[field] ?? {})) {
+        assert.ok(
+          !String(version).startsWith('workspace:'),
+          `${pkgPath} ${field}.${name}=${version}`,
+        );
+      }
+    }
+  }
+});
+
 test('VitePress type documentation has one request section and current labels', async () => {
   const types = await read('packages/docs/api/types.md');
   assert.equal((types.match(/^## 请求与鉴权$/gm) ?? []).length, 1);

@@ -73,7 +73,6 @@
     "@angular/platform-browser": ">=19.0.0"
   },
   "dependencies": {
-    "@eternalheart/file-preview-core": "workspace:*",
     "@jsquash/avif": "^2.1.1",
     "@kenjiuno/msgreader": "^1.28.0",
     "@likecoin/epub-ts": "^0.6.0",
@@ -99,6 +98,7 @@
     "x-data-spreadsheet": "^1.1.9"
   },
   "devDependencies": {
+    "@eternalheart/file-preview-core": "workspace:*",
     "ng-packagr": "^19.2.0",
     "postcss-cli": "^11.0.1",
     "@angular/common": "^19.2.0",

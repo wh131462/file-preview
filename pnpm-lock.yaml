@@ -98,9 +98,6 @@ importers:
 
   packages/angular-file-preview:
     dependencies:
-      '@eternalheart/file-preview-core':
-        specifier: workspace:*
-        version: link:../file-preview-core
       '@jsquash/avif':
         specifier: ^2.1.1
         version: 2.1.1
@@ -186,6 +183,9 @@ importers:
       '@angular/platform-browser':
         specifier: ^19.2.0
         version: 19.2.25(@angular/common@19.2.25(@angular/core@19.2.25(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@19.2.25(rxjs@7.8.2)(zone.js@0.15.1))
+      '@eternalheart/file-preview-core':
+        specifier: workspace:*
+        version: link:../file-preview-core
       '@types/markdown-it':
         specifier: ^14.1.2
         version: 14.1.2

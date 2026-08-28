@@ -69,7 +69,7 @@ const FloatingCopyButton = ({ text }: { text: string }) => {
 
 /** 带语言标注的代码块：shiki 高亮 + header + 复制按钮 */
 const ShikiCodeBlock = ({ code, lang }: { code: string; lang: string }) => {
-  const { html } = useShikiHighlight(code, lang);
+  const { html, loading } = useShikiHighlight(code, lang);
   return (
     <div className="rfp-relative rfp-group rfp-my-4">
       <div className="rfp-flex rfp-items-center rfp-justify-between rfp-px-4 rfp-py-1.5 rfp-bg-surface-1 rfp-border rfp-border-line-weak rfp-rounded-t-md rfp-border-b-0">
@@ -85,8 +85,13 @@ const ShikiCodeBlock = ({ code, lang }: { code: string; lang: string }) => {
         <pre
           className="rfp-m-0 rfp-rounded-b-md rfp-border rfp-border-line-weak rfp-border-t-0 rfp-overflow-x-auto rfp-p-4 rfp-bg-code-bg"
           style={{ fontSize: '13px', lineHeight: '1.5' }}
+          aria-busy={loading}
         >
-          <code className="rfp-font-mono rfp-text-code-fg rfp-text-sm">{code}</code>
+          <code
+            className={`rfp-font-mono rfp-text-code-fg rfp-text-sm ${loading ? 'rfp-invisible' : ''}`}
+          >
+            {code}
+          </code>
         </pre>
       )}
     </div>

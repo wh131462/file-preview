@@ -271,6 +271,10 @@ watch(shikiTheme, () => {
 .markdown-body :deep(.code-block-wrapper pre) {
   overflow: visible;
 }
+/* Shiki 完成前保留代码块尺寸，但不展示未高亮源码，避免样式闪烁 */
+.markdown-body :deep(pre[data-shiki-pending="1"] code) {
+  visibility: hidden;
+}
 /* 无语言代码块纯文本样式 */
 .markdown-body :deep(.no-lang-pre) {
   margin: 0;

@@ -82,6 +82,10 @@ import 'katex/dist/katex.min.css';
     .markdown-body ::ng-deep .code-block-wrapper pre {
       overflow: visible;
     }
+    /* Shiki 完成前保留代码块尺寸，但不展示未高亮源码，避免样式闪烁 */
+    .markdown-body ::ng-deep pre[data-shiki-pending="1"] code {
+      visibility: hidden;
+    }
     .markdown-body ::ng-deep .no-lang-pre {
       margin: 0;
       padding: 1rem;

@@ -85,19 +85,19 @@ import '@eternalheart/angular-file-preview/style.css'
 
 ## PDF 支持
 
-组件已内置 PDF.js worker 配置，**无需任何额外配置**。
+组件已内置 PDF.js Worker 和文档资源配置，**无需任何额外配置**。
 
-Worker 文件会自动从 CDN 加载，确保：
+Worker、CMap、标准字体和 WASM 文件会自动从 CDN 加载，确保：
 - <img src="/assets/icons/check.svg" width="18" height="18" style="display:inline;vertical-align:middle" /> 零配置，开箱即用
 - <img src="/assets/icons/check.svg" width="18" height="18" style="display:inline;vertical-align:middle" /> 自动匹配 pdfjs-dist 版本
 - <img src="/assets/icons/check.svg" width="18" height="18" style="display:inline;vertical-align:middle" /> 稳定可靠的加载方式
 - <img src="/assets/icons/check.svg" width="18" height="18" style="display:inline;vertical-align:middle" /> 无需手动复制任何文件
 
 ::: tip
-组件会自动使用 unpkg CDN 加载 PDF.js worker 文件，无需任何手动配置。
+组件会自动使用 unpkg CDN 加载 PDF.js 资源，无需任何手动配置。生产、离线或受内容安全策略限制的环境建议部署本地资源。
 :::
 
-如需自定义 worker 路径（例如生产环境用本地静态文件），可在应用入口调用配置函数：
+如需使用本地静态资源，请在客户端应用初始化阶段、首次渲染 PDF 前调用配置函数：
 
 ::: code-group
 
@@ -108,31 +108,41 @@ configurePdfjs({
   workerSrc: '/pdfjs/pdf.worker.min.mjs',
   cMapUrl: '/pdfjs/cmaps/',
   cMapPacked: true,
+  standardFontDataUrl: '/pdfjs/standard_fonts/',
+  wasmUrl: '/pdfjs/wasm/',
 })
 ```
 
 ```ts [Vue 3]
 import { configurePdfWorker } from '@eternalheart/vue-file-preview'
-import * as pdfjsLib from 'pdfjs-dist/build/pdf.mjs'
+import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs'
 
 configurePdfWorker(pdfjsLib, {
   workerSrc: '/pdfjs/pdf.worker.min.mjs',
   cMapUrl: '/pdfjs/cmaps/',
   cMapPacked: true,
+  standardFontDataUrl: '/pdfjs/standard_fonts/',
+  wasmUrl: '/pdfjs/wasm/',
 })
 ```
 
 ```ts [Angular]
 import { configurePdfWorker } from '@eternalheart/angular-file-preview'
-import * as pdfjsLib from 'pdfjs-dist/build/pdf.mjs'
+import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs'
 
 configurePdfWorker(pdfjsLib, {
   workerSrc: '/pdfjs/pdf.worker.min.mjs',
   cMapUrl: '/pdfjs/cmaps/',
   cMapPacked: true,
+  standardFontDataUrl: '/pdfjs/standard_fonts/',
+  wasmUrl: '/pdfjs/wasm/',
 })
 ```
 
+:::
+
+::: warning
+`workerSrc` 必须指向与当前 `pdfjs-dist` 版本匹配的 `legacy/build/pdf.worker.min.mjs`。服务端渲染阶段调用配置函数不会生效。
 :::
 
 ## 验证安装

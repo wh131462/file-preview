@@ -309,28 +309,38 @@ PDF.js 配置选项接口：
 
 ```typescript
 interface PdfConfigOptions {
-  workerSrc?: string     // PDF.js Worker 文件路径
-  cMapUrl?: string       // CMap 文件路径（多字节字符支持）
-  cMapPacked?: boolean   // 是否使用压缩的 CMap
+  workerSrc?: string            // PDF.js legacy Worker 文件路径
+  cMapUrl?: string              // CMap 文件目录路径（多字节字符支持）
+  cMapPacked?: boolean          // 是否使用压缩的 CMap，默认 true
+  standardFontDataUrl?: string  // PDF.js 标准字体文件目录路径
+  wasmUrl?: string              // PDF.js WASM 文件目录路径
 }
 ```
 
 ### 属性说明
 
-- `workerSrc`: 自定义 PDF.js Worker 文件路径，默认从 unpkg CDN 加载
-- `cMapUrl`: CMap 文件路径，用于支持 CJK 等多字节字符
-- `cMapPacked`: 是否使用压缩格式的 CMap 文件
+- `workerSrc`: 自定义 PDF.js legacy Worker 文件路径，默认从 unpkg CDN 加载
+- `cMapUrl`: CMap 文件目录路径，用于支持 CJK 等多字节字符，默认从 unpkg CDN 加载
+- `cMapPacked`: 是否使用压缩格式的 CMap 文件，默认为 `true`
+- `standardFontDataUrl`: PDF.js 标准字体文件目录路径，默认从 unpkg CDN 加载
+- `wasmUrl`: PDF.js WASM 文件目录路径，用于 JBIG2、JPEG 2000 等图像解码，默认从 unpkg CDN 加载
 
 ### 示例
 
 ```typescript
 import { configurePdfjs } from '@eternalheart/react-file-preview'
 
-// 使用本地 worker
+// 在客户端应用初始化阶段、首次渲染 PDF 前调用
 configurePdfjs({
-  workerSrc: '/pdf.worker.min.mjs'
+  workerSrc: '/pdfjs/pdf.worker.min.mjs',
+  cMapUrl: '/pdfjs/cmaps/',
+  cMapPacked: true,
+  standardFontDataUrl: '/pdfjs/standard_fonts/',
+  wasmUrl: '/pdfjs/wasm/',
 })
 ```
+
+`workerSrc` 必须使用与当前 `pdfjs-dist` 版本匹配的 `legacy/build/pdf.worker.min.mjs`。生产、离线或受内容安全策略限制的环境建议将上述资源部署到本地。
 
 ## 完整类型定义示例
 

@@ -53,22 +53,28 @@ import '@eternalheart/vue-file-preview/style.css';
 1. 将 PDF.js 文件复制到你的 public 目录：
 
 ```bash
-cp -r node_modules/pdfjs-dist/build/pdf.worker.min.mjs public/pdfjs/
+cp -r node_modules/pdfjs-dist/legacy/build/pdf.worker.min.mjs public/pdfjs/
 cp -r node_modules/pdfjs-dist/cmaps public/pdfjs/
+cp -r node_modules/pdfjs-dist/standard_fonts public/pdfjs/
+cp -r node_modules/pdfjs-dist/wasm public/pdfjs/
 ```
 
 2. 在应用入口配置 PDF.js：
 
 ```ts
-import * as pdfjsLib from 'pdfjs-dist/build/pdf.mjs';
+import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
 import { configurePdfWorker } from '@eternalheart/vue-file-preview';
 
 configurePdfWorker(pdfjsLib, {
   workerSrc: '/pdfjs/pdf.worker.min.mjs',
   cMapUrl: '/pdfjs/cmaps/',
   cMapPacked: true,
+  standardFontDataUrl: '/pdfjs/standard_fonts/',
+  wasmUrl: '/pdfjs/wasm/',
 });
 ```
+
+请在客户端应用初始化阶段、首次渲染 PDF 前调用。Worker 必须使用与当前 `pdfjs-dist` 版本匹配的 legacy 构建。
 
 #### 使用 Vite 自动复制（推荐）
 
@@ -83,11 +89,19 @@ export default defineConfig({
     viteStaticCopy({
       targets: [
         {
-          src: 'node_modules/pdfjs-dist/build/pdf.worker.min.mjs',
+          src: 'node_modules/pdfjs-dist/legacy/build/pdf.worker.min.mjs',
           dest: 'pdfjs'
         },
         {
           src: 'node_modules/pdfjs-dist/cmaps',
+          dest: 'pdfjs'
+        },
+        {
+          src: 'node_modules/pdfjs-dist/standard_fonts',
+          dest: 'pdfjs'
+        },
+        {
+          src: 'node_modules/pdfjs-dist/wasm',
           dest: 'pdfjs'
         }
       ]

@@ -57,8 +57,10 @@ By default, the component automatically uses unpkg CDN to load PDF.js, no additi
 
 ```bash
 # Copy PDF.js files from node_modules to public directory
-cp -r node_modules/pdfjs-dist/build/pdf.worker.min.mjs public/pdfjs/
+cp -r node_modules/pdfjs-dist/legacy/build/pdf.worker.min.mjs public/pdfjs/
 cp -r node_modules/pdfjs-dist/cmaps public/pdfjs/
+cp -r node_modules/pdfjs-dist/standard_fonts public/pdfjs/
+cp -r node_modules/pdfjs-dist/wasm public/pdfjs/
 ```
 
 2. Configure PDF.js in your app entry:
@@ -70,7 +72,9 @@ import { configurePdfjs } from '@eternalheart/react-file-preview';
 configurePdfjs({
   workerSrc: '/pdfjs/pdf.worker.min.mjs',
   cMapUrl: '/pdfjs/cmaps/',
-  cMapPacked: true
+  cMapPacked: true,
+  standardFontDataUrl: '/pdfjs/standard_fonts/',
+  wasmUrl: '/pdfjs/wasm/'
 });
 ```
 
@@ -87,11 +91,19 @@ export default defineConfig({
     viteStaticCopy({
       targets: [
         {
-          src: 'node_modules/pdfjs-dist/build/pdf.worker.min.mjs',
+          src: 'node_modules/pdfjs-dist/legacy/build/pdf.worker.min.mjs',
           dest: 'pdfjs'
         },
         {
           src: 'node_modules/pdfjs-dist/cmaps',
+          dest: 'pdfjs'
+        },
+        {
+          src: 'node_modules/pdfjs-dist/standard_fonts',
+          dest: 'pdfjs'
+        },
+        {
+          src: 'node_modules/pdfjs-dist/wasm',
           dest: 'pdfjs'
         }
       ]
@@ -108,9 +120,13 @@ import { configurePdfjs } from '@eternalheart/react-file-preview';
 configurePdfjs({
   workerSrc: '/pdfjs/pdf.worker.min.mjs',
   cMapUrl: '/pdfjs/cmaps/',
-  cMapPacked: true
+  cMapPacked: true,
+  standardFontDataUrl: '/pdfjs/standard_fonts/',
+  wasmUrl: '/pdfjs/wasm/'
 });
 ```
+
+Call this during client application initialization, before the first PDF render. The worker must use the legacy build matching the installed `pdfjs-dist` version.
 
 ### Vite Bundler Note (AVIF Decoder)
 

@@ -55,8 +55,10 @@ import '@eternalheart/react-file-preview/style.css';
 
 ```bash
 # 从 node_modules 复制 PDF.js 文件到 public 目录
-cp -r node_modules/pdfjs-dist/build/pdf.worker.min.mjs public/pdfjs/
+cp -r node_modules/pdfjs-dist/legacy/build/pdf.worker.min.mjs public/pdfjs/
 cp -r node_modules/pdfjs-dist/cmaps public/pdfjs/
+cp -r node_modules/pdfjs-dist/standard_fonts public/pdfjs/
+cp -r node_modules/pdfjs-dist/wasm public/pdfjs/
 ```
 
 2. 在应用入口配置 PDF.js：
@@ -68,7 +70,9 @@ import { configurePdfjs } from '@eternalheart/react-file-preview';
 configurePdfjs({
   workerSrc: '/pdfjs/pdf.worker.min.mjs',
   cMapUrl: '/pdfjs/cmaps/',
-  cMapPacked: true
+  cMapPacked: true,
+  standardFontDataUrl: '/pdfjs/standard_fonts/',
+  wasmUrl: '/pdfjs/wasm/'
 });
 ```
 
@@ -85,11 +89,19 @@ export default defineConfig({
     viteStaticCopy({
       targets: [
         {
-          src: 'node_modules/pdfjs-dist/build/pdf.worker.min.mjs',
+          src: 'node_modules/pdfjs-dist/legacy/build/pdf.worker.min.mjs',
           dest: 'pdfjs'
         },
         {
           src: 'node_modules/pdfjs-dist/cmaps',
+          dest: 'pdfjs'
+        },
+        {
+          src: 'node_modules/pdfjs-dist/standard_fonts',
+          dest: 'pdfjs'
+        },
+        {
+          src: 'node_modules/pdfjs-dist/wasm',
           dest: 'pdfjs'
         }
       ]
@@ -106,9 +118,13 @@ import { configurePdfjs } from '@eternalheart/react-file-preview';
 configurePdfjs({
   workerSrc: '/pdfjs/pdf.worker.min.mjs',
   cMapUrl: '/pdfjs/cmaps/',
-  cMapPacked: true
+  cMapPacked: true,
+  standardFontDataUrl: '/pdfjs/standard_fonts/',
+  wasmUrl: '/pdfjs/wasm/'
 });
 ```
+
+请在客户端应用初始化阶段、首次渲染 PDF 前调用。Worker 必须使用与当前 `pdfjs-dist` 版本匹配的 legacy 构建。
 
 ### Vite 打包提示（AVIF 解码器）
 

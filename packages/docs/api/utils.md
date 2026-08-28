@@ -255,7 +255,7 @@ function processFile(input: PreviewFileInput, index: number) {
 
 ## configurePdfjs
 
-配置 PDF.js 的 Worker 和 CMap 设置。
+配置 PDF.js 的 Worker、CMap、标准字体和 WASM 资源。该函数仅由 React 包直接导出。
 
 ### 签名
 
@@ -266,30 +266,51 @@ function configurePdfjs(options?: PdfConfigOptions): void
 ### 参数
 
 - `options` - 可选配置对象：
-  - `workerSrc`: PDF.js Worker 文件路径
-  - `cMapUrl`: CMap 文件路径
-  - `cMapPacked`: 是否使用压缩的 CMap
+  - `workerSrc`: PDF.js legacy Worker 文件路径
+  - `cMapUrl`: CMap 文件目录路径
+  - `cMapPacked`: 是否使用压缩的 CMap，默认为 `true`
+  - `standardFontDataUrl`: PDF.js 标准字体文件目录路径
+  - `wasmUrl`: PDF.js WASM 文件目录路径，用于 JBIG2、JPEG 2000 等图像解码
 
 ### 示例
 
 ```typescript
 import { configurePdfjs } from '@eternalheart/react-file-preview'
 
-// 使用本地 Worker 文件
+// 在首次渲染 PDF 前配置本地静态资源
 configurePdfjs({
-  workerSrc: '/pdf.worker.min.mjs'
-})
-
-// 自定义 CMap 配置
-configurePdfjs({
-  cMapUrl: '/cmaps/',
-  cMapPacked: true
+  workerSrc: '/pdfjs/pdf.worker.min.mjs',
+  cMapUrl: '/pdfjs/cmaps/',
+  cMapPacked: true,
+  standardFontDataUrl: '/pdfjs/standard_fonts/',
+  wasmUrl: '/pdfjs/wasm/',
 })
 ```
 
 ::: tip
-默认情况下，组件会自动从 unpkg CDN 加载 PDF.js Worker，无需手动配置。仅在需要离线使用或自定义部署时才需要调用此函数。
+不传参数时，Worker、CMap、标准字体和 WASM 资源均从 unpkg CDN 加载。生产环境、离线环境或受内容安全策略限制的环境建议部署本地资源。
 :::
+
+::: warning
+请在客户端应用初始化阶段、首次渲染 PDF 前调用。`workerSrc` 必须指向 `pdfjs-dist/legacy/build/pdf.worker.min.mjs`，并与项目安装的 `pdfjs-dist` 版本保持一致；服务端渲染阶段调用不会生效。
+:::
+
+### Vue 与 Angular
+
+Vue 和 Angular 包当前导出框架无关的 `configurePdfWorker`，需要显式传入 PDF.js legacy 模块：
+
+```typescript
+import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs'
+import { configurePdfWorker } from '@eternalheart/vue-file-preview' // Angular 使用对应包名
+
+configurePdfWorker(pdfjsLib, {
+  workerSrc: '/pdfjs/pdf.worker.min.mjs',
+  cMapUrl: '/pdfjs/cmaps/',
+  cMapPacked: true,
+  standardFontDataUrl: '/pdfjs/standard_fonts/',
+  wasmUrl: '/pdfjs/wasm/',
+})
+```
 
 ## pdfjs
 
@@ -412,4 +433,3 @@ const text = await fetchTextUtf8('/api/file/log.txt', { fetcher })
 
 - [组件 API](./components) - 查看组件的完整 API
 - [类型定义](./types) - 了解所有类型定义
-

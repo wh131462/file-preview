@@ -36,9 +36,13 @@ export interface FilePreviewContentProps {
   shouldFetchAsBlob?: ShouldFetchAsBlob;
   onDownload?: (file: PreviewFile) => void;
   onError?: (error: Error, errorInfo: React.ErrorInfo) => void;
-  /** 是否显示关闭按钮，默认根据 mode 决定（modal: true, embed: false��� */
+  /** 是否显示关闭按钮，默认根据 mode 决定（modal: true, embed: false） */
   showClose?: boolean;
   showDownload?: boolean;
+  /** 是否显示文件导航箭头，默认 true */
+  showNavigation?: boolean;
+  /** 是否循环导航文件，默认 false */
+  loopNavigation?: boolean;
 }
 
 export const FilePreviewContent: React.FC<FilePreviewContentProps> = (props) => {
@@ -71,6 +75,8 @@ const FilePreviewContentInner: React.FC<FilePreviewContentProps> = ({
   onError,
   showClose,
   showDownload = true,
+  showNavigation = true,
+  loopNavigation = false,
   requestInit: _requestInit,
   requestHandler: _requestHandler,
   shouldFetchAsBlob: _shouldFetchAsBlob,
@@ -164,8 +170,27 @@ const FilePreviewContentInner: React.FC<FilePreviewContentProps> = ({
     totalFiles: normalizedFiles.length,
     onNavigate,
     onClose,
+    loopNavigation,
     rootRef,
   });
+
+  const navigatePrevious = useCallback(() => {
+    if (!onNavigate || normalizedFiles.length <= 1) return;
+    if (currentIndex > 0) {
+      onNavigate(currentIndex - 1);
+    } else if (loopNavigation) {
+      onNavigate(normalizedFiles.length - 1);
+    }
+  }, [currentIndex, loopNavigation, normalizedFiles.length, onNavigate]);
+
+  const navigateNext = useCallback(() => {
+    if (!onNavigate || normalizedFiles.length <= 1) return;
+    if (currentIndex < normalizedFiles.length - 1) {
+      onNavigate(currentIndex + 1);
+    } else if (loopNavigation) {
+      onNavigate(0);
+    }
+  }, [currentIndex, loopNavigation, normalizedFiles.length, onNavigate]);
 
   // 图片自动适应窗口（已禁用，改为手动点击"适应窗口"按钮）
   // useImageAutoFit({
@@ -281,13 +306,13 @@ const FilePreviewContentInner: React.FC<FilePreviewContentProps> = ({
             </FilePreviewRenderer>
           </div>
 
-          {!headless && normalizedFiles.length > 1 && (
+          {!headless && showNavigation && normalizedFiles.length > 1 && (
             <NavArrows
               containerRef={contentRef}
-              hasPrev={currentIndex > 0}
-              hasNext={currentIndex < normalizedFiles.length - 1}
-              onPrev={() => onNavigate?.(currentIndex - 1)}
-              onNext={() => onNavigate?.(currentIndex + 1)}
+              hasPrev={loopNavigation || currentIndex > 0}
+              hasNext={loopNavigation || currentIndex < normalizedFiles.length - 1}
+              onPrev={navigatePrevious}
+              onNext={navigateNext}
               resetKey={currentIndex}
               t={t}
             />

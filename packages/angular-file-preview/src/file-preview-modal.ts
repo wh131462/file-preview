@@ -53,6 +53,8 @@ import { createSystemDarkSignal, resolveTheme } from './di/theme-mode';
               [onDownload]="onDownload()"
               [showClose]="showClose()"
               [showDownload]="showDownload()"
+              [showNavigation]="showNavigation()"
+              [loopNavigation]="loopNavigation()"
               (close)="close.emit()"
               (navigate)="navigate.emit($event)"
               (customEvent)="customEvent.emit($event)"
@@ -86,6 +88,8 @@ export class FilePreviewModal {
   onDownload = input<((file: PreviewFile) => void | Promise<void>) | undefined>(undefined);
   showClose = input<boolean | undefined>(undefined);
   showDownload = input(true);
+  showNavigation = input(true);
+  loopNavigation = input(false);
 
   close = output<void>();
   navigate = output<number>();

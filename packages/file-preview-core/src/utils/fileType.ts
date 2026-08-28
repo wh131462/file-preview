@@ -144,10 +144,11 @@ export function getFileType(file: PreviewFile): FileType {
     'py', 'java', 'cpp', 'c', 'h', 'cs', 'php', 'rb', 'go', 'mod', 'rs', 'swift', 'kt', 'scala', 'lua', 'vim',
     'html', 'vue', 'svelte', 'astro', 'css', 'scss', 'sass', 'less',
     'dart', 'graphql', 'gql', 'proto', 'prisma',
-    'yaml', 'yml', 'toml', 'ini', 'conf', 'env',
+    'yaml', 'yml', 'toml', 'ini', 'conf', 'env', 'properties',
     'tf', 'tfvars',
     'diff', 'patch',
-    'sh', 'bash', 'zsh', 'ps1', 'sql',
+    'sh', 'bash', 'zsh', 'ps1', 'bat', 'cmd', 'sql',
+    'tex', 'map',
   ];
   if (
     mimeType.startsWith('text/') ||

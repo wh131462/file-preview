@@ -220,6 +220,20 @@ const customRenderers: CustomRenderer[] = [
 <FilePreviewEmbed showClose={true} .../>
 ```
 
+#### showNavigation
+
+- **类型**: `boolean`
+- **必需**: 否
+- **默认值**: `true`
+- **描述**: 是否显示上一个/下一个文件导航箭头。该属性不影响键盘导航。
+
+#### loopNavigation
+
+- **类型**: `boolean`
+- **必需**: 否
+- **默认值**: `false`
+- **描述**: 是否循环导航文件。启用后，在首个文件继续向前会跳到末尾，在末尾继续向后会跳到首个文件。
+
 #### onCustomEvent
 
 - **类型**: `(event: CustomRendererEventPayload) => void`
@@ -393,6 +407,8 @@ function Panel() {
 | `theme` | `Theme` | ❌ | `'dark'` | 主题模式: `'auto' \| 'dark' \| 'light'` |
 | `showDownload` | `boolean` | ❌ | `true` | 是否显示下载按钮 |
 | `showClose` | `boolean` | ❌ | `false` | 是否显示关闭按钮（embed 模式默认 `false`） |
+| `showNavigation` | `boolean` | ❌ | `true` | 是否显示文件导航箭头 |
+| `loopNavigation` | `boolean` | ❌ | `false` | 是否循环导航文件 |
 | `onCustomEvent` | `(e: CustomRendererEventPayload) => void` | ❌ | - | 自定义渲染器事件出口,载荷 `{ name, payload, file }` |
 | `requestInit` | `RequestInit \| (url) => RequestInit \| Promise<RequestInit>` | ❌ | - | 自定义 RequestInit，注入鉴权头等 |
 | `requestHandler` | `(url, init?) => Promise<Response>` | ❌ | - | 完全接管库内 fetch |
@@ -418,7 +434,7 @@ function Panel() {
 | `isOpen` / `onClose` | 必填 | 不存在,由父组件控制是否渲染 |
 | 工具栏"关闭"按钮 | ✅ 默认显示（可通过 `showClose={false}` 隐藏） | ❌ 默认隐藏（可通过 `showClose={true}` 显示） |
 | `Esc` 键关闭 | ✅ 支持(全局监听) | ❌ 不支持 |
-| ← → 键导航 | ✅ 全局 `window` 监听 | ✅ 仅容器 focus 时响应 |
+| ← → / Home / End 键导航 | ✅ 全局 `window` 监听 | ✅ 仅容器 focus 时响应 |
 | body 滚动锁定 | ✅ 打开时锁定 | ❌ 不锁定 |
 | z-index | `9999`(最高层) | 跟随组件树,由外层决定 |
 
@@ -481,6 +497,8 @@ function DetailPanel() {
 | `theme` | `Theme` | ❌ | `'dark'` | 主题模式: `'auto' \| 'dark' \| 'light'` |
 | `showDownload` | `boolean` | ❌ | `true` | 是否显示下载按钮 |
 | `showClose` | `boolean` | ❌ | `undefined` | 是否显示关闭按钮（未设置时根据 `mode` 决定：modal 为 `true`，embed 为 `false`） |
+| `showNavigation` | `boolean` | ❌ | `true` | 是否显示文件导航箭头 |
+| `loopNavigation` | `boolean` | ❌ | `false` | 是否循环导航文件 |
 | `locale` | `Locale` | ❌ | `'zh-CN'` | 界面语言 |
 | `messages` | `Partial<Record<Locale, Partial<Messages>>>` | ❌ | - | 自定义翻译字典 |
 | `onCustomEvent` | `(e: CustomRendererEventPayload) => void` | ❌ | - | 自定义渲染器事件出口 |
@@ -491,7 +509,7 @@ function DetailPanel() {
 
 **mode 差异:**
 
-- `mode='modal'`: 默认显示工具栏"关闭"按钮（可通过 `showClose={false}` 隐藏）、全局监听键盘(Esc 关闭、←/→ 导航)
+- `mode='modal'`: 默认显示工具栏"关闭"按钮（可通过 `showClose={false}` 隐藏）、全局监听键盘(Esc 关闭、←/→/Home/End 导航)
 - `mode='embed'`: 默认不显示"关闭"按钮（可通过 `showClose={true}` 显示）、键盘事件绑定到组件根节点(需 focus),不监听 Esc
 
 ### 使用示例
@@ -614,6 +632,8 @@ function CustomDrawer({ files, currentIndex, onNavigate, onClose }) {
 | `Escape` | 关闭预览 |
 | `←` | 上一个文件 |
 | `→` | 下一个文件 |
+| `Home` | 第一个文件 |
+| `End` | 最后一个文件 |
 
 ### 响应式设计
 
@@ -638,4 +658,3 @@ function CustomDrawer({ files, currentIndex, onNavigate, onClose }) {
 
 - [类型定义](./types) - 查看所有类型定义
 - [工具函数](./utils) - 了解可用的工具函数
-

@@ -17,7 +17,7 @@
 - <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f4dd.svg" width="16" height="16" alt="📝" style="vertical-align: middle;" /> **Markdown 渲染** - 支持 GitHub Flavored Markdown
 - <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f4bb.svg" width="16" height="16" alt="💻" style="vertical-align: middle;" /> **代码高亮** - 支持 40+ 种编程语言
 - <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f4f1.svg" width="16" height="16" alt="📱" style="vertical-align: middle;" /> **响应式设计** - 适配各种屏幕尺寸
-- <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/2328.svg" width="16" height="16" alt="⌨️" style="vertical-align: middle;" /> **键盘导航** - 支持方向键和 ESC 键
+- <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/2328.svg" width="16" height="16" alt="⌨️" style="vertical-align: middle;" /> **键盘导航** - 支持方向键、Home、End 和 ESC 键
 
 ## 📦 安装
 
@@ -239,7 +239,7 @@ const files = [
 
 - 不使用 Teleport、无全屏遮罩、没有 `isOpen` / `@close`
 - **不显示关闭按钮**
-- 键盘导航 (←/→) 作用域限定在嵌入容器内 (基于 focus)
+- 键盘导航 (←/→/Home/End) 作用域限定在嵌入容器内 (基于 focus)
 - 尺寸默认 `width: 100%; height: 100%`,可通过 `width` / `height` props 覆盖
 
 ```vue
@@ -279,7 +279,7 @@ const files = [
 ### 代码 & 文本
 - **Markdown**: GitHub Flavored Markdown,代码高亮
 - **代码文件**: Vue、Svelte、Astro、JS/TS、Dart、GraphQL、Protobuf、Prisma、Terraform、PowerShell、Scala 等 40+ 种语言
-- **配置 / 日志**: YAML, TOML, INI, ENV, LOG, DIFF, PATCH 等
+- **配置 / 日志**: YAML, TOML, INI, ENV, PROPERTIES, BAT, CMD, TEX, MAP, LOG, DIFF, PATCH 等
 
 ### 结构化数据
 - **JSON**: 自动格式化 + 语法高亮
@@ -366,6 +366,8 @@ const files = [
 | `theme` | `Theme` | ❌ | 主题模式: `'auto' \| 'dark' \| 'light'`（默认 `'dark'`） |
 | `showDownload` | `boolean` | ❌ | 是否显示下载按钮（默认 `true`） |
 | `showClose` | `boolean` | ❌ | 是否显示关闭按钮（modal 模式默认 `true`） |
+| `showNavigation` | `boolean` | ❌ | 是否显示文件导航箭头（默认 `true`） |
+| `loopNavigation` | `boolean` | ❌ | 是否循环导航文件（默认 `false`） |
 
 ### FilePreviewModal 事件
 
@@ -389,6 +391,8 @@ const files = [
 | `theme` | `Theme` | ❌ | `'dark'` | 主题模式: `'auto' \| 'dark' \| 'light'` |
 | `showDownload` | `boolean` | ❌ | `true` | 是否显示下载按钮 |
 | `showClose` | `boolean` | ❌ | `false` | 是否显示关闭按钮（embed 模式默认 `false`） |
+| `showNavigation` | `boolean` | ❌ | `true` | 是否显示文件导航箭头 |
+| `loopNavigation` | `boolean` | ❌ | `false` | 是否循环导航文件 |
 
 ### FilePreviewEmbed 事件
 
@@ -836,6 +840,8 @@ watch(resolvedTheme, highlightCode, { immediate: true });
 - `ESC` - 关闭预览
 - `←` - 上一个文件
 - `→` - 下一个文件
+- `Home` - 第一个文件
+- `End` - 最后一个文件
 - `滚轮` - 缩放图片 (仅图片预览)
 
 ## 📚 文档

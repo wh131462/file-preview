@@ -17,7 +17,7 @@ A modern, feature-rich file preview component for Angular with support for image
 - <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f4dd.svg" width="16" height="16" alt="📝" style="vertical-align: middle;" /> **Markdown Rendering** - GitHub Flavored Markdown support
 - <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f4bb.svg" width="16" height="16" alt="💻" style="vertical-align: middle;" /> **Code Highlighting** - Supports 40+ programming languages
 - <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f4f1.svg" width="16" height="16" alt="📱" style="vertical-align: middle;" /> **Responsive Design** - Adapts to all screen sizes
-- <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/2328.svg" width="16" height="16" alt="⌨️" style="vertical-align: middle;" /> **Keyboard Navigation** - Arrow keys and ESC support
+- <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/2328.svg" width="16" height="16" alt="⌨️" style="vertical-align: middle;" /> **Keyboard Navigation** - Arrow, Home, End, and ESC key support
 
 ## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f4e6.svg" width="20" height="20" alt="📦" /> Installation
 
@@ -242,7 +242,7 @@ Differences from `FilePreviewModal`:
 
 - No teleport, no full-screen overlay, no `isOpen` / `@close`
 - Does **not** show the close button in the toolbar
-- Keyboard navigation (←/→) is scoped to the embed container (focus-based)
+- Keyboard navigation (←/→/Home/End) is scoped to the embed container (focus-based)
 - Size defaults to `width: 100%; height: 100%`; override via `width` / `height` props
 
 ```vue
@@ -282,7 +282,7 @@ Differences from `FilePreviewModal`:
 ### Code & Text
 - **Markdown**: GitHub Flavored Markdown, code highlighting
 - **Code Files**: Vue, Svelte, Astro, JS/TS, Dart, GraphQL, Protobuf, Prisma, Terraform, PowerShell, Scala, and 40+ languages
-- **Config/Logs**: YAML, TOML, INI, ENV, LOG, DIFF, PATCH, etc.
+- **Config/Logs**: YAML, TOML, INI, ENV, PROPERTIES, BAT, CMD, TEX, MAP, LOG, DIFF, PATCH, etc.
 
 ### Structured Data
 - **JSON**: Auto formatting + syntax highlighting
@@ -369,6 +369,8 @@ Differences from `FilePreviewModal`:
 | `theme` | `Theme` | ❌ | Theme mode: `'auto' \| 'dark' \| 'light'` (default `'dark'`) |
 | `showDownload` | `boolean` | ❌ | Whether to show the download button (default `true`) |
 | `showClose` | `boolean` | ❌ | Whether to show the close button (default `true` for modal) |
+| `showNavigation` | `boolean` | ❌ | Whether to show file navigation arrows (default `true`) |
+| `loopNavigation` | `boolean` | ❌ | Whether file navigation wraps around (default `false`) |
 
 ### FilePreviewModal Events
 
@@ -392,6 +394,8 @@ Differences from `FilePreviewModal`:
 | `theme` | `Theme` | ❌ | `'dark'` | Theme mode: `'auto' \| 'dark' \| 'light'` |
 | `showDownload` | `boolean` | ❌ | `true` | Whether to show the download button |
 | `showClose` | `boolean` | ❌ | `false` | Whether to show the close button (default `false` for embed) |
+| `showNavigation` | `boolean` | ❌ | `true` | Whether to show file navigation arrows |
+| `loopNavigation` | `boolean` | ❌ | `false` | Whether file navigation wraps around |
 
 ### FilePreviewEmbed Events
 
@@ -839,6 +843,8 @@ Verify:
 - `ESC` - Close preview
 - `←` - Previous file
 - `→` - Next file
+- `Home` - First file
+- `End` - Last file
 - `Mouse Wheel` - Zoom image (image preview only)
 
 ## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f4da.svg" width="20" height="20" alt="📚" /> Documentation

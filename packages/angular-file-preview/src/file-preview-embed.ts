@@ -43,6 +43,8 @@ import { createSystemDarkSignal, resolveTheme } from './di/theme-mode';
           [onDownload]="onDownload()"
           [showClose]="showClose()"
           [showDownload]="showDownload()"
+          [showNavigation]="showNavigation()"
+          [loopNavigation]="loopNavigation()"
           (close)="close.emit()"
           (navigate)="navigate.emit($event)"
           (customEvent)="customEvent.emit($event)"
@@ -67,6 +69,8 @@ export class FilePreviewEmbed {
   onDownload = input<((file: PreviewFile) => void | Promise<void>) | undefined>(undefined);
   showClose = input<boolean | undefined>(undefined);
   showDownload = input(true);
+  showNavigation = input(true);
+  loopNavigation = input(false);
 
   navigate = output<number>();
   customEvent = output<CustomRendererEventPayload>();

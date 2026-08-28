@@ -59,6 +59,10 @@ interface Props {
   showClose?: boolean;
   /** 是否显示下载按钮，默认 true */
   showDownload?: boolean;
+  /** 是否显示文件导航箭头，默认 true */
+  showNavigation?: boolean;
+  /** 是否循环导航文件，默认 false */
+  loopNavigation?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -76,6 +80,8 @@ const props = withDefaults(defineProps<Props>(), {
   onClose: undefined,
   showClose: undefined,
   showDownload: true,
+  showNavigation: true,
+  loopNavigation: false,
 });
 
 provideRequestContext(() => ({
@@ -238,13 +244,45 @@ watch(
 // 图片加载后默认适应窗口（已禁用，改为手动点击"适应窗口"按钮）
 
 // 键盘导航
+const navigatePrevious = () => {
+  const total = normalizedFiles.value.length;
+  if (total <= 1) return;
+  if (props.currentIndex > 0) {
+    emit('navigate', props.currentIndex - 1);
+  } else if (props.loopNavigation) {
+    emit('navigate', total - 1);
+  }
+};
+
+const navigateNext = () => {
+  const total = normalizedFiles.value.length;
+  if (total <= 1) return;
+  if (props.currentIndex < total - 1) {
+    emit('navigate', props.currentIndex + 1);
+  } else if (props.loopNavigation) {
+    emit('navigate', 0);
+  }
+};
+
 const handleKeyDown = (e: KeyboardEvent) => {
   if (e.key === 'Escape' && props.mode === 'modal') {
     emit('close');
-  } else if (e.key === 'ArrowLeft' && props.currentIndex > 0) {
-    emit('navigate', props.currentIndex - 1);
-  } else if (e.key === 'ArrowRight' && props.currentIndex < normalizedFiles.value.length - 1) {
-    emit('navigate', props.currentIndex + 1);
+  } else if (e.key === 'ArrowLeft') {
+    navigatePrevious();
+  } else if (e.key === 'ArrowRight') {
+    navigateNext();
+  } else if (
+    e.key === 'Home' &&
+    normalizedFiles.value.length > 0 &&
+    props.currentIndex !== 0
+  ) {
+    emit('navigate', 0);
+  } else if (
+    e.key === 'End' &&
+    normalizedFiles.value.length > 0 &&
+    props.currentIndex !== normalizedFiles.value.length - 1
+  ) {
+    emit('navigate', normalizedFiles.value.length - 1);
   }
 };
 
@@ -483,13 +521,13 @@ const hasToolGroups = computed(() => toolGroups.value.length > 0);
 
     <!-- 左右导航箭头：state 隔离在 NavArrows 内部,避免 mousemove/timer 引起整树 patch -->
     <NavArrows
-      v-if="!headless && normalizedFiles.length > 1"
+      v-if="!headless && showNavigation && normalizedFiles.length > 1"
       :container-ref="contentRef"
-      :has-prev="currentIndex > 0"
-      :has-next="currentIndex < normalizedFiles.length - 1"
+      :has-prev="loopNavigation || currentIndex > 0"
+      :has-next="loopNavigation || currentIndex < normalizedFiles.length - 1"
       :reset-key="currentIndex"
-      @prev="emit('navigate', currentIndex - 1)"
-      @next="emit('navigate', currentIndex + 1)"
+      @prev="navigatePrevious"
+      @next="navigateNext"
     />
   </div>
 </template>

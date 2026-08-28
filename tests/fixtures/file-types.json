@@ -25,6 +25,11 @@
     "config.jsonc": "json",
     "model.glb": "cad",
     "Component.vue": "text",
+    "application.properties": "text",
+    "build.cmd": "text",
+    "deploy.bat": "text",
+    "paper.tex": "text",
+    "bundle.wasm.map": "text",
     "docker/Dockerfile": "text",
     "unknown.binary": "unsupported"
   },

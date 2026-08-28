@@ -34,6 +34,10 @@ interface FilePreviewModalProps {
   showClose?: boolean;
   /** 是否显示下载按钮，默认 true */
   showDownload?: boolean;
+  /** 是否显示文件导航箭头，默认 true */
+  showNavigation?: boolean;
+  /** 是否循环导航文件，默认 false */
+  loopNavigation?: boolean;
 }
 
 export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
@@ -54,6 +58,8 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
   onDownload,
   showClose,
   showDownload,
+  showNavigation,
+  loopNavigation,
 }) => {
   const [systemDark, setSystemDark] = useState(() =>
     typeof window !== 'undefined'
@@ -127,6 +133,8 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
                 onDownload={onDownload}
                 showClose={showClose}
                 showDownload={showDownload}
+                showNavigation={showNavigation}
+                loopNavigation={loopNavigation}
               />
             </div>
           </motion.div>

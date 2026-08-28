@@ -18,7 +18,7 @@
 <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f4bb.svg" width="16" height="16" alt="💻" style="vertical-align: middle;" /> **代码高亮** - 支持 40+ 种编程语言
 <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f3ad.svg" width="16" height="16" alt="🎭" style="vertical-align: middle;" /> **流畅动画** - 基于 Framer Motion
 <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f4f1.svg" width="16" height="16" alt="📱" style="vertical-align: middle;" /> **响应式设计** - 适配各种屏幕尺寸
-<img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/2328.svg" width="16" height="16" alt="⌨️" style="vertical-align: middle;" /> **键盘导航** - 支持方向键和 ESC 键
+<img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/2328.svg" width="16" height="16" alt="⌨️" style="vertical-align: middle;" /> **键盘导航** - 支持方向键、Home、End 和 ESC 键
 
 ## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f4e6.svg" width="20" height="20" alt="📦" /> 安装
 
@@ -256,7 +256,7 @@ function InlinePreview() {
 
 - 不使用 Portal、无全屏遮罩、没有 `isOpen` / `onClose`
 - **不显示关闭按钮**
-- 键盘导航 (←/→) 作用域限定在嵌入容器内 (基于 focus)
+- 键盘导航 (←/→/Home/End) 作用域限定在嵌入容器内 (基于 focus)
 - 尺寸默认 `width: 100%; height: 100%`,可通过 `width` / `height` props 覆盖
 
 ```tsx
@@ -349,7 +349,7 @@ const files = [
 ### 代码 & 文本
 - **Markdown**: GitHub Flavored Markdown,代码高亮
 - **代码文件**: Vue、Svelte、Astro、JS/TS、Dart、GraphQL、Protobuf、Prisma、Terraform、PowerShell、Scala 等 40+ 种语言
-- **配置 / 日志**: YAML, TOML, INI, ENV, LOG, DIFF, PATCH 等
+- **配置 / 日志**: YAML, TOML, INI, ENV, PROPERTIES, BAT, CMD, TEX, MAP, LOG, DIFF, PATCH 等
 
 ### 结构化数据
 - **JSON**: 自动格式化 + 语法高亮
@@ -438,6 +438,8 @@ const files = [
 | `theme` | `Theme` | ❌ | 主题模式: `'auto' \| 'dark' \| 'light'`（默认 `'dark'`） |
 | `showDownload` | `boolean` | ❌ | 是否显示下载按钮（默认 `true`） |
 | `showClose` | `boolean` | ❌ | 是否显示关闭按钮（modal 模式默认 `true`） |
+| `showNavigation` | `boolean` | ❌ | 是否显示文件导航箭头（默认 `true`） |
+| `loopNavigation` | `boolean` | ❌ | 是否循环导航文件（默认 `false`） |
 
 ### FilePreviewEmbed Props
 
@@ -457,6 +459,8 @@ const files = [
 | `theme` | `Theme` | ❌ | `'dark'` | 主题模式: `'auto' \| 'dark' \| 'light'` |
 | `showDownload` | `boolean` | ❌ | `true` | 是否显示下载按钮 |
 | `showClose` | `boolean` | ❌ | `false` | 是否显示关闭按钮（embed 模式默认 `false`） |
+| `showNavigation` | `boolean` | ❌ | `true` | 是否显示文件导航箭头 |
+| `loopNavigation` | `boolean` | ❌ | `false` | 是否循环导航文件 |
 
 > `FilePreviewEmbed` 没有 `isOpen` / `onClose`,若要显示/隐藏,请在父组件中条件渲染。关闭按钮默认隐藏，但可通过 `showClose` 启用。
 
@@ -560,7 +564,7 @@ const files = [
 #### 文本文件
 - **Markdown**: 文件扩展名 `.md` 或 `.markdown`
 - **代码**: 根据文件扩展名自动识别 (`.js`, `.ts`, `.py`, `.java`, 等)
-- **配置 / 日志**: `.yaml`, `.yml`, `.toml`, `.ini`, `.conf`, `.env`, `.log`, `.diff`, `.patch`
+- **配置 / 日志**: `.yaml`, `.yml`, `.toml`, `.ini`, `.conf`, `.env`, `.properties`, `.bat`, `.cmd`, `.tex`, `.map`, `.log`, `.diff`, `.patch`
 - **纯文本**: `text/plain`
 
 #### 结构化数据
@@ -962,6 +966,8 @@ export const CodeRenderer = forwardRef<RendererHandle, Props>((props, ref) => {
 - `ESC` - 关闭预览
 - `←` - 上一个文件
 - `→` - 下一个文件
+- `Home` - 第一个文件
+- `End` - 最后一个文件
 - `滚轮` - 缩放图片 (仅图片预览)
 
 ## <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f4da.svg" width="20" height="20" alt="📚" /> 文档

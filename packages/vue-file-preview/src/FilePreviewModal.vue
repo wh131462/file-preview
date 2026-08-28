@@ -30,6 +30,10 @@ interface Props {
   showClose?: boolean;
   /** 是否显示下载按钮，默认 true */
   showDownload?: boolean;
+  /** 是否显示文件导航箭头，默认 true */
+  showNavigation?: boolean;
+  /** 是否循环导航文件，默认 false */
+  loopNavigation?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -44,6 +48,8 @@ const props = withDefaults(defineProps<Props>(), {
   onDownload: undefined,
   showClose: undefined,
   showDownload: true,
+  showNavigation: true,
+  loopNavigation: false,
 });
 
 const emit = defineEmits<{
@@ -126,6 +132,8 @@ const handleWheel = (e: WheelEvent) => e.stopPropagation();
               :on-close="() => emit('close')"
               :show-close="showClose"
               :show-download="showDownload"
+              :show-navigation="showNavigation"
+              :loop-navigation="loopNavigation"
               @close="emit('close')"
               @navigate="(i) => emit('navigate', i)"
               @custom-event="(p) => emit('custom-event', p)"

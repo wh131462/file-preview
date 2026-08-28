@@ -102,15 +102,15 @@ const MAX_ZIP_NESTING_DEPTH = 3;
           }
         </div>
 
-        @if (!headless() && normalizedFiles().length > 1) {
+        @if (!headless() && showNavigation() && normalizedFiles().length > 1) {
           <afp-nav-arrows
             [container]="contentEl()"
-            [hasPrev]="currentIndex() > 0"
-            [hasNext]="currentIndex() < normalizedFiles().length - 1"
+            [hasPrev]="loopNavigation() || currentIndex() > 0"
+            [hasNext]="loopNavigation() || currentIndex() < normalizedFiles().length - 1"
             [resetKey]="currentIndex()"
             [t]="t()"
-            (prev)="navigate.emit(currentIndex() - 1)"
-            (next)="navigate.emit(currentIndex() + 1)"
+            (prev)="navigatePrevious()"
+            (next)="navigateNext()"
           />
         }
       </div>
@@ -133,6 +133,8 @@ export class FilePreviewContent {
   onDownload = input<((file: PreviewFile) => void | Promise<void>) | undefined>(undefined);
   showClose = input<boolean | undefined>(undefined);
   showDownload = input(true);
+  showNavigation = input(true);
+  loopNavigation = input(false);
 
   navigate = output<number>();
   close = output<void>();
@@ -296,13 +298,45 @@ export class FilePreviewContent {
     }
   }
 
+  navigatePrevious(): void {
+    const total = this.normalizedFiles().length;
+    if (total <= 1) return;
+    if (this.currentIndex() > 0) {
+      this.navigate.emit(this.currentIndex() - 1);
+    } else if (this.loopNavigation()) {
+      this.navigate.emit(total - 1);
+    }
+  }
+
+  navigateNext(): void {
+    const total = this.normalizedFiles().length;
+    if (total <= 1) return;
+    if (this.currentIndex() < total - 1) {
+      this.navigate.emit(this.currentIndex() + 1);
+    } else if (this.loopNavigation()) {
+      this.navigate.emit(0);
+    }
+  }
+
   private handleKeyDown = (e: KeyboardEvent): void => {
     if (e.key === 'Escape' && this.mode() === 'modal') {
       this.close.emit();
-    } else if (e.key === 'ArrowLeft' && this.currentIndex() > 0) {
-      this.navigate.emit(this.currentIndex() - 1);
-    } else if (e.key === 'ArrowRight' && this.currentIndex() < this.normalizedFiles().length - 1) {
-      this.navigate.emit(this.currentIndex() + 1);
+    } else if (e.key === 'ArrowLeft') {
+      this.navigatePrevious();
+    } else if (e.key === 'ArrowRight') {
+      this.navigateNext();
+    } else if (
+      e.key === 'Home' &&
+      this.normalizedFiles().length > 0 &&
+      this.currentIndex() !== 0
+    ) {
+      this.navigate.emit(0);
+    } else if (
+      e.key === 'End' &&
+      this.normalizedFiles().length > 0 &&
+      this.currentIndex() !== this.normalizedFiles().length - 1
+    ) {
+      this.navigate.emit(this.normalizedFiles().length - 1);
     }
   };
 

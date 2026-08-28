@@ -38,6 +38,10 @@ interface FilePreviewEmbedProps {
   showClose?: boolean;
   /** 是否显示下载按钮，默认 true */
   showDownload?: boolean;
+  /** 是否显示文件导航箭头，默认 true */
+  showNavigation?: boolean;
+  /** 是否循环导航文件，默认 false */
+  loopNavigation?: boolean;
 }
 
 export const FilePreviewEmbed: React.FC<FilePreviewEmbedProps> = ({
@@ -61,6 +65,8 @@ export const FilePreviewEmbed: React.FC<FilePreviewEmbedProps> = ({
   onClose,
   showClose,
   showDownload,
+  showNavigation,
+  loopNavigation,
 }) => {
   const [systemDark, setSystemDark] = useState(() =>
     typeof window !== 'undefined'
@@ -103,6 +109,8 @@ export const FilePreviewEmbed: React.FC<FilePreviewEmbedProps> = ({
           onClose={onClose}
           showClose={showClose}
           showDownload={showDownload}
+          showNavigation={showNavigation}
+          loopNavigation={loopNavigation}
         />
       </div>
     </div>

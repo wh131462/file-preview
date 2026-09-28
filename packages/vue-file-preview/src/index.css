@@ -60,6 +60,41 @@
   box-sizing: border-box;
 }
 
+@keyframes vfp-spin {
+  to { transform: rotate(360deg); }
+}
+
+.vfp-root .vfp-renderer-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  color: var(--fp-fg-muted);
+}
+
+.vfp-root .vfp-renderer-loading-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  text-align: center;
+}
+
+.vfp-root .vfp-renderer-spinner {
+  width: 3rem;
+  height: 3rem;
+  border: 4px solid var(--fp-line-strong);
+  border-top-color: var(--fp-spinner-head);
+  border-radius: 9999px;
+  animation: vfp-spin 1s linear infinite;
+}
+
+.vfp-root .vfp-renderer-loading-text {
+  font-size: 0.875rem;
+}
+
 /* 组件根元素基础样式 */
 .vfp-root {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',

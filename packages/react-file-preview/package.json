@@ -79,7 +79,6 @@
     "@kenjiuno/msgreader": "^1.28.0",
     "@likecoin/epub-ts": "^0.6.0",
     "ag-psd": "^30.1.1",
-    "docx-preview": "^0.3.2",
     "exceljs": "^4.4.0",
     "foliate-js": "1.0.1",
     "framer-motion": "^11.11.17",

@@ -233,8 +233,11 @@ export const FontRenderer = forwardRef<RendererHandle, FontRendererProps>(({ url
 
   if (loading) {
     return (
-      <div className="rfp-flex rfp-items-center rfp-justify-center rfp-w-full rfp-h-full">
-        <div className="rfp-text-fg-secondary">{t('font.loading')}</div>
+      <div className="rfp-renderer-loading rfp-text-fg-secondary">
+        <div className="rfp-renderer-loading-content">
+          <div className="rfp-renderer-spinner" />
+          <span className="rfp-renderer-loading-text">{t('font.loading')}</span>
+        </div>
       </div>
     );
   }

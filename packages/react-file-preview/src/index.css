@@ -60,6 +60,42 @@
   box-sizing: border-box;
 }
 
+@keyframes rfp-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* 所有渲染器共用的加载指示器 */
+.rfp-root .rfp-renderer-spinner {
+  width: 3rem;
+  height: 3rem;
+  border: 4px solid var(--fp-line-strong);
+  border-top-color: var(--fp-spinner-head);
+  border-radius: 9999px;
+  animation: rfp-spin 1s linear infinite;
+}
+
+.rfp-root .rfp-renderer-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  color: var(--fp-fg-muted);
+}
+
+.rfp-root .rfp-renderer-loading-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  text-align: center;
+}
+
+.rfp-root .rfp-renderer-loading-text {
+  font-size: 0.875rem;
+}
+
 /* 组件根元素基础样式 */
 .rfp-root {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -195,33 +231,6 @@
 
 .rfp-root[data-theme="light"] ::-webkit-scrollbar-thumb:hover {
   background: rgba(0, 0, 0, 0.35);
-}
-
-/* PDF 渲染样式优化 */
-.rfp-root .react-pdf__Page {
-  max-width: 100%;
-  overflow: hidden;
-}
-
-.rfp-root .react-pdf__Page__canvas {
-  max-width: 100%;
-  height: auto !important;
-  border-radius: 8px;
-  display: block;
-  filter: brightness(0.95) contrast(1.05);
-}
-
-.rfp-root .react-pdf__Page__textContent {
-  border-radius: 8px;
-  mix-blend-mode: normal;
-}
-
-.rfp-root .react-pdf__Page__annotations {
-  border-radius: 8px;
-}
-
-.rfp-root .react-pdf__Document {
-  scroll-behavior: smooth;
 }
 
 /* 音频播放器：紧凑、单色的媒体控件 */

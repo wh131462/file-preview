@@ -155,8 +155,11 @@ export class MobiTocList {
       }
 
       @if (loading() && !error()) {
-        <div class="afp-absolute afp-inset-0 afp-flex afp-items-center afp-justify-center afp-z-10">
-          <div class="afp-w-12 afp-h-12 afp-border-4 afp-border-line-strong afp-border-t-spinner-head afp-rounded-full afp-animate-spin"></div>
+        <div class="afp-absolute afp-inset-0 afp-renderer-loading afp-z-10">
+          <div class="afp-renderer-loading-content">
+            <div class="afp-renderer-spinner"></div>
+            <span class="afp-renderer-loading-text">{{ t('common.loading') }}</span>
+          </div>
         </div>
       }
 

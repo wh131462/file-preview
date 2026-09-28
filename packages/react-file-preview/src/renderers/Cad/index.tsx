@@ -495,8 +495,8 @@ export const CadRenderer = forwardRef<RendererHandle, CadRendererProps>(({ url, 
     <div ref={containerRef} className="rfp-relative rfp-w-full rfp-h-full rfp-bg-media-bg">
       {/* 错误覆盖层 */}
       {error && (
-        <div className="rfp-absolute rfp-inset-0 rfp-flex rfp-items-center rfp-justify-center rfp-bg-surface-3 rfp-z-10">
-          <div className="rfp-text-center">
+        <div className="rfp-absolute rfp-inset-0 rfp-renderer-loading rfp-bg-surface-3 rfp-z-10">
+          <div className="rfp-renderer-loading-content">
             <p className="rfp-text-fg-primary">{error}</p>
           </div>
         </div>
@@ -504,10 +504,10 @@ export const CadRenderer = forwardRef<RendererHandle, CadRendererProps>(({ url, 
 
       {/* 加载覆盖层 */}
       {loading && (
-        <div className="rfp-absolute rfp-inset-0 rfp-flex rfp-items-center rfp-justify-center rfp-bg-surface-3 rfp-z-10">
-          <div className="rfp-text-center">
-            <div className="rfp-inline-block rfp-w-8 rfp-h-8 rfp-border-4 rfp-border-spinner-track rfp-border-t-spinner-head rfp-rounded-full rfp-animate-spin" />
-            <p className="rfp-mt-4 rfp-text-fg-secondary">{t('cad.loading')}</p>
+        <div className="rfp-absolute rfp-inset-0 rfp-renderer-loading rfp-bg-surface-3 rfp-z-10">
+          <div className="rfp-renderer-loading-content">
+            <div className="rfp-renderer-spinner" />
+            <p className="rfp-renderer-loading-text">{t('cad.loading')}</p>
           </div>
         </div>
       )}

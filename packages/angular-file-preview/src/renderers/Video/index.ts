@@ -41,10 +41,10 @@ const BROWSER_UNSUPPORTED_EXTS = new Set(['avi', 'wmv', 'flv']);
       <div class="afp-flex afp-items-center afp-justify-center afp-w-full afp-h-full">
         <div class="afp-w-full afp-h-full afp-relative">
           @if (isLoading()) {
-            <div class="afp-absolute afp-inset-0 afp-flex afp-items-center afp-justify-center afp-bg-surface-3 afp-backdrop-blur-sm afp-z-10">
-              <div class="afp-text-center">
-                <div class="afp-w-12 afp-h-12 afp-mx-auto afp-mb-3 afp-border-4 afp-border-line-strong afp-border-t-spinner-head afp-rounded-full afp-animate-spin"></div>
-                <p class="afp-text-sm afp-text-fg-secondary afp-font-medium">{{ t('video.loading') }}</p>
+            <div class="afp-absolute afp-inset-0 afp-renderer-loading afp-bg-surface-3 afp-backdrop-blur-sm afp-z-10">
+              <div class="afp-renderer-loading-content">
+                <div class="afp-renderer-spinner"></div>
+                <p class="afp-renderer-loading-text afp-text-sm afp-text-fg-secondary afp-font-medium">{{ t('video.loading') }}</p>
               </div>
             </div>
           }

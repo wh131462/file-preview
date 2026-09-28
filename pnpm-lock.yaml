@@ -325,9 +325,6 @@ importers:
       ag-psd:
         specifier: ^30.1.1
         version: 30.1.1
-      docx-preview:
-        specifier: ^0.3.2
-        version: 0.3.7
       exceljs:
         specifier: ^4.4.0
         version: 4.4.0
@@ -2901,9 +2898,6 @@ packages:
 
   dlv@1.1.3:
     resolution: {integrity: sha512-+HlytyjlPKnIG8XuRG8WvmBP8xs8P71y+SKKS6ZXWoEgLuePxtDoUEiH7WkdePWrQ5JBpE6aoVqfZfJUQkjXwA==}
-
-  docx-preview@0.3.7:
-    resolution: {integrity: sha512-Lav69CTA/IYZPJTsKH7oYeoZjyg96N0wEJMNslGJnZJ+dMUZK85Lt5ASC79yUlD48ecWjuv+rkcmFt6EVPV0Xg==}
 
   dom-serializer@2.0.0:
     resolution: {integrity: sha512-wIkAryiqt/nV5EQKqQpo3SToSOV9J0DnbJqwK7Wv/Trc92zIAYZ4FlMu+JPFW1DfGFt81ZTCGgDEabffXeLyJg==}
@@ -7090,10 +7084,6 @@ snapshots:
   dingbat-to-unicode@1.0.1: {}
 
   dlv@1.1.3: {}
-
-  docx-preview@0.3.7:
-    dependencies:
-      jszip: 3.10.1
 
   dom-serializer@2.0.0:
     dependencies:

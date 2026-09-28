@@ -442,8 +442,11 @@ export const MobiRenderer = forwardRef<MobiRendererHandle, MobiRendererProps>(
         {error && <RendererError message={error} />}
 
         {loading && !error && (
-          <div className="rfp-absolute rfp-inset-0 rfp-flex rfp-items-center rfp-justify-center rfp-z-10">
-            <div className="rfp-w-12 rfp-h-12 rfp-border-4 rfp-border-line-strong rfp-border-t-spinner-head rfp-rounded-full rfp-animate-spin" />
+          <div className="rfp-absolute rfp-inset-0 rfp-renderer-loading rfp-z-10">
+            <div className="rfp-renderer-loading-content">
+              <div className="rfp-renderer-spinner" />
+              <span className="rfp-renderer-loading-text">{t('common.loading')}</span>
+            </div>
           </div>
         )}
 

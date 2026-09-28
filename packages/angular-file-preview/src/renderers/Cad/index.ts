@@ -33,7 +33,7 @@ import { getCadToolbarGroups } from './toolbar';
   template: `
     <div #containerRef class="afp-relative afp-w-full afp-h-full afp-bg-media-bg">
       @if (error()) {
-        <div class="afp-absolute afp-inset-0 afp-flex afp-items-center afp-justify-center afp-bg-surface-3 afp-z-10">
+        <div class="afp-absolute afp-inset-0 afp-renderer-loading afp-bg-surface-3 afp-z-10">
           <div class="afp-text-center">
             <p class="afp-text-fg-primary">{{ error() }}</p>
           </div>
@@ -41,10 +41,10 @@ import { getCadToolbarGroups } from './toolbar';
       }
 
       @if (loading()) {
-        <div class="afp-absolute afp-inset-0 afp-flex afp-items-center afp-justify-center afp-bg-surface-3 afp-z-10">
-          <div class="afp-text-center">
-            <div class="afp-inline-block afp-w-8 afp-h-8 afp-border-4 afp-border-spinner-track afp-border-t-spinner-head afp-rounded-full afp-animate-spin"></div>
-            <p class="afp-mt-4 afp-text-fg-secondary">{{ t('cad.loading') }}</p>
+        <div class="afp-absolute afp-inset-0 afp-renderer-loading afp-bg-surface-3 afp-z-10">
+          <div class="afp-renderer-loading-content">
+            <div class="afp-renderer-spinner"></div>
+            <p class="afp-renderer-loading-text afp-text-fg-secondary">{{ t('cad.loading') }}</p>
           </div>
         </div>
       }

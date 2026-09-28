@@ -178,10 +178,10 @@ export const VideoRenderer = forwardRef<RendererHandle, VideoRendererProps>(({ u
       <div className="rfp-w-full rfp-h-full rfp-relative">
         {/* 加载状态 */}
         {isLoading && (
-          <div className="rfp-absolute rfp-inset-0 rfp-flex rfp-items-center rfp-justify-center rfp-bg-surface-3 rfp-backdrop-blur-sm rfp-z-10">
-            <div className="rfp-text-center">
-              <div className="rfp-w-12 rfp-h-12 rfp-mx-auto rfp-mb-3 rfp-border-3 rfp-border-line-strong rfp-border-t-spinner-head rfp-rounded-full rfp-animate-spin" />
-              <p className="rfp-text-sm rfp-text-fg-secondary rfp-font-medium">{t('video.loading')}</p>
+          <div className="rfp-absolute rfp-inset-0 rfp-renderer-loading rfp-bg-surface-3 rfp-backdrop-blur-sm rfp-z-10">
+            <div className="rfp-renderer-loading-content">
+              <div className="rfp-renderer-spinner" />
+              <p className="rfp-renderer-loading-text">{t('video.loading')}</p>
             </div>
           </div>
         )}

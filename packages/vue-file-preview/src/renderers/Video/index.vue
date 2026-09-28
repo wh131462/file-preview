@@ -163,13 +163,11 @@ defineExpose<RendererHandle>({
     <div class="vfp-w-full vfp-h-full vfp-relative">
       <div
         v-if="isLoading"
-        class="vfp-absolute vfp-inset-0 vfp-flex vfp-items-center vfp-justify-center vfp-bg-surface-3 vfp-backdrop-blur-sm vfp-z-10"
+        class="vfp-absolute vfp-inset-0 vfp-renderer-loading vfp-bg-surface-3 vfp-backdrop-blur-sm vfp-z-10"
       >
-        <div class="vfp-text-center">
-          <div
-            class="vfp-w-12 vfp-h-12 vfp-mx-auto vfp-mb-3 vfp-border-4 vfp-border-line-strong vfp-border-t-spinner-head vfp-rounded-full vfp-animate-spin"
-          />
-          <p class="vfp-text-sm vfp-text-fg-secondary vfp-font-medium">{{ t('video.loading') }}</p>
+        <div class="vfp-renderer-loading-content">
+          <div class="vfp-renderer-spinner" />
+          <p class="vfp-renderer-loading-text vfp-text-sm vfp-text-fg-secondary vfp-font-medium">{{ t('video.loading') }}</p>
         </div>
       </div>
 

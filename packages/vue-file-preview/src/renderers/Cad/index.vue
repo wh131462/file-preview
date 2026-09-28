@@ -497,7 +497,7 @@ watch(() => props.url, () => {
     <!-- 错误覆盖层 -->
     <div
       v-if="error"
-      class="vfp-absolute vfp-inset-0 vfp-flex vfp-items-center vfp-justify-center vfp-bg-surface-3 vfp-z-10"
+      class="vfp-absolute vfp-inset-0 vfp-renderer-loading vfp-bg-surface-3 vfp-z-10"
     >
       <div class="vfp-text-center">
         <p class="vfp-text-fg-primary">{{ error }}</p>
@@ -507,11 +507,11 @@ watch(() => props.url, () => {
     <!-- 加载覆盖层 -->
     <div
       v-if="loading"
-      class="vfp-absolute vfp-inset-0 vfp-flex vfp-items-center vfp-justify-center vfp-bg-surface-3 vfp-z-10"
+      class="vfp-absolute vfp-inset-0 vfp-renderer-loading vfp-bg-surface-3 vfp-z-10"
     >
-      <div class="vfp-text-center">
-        <div class="vfp-inline-block vfp-w-8 vfp-h-8 vfp-border-4 vfp-border-spinner-track vfp-border-t-spinner-head vfp-rounded-full vfp-animate-spin" />
-        <p class="vfp-mt-4 vfp-text-fg-secondary">{{ t('cad.loading') }}</p>
+      <div class="vfp-renderer-loading-content">
+        <div class="vfp-renderer-spinner" />
+        <p class="vfp-renderer-loading-text vfp-text-fg-secondary">{{ t('cad.loading') }}</p>
       </div>
     </div>
   </div>

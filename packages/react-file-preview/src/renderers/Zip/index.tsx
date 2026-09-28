@@ -183,6 +183,7 @@ export const ZipRenderer = forwardRef<RendererHandle, ZipRendererProps>(({ url, 
   const onStatsChangeRef = useRef(onStatsChange);
   const splitRef = useRef<ResizableSplitHandle>(null);
   const selectingPathRef = useRef<string | null>(null);
+  const selectionIdRef = useRef(0);
 
   useEffect(() => {
     onStatsChangeRef.current = onStatsChange;
@@ -218,11 +219,14 @@ export const ZipRenderer = forwardRef<RendererHandle, ZipRendererProps>(({ url, 
         if (!cancelled) setLoading(false);
       }
     };
-    load();
+    // StrictMode 的首次 cleanup 会在微任务前执行，避免重复加载 ZIP。
+    Promise.resolve().then(() => {
+      if (!cancelled) load();
+    });
     return () => {
       cancelled = true;
     };
-  }, [url]);
+  }, [url, fetcher, t]);
 
   // 切换文件时回收 blob URL
   useEffect(() => {
@@ -230,6 +234,11 @@ export const ZipRenderer = forwardRef<RendererHandle, ZipRendererProps>(({ url, 
       if (selected?.blobUrl) URL.revokeObjectURL(selected.blobUrl);
     };
   }, [selected]);
+
+  useEffect(() => () => {
+    selectionIdRef.current++;
+    selectingPathRef.current = null;
+  }, []);
 
   const totalStats = useMemo<ZipToolbarStats | null>(() => {
     if (!tree) return null;
@@ -283,23 +292,28 @@ export const ZipRenderer = forwardRef<RendererHandle, ZipRendererProps>(({ url, 
     async (node: ZipTreeNode) => {
       if (!zip || node.isDir || selected?.path === node.path || selectingPathRef.current === node.path) return;
       selectingPathRef.current = node.path;
-      if (selected?.blobUrl) URL.revokeObjectURL(selected.blobUrl);
-      setPreviewLoading(true);
+      const selectionId = ++selectionIdRef.current;
+      if (!selected) setPreviewLoading(true);
       setPreviewError(null);
 
       try {
         const mime = inferMimeType(node.name);
         const blob = await readZipEntryBlob(zip, node.path, mime !== 'application/octet-stream' ? mime : undefined);
+        if (selectionIdRef.current !== selectionId) return;
         const blobUrl = URL.createObjectURL(blob);
         setSelected({ path: node.path, name: node.name, size: node.size, blobUrl });
         // 移动端切换到预览 tab
         splitRef.current?.switchTab('right');
       } catch (err) {
         console.error(err);
-        setPreviewError('条目读取失败');
+        if (selectionIdRef.current === selectionId) {
+          if (!selected) setPreviewError('条目读取失败');
+        }
       } finally {
-        setPreviewLoading(false);
-        if (selectingPathRef.current === node.path) selectingPathRef.current = null;
+        if (selectionIdRef.current === selectionId) {
+          setPreviewLoading(false);
+          selectingPathRef.current = null;
+        }
       }
     },
     [zip, selected]
@@ -318,8 +332,11 @@ export const ZipRenderer = forwardRef<RendererHandle, ZipRendererProps>(({ url, 
 
   if (loading) {
     return (
-      <div className="rfp-flex rfp-items-center rfp-justify-center rfp-w-full rfp-h-full">
-        <div className="rfp-w-12 rfp-h-12 rfp-border-4 rfp-border-line-strong rfp-border-t-spinner-head rfp-rounded-full rfp-animate-spin" />
+      <div className="rfp-renderer-loading">
+        <div className="rfp-renderer-loading-content">
+          <div className="rfp-renderer-spinner" />
+          <span className="rfp-renderer-loading-text">{t('common.loading')}</span>
+        </div>
       </div>
     );
   }
@@ -350,28 +367,34 @@ export const ZipRenderer = forwardRef<RendererHandle, ZipRendererProps>(({ url, 
   // 右侧：预览区
   const rightPane = (
     <div className="rfp-w-full rfp-h-full rfp-flex rfp-flex-col">
-      {!selected && (
+      {!selected && !previewLoading && !previewError && (
         <div className="rfp-flex-1 rfp-flex rfp-items-center rfp-justify-center rfp-text-fg-muted rfp-text-sm rfp-p-6">
           从左侧选择一个文件以预览
         </div>
       )}
-      {selected && previewLoading && (
-        <div className="rfp-flex-1 rfp-flex rfp-items-center rfp-justify-center">
-          <div className="rfp-w-8 rfp-h-8 rfp-border-4 rfp-border-line-strong rfp-border-t-spinner-head rfp-rounded-full rfp-animate-spin" />
+      {!selected && previewLoading && (
+        <div className="rfp-renderer-loading rfp-flex-1">
+          <div className="rfp-renderer-loading-content">
+            <div className="rfp-renderer-spinner" />
+            <span className="rfp-renderer-loading-text">{t('common.loading')}</span>
+          </div>
         </div>
       )}
-      {selected && !previewLoading && previewError && (
+      {!selected && previewError && (
         <div className="rfp-flex-1 rfp-flex rfp-items-center rfp-justify-center rfp-text-fg-secondary">
           {previewError}
         </div>
       )}
-      {selected && !previewLoading && !previewError && (
+      {selected && !previewError && (
         <>
           <div className="rfp-flex-1 rfp-min-h-0 rfp-overflow-hidden rfp-flex rfp-relative rfp-z-0">
             <Suspense
               fallback={
-                <div className="rfp-flex-1 rfp-flex rfp-items-center rfp-justify-center">
-                  <div className="rfp-w-8 rfp-h-8 rfp-border-4 rfp-border-line-strong rfp-border-t-spinner-head rfp-rounded-full rfp-animate-spin" />
+                <div className="rfp-renderer-loading rfp-flex-1">
+                  <div className="rfp-renderer-loading-content">
+                    <div className="rfp-renderer-spinner" />
+                    <span className="rfp-renderer-loading-text">{t('common.loading')}</span>
+                  </div>
                 </div>
               }
             >

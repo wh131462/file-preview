@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { watch, ref, onBeforeUnmount, computed } from 'vue';
+import { watch, toRef } from 'vue';
 import type { PreviewFile, PreviewFileInput, Locale, Messages, Theme, CustomRendererEventPayload, RequestHandler, RequestInitFactory, ShouldFetchAsBlob } from '@eternalheart/file-preview-core';
 import type { CustomRenderer } from './types';
 import FilePreviewContent from './FilePreviewContent.vue';
 import { useScrollLock } from './composables/useScrollLock';
+import { useThemeMode } from './composables/useThemeMode';
 
 interface Props {
   files: PreviewFileInput[];
@@ -68,38 +69,7 @@ watch(
   }
 );
 
-const systemDark = ref(
-  typeof window !== 'undefined'
-    ? window.matchMedia('(prefers-color-scheme: dark)').matches
-    : true,
-);
-
-let mediaQueryCleanup: (() => void) | null = null;
-
-watch(
-  () => props.theme,
-  (theme) => {
-    if (mediaQueryCleanup) {
-      mediaQueryCleanup();
-      mediaQueryCleanup = null;
-    }
-    if (theme === 'auto') {
-      const mql = window.matchMedia('(prefers-color-scheme: dark)');
-      const handler = (e: MediaQueryListEvent) => { systemDark.value = e.matches; };
-      mql.addEventListener('change', handler);
-      mediaQueryCleanup = () => mql.removeEventListener('change', handler);
-    }
-  },
-  { immediate: true },
-);
-
-onBeforeUnmount(() => {
-  if (mediaQueryCleanup) mediaQueryCleanup();
-});
-
-const resolvedTheme = computed(() =>
-  props.theme === 'auto' ? (systemDark.value ? 'dark' : 'light') : props.theme,
-);
+const resolvedTheme = useThemeMode(toRef(props, 'theme'));
 
 const handleBackdropClick = () => emit('close');
 const handleContentClick = (e: MouseEvent) => e.stopPropagation();

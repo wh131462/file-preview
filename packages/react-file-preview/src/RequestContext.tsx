@@ -44,10 +44,6 @@ export const RequestProvider: React.FC<RequestProviderProps> = ({
   );
 };
 
-export function useRequest(): RequestContextValue {
-  return useContext(RequestContext);
-}
-
 export function useFetcher(): Fetcher {
   return useContext(RequestContext).fetcher;
 }

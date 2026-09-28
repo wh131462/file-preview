@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, watch, onMounted, onBeforeUnmount, computed } from 'vue';
-import { Loader2, ZoomIn, ZoomOut, RotateCw, RotateCcw, Scan, RefreshCw, Maximize2 } from 'lucide-vue-next';
+import { ZoomIn, ZoomOut, RotateCw, RotateCcw, Scan, RefreshCw, Maximize2 } from 'lucide-vue-next';
 import {
   decodeInWorker,
   detectImageFormat,
@@ -597,21 +597,24 @@ const sizeText = computed(() => {
     <!-- 解码中 -->
     <div
       v-if="decoding"
-      class="vfp-absolute vfp-inset-0 vfp-flex vfp-flex-col vfp-items-center vfp-justify-center vfp-bg-surface-1/80 vfp-z-10"
+      class="vfp-absolute vfp-inset-0 vfp-renderer-loading vfp-bg-surface-1/80 vfp-z-10"
     >
-      <Loader2 class="vfp-w-12 vfp-h-12 vfp-text-fg-primary vfp-animate-spin" />
-      <p class="vfp-mt-4 vfp-text-fg-secondary">
-        正在解码... <span v-if="decodeProgress > 0">{{ Math.round(decodeProgress) }}%</span>
-      </p>
+      <div class="vfp-renderer-loading-content">
+        <div class="vfp-renderer-spinner" />
+        <p class="vfp-renderer-loading-text vfp-text-fg-secondary">
+          正在解码... <span v-if="decodeProgress > 0">{{ Math.round(decodeProgress) }}%</span>
+        </p>
+      </div>
     </div>
 
     <!-- 解码错误 -->
     <RendererError v-if="decodeError" :message="t('image.decode_failed')" :detail="decodeError" />
 
-    <div v-if="!loaded && !error && !decoding && !decodeError" class="vfp-flex vfp-items-center vfp-justify-center">
-      <div
-        class="vfp-w-12 vfp-h-12 vfp-border-4 vfp-border-line-strong vfp-border-t-spinner-head vfp-rounded-full vfp-animate-spin"
-      />
+    <div v-if="!loaded && !error && !decoding && !decodeError" class="vfp-renderer-loading">
+      <div class="vfp-renderer-loading-content">
+        <div class="vfp-renderer-spinner" />
+        <span class="vfp-renderer-loading-text">{{ t('common.loading') }}</span>
+      </div>
     </div>
 
     <RendererError v-if="error" :message="error" />

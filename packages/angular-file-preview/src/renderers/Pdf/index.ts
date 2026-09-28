@@ -143,10 +143,11 @@ interface PageState {
         }
 
         @if (!error() && loading()) {
-          <div class="afp-flex afp-items-center afp-justify-center afp-min-h-screen">
-            <div
-              class="afp-w-12 afp-h-12 afp-border-4 afp-border-line-strong afp-border-t-spinner-head afp-rounded-full afp-animate-spin"
-            ></div>
+          <div class="afp-renderer-loading afp-min-h-screen">
+            <div class="afp-renderer-loading-content">
+              <div class="afp-renderer-spinner"></div>
+              <span class="afp-renderer-loading-text">{{ t('common.loading') }}</span>
+            </div>
           </div>
         }
 

@@ -24,10 +24,11 @@ import { createShikiHighlight } from '../../utils/shiki-highlight';
   host: { class: 'afp-block afp-w-full afp-h-full' },
   template: `
     @if (loading()) {
-      <div class="afp-flex afp-items-center afp-justify-center afp-w-full afp-h-full">
-        <div
-          class="afp-w-12 afp-h-12 afp-border-4 afp-border-line-strong afp-border-t-spinner-head afp-rounded-full afp-animate-spin"
-        ></div>
+      <div class="afp-renderer-loading">
+        <div class="afp-renderer-loading-content">
+          <div class="afp-renderer-spinner"></div>
+          <span class="afp-renderer-loading-text">{{ t('common.loading') }}</span>
+        </div>
       </div>
     } @else if (error()) {
       <afp-renderer-error [message]="error()!" />
@@ -61,7 +62,7 @@ export class XmlRenderer implements RendererHandle {
   private readonly locale = inject(LocaleService, { optional: true });
   private readonly request = inject(RequestService, { optional: true });
   private readonly sanitizer = inject(DomSanitizer);
-  private readonly t = this.locale?.t() ?? getFallbackTranslator();
+  protected readonly t = this.locale?.t() ?? getFallbackTranslator();
 
   readonly content = signal('');
   readonly loading = signal(true);

@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { PreviewFileInput, CustomRenderer } from './types';
 import { FilePreviewContent } from './FilePreviewContent';
+import { useThemeMode } from './hooks';
 import type { Locale, Messages, Theme, CustomRendererEventPayload, PreviewFile, RequestHandler, RequestInitFactory, ShouldFetchAsBlob } from '@eternalheart/file-preview-core';
 
 interface FilePreviewModalProps {
@@ -60,21 +61,7 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
   showNavigation,
   loopNavigation,
 }) => {
-  const [systemDark, setSystemDark] = useState(() =>
-    typeof window !== 'undefined'
-      ? window.matchMedia('(prefers-color-scheme: dark)').matches
-      : true,
-  );
-
-  useEffect(() => {
-    if (theme !== 'auto') return;
-    const mql = window.matchMedia('(prefers-color-scheme: dark)');
-    const handler = (e: MediaQueryListEvent) => setSystemDark(e.matches);
-    mql.addEventListener('change', handler);
-    return () => mql.removeEventListener('change', handler);
-  }, [theme]);
-
-  const resolvedTheme = theme === 'auto' ? (systemDark ? 'dark' : 'light') : theme;
+  const resolvedTheme = useThemeMode(theme);
 
   // 锁定 body 滚动
   useEffect(() => {

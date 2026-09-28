@@ -86,8 +86,11 @@ function ensureZipTipStyles(): void {
   host: { class: 'afp-block afp-w-full afp-h-full' },
   template: `
     @if (loading()) {
-      <div class="afp-flex afp-items-center afp-justify-center afp-w-full afp-h-full">
-        <div class="afp-w-12 afp-h-12 afp-border-4 afp-border-line-strong afp-border-t-spinner-head afp-rounded-full afp-animate-spin"></div>
+      <div class="afp-renderer-loading">
+        <div class="afp-renderer-loading-content">
+          <div class="afp-renderer-spinner"></div>
+          <span class="afp-renderer-loading-text">{{ t('common.loading') }}</span>
+        </div>
       </div>
     } @else if (error() || !tree()) {
       <afp-renderer-error [message]="error() || t('zip.parse_failed')" />
@@ -121,8 +124,11 @@ function ensureZipTipStyles(): void {
               从左侧选择一个文件以预览
             </div>
           } @else if (previewLoading()) {
-            <div class="afp-flex-1 afp-flex afp-items-center afp-justify-center">
-              <div class="afp-w-8 afp-h-8 afp-border-4 afp-border-line-strong afp-border-t-spinner-head afp-rounded-full afp-animate-spin"></div>
+            <div class="afp-renderer-loading afp-flex-1">
+              <div class="afp-renderer-loading-content">
+                <div class="afp-renderer-spinner"></div>
+                <span class="afp-renderer-loading-text">{{ t('common.loading') }}</span>
+              </div>
             </div>
           } @else if (previewError()) {
             <div class="afp-flex-1 afp-flex afp-items-center afp-justify-center afp-text-fg-secondary">{{ previewError() }}</div>

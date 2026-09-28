@@ -106,7 +106,6 @@ const FilePreviewContentInner: React.FC<FilePreviewContentProps> = ({
   const rootRef = useRef<HTMLDivElement>(null);
 
   // 新架构：通用渲染器 ref，用于获取工具栏配置
-  const rendererInstanceRef = useRef<RendererHandle | null>(null);
   const [rendererToolbarGroups, setRendererToolbarGroups] = useState<ToolbarGroup[]>([]);
   const cleanupRef = useRef<(() => void) | null>(null);
 
@@ -117,8 +116,6 @@ const FilePreviewContentInner: React.FC<FilePreviewContentProps> = ({
       cleanupRef.current();
       cleanupRef.current = null;
     }
-
-    rendererInstanceRef.current = renderer;
 
     if (!renderer?.getToolbarGroups) {
       setRendererToolbarGroups([]);
@@ -140,12 +137,6 @@ const FilePreviewContentInner: React.FC<FilePreviewContentProps> = ({
       return;
     }
 
-    // 回退机制：如果渲染器不支持事件，使用轮询
-    const interval = setInterval(() => {
-      const groups = renderer.getToolbarGroups();
-      setRendererToolbarGroups(groups);
-    }, 100);
-    cleanupRef.current = () => clearInterval(interval);
   }, []);
 
   // Callback ref：在渲染器挂载/卸载时立即触发

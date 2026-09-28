@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
 import { PreviewFileInput, CustomRenderer } from './types';
 import { FilePreviewContent } from './FilePreviewContent';
+import { useThemeMode } from './hooks';
 import type { Locale, Messages, Theme, CustomRendererEventPayload, PreviewFile, RequestHandler, RequestInitFactory, ShouldFetchAsBlob } from '@eternalheart/file-preview-core';
 
 interface FilePreviewEmbedProps {
@@ -68,21 +68,7 @@ export const FilePreviewEmbed: React.FC<FilePreviewEmbedProps> = ({
   showNavigation,
   loopNavigation,
 }) => {
-  const [systemDark, setSystemDark] = useState(() =>
-    typeof window !== 'undefined'
-      ? window.matchMedia('(prefers-color-scheme: dark)').matches
-      : true,
-  );
-
-  useEffect(() => {
-    if (theme !== 'auto') return;
-    const mql = window.matchMedia('(prefers-color-scheme: dark)');
-    const handler = (e: MediaQueryListEvent) => setSystemDark(e.matches);
-    mql.addEventListener('change', handler);
-    return () => mql.removeEventListener('change', handler);
-  }, [theme]);
-
-  const resolvedTheme = theme === 'auto' ? (systemDark ? 'dark' : 'light') : theme;
+  const resolvedTheme = useThemeMode(theme);
 
   return (
     <div

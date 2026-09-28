@@ -168,8 +168,11 @@ const previewFiles = computed(() => {
 </script>
 
 <template>
-  <div v-if="loading" class="vfp-flex vfp-items-center vfp-justify-center vfp-w-full vfp-h-full">
-    <div class="vfp-w-12 vfp-h-12 vfp-border-4 vfp-border-line-strong vfp-border-t-spinner-head vfp-rounded-full vfp-animate-spin" />
+  <div v-if="loading" class="vfp-renderer-loading">
+    <div class="vfp-renderer-loading-content">
+      <div class="vfp-renderer-spinner" />
+      <span class="vfp-renderer-loading-text">{{ t('common.loading') }}</span>
+    </div>
   </div>
 
   <RendererError v-else-if="error || !tree" :message="error || t('zip.parse_failed')" />
@@ -207,8 +210,11 @@ const previewFiles = computed(() => {
           <div v-if="!selected" class="vfp-flex-1 vfp-flex vfp-items-center vfp-justify-center vfp-text-fg-muted vfp-text-sm vfp-p-6">
             从左侧选择一个文件以预览
           </div>
-          <div v-else-if="previewLoading" class="vfp-flex-1 vfp-flex vfp-items-center vfp-justify-center">
-            <div class="vfp-w-8 vfp-h-8 vfp-border-4 vfp-border-line-strong vfp-border-t-spinner-head vfp-rounded-full vfp-animate-spin" />
+          <div v-else-if="previewLoading" class="vfp-renderer-loading vfp-flex-1">
+            <div class="vfp-renderer-loading-content">
+              <div class="vfp-renderer-spinner" />
+              <span class="vfp-renderer-loading-text">{{ t('common.loading') }}</span>
+            </div>
           </div>
           <div v-else-if="previewError" class="vfp-flex-1 vfp-flex vfp-items-center vfp-justify-center vfp-text-fg-secondary">{{ previewError }}</div>
           <template v-else>

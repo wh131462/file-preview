@@ -1,5 +1,4 @@
 import React from 'react';
-import { motion } from 'framer-motion';
 import { Download, X } from 'lucide-react';
 import type { ToolbarGroup } from '../../renderers/toolbar.types';
 import type { Translator } from '@eternalheart/file-preview-core';
@@ -69,10 +68,7 @@ export const FilePreviewToolbar: React.FC<FilePreviewToolbarProps> = ({
   ];
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
+    <div
       className="rfp-flex-shrink-0 rfp-z-10 rfp-backdrop-blur-md rfp-border-b rfp-bg-surface-toolbar rfp-border-line"
       style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
     >
@@ -113,6 +109,6 @@ export const FilePreviewToolbar: React.FC<FilePreviewToolbarProps> = ({
           {renderToolbarItems(toolGroups, 'rfp-mx-0.5')}
         </div>
       )}
-    </motion.div>
+    </div>
   );
 };

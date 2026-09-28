@@ -46,7 +46,6 @@ export default defineConfig(({ mode }) => {
     'react',
     'react-dom',
     'react/jsx-runtime',
-    'react-pdf',
     'react-markdown',
     // UI / 动画
     'framer-motion',
@@ -56,7 +55,6 @@ export default defineConfig(({ mode }) => {
     /^pdfjs-dist(\/.*)?$/,
     // Office / 电子书 / 压缩
     'mammoth',
-    'docx-preview',
     'pptx-preview',
     'exceljs',
     /^exceljs(\/.*)?$/,

@@ -20,6 +20,7 @@ import type { CustomRenderer, CustomRendererContext } from './types';
 import { provideLocale, useTranslator } from './composables/useTranslator';
 import { provideResolvedTheme } from './composables/useResolvedTheme';
 import { provideRequestContext, useResolvedUrl, useFetcher } from './composables/useRequest';
+import { useThemeMode } from './composables/useThemeMode';
 import type { ToolbarGroup, ToolbarButtonItem, ToolbarTextItem } from './renderers/toolbar.types';
 import type { RendererHandle } from './renderers/base.types';
 import { BUILTIN_RENDERERS } from './renderers/registry';
@@ -99,38 +100,7 @@ const emit = defineEmits<{
 provideLocale(toRef(props, 'locale'), toRef(props, 'messages'));
 const { t } = useTranslator();
 
-const systemDark = ref(
-  typeof window !== 'undefined'
-    ? window.matchMedia('(prefers-color-scheme: dark)').matches
-    : true,
-);
-
-let mediaQueryCleanup: (() => void) | null = null;
-
-watch(
-  () => props.theme,
-  (theme) => {
-    if (mediaQueryCleanup) {
-      mediaQueryCleanup();
-      mediaQueryCleanup = null;
-    }
-    if (theme === 'auto') {
-      const mql = window.matchMedia('(prefers-color-scheme: dark)');
-      const handler = (e: MediaQueryListEvent) => { systemDark.value = e.matches; };
-      mql.addEventListener('change', handler);
-      mediaQueryCleanup = () => mql.removeEventListener('change', handler);
-    }
-  },
-  { immediate: true },
-);
-
-onBeforeUnmount(() => {
-  if (mediaQueryCleanup) mediaQueryCleanup();
-});
-
-const resolvedTheme = computed(() =>
-  props.theme === 'auto' ? (systemDark.value ? 'dark' : 'light') : props.theme,
-);
+const resolvedTheme = useThemeMode(toRef(props, 'theme'));
 provideResolvedTheme(resolvedTheme);
 
 const contentRef = ref<HTMLDivElement | null>(null);
@@ -226,21 +196,6 @@ const customCtx = computed<CustomRendererContext>(() => ({
 // 通过 provide 暴露给深层子组件 inject 使用
 provide('file-preview:custom-ctx', customCtx);
 
-// 重置状态当文件改变时
-watch(
-  () => props.currentIndex,
-  () => {
-    // 重置 epub 状态
-    epubCurrent.value = 0;
-    epubTotal.value = 0;
-    epubFullWidth.value = false;
-    // 重置 mobi 状态
-    mobiCurrent.value = 0;
-    mobiTotal.value = 0;
-    mobiFullWidth.value = false;
-  }
-);
-
 // 图片加载后默认适应窗口（已禁用，改为手动点击"适应窗口"按钮）
 
 // 键盘导航
@@ -320,18 +275,6 @@ const handleDownload = async () => {
 const showCloseButton = computed(() =>
   resolveShowClose(props.mode, props.showClose),
 );
-
-const epubCurrent = ref(0);
-const epubTotal = ref(0);
-const epubFullWidth = ref(false);
-
-const mobiCurrent = ref(0);
-const mobiTotal = ref(0);
-const mobiFullWidth = ref(false);
-
-// 防止 ESLint 报未使用警告（仍由模板中的事件回调使用）
-void epubCurrent; void epubTotal; void epubFullWidth;
-void mobiCurrent; void mobiTotal; void mobiFullWidth;
 
 // 工具栏配置 — 各 Renderer 自行通过 ref 暴露 getToolbarGroups 和 onToolbarChange
 const toolGroups = computed(() => {

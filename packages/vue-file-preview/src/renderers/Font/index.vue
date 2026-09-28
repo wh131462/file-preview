@@ -1,8 +1,11 @@
 <template>
   <div class="vfp-flex vfp-flex-col vfp-w-full vfp-h-full vfp-overflow-hidden">
     <!-- 加载中 -->
-    <div v-if="loading" class="vfp-flex vfp-items-center vfp-justify-center vfp-w-full vfp-h-full">
-      <div class="vfp-text-fg-secondary">{{ t('font.loading') }}</div>
+    <div v-if="loading" class="vfp-renderer-loading">
+      <div class="vfp-renderer-loading-content">
+        <div class="vfp-renderer-spinner" />
+        <span class="vfp-renderer-loading-text">{{ t('font.loading') }}</span>
+      </div>
     </div>
 
     <!-- 错误态 -->

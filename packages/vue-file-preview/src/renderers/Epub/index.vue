@@ -366,9 +366,12 @@ onBeforeUnmount(() => {
 
     <div
       v-if="loading && !error"
-      class="vfp-absolute vfp-inset-0 vfp-flex vfp-items-center vfp-justify-center vfp-z-10"
+      class="vfp-absolute vfp-inset-0 vfp-renderer-loading vfp-z-10"
     >
-      <div class="vfp-w-12 vfp-h-12 vfp-border-4 vfp-border-line-strong vfp-border-t-spinner-head vfp-rounded-full vfp-animate-spin" />
+      <div class="vfp-renderer-loading-content">
+        <div class="vfp-renderer-spinner" />
+        <span class="vfp-renderer-loading-text">{{ t('common.loading') }}</span>
+      </div>
     </div>
 
     <!-- 目录侧栏 - 滑入动画 -->

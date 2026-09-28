@@ -727,10 +727,11 @@ onBeforeUnmount(() => {
     >
       <RendererError v-if="error" :message="error" />
 
-      <div v-if="!error && isLoading" class="vfp-flex vfp-items-center vfp-justify-center vfp-min-h-screen">
-        <div
-          class="vfp-w-12 vfp-h-12 vfp-border-4 vfp-border-line-strong vfp-border-t-spinner-head vfp-rounded-full vfp-animate-spin"
-        />
+      <div v-if="!error && isLoading" class="vfp-renderer-loading vfp-min-h-screen">
+        <div class="vfp-renderer-loading-content">
+          <div class="vfp-renderer-spinner" />
+          <span class="vfp-renderer-loading-text">{{ t('common.loading') }}</span>
+        </div>
       </div>
 
       <div v-if="!error" class="vfp-flex vfp-flex-col vfp-items-center">

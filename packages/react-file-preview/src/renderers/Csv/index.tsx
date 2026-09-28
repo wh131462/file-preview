@@ -175,16 +175,16 @@ export const CsvRenderer = forwardRef<RendererHandle, CsvRendererProps>(({ url, 
   return (
     <div className="rfp-relative rfp-flex rfp-flex-col rfp-items-center rfp-w-full rfp-h-full">
       {loading && (
-        <div className="rfp-absolute rfp-inset-0 rfp-flex rfp-items-center rfp-justify-center rfp-bg-surface-toolbar rfp-backdrop-blur-sm rfp-z-10">
-          <div className="rfp-text-center">
-            <div className="rfp-w-10 rfp-h-10 md:rfp-w-12 md:rfp-h-12 rfp-mx-auto rfp-mb-3 rfp-border-4 rfp-border-line-strong rfp-border-t-spinner-head rfp-rounded-full rfp-animate-spin" />
-            <p className="rfp-text-xs md:rfp-text-sm rfp-text-fg-secondary rfp-font-medium">{t('csv.loading')}</p>
+        <div className="rfp-absolute rfp-inset-0 rfp-renderer-loading rfp-bg-surface-toolbar rfp-backdrop-blur-sm rfp-z-10">
+          <div className="rfp-renderer-loading-content">
+            <div className="rfp-renderer-spinner" />
+            <p className="rfp-renderer-loading-text">{t('csv.loading')}</p>
           </div>
         </div>
       )}
 
       {error && !loading && (
-        <div className="rfp-absolute rfp-inset-0 rfp-flex rfp-items-center rfp-justify-center rfp-bg-surface-toolbar rfp-backdrop-blur-sm rfp-z-10">
+        <div className="rfp-absolute rfp-inset-0 rfp-renderer-loading rfp-bg-surface-toolbar rfp-backdrop-blur-sm rfp-z-10">
           <RendererError message={error} />
         </div>
       )}

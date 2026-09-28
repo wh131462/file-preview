@@ -12,7 +12,7 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
-import { LucideAngularModule, Loader2, ZoomIn, ZoomOut, RotateCw, RotateCcw, Scan, RefreshCw, Maximize2 } from 'lucide-angular';
+import { LucideAngularModule, ZoomIn, ZoomOut, RotateCw, RotateCcw, Scan, RefreshCw, Maximize2 } from 'lucide-angular';
 import {
   decodeInWorker,
   detectImageFormat,
@@ -46,14 +46,16 @@ import type { ToolbarGroup } from '../toolbar.types';
       (mouseleave)="handleMouseUp()"
     >
       @if (decoding()) {
-        <div class="afp-absolute afp-inset-0 afp-flex afp-flex-col afp-items-center afp-justify-center afp-bg-surface-1/80 afp-z-10">
-          <i-lucide [img]="loader2Icon" class="afp-w-12 afp-h-12 afp-text-fg-primary afp-animate-spin" />
-          <p class="afp-mt-4 afp-text-fg-secondary">
-            {{ t('common.loading') }}
-            @if (decodeProgress() > 0) {
-              <span>{{ Math.round(decodeProgress()) }}%</span>
-            }
-          </p>
+        <div class="afp-absolute afp-inset-0 afp-renderer-loading afp-bg-surface-1/80 afp-z-10">
+          <div class="afp-renderer-loading-content">
+            <div class="afp-renderer-spinner"></div>
+            <p class="afp-renderer-loading-text afp-text-fg-secondary">
+              {{ t('common.loading') }}
+              @if (decodeProgress() > 0) {
+                <span>{{ Math.round(decodeProgress()) }}%</span>
+              }
+            </p>
+          </div>
         </div>
       }
 
@@ -62,8 +64,11 @@ import type { ToolbarGroup } from '../toolbar.types';
       }
 
       @if (!loaded() && !error() && !decoding() && !decodeError()) {
-        <div class="afp-flex afp-items-center afp-justify-center">
-          <div class="afp-w-12 afp-h-12 afp-border-4 afp-border-line-strong afp-border-t-spinner-head afp-rounded-full afp-animate-spin"></div>
+        <div class="afp-renderer-loading">
+          <div class="afp-renderer-loading-content">
+            <div class="afp-renderer-spinner"></div>
+            <span class="afp-renderer-loading-text">{{ t('common.loading') }}</span>
+          </div>
         </div>
       }
 
@@ -131,7 +136,6 @@ export class ImageRenderer implements RendererHandle {
   private readonly request = inject(RequestService, { optional: true });
   private readonly destroyRef = inject(DestroyRef);
   protected readonly t = this.locale?.t() ?? getFallbackTranslator();
-  protected readonly loader2Icon = Loader2;
   protected readonly Math = Math;
 
   readonly zoom = signal(1);

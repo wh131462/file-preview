@@ -228,13 +228,11 @@ defineExpose<RendererHandle>({
   <div class="vfp-relative vfp-flex vfp-flex-col vfp-items-center vfp-w-full vfp-h-full">
     <div
       v-if="loading"
-      class="vfp-absolute vfp-inset-0 vfp-flex vfp-items-center vfp-justify-center vfp-bg-surface-toolbar vfp-backdrop-blur-sm vfp-z-10"
+      class="vfp-absolute vfp-inset-0 vfp-renderer-loading vfp-bg-surface-toolbar vfp-backdrop-blur-sm vfp-z-10"
     >
-      <div class="vfp-text-center">
-        <div
-          class="vfp-w-10 vfp-h-10 md:vfp-w-12 md:vfp-h-12 vfp-mx-auto vfp-mb-3 vfp-border-4 vfp-border-line-strong vfp-border-t-spinner-head vfp-rounded-full vfp-animate-spin"
-        />
-        <p class="vfp-text-xs md:vfp-text-sm vfp-text-fg-secondary vfp-font-medium">{{ t('pptx.loading') }}</p>
+      <div class="vfp-renderer-loading-content">
+        <div class="vfp-renderer-spinner" />
+        <p class="vfp-renderer-loading-text vfp-text-xs md:vfp-text-sm vfp-text-fg-secondary vfp-font-medium">{{ t('pptx.loading') }}</p>
       </div>
     </div>
 

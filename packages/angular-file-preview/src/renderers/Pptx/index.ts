@@ -29,13 +29,11 @@ import type { ToolbarGroup } from '../toolbar.types';
     <div class="afp-relative afp-flex afp-flex-col afp-items-center afp-w-full afp-h-full">
       @if (loading()) {
         <div
-          class="afp-absolute afp-inset-0 afp-flex afp-items-center afp-justify-center afp-bg-surface-toolbar afp-backdrop-blur-sm afp-z-10"
+          class="afp-absolute afp-inset-0 afp-renderer-loading afp-bg-surface-toolbar afp-backdrop-blur-sm afp-z-10"
         >
-          <div class="afp-text-center">
-            <div
-              class="afp-w-10 afp-h-10 md:afp-w-12 md:afp-h-12 afp-mx-auto afp-mb-3 afp-border-4 afp-border-line-strong afp-border-t-spinner-head afp-rounded-full afp-animate-spin"
-            ></div>
-            <p class="afp-text-xs md:afp-text-sm afp-text-fg-secondary afp-font-medium">{{ t('pptx.loading') }}</p>
+          <div class="afp-renderer-loading-content">
+            <div class="afp-renderer-spinner"></div>
+            <p class="afp-renderer-loading-text afp-text-xs md:afp-text-sm afp-text-fg-secondary afp-font-medium">{{ t('pptx.loading') }}</p>
           </div>
         </div>
       }

@@ -66,8 +66,11 @@ const SIZES = [72, 48, 36, 24, 18];
   template: `
     <div class="afp-flex afp-flex-col afp-w-full afp-h-full afp-overflow-hidden">
       @if (loading()) {
-        <div class="afp-flex afp-items-center afp-justify-center afp-w-full afp-h-full">
-          <div class="afp-text-fg-secondary">{{ t('font.loading') }}</div>
+        <div class="afp-renderer-loading">
+          <div class="afp-renderer-loading-content">
+            <div class="afp-renderer-spinner"></div>
+            <span class="afp-renderer-loading-text">{{ t('font.loading') }}</span>
+          </div>
         </div>
       } @else if (error() || !metadata()) {
         <afp-renderer-error [message]="error() || t('font.parse_failed')" />

@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useImperativeHandle, forwardRef } from 'react';
-import { motion } from 'framer-motion';
-import { Loader2, ZoomIn, ZoomOut, RotateCw, RotateCcw, Scan, RefreshCw } from 'lucide-react';
+import { ZoomIn, ZoomOut, RotateCw, RotateCcw, Scan, RefreshCw } from 'lucide-react';
 import { useTranslator } from '../../i18n/LocaleContext';
 import {
   decodeInWorker,
@@ -216,7 +215,10 @@ export const ImageRenderer = forwardRef<ImageRendererHandle, ImageRendererProps>
       }
     };
 
-    decodeIfNeeded();
+    // StrictMode 的首次 cleanup 会在微任务前执行，避免重复解码。
+    Promise.resolve().then(() => {
+      if (!cancelled) decodeIfNeeded();
+    });
 
     return () => {
       cancelled = true;
@@ -574,11 +576,13 @@ export const ImageRenderer = forwardRef<ImageRendererHandle, ImageRendererProps>
     >
       {/* 解码中 */}
       {decoding && (
-        <div className="rfp-absolute rfp-inset-0 rfp-flex rfp-flex-col rfp-items-center rfp-justify-center rfp-bg-surface-1/80 rfp-z-10">
-          <Loader2 className="rfp-w-12 rfp-h-12 rfp-text-fg-primary rfp-animate-spin" />
-          <p className="rfp-mt-4 rfp-text-fg-secondary">
-            正在解码... {decodeProgress > 0 && `${Math.round(decodeProgress)}%`}
-          </p>
+        <div className="rfp-absolute rfp-inset-0 rfp-renderer-loading rfp-bg-surface-1/80 rfp-z-10">
+          <div className="rfp-renderer-loading-content">
+            <div className="rfp-renderer-spinner" />
+            <p className="rfp-renderer-loading-text rfp-text-fg-secondary">
+              正在解码... {decodeProgress > 0 && `${Math.round(decodeProgress)}%`}
+            </p>
+          </div>
         </div>
       )}
 
@@ -590,8 +594,11 @@ export const ImageRenderer = forwardRef<ImageRendererHandle, ImageRendererProps>
       )}
 
       {!loaded && !error && !decoding && !decodeError && (
-        <div className="rfp-flex rfp-items-center rfp-justify-center">
-          <div className="rfp-w-12 rfp-h-12 rfp-border-4 rfp-border-line-strong rfp-border-t-spinner-head rfp-rounded-full rfp-animate-spin" />
+        <div className="rfp-renderer-loading">
+          <div className="rfp-renderer-loading-content">
+            <div className="rfp-renderer-spinner" />
+            <span className="rfp-renderer-loading-text">{t('common.loading')}</span>
+          </div>
         </div>
       )}
 
@@ -600,7 +607,7 @@ export const ImageRenderer = forwardRef<ImageRendererHandle, ImageRendererProps>
       )}
 
       {imageSrc && (
-        <motion.img
+        <img
           ref={imgRef}
           src={imageSrc}
           alt="Preview"
@@ -613,9 +620,6 @@ export const ImageRenderer = forwardRef<ImageRendererHandle, ImageRendererProps>
           onLoad={handleLoad}
           onError={handleError}
           onDoubleClick={handleDoubleClick}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: loaded && !error && !decodeError ? 1 : 0 }}
-          transition={{ duration: 0.3 }}
           draggable={false}
         />
       )}

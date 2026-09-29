@@ -131,7 +131,6 @@ interface PageState {
           </div>
           <div
             class="afp-flex-1 afp-transition-opacity afp-duration-300"
-            [style.background]="showOutline() ? 'rgba(0,0,0,0.3)' : 'transparent'"
             (click)="showOutline.set(false)"
           ></div>
         </div>

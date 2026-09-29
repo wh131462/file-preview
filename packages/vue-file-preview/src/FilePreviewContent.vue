@@ -514,7 +514,7 @@ const hasToolGroups = computed(() => toolGroups.value.length > 0);
   left: 50%;
   top: 100%;
   transform: translateX(-50%);
-  margin-top: 6px;
+  margin-top: 10px;
   padding: 4px 8px;
   background: var(--fp-fg-primary);
   color: var(--fp-fg-inverse);

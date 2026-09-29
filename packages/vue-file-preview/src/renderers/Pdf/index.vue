@@ -716,7 +716,6 @@ onBeforeUnmount(() => {
       </div>
       <div
         class="vfp-flex-1 vfp-transition-opacity vfp-duration-300"
-        :style="{ background: showOutline ? 'rgba(0,0,0,0.3)' : 'transparent' }"
         @click="showOutline = false"
       />
     </div>

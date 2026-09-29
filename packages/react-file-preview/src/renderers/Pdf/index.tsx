@@ -678,7 +678,6 @@ export const PdfRenderer = forwardRef<PdfRendererHandle, PdfRendererProps>(({
           </div>
           <div
             className="rfp-flex-1 rfp-transition-opacity rfp-duration-300"
-            style={{ background: showOutline ? 'rgba(0,0,0,0.3)' : 'transparent' }}
             onClick={() => setShowOutline(false)}
           />
         </div>

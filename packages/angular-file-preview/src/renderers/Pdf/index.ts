@@ -143,7 +143,7 @@ interface PageState {
         }
 
         @if (!error() && loading()) {
-          <div class="afp-renderer-loading afp-min-h-screen">
+          <div class="afp-renderer-loading">
             <div class="afp-renderer-loading-content">
               <div class="afp-renderer-spinner"></div>
               <span class="afp-renderer-loading-text">{{ t('common.loading') }}</span>

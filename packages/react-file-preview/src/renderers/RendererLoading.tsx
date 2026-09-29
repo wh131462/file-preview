@@ -7,7 +7,7 @@ export const RendererLoading: React.FC = () => {
     <div className="rfp-renderer-loading">
       <div className="rfp-renderer-loading-content">
         <div className="rfp-renderer-spinner" />
-        <span className="rfp-text-sm">{t('common.loading') ?? 'Loading...'}</span>
+        <span className="rfp-renderer-loading-text">{t('common.loading') ?? 'Loading...'}</span>
       </div>
     </div>
   );

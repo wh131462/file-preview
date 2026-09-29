@@ -7,7 +7,7 @@ const { t } = useTranslator();
   <div class="vfp-renderer-loading">
     <div class="vfp-renderer-loading-content">
       <div class="vfp-renderer-spinner" />
-      <span class="vfp-text-sm">{{ t('common.loading') || 'Loading...' }}</span>
+      <span class="vfp-renderer-loading-text">{{ t('common.loading') || 'Loading...' }}</span>
     </div>
   </div>
 </template>

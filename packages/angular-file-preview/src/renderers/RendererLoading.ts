@@ -10,7 +10,7 @@ import { LocaleService, getFallbackTranslator } from '../di/locale.service';
     <div class="afp-renderer-loading">
       <div class="afp-renderer-loading-content">
         <div class="afp-renderer-spinner"></div>
-        <span class="afp-text-sm">{{ t('common.loading') }}</span>
+        <span class="afp-renderer-loading-text">{{ t('common.loading') }}</span>
       </div>
     </div>
   `,

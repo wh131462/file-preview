@@ -693,7 +693,7 @@ export const PdfRenderer = forwardRef<PdfRendererHandle, PdfRendererProps>(({
         )}
 
         {!error && isLoading && (
-          <div className="rfp-renderer-loading rfp-min-h-screen">
+          <div className="rfp-renderer-loading">
             <div className="rfp-renderer-loading-content">
               <div className="rfp-renderer-spinner" />
               <span className="rfp-renderer-loading-text">{t('common.loading')}</span>

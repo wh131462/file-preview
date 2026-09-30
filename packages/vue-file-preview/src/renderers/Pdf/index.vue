@@ -97,6 +97,7 @@ const showOutline = ref(false);
 const numPages = ref(0);
 const error = ref<string | null>(null);
 const isLoading = ref(true);
+const isInitialPageReady = ref(false);
 const outline = ref<PdfOutlineItem[]>([]);
 const activeOutlineItem = ref<string | null>(null);
 const containerRef = ref<HTMLDivElement | null>(null);
@@ -387,6 +388,9 @@ const renderPage = async (pageNumber: number, scale: number) => {
     state.element.appendChild(canvas);
 
     state.rendered = true;
+    if (pageNumber === 1) {
+      isInitialPageReady.value = true;
+    }
   } catch (err: any) {
     if (err?.name !== 'RenderingCancelledException') {
       console.error(`渲染页面 ${pageNumber} 失败:`, err);
@@ -450,6 +454,7 @@ const initPagePlaceholders = () => {
 const loadPdf = async () => {
   error.value = null;
   isLoading.value = true;
+  isInitialPageReady.value = false;
   numPages.value = 0;
 
   if (pdfDoc) {
@@ -726,14 +731,18 @@ onBeforeUnmount(() => {
     >
       <RendererError v-if="error" :message="error" />
 
-      <div v-if="!error && isLoading" class="vfp-renderer-loading">
+      <div v-if="!error && (isLoading || !isInitialPageReady)" class="vfp-renderer-loading">
         <div class="vfp-renderer-loading-content">
           <div class="vfp-renderer-spinner" />
           <span class="vfp-renderer-loading-text">{{ t('common.loading') }}</span>
         </div>
       </div>
 
-      <div v-if="!error" class="vfp-flex vfp-flex-col vfp-items-center">
+      <div
+        v-if="!error"
+        class="vfp-flex vfp-flex-col vfp-items-center"
+        :style="{ visibility: isLoading || !isInitialPageReady ? 'hidden' : 'visible' }"
+      >
         <div class="pdf-pages vfp-flex vfp-flex-col vfp-gap-4" />
       </div>
     </div>

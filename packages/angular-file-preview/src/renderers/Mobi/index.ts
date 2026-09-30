@@ -202,6 +202,7 @@ export class MobiTocList {
           [style.width]="isFullWidth() ? '100%' : a4Width + 'px'"
           [style.maxWidth]="'100%'"
           [style.transition]="'width 0.3s ease'"
+          [style.visibility]="loading() ? 'hidden' : 'visible'"
         ></div>
       }
     </div>
@@ -231,7 +232,7 @@ export class MobiRenderer implements RendererHandle {
 
   readonly currentChapter = signal(1);
   readonly totalChapters = signal(1);
-  readonly loading = signal(false);
+  readonly loading = signal(true);
   readonly error = signal<string | null>(null);
   readonly toc = signal<TocItem[]>([]);
   readonly showToc = signal(false);

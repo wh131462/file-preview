@@ -104,12 +104,15 @@ export const PdfRenderer = forwardRef<PdfRendererHandle, PdfRendererProps>(({
   const [showOutline, setShowOutline] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isInitialPageReady, setIsInitialPageReady] = useState(false);
   const [outline, setOutline] = useState<PdfOutlineItem[]>([]);
   const [activeOutlineItem, setActiveOutlineItem] = useState<string | null>(null);
   const outlinePageMapRef = useRef<Map<string, number>>(new Map());
   const containerRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const pdfDocRef = useRef<PdfDocumentProxy | null>(null);
+  const loadGenerationRef = useRef(0);
+  const previousZoomRef = useRef(zoom);
   const pageStatesRef = useRef<Map<number, PageState>>(new Map());
   const observerRef = useRef<IntersectionObserver | null>(null);
 
@@ -138,14 +141,15 @@ export const PdfRenderer = forwardRef<PdfRendererHandle, PdfRendererProps>(({
 
   // 渲染单个页面
   const renderPage = useCallback(async (pageNumber: number, scale: number) => {
-    if (!pdfDocRef.current) return;
+    const pdfDoc = pdfDocRef.current;
+    if (!pdfDoc) return;
     const state = pageStatesRef.current.get(pageNumber);
     if (!state || state.rendering) return;
 
     state.rendering = true;
 
     try {
-      const page = await pdfDocRef.current.getPage(pageNumber);
+      const page = await pdfDoc.getPage(pageNumber);
       const viewport = page.getViewport({ scale });
       const outputScale = typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1;
 
@@ -174,11 +178,15 @@ export const PdfRenderer = forwardRef<PdfRendererHandle, PdfRendererProps>(({
       });
       state.renderTask = renderTask;
       await renderTask.promise;
+      if (pdfDoc !== pdfDocRef.current) return;
 
       state.element.innerHTML = '';
       state.element.appendChild(canvas);
 
       state.rendered = true;
+      if (pageNumber === 1) {
+        setIsInitialPageReady(true);
+      }
     } catch (err: any) {
       if (err?.name !== 'RenderingCancelledException') {
         console.error(`渲染页面 ${pageNumber} 失败:`, err);
@@ -306,9 +314,18 @@ export const PdfRenderer = forwardRef<PdfRendererHandle, PdfRendererProps>(({
 
   // 加载 PDF 文档
   const loadPdf = useCallback(async () => {
+    const loadGeneration = loadGenerationRef.current + 1;
+    loadGenerationRef.current = loadGeneration;
+    const isCurrentLoad = () => loadGeneration === loadGenerationRef.current;
+
     setError(null);
     setIsLoading(true);
+    setIsInitialPageReady(false);
     setNumPages(0);
+
+    pageStatesRef.current.forEach((state) => state.renderTask?.cancel());
+    pageStatesRef.current.clear();
+    scrollContainerRef.current?.querySelector('.pdf-pages')?.replaceChildren();
 
     if (pdfDocRef.current) {
       try {
@@ -323,32 +340,50 @@ export const PdfRenderer = forwardRef<PdfRendererHandle, PdfRendererProps>(({
       // 准备 worker（浏览器用 CDN worker 线程；Electron 走主线程 worker 以复用 polyfill）
       // 若用户已通过 configurePdfjs 显式配置 workerSrc，则尊重其配置
       await preparePdfWorker();
+      if (!isCurrentLoad()) return;
 
       const loadingTask = pdfjsLib.getDocument({
         url,
         ...getPdfDocumentOptions(),
       });
-      pdfDocRef.current = await loadingTask.promise as unknown as PdfDocumentProxy;
-      const total = pdfDocRef.current.numPages;
+      const pdfDoc = await loadingTask.promise as unknown as PdfDocumentProxy;
+      if (!isCurrentLoad()) {
+        pdfDoc.destroy();
+        return;
+      }
+      pdfDocRef.current = pdfDoc;
+      const total = pdfDoc.numPages;
 
       setNumPages(total);
       setCurrentPage(1);
 
       // 提取大纲
       try {
-        const outlineData = await pdfDocRef.current.getOutline();
+        const outlineData = await pdfDoc.getOutline();
+        if (!isCurrentLoad()) {
+          pdfDoc.destroy();
+          if (pdfDocRef.current === pdfDoc) pdfDocRef.current = null;
+          return;
+        }
         if (outlineData) {
           setOutline(outlineData);
           // 构建大纲-页码映射
           outlinePageMapRef.current.clear();
-          await buildOutlinePageMap(outlineData, pdfDocRef.current);
+          await buildOutlinePageMap(outlineData, pdfDoc);
         }
       } catch (err) {
         console.warn('PDF 大纲提取失败:', err);
       }
 
+      if (!isCurrentLoad()) {
+        pdfDoc.destroy();
+        if (pdfDocRef.current === pdfDoc) pdfDocRef.current = null;
+        return;
+      }
+
       setIsLoading(false);
     } catch (err) {
+      if (!isCurrentLoad()) return;
       console.error('PDF 加载错误:', err);
       setError(t('pdf.load_failed'));
       setIsLoading(false);
@@ -425,6 +460,9 @@ export const PdfRenderer = forwardRef<PdfRendererHandle, PdfRendererProps>(({
     if (url) {
       loadPdf();
     }
+    return () => {
+      loadGenerationRef.current += 1;
+    };
   }, [url, loadPdf]);
 
   // 监听 numPages 变化，初始化占位符
@@ -439,6 +477,11 @@ export const PdfRenderer = forwardRef<PdfRendererHandle, PdfRendererProps>(({
 
   // 监听 zoom 变化（防抖）
   useEffect(() => {
+    if (previousZoomRef.current === zoom) {
+      return;
+    }
+    previousZoomRef.current = zoom;
+
     const timer = setTimeout(() => {
       // 清理所有已渲染页面
       pageStatesRef.current.forEach((state, pageNumber) => {
@@ -691,7 +734,7 @@ export const PdfRenderer = forwardRef<PdfRendererHandle, PdfRendererProps>(({
           <RendererError message={error} />
         )}
 
-        {!error && isLoading && (
+        {!error && (isLoading || !isInitialPageReady) && (
           <div className="rfp-renderer-loading">
             <div className="rfp-renderer-loading-content">
               <div className="rfp-renderer-spinner" />
@@ -701,7 +744,10 @@ export const PdfRenderer = forwardRef<PdfRendererHandle, PdfRendererProps>(({
         )}
 
         {!error && (
-          <div className="rfp-flex rfp-flex-col rfp-items-center">
+          <div
+            className="rfp-flex rfp-flex-col rfp-items-center"
+            style={{ visibility: isLoading || !isInitialPageReady ? 'hidden' : 'visible' }}
+          >
             <div className="pdf-pages rfp-flex rfp-flex-col rfp-gap-4" />
           </div>
         )}

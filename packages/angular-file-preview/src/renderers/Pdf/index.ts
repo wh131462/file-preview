@@ -141,7 +141,7 @@ interface PageState {
           <afp-renderer-error [message]="error()!" />
         }
 
-        @if (!error() && loading()) {
+        @if (!error() && (loading() || !initialPageReady())) {
           <div class="afp-renderer-loading">
             <div class="afp-renderer-loading-content">
               <div class="afp-renderer-spinner"></div>
@@ -152,7 +152,10 @@ interface PageState {
 
         @if (!error()) {
           <div class="afp-flex afp-flex-col afp-items-center afp-w-full">
-            <div class="pdf-pages afp-flex afp-flex-col afp-gap-4 afp-w-full afp-items-center"></div>
+            <div
+              class="pdf-pages afp-flex afp-flex-col afp-gap-4 afp-w-full afp-items-center"
+              [style.visibility]="loading() || !initialPageReady() ? 'hidden' : 'visible'"
+            ></div>
           </div>
         }
       </div>
@@ -176,6 +179,7 @@ export class PdfRenderer implements RendererHandle {
   readonly numPages = signal(0);
   readonly error = signal<string | null>(null);
   readonly loading = signal(true);
+  readonly initialPageReady = signal(false);
   readonly outline = signal<PdfOutlineItem[]>([]);
   readonly activeOutlineItem = signal<string | null>(null);
 
@@ -607,6 +611,9 @@ export class PdfRenderer implements RendererHandle {
       state.element.appendChild(canvas);
 
       state.rendered = true;
+      if (pageNumber === 1) {
+        this.initialPageReady.set(true);
+      }
     } catch (err: unknown) {
       if ((err as { name?: string })?.name !== 'RenderingCancelledException') {
         console.error(`渲染页面 ${pageNumber} 失败:`, err);
@@ -670,6 +677,7 @@ export class PdfRenderer implements RendererHandle {
   private async loadPdf(): Promise<void> {
     this.error.set(null);
     this.loading.set(true);
+    this.initialPageReady.set(false);
     this.numPages.set(0);
 
     if (this.pdfDoc) {

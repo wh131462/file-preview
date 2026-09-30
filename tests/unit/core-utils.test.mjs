@@ -51,6 +51,34 @@ test('normalizes File input and preserves the original object', () => {
   }
 });
 
+test('normalizes local TypeScript files as source even when the browser reports video/mp2t', () => {
+  const input = new File(['const answer: number = 42;'], 'source.ts', { type: 'video/mp2t' });
+  const normalized = core.normalizeFile(input);
+
+  try {
+    assert.equal(normalized.type, 'text/typescript');
+    assert.equal(core.getFileType(normalized), 'text');
+  } finally {
+    URL.revokeObjectURL(normalized.url);
+  }
+});
+
+test('normalizes wrapped local TypeScript files as source', () => {
+  const input = new File(['const answer: number = 42;'], 'source.ts', { type: 'video/mp2t' });
+  const normalized = core.normalizeFile({
+    id: 'wrapped-source',
+    name: input.name,
+    url: 'blob:source',
+    type: input.type,
+    size: input.size,
+    file: input,
+  });
+
+  assert.equal(normalized.type, 'text/typescript');
+  assert.equal(normalized.file, input);
+  assert.equal(core.getFileType(normalized), 'text');
+});
+
 test('resolves close-button defaults by preview mode', () => {
   assert.equal(core.resolveShowClose('modal'), true);
   assert.equal(core.resolveShowClose('embed'), false);

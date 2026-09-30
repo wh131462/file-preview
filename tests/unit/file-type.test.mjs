@@ -27,6 +27,40 @@ test('normalizes MIME types before detecting the file type', () => {
   assert.equal(core.getFileType(file), 'pdf');
 });
 
+test('previews extensionless files as plain text by default', () => {
+  for (const name of ['README', 'folder/README', '.gitignore']) {
+    assert.equal(
+      core.getFileType({ id: name, name, url: name, type: 'application/octet-stream' }),
+      'text',
+      name,
+    );
+  }
+  assert.equal(
+    core.getFileType({ id: 'report', name: 'report', url: 'report', type: 'application/pdf' }),
+    'pdf',
+  );
+  assert.equal(
+    core.getFileType({ id: 'binary', name: 'unknown.binary', url: 'unknown.binary', type: 'application/octet-stream' }),
+    'unsupported',
+  );
+});
+
+test('distinguishes TypeScript sources from MPEG transport streams', () => {
+  assert.equal(
+    core.getFileType({ id: 'source-default', name: 'source.ts', url: 'source.ts', type: '' }),
+    'text',
+  );
+  assert.equal(
+    core.getFileType({ id: 'source', name: 'source.ts', url: 'source.ts', type: 'text/typescript' }),
+    'text',
+  );
+  assert.equal(
+    core.getFileType({ id: 'stream', name: 'stream.ts', url: 'stream.ts', type: 'video/mp2t' }),
+    'video',
+  );
+  assert.equal(core.getVideoMimeType('stream.ts', 'video/mp2t'), 'video/mp2t');
+});
+
 test('maps representative file names to highlighting languages', () => {
   for (const [name, expected] of Object.entries(cases.languages)) {
     assert.equal(core.getLanguageFromFileName(name), expected, name);

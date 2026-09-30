@@ -5,10 +5,13 @@ const specialCodeFileLanguages: Record<string, string> = {
   makefile: 'makefile',
 };
 
+const typescriptExtensions = new Set(['ts', 'tsx', 'cts', 'mts']);
+
 function fileExtension(fileName: string): string {
   const base = fileName.split(/[\\/]/).pop() || '';
   const clean = base.split('?')[0].split('#')[0];
-  return clean.split('.').pop()?.toLowerCase() || '';
+  const dot = clean.lastIndexOf('.');
+  return dot > 0 ? clean.slice(dot + 1).toLowerCase() : '';
 }
 
 function baseMime(mimeType: string): string {
@@ -126,6 +129,13 @@ export function getFileType(file: PreviewFile): FileType {
   ) {
     return 'font';
   }
+
+  // .ts 既可能是 TypeScript 源码，也可能是 MPEG-TS 视频；只有明确的
+  // video/mp2t MIME 才按视频处理，避免浏览器错误 MIME 把源码送进播放器。
+  if (typescriptExtensions.has(ext)) {
+    return mimeType === 'video/mp2t' ? 'video' : 'text';
+  }
+
   if (mimeType.startsWith('video/') || ['mp4', 'webm', 'ogg', 'ogv', 'mov', 'avi', 'mkv', 'm4v', '3gp', 'flv'].includes(ext)) {
     return 'video';
   }
@@ -159,6 +169,9 @@ export function getFileType(file: PreviewFile): FileType {
   }
   // 识别以 . 开头的配置文件（如 .gitignore, .prettierrc, .zshrc 等）
   if (file.name.startsWith('.') && !file.name.includes('/')) {
+    return 'text';
+  }
+  if (!ext && lowerBaseName) {
     return 'text';
   }
   return 'unsupported';
@@ -303,7 +316,10 @@ export function getLanguageFromFileName(fileName: string): string {
 /**
  * 根据视频文件 URL 推断 MIME 类型（用于 video.js sources）
  */
-export function getVideoMimeType(url: string): string {
+export function getVideoMimeType(url: string, mimeType?: string): string {
+  const declaredMimeType = mimeType?.split(';')[0].trim().toLowerCase();
+  if (declaredMimeType?.startsWith('video/')) return declaredMimeType;
+
   const ext = url.split('.').pop()?.toLowerCase().split('?')[0] || '';
   const typeMap: Record<string, string> = {
     mp4: 'video/mp4',
@@ -316,6 +332,7 @@ export function getVideoMimeType(url: string): string {
     m4v: 'video/mp4',
     '3gp': 'video/3gpp',
     flv: 'video/x-flv',
+    ts: 'video/mp2t',
   };
   return typeMap[ext] || 'video/mp4';
 }

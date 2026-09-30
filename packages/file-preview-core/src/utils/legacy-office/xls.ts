@@ -54,6 +54,8 @@ export interface LegacyXlsSheet {
   merges: LegacyXlsMerge[];
   colWidths: Map<number, number>;
   rowHeights: Map<number, number>;
+  hiddenColumns?: Set<number>;
+  hiddenRows?: Set<number>;
 }
 
 export interface LegacyXlsWorkbook {
@@ -85,7 +87,9 @@ function isRawBiff(bytes: Uint8Array): boolean {
 export function isLegacyXls(data: ArrayBuffer | Uint8Array): boolean {
   const bytes = data instanceof Uint8Array ? data : new Uint8Array(data);
   if (isOleCompoundFile(bytes)) {
-    return !!readOleStreamAny(bytes, ['Workbook', 'Book']);
+    // OLE 文件无法由 ExcelJS 的 XLSX 解析器读取。即使流损坏，也应交给
+    // 旧版解析器返回明确错误，避免误落入 ZIP 解析分支。
+    return true;
   }
   return isRawBiff(bytes);
 }
@@ -363,6 +367,8 @@ function parseSheetRecords(
     merges: [],
     colWidths: new Map(),
     rowHeights: new Map(),
+    hiddenColumns: new Set(),
+    hiddenRows: new Set(),
   };
   let pendingFormula: { row: number; col: number } | null = null;
   let i = start;
@@ -501,15 +507,20 @@ function parseSheetRecords(
       const colFirst = view.getUint16(0, true);
       const colLast = view.getUint16(2, true);
       const coldx = view.getUint16(4, true);
+      const flags = data.length >= 10 ? view.getUint16(8, true) : 0;
+      const hidden = (flags & 0x0001) !== 0;
       const px = Math.max(20, Math.round((coldx / 256) * 7.5));
       for (let col = colFirst; col <= colLast; col++) {
         sheet.colWidths.set(col, px);
+        if (hidden) sheet.hiddenColumns?.add(col);
       }
       continue;
     }
     if (type === ROW && data.length >= 8) {
       const row = view.getUint16(0, true);
       const twips = view.getUint16(6, true);
+      const flags = data.length >= 14 ? view.getUint16(12, true) : 0;
+      if ((flags & 0x0001) !== 0) sheet.hiddenRows?.add(row);
       if (twips > 0) {
         sheet.rowHeights.set(row, Math.max(16, Math.round(twips / 15)));
       }
@@ -596,6 +607,8 @@ function parseBiffWorkbook(bytes: Uint8Array): LegacyXlsWorkbook {
       merges: [],
       colWidths: new Map(),
       rowHeights: new Map(),
+      hiddenColumns: new Set(),
+      hiddenRows: new Set(),
     });
   }
 
@@ -612,16 +625,27 @@ export function parseLegacyXls(data: ArrayBuffer | Uint8Array): LegacyXlsWorkboo
   if (!stream?.length) {
     throw new Error('Not a legacy Excel workbook');
   }
-  return parseBiffWorkbook(stream);
+  const workbook = parseBiffWorkbook(stream);
+  if (!workbook || !Array.isArray(workbook.sheets)) {
+    throw new Error('Invalid legacy Excel workbook data');
+  }
+  return workbook;
 }
 
-export function convertLegacyXlsToSpreadsheetData(workbook: LegacyXlsWorkbook): XSheetData[] {
+export function convertLegacyXlsToSpreadsheetData(
+  workbook: LegacyXlsWorkbook | null | undefined
+): XSheetData[] {
+  if (!workbook || !Array.isArray(workbook.sheets)) {
+    throw new Error('Invalid legacy Excel workbook data');
+  }
+
   return workbook.sheets.map((sheet) => {
     const rows: XSheetData['rows'] = {};
-    const cols: Record<string, { width?: number } | number> = {};
+    const cols: Record<string, { width?: number; hide?: boolean } | number> = {};
     const merges: string[] = [];
     const mergeMap = new Map<string, [number, number]>();
     let maxCol = 0;
+    let maxRow = 0;
 
     for (const merge of sheet.merges) {
       merges.push(mergeRef(merge));
@@ -633,6 +657,17 @@ export function convertLegacyXlsToSpreadsheetData(workbook: LegacyXlsWorkbook): 
 
     for (const [col, width] of sheet.colWidths) {
       cols[String(col)] = { width };
+      if (col > maxCol) {
+        maxCol = col;
+      }
+    }
+
+    for (const col of sheet.hiddenColumns ?? []) {
+      const key = String(col);
+      const existing = cols[key];
+      cols[key] = typeof existing === 'object' && existing !== null
+        ? { ...existing, hide: true }
+        : { hide: true };
       if (col > maxCol) {
         maxCol = col;
       }
@@ -656,6 +691,9 @@ export function convertLegacyXlsToSpreadsheetData(workbook: LegacyXlsWorkbook): 
       if (cell.col > maxCol) {
         maxCol = cell.col;
       }
+      if (cell.row > maxRow) {
+        maxRow = cell.row;
+      }
     }
 
     for (const [row, height] of sheet.rowHeights) {
@@ -665,8 +703,22 @@ export function convertLegacyXlsToSpreadsheetData(workbook: LegacyXlsWorkbook): 
       } else if (!rows[key].height) {
         rows[key].height = height;
       }
+      if (row > maxRow) {
+        maxRow = row;
+      }
     }
 
+    for (const row of sheet.hiddenRows ?? []) {
+      const key = String(row);
+      const rowData = rows[key] ?? { cells: {} };
+      rowData.hide = true;
+      rows[key] = rowData;
+      if (row > maxRow) {
+        maxRow = row;
+      }
+    }
+
+    (rows as Record<string, unknown>).len = Math.max(maxRow + 1, 100);
     cols.len = Math.max(maxCol + 1, 26) as unknown as number;
 
     return {

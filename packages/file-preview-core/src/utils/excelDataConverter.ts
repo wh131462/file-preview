@@ -31,6 +31,7 @@ interface XCellData {
 
 interface XRowData {
   height?: number;
+  hide?: boolean;
   cells: Record<string, XCellData>;
 }
 
@@ -39,7 +40,90 @@ export interface XSheetData {
   styles?: XCellStyle[];
   merges?: string[];
   rows?: Record<string, XRowData>;
-  cols?: Record<string, { width?: number } | number>;
+  cols?: Record<string, { width?: number; hide?: boolean } | number>;
+}
+
+const DEFAULT_ROW_COUNT = 100;
+
+const ZIP_LOCAL_FILE_HEADER = [0x50, 0x4b, 0x03, 0x04];
+const ZIP_EMPTY_ARCHIVE = [0x50, 0x4b, 0x05, 0x06];
+const ZIP64_END_OF_CENTRAL_DIRECTORY = [0x50, 0x4b, 0x06, 0x06];
+
+function hasSignature(bytes: Uint8Array, offset: number, signature: number[]): boolean {
+  return signature.every((value, index) => bytes[offset + index] === value);
+}
+
+/**
+ * 规范化来自 HTTP/Blob 的 Excel 二进制数据。
+ * 某些网关会在 ZIP 文件前追加 BOM 或响应包装字节，ExcelJS 会因此解析失败。
+ */
+export function normalizeExcelBuffer(data: ArrayBuffer | Uint8Array): Uint8Array {
+  const bytes = data instanceof Uint8Array ? data : new Uint8Array(data);
+
+  if (
+    hasSignature(bytes, 0, ZIP_LOCAL_FILE_HEADER) ||
+    hasSignature(bytes, 0, ZIP_EMPTY_ARCHIVE) ||
+    hasSignature(bytes, 0, ZIP64_END_OF_CENTRAL_DIRECTORY)
+  ) {
+    return bytes;
+  }
+
+  const scanLimit = Math.min(bytes.length - ZIP_LOCAL_FILE_HEADER.length, 64 * 1024);
+  let localHeaderOffset = -1;
+  for (let offset = 1; offset <= scanLimit; offset++) {
+    if (hasSignature(bytes, offset, ZIP_LOCAL_FILE_HEADER)) {
+      localHeaderOffset = offset;
+      break;
+    }
+  }
+
+  if (localHeaderOffset < 0) {
+    return bytes;
+  }
+
+  const endSearchStart = Math.max(localHeaderOffset, bytes.length - 0x10000 - 22);
+  let hasEndRecord = false;
+  for (let offset = endSearchStart; offset <= bytes.length - ZIP_EMPTY_ARCHIVE.length; offset++) {
+    if (
+      hasSignature(bytes, offset, ZIP_EMPTY_ARCHIVE) ||
+      hasSignature(bytes, offset, ZIP64_END_OF_CENTRAL_DIRECTORY)
+    ) {
+      hasEndRecord = true;
+      break;
+    }
+  }
+
+  return hasEndRecord ? bytes.subarray(localHeaderOffset) : bytes;
+}
+
+/**
+ * 获取 x-data-spreadsheet 所需的行数。
+ * 保留默认最小行数，避免小表格失去原有的可视空白区域。
+ */
+export function getSpreadsheetRowCount(
+  sheets: readonly Pick<XSheetData, 'rows'>[],
+  minimum = DEFAULT_ROW_COUNT
+): number {
+  let maxRowCount = 0;
+
+  for (const sheet of sheets) {
+    const rows = sheet.rows;
+    if (!rows) continue;
+
+    const configuredRowCount = (rows as unknown as { len?: unknown }).len;
+    if (typeof configuredRowCount === 'number' && Number.isInteger(configuredRowCount)) {
+      maxRowCount = Math.max(maxRowCount, configuredRowCount);
+    }
+
+    for (const key of Object.keys(rows)) {
+      const rowIndex = Number(key);
+      if (Number.isInteger(rowIndex) && rowIndex >= 0) {
+        maxRowCount = Math.max(maxRowCount, rowIndex + 1);
+      }
+    }
+  }
+
+  return Math.max(minimum, maxRowCount);
 }
 
 /**
@@ -306,12 +390,18 @@ export function convertWorkbookToSpreadsheetData(
     const styleMap = new Map<string, number>();
     const merges: string[] = [];
     const rows: Record<string, XRowData> = {};
-    const cols: Record<string, { width?: number } | number> = {};
+    const cols: Record<string, { width?: number; hide?: boolean } | number> = {};
 
-    const colCount = worksheet.columnCount;
+    const colCount = Math.max(worksheet.columnCount, worksheet.columns.length);
     for (let c = 1; c <= colCount; c++) {
       const col = worksheet.getColumn(c);
-      if (col.width) {
+      if (col.hidden) {
+        const colData: { width?: number; hide?: boolean } = { hide: true };
+        if (col.width !== undefined) {
+          colData.width = Math.round(col.width * 7.5);
+        }
+        cols[String(c - 1)] = colData;
+      } else if (col.width !== undefined) {
         cols[String(c - 1)] = { width: Math.round(col.width * 7.5) };
       }
     }
@@ -353,17 +443,26 @@ export function convertWorkbookToSpreadsheetData(
       });
 
       const rowData: XRowData = { cells: cellsObj };
-      if (row.height) {
+      if (row.hidden) {
+        rowData.hide = true;
+      }
+      if (row.height !== undefined) {
         rowData.height = Math.round(row.height * 1.333);
       }
-      rows[String(rowIndex)] = rowData;
+
+      if (Object.keys(cellsObj).length > 0 || row.hidden || row.height !== undefined) {
+        rows[String(rowIndex)] = rowData;
+      }
     });
 
     result.push({
       name: worksheet.name,
       styles,
       merges,
-      rows,
+      rows: Object.assign(
+        { len: Math.max(worksheet.rowCount, DEFAULT_ROW_COUNT) },
+        rows,
+      ) as Record<string, XRowData>,
       cols,
     });
   });

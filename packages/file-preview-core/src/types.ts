@@ -5,6 +5,8 @@ export interface PreviewFileLink {
   url: string;
   type: string;
   size?: number;
+  /** 保留原始本地 File，用于处理浏览器误报的 MIME 类型 */
+  file?: File;
 }
 
 // 内部使用的标准化文件类型

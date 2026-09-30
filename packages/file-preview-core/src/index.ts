@@ -69,7 +69,12 @@ export {
 export type { ZipEntryInfo, ZipTreeNode } from './utils/zipReader';
 
 // 导出 Excel 数据转换
-export { convertWorkbookToSpreadsheetData, convertCsvToSpreadsheetData } from './utils/excelDataConverter';
+export {
+  convertWorkbookToSpreadsheetData,
+  convertCsvToSpreadsheetData,
+  getSpreadsheetRowCount,
+  normalizeExcelBuffer,
+} from './utils/excelDataConverter';
 export type { XSheetData } from './utils/excelDataConverter';
 
 // 导出旧版 Office（.doc / .ppt / .xls）解析

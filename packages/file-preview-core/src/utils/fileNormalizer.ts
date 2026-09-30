@@ -1,5 +1,7 @@
 import { PreviewFile, PreviewFileInput } from '../types';
 
+const typescriptExtensions = new Set(['ts', 'tsx', 'cts', 'mts']);
+
 /**
  * 从 URL 字符串中提取文件名
  */
@@ -66,6 +68,13 @@ export function inferMimeType(fileName: string): string {
     azw3: 'application/vnd.amazon.ebook',
     kf8: 'application/vnd.amazon.ebook',
 
+    // CAD / 3D 模型
+    dxf: 'application/dxf',
+    stl: 'model/stl',
+    obj: 'model/obj',
+    gltf: 'model/gltf+json',
+    glb: 'model/gltf-binary',
+
     // 文本
     txt: 'text/plain',
     md: 'text/markdown',
@@ -105,6 +114,18 @@ export function inferMimeType(fileName: string): string {
   return mimeTypes[ext] || 'application/octet-stream';
 }
 
+function normalizeNativeFileType(file: File): string {
+  const ext = file.name.split('.').pop()?.toLowerCase() || '';
+  const declaredType = file.type.split(';')[0].trim().toLowerCase();
+
+  // 浏览器可能把本地 TypeScript 文件标成 video/mp2t；本地源码优先按代码处理。
+  if (typescriptExtensions.has(ext) && declaredType === 'video/mp2t') {
+    return 'text/typescript';
+  }
+
+  return file.type || inferMimeType(file.name);
+}
+
 /**
  * 标准化文件输入为 PreviewFile 格式
  * 支持三种输入类型：
@@ -119,7 +140,7 @@ export function normalizeFile(input: PreviewFileInput, index: number = 0): Previ
       id: `file-${Date.now()}-${index}`,
       name: input.name,
       url: URL.createObjectURL(input),
-      type: input.type || inferMimeType(input.name),
+      type: normalizeNativeFileType(input),
       size: input.size,
       file: input, // 保留原始 File 对象
     };
@@ -137,12 +158,15 @@ export function normalizeFile(input: PreviewFileInput, index: number = 0): Previ
   }
 
   // 情况 3: PreviewFileLink 对象
+  const sourceFile = input.file;
   return {
     id: input.id || `link-${Date.now()}-${index}`,
     name: input.name,
     url: input.url,
-    type: input.type || inferMimeType(input.name),
+    // 传入原始 File 时沿用本地文件的 MIME 归一化，避免 .ts 被浏览器误报成 MPEG-TS。
+    type: sourceFile ? normalizeNativeFileType(sourceFile) : input.type || inferMimeType(input.name),
     size: input.size,
+    ...(sourceFile ? { file: sourceFile } : {}),
   };
 }
 

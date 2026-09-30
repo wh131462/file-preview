@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite';
+import { defineConfig, normalizePath } from 'vite';
 import angular from '@analogjs/vite-plugin-angular';
 import { viteStaticCopy } from 'vite-plugin-static-copy';
 import { resolve } from 'path';
@@ -9,11 +9,11 @@ import { createRequire } from 'node:module';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const require = createRequire(import.meta.url);
-const angularNm = resolve(__dirname, '../angular-file-preview/node_modules');
-const angularFesm = resolve(
+const angularNm = normalizePath(resolve(__dirname, '../angular-file-preview/node_modules'));
+const angularFesm = normalizePath(resolve(
   __dirname,
   '../angular-file-preview/lib/fesm2022/eternalheart-angular-file-preview.mjs',
-);
+));
 
 async function waitForAngularFesm() {
   const { access, stat } = await import('node:fs/promises');
@@ -39,7 +39,7 @@ function linkAngularPartialLibrary() {
     name: 'link-angular-partial-library',
     enforce: 'pre',
     async transform(code, id) {
-      const file = id.split('?')[0];
+      const file = normalizePath(id.split('?')[0]);
       if (!file.includes('/angular-file-preview/lib/fesm2022/') || !file.endsWith('.mjs')) {
         return null;
       }
@@ -76,15 +76,15 @@ export default defineConfig({
     viteStaticCopy({
       targets: [
         {
-          src: resolve(__dirname, '../angular-file-preview/node_modules/pdfjs-dist/build/pdf.worker.min.mjs'),
+          src: normalizePath(resolve(__dirname, '../angular-file-preview/node_modules/pdfjs-dist/build/pdf.worker.mjs')),
           dest: './pdfjs',
         },
         {
-          src: resolve(__dirname, '../angular-file-preview/node_modules/pdfjs-dist/cmaps'),
+          src: normalizePath(resolve(__dirname, '../angular-file-preview/node_modules/pdfjs-dist/cmaps')),
           dest: './pdfjs',
         },
         {
-          src: resolve(__dirname, '../angular-file-preview/node_modules/pdfjs-dist/wasm'),
+          src: normalizePath(resolve(__dirname, '../angular-file-preview/node_modules/pdfjs-dist/wasm')),
           dest: './pdfjs',
         },
       ],
@@ -92,9 +92,9 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      '@eternalheart/angular-file-preview/style.css': resolve(__dirname, '../angular-file-preview/lib/index.css'),
+      '@eternalheart/angular-file-preview/style.css': normalizePath(resolve(__dirname, '../angular-file-preview/lib/index.css')),
       '@eternalheart/angular-file-preview': angularFesm,
-      '@eternalheart/file-preview-core': resolve(__dirname, '../file-preview-core/lib/index.mjs'),
+      '@eternalheart/file-preview-core': normalizePath(resolve(__dirname, '../file-preview-core/lib/index.mjs')),
       'utif': resolve(angularNm, 'utif'),
       'heic2any': resolve(angularNm, 'heic2any'),
       'ag-psd': resolve(angularNm, 'ag-psd'),

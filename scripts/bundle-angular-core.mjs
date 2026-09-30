@@ -1,6 +1,6 @@
 import { createRequire } from 'node:module';
 import { dirname, join, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { readFileSync, rmSync, mkdirSync, existsSync } from 'node:fs';
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -20,7 +20,7 @@ if (!existsSync(coreEntry)) {
 const require = createRequire(join(pkgDir, 'package.json'));
 const ngPackagrDir = dirname(require.resolve('ng-packagr/package.json'));
 const rollupRequire = createRequire(join(ngPackagrDir, 'package.json'));
-const { rollup } = await import(rollupRequire.resolve('rollup'));
+const { rollup } = await import(pathToFileURL(rollupRequire.resolve('rollup')).href);
 
 const pkg = JSON.parse(readFileSync(join(pkgDir, 'package.json'), 'utf8'));
 const packageExternals = new Set([

@@ -1,14 +1,14 @@
 import { createRequire } from 'node:module';
 import { rmSync } from 'node:fs';
 import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import './sync-angular-version.mjs';
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '..');
 const pkgDir = join(repoRoot, 'packages/angular-file-preview');
 const require = createRequire(join(pkgDir, 'package.json'));
-const { ngPackagr } = await import(require.resolve('ng-packagr'));
+const { ngPackagr } = await import(pathToFileURL(require.resolve('ng-packagr')).href);
 
 const watch = process.argv.includes('--watch');
 if (!watch) {

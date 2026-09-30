@@ -97,7 +97,7 @@
     "remark-math": "^6.0.0",
     "shiki": "^1.29.2",
     "three": "^0.170.0",
-    "three-dxf-loader": "^5.2.0",
+    "three-dxf-loader": "^5.5.0",
     "utif": "^3.1.0",
     "video.js": "^8.23.4"
   },

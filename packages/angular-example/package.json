@@ -9,10 +9,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@eternalheart/angular-file-preview": "workspace:*",
     "@angular/common": "^19.2.0",
     "@angular/core": "^19.2.0",
     "@angular/platform-browser": "^19.2.0",
+    "@eternalheart/angular-file-preview": "workspace:*",
     "lucide-angular": "^0.511.0",
     "pdfjs-dist": "6.1.200",
     "rxjs": "^7.8.1",

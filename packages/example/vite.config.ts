@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite'
+import { defineConfig, normalizePath } from 'vite'
 import react from '@vitejs/plugin-react'
 import { viteStaticCopy } from 'vite-plugin-static-copy'
 import { resolve } from 'path'
@@ -18,15 +18,15 @@ export default defineConfig({
     viteStaticCopy({
       targets: [
         {
-          src: resolve(__dirname, '../react-file-preview/node_modules/pdfjs-dist/build/pdf.worker.min.mjs'),
+          src: normalizePath(resolve(__dirname, '../react-file-preview/node_modules/pdfjs-dist/build/pdf.worker.mjs')),
           dest: './pdfjs',
         },
         {
-          src: resolve(__dirname, '../react-file-preview/node_modules/pdfjs-dist/cmaps'),
+          src: normalizePath(resolve(__dirname, '../react-file-preview/node_modules/pdfjs-dist/cmaps')),
           dest: './pdfjs',
         },
         {
-          src: resolve(__dirname, '../react-file-preview/node_modules/pdfjs-dist/wasm'),
+          src: normalizePath(resolve(__dirname, '../react-file-preview/node_modules/pdfjs-dist/wasm')),
           dest: './pdfjs',
         },
       ],

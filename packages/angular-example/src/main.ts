@@ -9,7 +9,7 @@ import * as pdfjsLib from 'pdfjs-dist/build/pdf.mjs';
 
 if (import.meta.env.PROD) {
   configurePdfWorker(pdfjsLib, {
-    workerSrc: '/file-preview/angular/pdfjs/pdf.worker.min.mjs',
+    workerSrc: '/file-preview/angular/pdfjs/pdf.worker.mjs',
     cMapUrl: '/file-preview/angular/pdfjs/cmaps/',
     cMapPacked: true,
     wasmUrl: '/file-preview/angular/pdfjs/wasm/',

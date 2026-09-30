@@ -4,14 +4,14 @@
   "private": true,
   "description": "A modern, feature-rich file preview component library for React, Vue, and Angular - Monorepo",
   "type": "module",
-  "packageManager": "pnpm@10.15.0",
+  "packageManager": "pnpm@12.8.1",
   "scripts": {
-    "dev": "pnpm dev:prep:react && (pnpm --filter @eternalheart/react-file-preview dev & pnpm --filter @eternalheart/react-file-preview-example dev)",
-    "dev:vue": "pnpm dev:prep:vue && (pnpm --filter @eternalheart/vue-file-preview dev & pnpm --filter @eternalheart/vue-file-preview-example dev)",
-    "dev:angular": "pnpm dev:prep:angular && (pnpm --filter @eternalheart/angular-file-preview dev & node scripts/wait-angular-fesm.mjs && pnpm --filter @eternalheart/angular-file-preview-example dev)",
-    "dev:all": "pnpm dev:prep:all && (pnpm --filter @eternalheart/react-file-preview dev & pnpm --filter @eternalheart/react-file-preview-example dev & pnpm --filter @eternalheart/vue-file-preview dev & pnpm --filter @eternalheart/vue-file-preview-example dev & pnpm --filter @eternalheart/angular-file-preview dev & node scripts/wait-angular-fesm.mjs && pnpm --filter @eternalheart/angular-file-preview-example dev)",
+    "dev": "pnpm dev:prep:react && concurrently --kill-others-on-fail --names react,react-example \"pnpm --filter @eternalheart/react-file-preview dev\" \"pnpm --filter @eternalheart/react-file-preview-example dev\"",
+    "dev:vue": "pnpm dev:prep:vue && concurrently --kill-others-on-fail --names vue,vue-example \"pnpm --filter @eternalheart/vue-file-preview dev\" \"pnpm --filter @eternalheart/vue-file-preview-example dev\"",
+    "dev:angular": "pnpm dev:prep:angular && concurrently --kill-others-on-fail --names angular,angular-example \"pnpm --filter @eternalheart/angular-file-preview dev\" \"node scripts/wait-angular-fesm.mjs && pnpm --filter @eternalheart/angular-file-preview-example dev\"",
+    "dev:all": "pnpm dev:prep:all && concurrently --kill-others-on-fail --names react,react-example,vue,vue-example,angular,angular-example \"pnpm --filter @eternalheart/react-file-preview dev\" \"pnpm --filter @eternalheart/react-file-preview-example dev\" \"pnpm --filter @eternalheart/vue-file-preview dev\" \"pnpm --filter @eternalheart/vue-file-preview-example dev\" \"pnpm --filter @eternalheart/angular-file-preview dev\" \"node scripts/wait-angular-fesm.mjs && pnpm --filter @eternalheart/angular-file-preview-example dev\"",
     "dev:docs": "pnpm --filter @eternalheart/react-file-preview-docs dev",
-    "kill:dev": "for port in 4800 4801 4802 4803; do lsof -ti :$port | xargs -r kill 2>/dev/null && echo \"已终止端口 $port\" || true; done",
+    "kill:dev": "kill-port 4800 4801 4802 4803",
     "dev:prep:react": "pnpm --filter @eternalheart/file-preview-core build && pnpm --filter @eternalheart/react-file-preview build:esm",
     "dev:prep:vue": "pnpm --filter @eternalheart/file-preview-core build && pnpm --filter @eternalheart/vue-file-preview build:esm",
     "dev:prep:angular": "pnpm --filter @eternalheart/file-preview-core build && pnpm --filter @eternalheart/angular-file-preview build:esm",
@@ -71,23 +71,16 @@
     "email": "hao131462@qq.com",
     "url": "https://github.com/wh131462"
   },
-  "pnpm": {
-    "packageExtensions": {
-      "@analogjs/vite-plugin-angular": {
-        "dependencies": {
-          "typescript": "~5.8.3"
-        }
-      }
-    }
-  },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^8.15.0",
     "@typescript-eslint/parser": "^8.15.0",
     "baseline-browser-mapping": "^2.10.0",
+    "concurrently": "^9.2.1",
     "eslint": "^9.15.0",
     "eslint-plugin-react-hooks": "^5.0.0",
     "eslint-plugin-react-refresh": "^0.4.14",
     "less": "^4.5.1",
+    "kill-port": "^2.0.1",
     "typescript": "^5.6.3"
   }
 }

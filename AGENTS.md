@@ -57,27 +57,3 @@ You are working in a real production codebase.
 ---
 
 Follow these rules strictly unless explicitly overridden by the user.
-
-## Important Constraints (Network Access Rules)
-
-1. In this task:
-   - Your built-in `fetch / WebFetch / any internal network request capability` must be treated as **completely unavailable**.
-   - You are **not allowed to initiate any direct HTTP requests**.
-2. Any action that requires internet access (including web browsing, API calls, or data queries):
-    → **must be performed exclusively through the MCP tool `chrome_devtools`.**
-3. Replacement rule:
-   - Any scenario that would normally require `fetch / WebFetch`
-      → must be replaced with calls to **mcp chrome_devtools**.
-4. Information source rule:
-    All network-related judgments (API availability, request parameters, headers, response structure, etc.)
-    → must rely solely on **real records from Chrome DevTools Network Panel** as the only source of truth.
-5. Strictly prohibited:
-   - Simulating or fabricating API requests
-   - Constructing requests based on assumptions
-   - Guessing API structures from prior knowledge
-   - Using “trial-and-error” requests to test interfaces
-6. Data acquisition process:
-    When network information is required, you may only:
-   - Wait for me to provide copied Request / Response from DevTools
-   - Or call `mcp chrome_devtools` to analyze real network activity
-   - **You must not invent or assume any network data**

@@ -102,6 +102,7 @@ export const BUILTIN_RENDERERS: BuiltinRendererConfig[] = [
     getProps: (ctx) => ({
       url: ctx.resolvedUrl,
       fileName: ctx.currentFile.name,
+      mimeType: ctx.currentFile.type,
     }),
   },
   {
@@ -177,6 +178,7 @@ export const BUILTIN_RENDERERS: BuiltinRendererConfig[] = [
       url: ctx.resolvedUrl,
       file: ctx.currentFile.file,
       fileName: ctx.currentFile.name,
+      baseUrl: ctx.currentFile.url,
     }),
   },
 ];

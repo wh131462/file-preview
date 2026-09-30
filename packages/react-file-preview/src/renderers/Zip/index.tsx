@@ -290,7 +290,12 @@ export const ZipRenderer = forwardRef<RendererHandle, ZipRendererProps>(({ url, 
 
   const handleSelect = useCallback(
     async (node: ZipTreeNode) => {
-      if (!zip || node.isDir || selected?.path === node.path || selectingPathRef.current === node.path) return;
+      if (!zip || node.isDir || selectingPathRef.current === node.path) return;
+      if (selected?.path === node.path) {
+        setPreviewError(null);
+        splitRef.current?.switchTab('right');
+        return;
+      }
       selectingPathRef.current = node.path;
       const selectionId = ++selectionIdRef.current;
       if (!selected) setPreviewLoading(true);
@@ -307,7 +312,8 @@ export const ZipRenderer = forwardRef<RendererHandle, ZipRendererProps>(({ url, 
       } catch (err) {
         console.error(err);
         if (selectionIdRef.current === selectionId) {
-          if (!selected) setPreviewError('条目读取失败');
+          setPreviewError(t('zip.load_failed'));
+          splitRef.current?.switchTab('right');
         }
       } finally {
         if (selectionIdRef.current === selectionId) {
@@ -316,7 +322,7 @@ export const ZipRenderer = forwardRef<RendererHandle, ZipRendererProps>(({ url, 
         }
       }
     },
-    [zip, selected]
+    [zip, selected, t]
   );
 
   // Memoize files 数组以避免无限重新渲染
@@ -380,9 +386,9 @@ export const ZipRenderer = forwardRef<RendererHandle, ZipRendererProps>(({ url, 
           </div>
         </div>
       )}
-      {!selected && previewError && (
-        <div className="rfp-flex-1 rfp-flex rfp-items-center rfp-justify-center rfp-text-fg-secondary">
-          {previewError}
+      {previewError && (
+        <div className="rfp-flex-1">
+          <RendererError message={previewError} />
         </div>
       )}
       {selected && !previewError && (

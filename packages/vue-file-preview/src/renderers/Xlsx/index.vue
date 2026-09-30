@@ -8,12 +8,26 @@ import Spreadsheet from 'x-data-spreadsheet';
 import {
   convertLegacyXlsToSpreadsheetData,
   convertWorkbookToSpreadsheetData,
+  getSpreadsheetRowCount,
   isLegacyXls,
+  normalizeExcelBuffer,
   parseLegacyXls,
+  type XSheetData,
 } from '@eternalheart/file-preview-core';
 import { useTranslator } from '../../composables/useTranslator';
 import { useFetcher } from '../../composables/useRequest';
 import RendererError from '../RendererError.vue';
+
+async function loadXlsxWorkbook(data: Uint8Array): Promise<ExcelJS.Workbook> {
+  try {
+    return await new ExcelJS.Workbook().xlsx.load(data.slice().buffer as ArrayBuffer);
+  } catch (error) {
+    if (error instanceof TypeError && /sheets/i.test(error.message)) {
+      throw new Error('Excel 文件格式无效或已损坏');
+    }
+    throw error;
+  }
+}
 
 const props = defineProps<{
   url: string;
@@ -25,7 +39,8 @@ const fetcher = useFetcher();
 const loading = ref(true);
 const error = ref<string | null>(null);
 const containerRef = ref<HTMLDivElement | null>(null);
-let sheetData: Record<string, unknown>[] | null = null;
+let sheetData: XSheetData[] | null = null;
+let rowLen = 100;
 let resizeObserver: ResizeObserver | null = null;
 let resizeTimeout: number | null = null;
 let lastDimensions = { width: 0, height: 0 };
@@ -53,7 +68,7 @@ const mountSpreadsheet = () => {
     showContextmenu: false,
     showGrid: true,
     row: {
-      len: 100,
+      len: rowLen,
       height: 25,
     },
     col: {
@@ -90,17 +105,27 @@ const loadExcel = async () => {
       throw new Error(`文件加载失败 (${response.status})`);
     }
 
-    const arrayBuffer = await response.arrayBuffer();
+    const excelBuffer = normalizeExcelBuffer(await response.arrayBuffer());
 
-    if (arrayBuffer.byteLength === 0) {
+    if (excelBuffer.byteLength === 0) {
       throw new Error('文件为空');
     }
 
-    const data = isLegacyXls(arrayBuffer)
-      ? convertLegacyXlsToSpreadsheetData(parseLegacyXls(arrayBuffer))
-      : convertWorkbookToSpreadsheetData(await new ExcelJS.Workbook().xlsx.load(arrayBuffer));
+    let data: XSheetData[];
+    if (isLegacyXls(excelBuffer)) {
+      const legacyWorkbook = parseLegacyXls(excelBuffer);
+      if (!legacyWorkbook || !Array.isArray(legacyWorkbook.sheets)) {
+        throw new Error('Invalid legacy Excel workbook data');
+      }
+      data = convertLegacyXlsToSpreadsheetData(legacyWorkbook);
+    } else {
+      data = convertWorkbookToSpreadsheetData(
+        await loadXlsxWorkbook(excelBuffer),
+      );
+    }
 
-    sheetData = data as unknown as Record<string, unknown>[];
+    sheetData = data;
+    rowLen = getSpreadsheetRowCount(data);
     mountSpreadsheet();
     loading.value = false;
   } catch (err) {
@@ -158,6 +183,7 @@ onBeforeUnmount(() => {
   if (resizeObserver) resizeObserver.disconnect();
   if (resizeTimeout !== null) clearTimeout(resizeTimeout);
   sheetData = null;
+  rowLen = 100;
   if (containerRef.value) containerRef.value.innerHTML = '';
 });
 

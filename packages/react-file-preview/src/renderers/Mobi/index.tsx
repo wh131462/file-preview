@@ -17,6 +17,10 @@ import type { ToolbarGroup } from '../toolbar.types';
 
 const READER_CSS = `
   @namespace epub "http://www.idpf.org/2007/ops";
+  :root {
+    --theme-bg-color: #ffffff;
+    background: #ffffff !important;
+  }
   html { color-scheme: light; }
   body {
     background: #ffffff !important;
@@ -489,6 +493,8 @@ export const MobiRenderer = forwardRef<MobiRendererHandle, MobiRendererProps>(
               width: isFullWidth ? '100%' : `${A4_WIDTH}px`,
               maxWidth: '100%',
               transition: 'width 0.3s ease',
+              // foliate 会先插入未套用样式的内容，首屏完成前保持不可见，避免闪出链接。
+              visibility: loading ? 'hidden' : 'visible',
             }}
           />
         )}

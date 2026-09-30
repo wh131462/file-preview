@@ -10,6 +10,7 @@ type VideoJsPlayer = ReturnType<typeof videojs>;
 interface VideoRendererProps {
   url: string;
   fileName?: string;
+  mimeType?: string;
 }
 
 // 浏览器原生不支持的视频容器（无论编码，<video> 都无法播放）
@@ -17,8 +18,12 @@ interface VideoRendererProps {
 const BROWSER_UNSUPPORTED_EXTS = new Set(['avi', 'wmv', 'flv']);
 
 // 根据 URL 获取视频 MIME 类型
-const getVideoType = (url: string): string => {
-  const ext = url.split('.').pop()?.toLowerCase().split('?')[0] || '';
+const getVideoType = (url: string, fileName?: string, mimeType?: string): string => {
+  const declaredMimeType = mimeType?.split(';')[0].trim().toLowerCase();
+  if (declaredMimeType?.startsWith('video/')) return declaredMimeType;
+
+  const source = fileName || url;
+  const ext = source.split('.').pop()?.toLowerCase().split('?')[0] || '';
   const typeMap: Record<string, string> = {
     mp4: 'video/mp4',
     webm: 'video/webm',
@@ -30,6 +35,7 @@ const getVideoType = (url: string): string => {
     m4v: 'video/mp4',
     '3gp': 'video/3gpp',
     flv: 'video/x-flv',
+    ts: 'video/mp2t',
   };
   return typeMap[ext] || 'video/mp4';
 };
@@ -45,7 +51,7 @@ interface ErrorState {
   detail: string;
 }
 
-export const VideoRenderer = forwardRef<RendererHandle, VideoRendererProps>(({ url, fileName }, ref) => {
+export const VideoRenderer = forwardRef<RendererHandle, VideoRendererProps>(({ url, fileName, mimeType }, ref) => {
   const t = useTranslator();
   const [error, setError] = useState<ErrorState | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -71,7 +77,7 @@ export const VideoRenderer = forwardRef<RendererHandle, VideoRendererProps>(({ u
       videoElement.classList.add('vjs-big-play-centered', 'rfp-video-player');
       videoRef.current.appendChild(videoElement);
 
-      const videoType = getVideoType(url);
+      const videoType = getVideoType(url, fileName, mimeType);
 
       // 为特定格式提供多个 MIME 类型作为备用
       let sources: Array<{ src: string; type: string }>;
@@ -150,7 +156,7 @@ export const VideoRenderer = forwardRef<RendererHandle, VideoRendererProps>(({ u
 
       playerRef.current = player;
     }
-  }, [url, fileName, t]);
+  }, [url, fileName, mimeType, t]);
 
   // 清理函数
   useEffect(() => {

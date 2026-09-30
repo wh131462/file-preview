@@ -16,14 +16,28 @@ import Spreadsheet from 'x-data-spreadsheet';
 import {
   convertLegacyXlsToSpreadsheetData,
   convertWorkbookToSpreadsheetData,
+  getSpreadsheetRowCount,
   isLegacyXls,
+  normalizeExcelBuffer,
   parseLegacyXls,
+  type XSheetData,
 } from '../../fp-core';
 import { LocaleService, getFallbackTranslator } from '../../di/locale.service';
 import { RequestService } from '../../di/request.service';
 import { RendererError } from '../RendererError';
 import type { RendererHandle } from '../base.types';
 import type { ToolbarGroup } from '../toolbar.types';
+
+async function loadXlsxWorkbook(data: Uint8Array): Promise<ExcelJS.Workbook> {
+  try {
+    return await new ExcelJS.Workbook().xlsx.load(data.slice().buffer as ArrayBuffer);
+  } catch (error) {
+    if (error instanceof TypeError && /sheets/i.test(error.message)) {
+      throw new Error('Excel 文件格式无效或已损坏');
+    }
+    throw error;
+  }
+}
 
 @Component({
   selector: 'afp-xlsx-renderer',
@@ -74,7 +88,8 @@ export class XlsxRenderer implements RendererHandle {
   readonly error = signal<string | null>(null);
 
   private readonly containerRef = viewChild<ElementRef<HTMLDivElement>>('containerRef');
-  private sheetData: Record<string, unknown>[] | null = null;
+  private sheetData: XSheetData[] | null = null;
+  private rowLen = 100;
   private resizeObserver: ResizeObserver | null = null;
   private resizeTimeout: number | null = null;
   private lastDimensions = { width: 0, height: 0 };
@@ -123,6 +138,7 @@ export class XlsxRenderer implements RendererHandle {
       this.sheetData = null;
       const el = this.containerRef()?.nativeElement;
       if (el) el.innerHTML = '';
+      this.rowLen = 100;
     });
 
     effect(() => {
@@ -163,7 +179,7 @@ export class XlsxRenderer implements RendererHandle {
       showContextmenu: false,
       showGrid: true,
       row: {
-        len: 100,
+        len: this.rowLen,
         height: 25,
       },
       col: {
@@ -201,17 +217,27 @@ export class XlsxRenderer implements RendererHandle {
         throw new Error(`文件加载失败 (${response.status})`);
       }
 
-      const arrayBuffer = await response.arrayBuffer();
+      const excelBuffer = normalizeExcelBuffer(await response.arrayBuffer());
 
-      if (arrayBuffer.byteLength === 0) {
+      if (excelBuffer.byteLength === 0) {
         throw new Error('文件为空');
       }
 
-      const data = isLegacyXls(arrayBuffer)
-        ? convertLegacyXlsToSpreadsheetData(parseLegacyXls(arrayBuffer))
-        : convertWorkbookToSpreadsheetData(await new ExcelJS.Workbook().xlsx.load(arrayBuffer));
+      let data: XSheetData[];
+      if (isLegacyXls(excelBuffer)) {
+        const legacyWorkbook = parseLegacyXls(excelBuffer);
+        if (!legacyWorkbook || !Array.isArray(legacyWorkbook.sheets)) {
+          throw new Error('Invalid legacy Excel workbook data');
+        }
+        data = convertLegacyXlsToSpreadsheetData(legacyWorkbook);
+      } else {
+        data = convertWorkbookToSpreadsheetData(
+          await loadXlsxWorkbook(excelBuffer),
+        );
+      }
 
-      this.sheetData = data as unknown as Record<string, unknown>[];
+      this.sheetData = data;
+      this.rowLen = getSpreadsheetRowCount(data);
       this.mountSpreadsheet();
       this.loading.set(false);
     } catch (err) {

@@ -20,24 +20,50 @@ import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { LocaleService, getFallbackTranslator } from '../../di/locale.service';
 import { RequestService } from '../../di/request.service';
+import { RendererError } from '../RendererError';
 import { ToolbarEventEmitter } from '../base.types';
 import type { RendererHandle } from '../base.types';
 import type { ToolbarGroup } from '../toolbar.types';
 import { getCadToolbarGroups } from './toolbar';
 
+function getAssetBasePath(url: string): string {
+  if (!url || url.startsWith('blob:') || url.startsWith('data:')) return '';
+  try {
+    return new URL('.', new URL(url, document.baseURI)).href;
+  } catch {
+    return '';
+  }
+}
+
+function fitCameraToModel(
+  camera: THREE.PerspectiveCamera,
+  controls: OrbitControls,
+  center: THREE.Vector3,
+  maxDim: number,
+): void {
+  const safeMaxDim = Number.isFinite(maxDim) && maxDim > 0 ? maxDim : 1;
+  const fov = camera.fov * (Math.PI / 180);
+  const cameraZ = Math.abs(safeMaxDim / 2 / Math.tan(fov / 2)) * 1.5;
+
+  camera.near = Math.max(safeMaxDim * 1e-3, 1e-4);
+  camera.far = Math.max(cameraZ * 4, center.length() * 2 + safeMaxDim * 4, camera.near * 100);
+  camera.position.set(center.x + cameraZ, center.y + cameraZ, center.z + cameraZ);
+  camera.lookAt(center);
+  controls.target.copy(center);
+  controls.update();
+  camera.updateProjectionMatrix();
+}
+
 @Component({
   selector: 'afp-cad-renderer',
   standalone: true,
+  imports: [RendererError],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'afp-block afp-w-full afp-h-full' },
   template: `
     <div #containerRef class="afp-relative afp-w-full afp-h-full afp-bg-media-bg">
       @if (error()) {
-        <div class="afp-absolute afp-inset-0 afp-renderer-loading afp-bg-surface-3 afp-z-10">
-          <div class="afp-text-center">
-            <p class="afp-text-fg-primary">{{ error() }}</p>
-          </div>
-        </div>
+        <afp-renderer-error [message]="error()!" class="afp-absolute afp-inset-0 afp-bg-surface-3 afp-z-10" />
       }
 
       @if (loading()) {
@@ -55,6 +81,7 @@ export class CadRenderer implements RendererHandle {
   url = input.required<string>();
   file = input<File | undefined>(undefined);
   fileName = input<string | undefined>(undefined);
+  baseUrl = input<string | undefined>(undefined);
 
   private readonly locale = inject(LocaleService, { optional: true });
   private readonly request = inject(RequestService, { optional: true });
@@ -79,6 +106,7 @@ export class CadRenderer implements RendererHandle {
   private animationId: number | null = null;
   private abortController: AbortController | null = null;
   private isCleanedUp = false;
+  private renderPending = true;
 
   constructor() {
     afterNextRender(() => this.mounted.set(true));
@@ -132,14 +160,8 @@ export class CadRenderer implements RendererHandle {
     const center = box.getCenter(new THREE.Vector3());
     const size = box.getSize(new THREE.Vector3());
     const maxDim = Math.max(size.x, size.y, size.z);
-    const fov = this.camera.fov * (Math.PI / 180);
-    let cameraZ = Math.abs(maxDim / 2 / Math.tan(fov / 2));
-    cameraZ *= 1.5;
-
-    this.camera.position.set(center.x + cameraZ, center.y + cameraZ, center.z + cameraZ);
-    this.camera.lookAt(center);
-    this.controls.target.copy(center);
-    this.controls.update();
+    fitCameraToModel(this.camera, this.controls, center, maxDim);
+    this.renderPending = true;
   }
 
   private toggleWireframe(): void {
@@ -161,6 +183,7 @@ export class CadRenderer implements RendererHandle {
         }
       });
     }
+    this.renderPending = true;
     this.toolbarEmitter.notify();
   }
 
@@ -169,6 +192,7 @@ export class CadRenderer implements RendererHandle {
     if (this.grid) {
       this.grid.visible = this.showGrid();
     }
+    this.renderPending = true;
     this.toolbarEmitter.notify();
   }
 
@@ -177,16 +201,25 @@ export class CadRenderer implements RendererHandle {
     if (this.axes) {
       this.axes.visible = this.showAxes();
     }
+    this.renderPending = true;
     this.toolbarEmitter.notify();
   }
 
   // 根据模型包围盒调整参考物大小，避免 OBJ/STL 单位差异造成参考线比例失真
-  private updateReferenceHelpers(maxDim: number): void {
+  private updateReferenceHelpers(box: THREE.Box3): void {
     if (!this.scene) return;
 
+    const size = box.getSize(new THREE.Vector3());
+    const maxDim = Math.max(size.x, size.y, size.z);
     const safeMaxDim = Number.isFinite(maxDim) && maxDim > 0 ? maxDim : 1;
-    const axesSize = safeMaxDim * 0.5;
-    const gridSize = safeMaxDim * 2;
+    const rawExtent = Math.max(
+      Math.abs(box.min.x), Math.abs(box.max.x),
+      Math.abs(box.min.y), Math.abs(box.max.y),
+      Math.abs(box.min.z), Math.abs(box.max.z),
+    );
+    const extent = Number.isFinite(rawExtent) ? rawExtent : safeMaxDim;
+    const axesSize = Math.max(safeMaxDim, extent * 1.25);
+    const gridSize = Math.max(safeMaxDim * 2, extent * 2.5);
 
     if (this.grid) {
       this.grid.geometry.dispose();
@@ -248,12 +281,13 @@ export class CadRenderer implements RendererHandle {
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(0x1a1a1a);
 
-    this.camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 10000);
+    this.camera = new THREE.PerspectiveCamera(45, width / height, 0.01, 1_000_000);
     this.camera.position.set(100, 100, 100);
 
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
     this.renderer.setSize(width, height);
-    this.renderer.setPixelRatio(window.devicePixelRatio);
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    this.renderPending = true;
     container.appendChild(this.renderer.domElement);
 
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
@@ -276,9 +310,10 @@ export class CadRenderer implements RendererHandle {
     const animate = () => {
       if (this.isCleanedUp) return;
       this.animationId = requestAnimationFrame(animate);
-      this.controls?.update();
-      if (this.scene && this.camera && this.renderer) {
+      const cameraChanged = this.controls?.update();
+      if ((cameraChanged || this.renderPending) && this.scene && this.camera && this.renderer) {
         this.renderer.render(this.scene, this.camera);
+        this.renderPending = false;
       }
     };
     animate();
@@ -329,6 +364,11 @@ export class CadRenderer implements RendererHandle {
         loadedModel = new THREE.Mesh(geometry, material);
       } else if (loadedExt === 'gltf' || loadedExt === 'glb') {
         loadedModel = object.scene as THREE.Object3D;
+        if (!loadedModel) {
+          this.error.set(this.t('cad.parse_failed'));
+          this.loading.set(false);
+          return;
+        }
       } else {
         loadedModel = object as THREE.Object3D;
 
@@ -342,22 +382,21 @@ export class CadRenderer implements RendererHandle {
         });
       }
 
+      const box = new THREE.Box3().setFromObject(loadedModel);
+      if (box.isEmpty()) {
+        this.error.set(this.t('cad.parse_failed'));
+        this.loading.set(false);
+        return;
+      }
       this.scene!.add(loadedModel);
       this.model = loadedModel;
 
-      const box = new THREE.Box3().setFromObject(loadedModel);
       const center = box.getCenter(new THREE.Vector3());
       const size = box.getSize(new THREE.Vector3());
       const maxDim = Math.max(size.x, size.y, size.z);
-      this.updateReferenceHelpers(maxDim);
-      const fov = this.camera!.fov * (Math.PI / 180);
-      let cameraZ = Math.abs(maxDim / 2 / Math.tan(fov / 2));
-      cameraZ *= 1.5;
-
-      this.camera!.position.set(center.x + cameraZ, center.y + cameraZ, center.z + cameraZ);
-      this.camera!.lookAt(center);
-      this.controls!.target.copy(center);
-      this.controls!.update();
+      this.updateReferenceHelpers(box);
+      fitCameraToModel(this.camera!, this.controls!, center, maxDim);
+      this.renderPending = true;
 
       this.loading.set(false);
       this.toolbarEmitter.notify();
@@ -397,7 +436,7 @@ export class CadRenderer implements RendererHandle {
         } else if (ext === 'gltf' || ext === 'glb') {
           loader.parse(
             data,
-            '',
+            getAssetBasePath(this.baseUrl() || this.url()),
             (gltf: any) => {
               if (!this.isCleanedUp) {
                 handleLoadSuccess(gltf, ext);

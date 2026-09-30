@@ -4,8 +4,11 @@ import Spreadsheet from 'x-data-spreadsheet';
 import {
   convertLegacyXlsToSpreadsheetData,
   convertWorkbookToSpreadsheetData,
+  getSpreadsheetRowCount,
   isLegacyXls,
+  normalizeExcelBuffer,
   parseLegacyXls,
+  type XSheetData,
 } from '@eternalheart/file-preview-core';
 import { useTranslator } from '../../i18n/LocaleContext';
 import { useFetcher } from '../../RequestContext';
@@ -16,6 +19,17 @@ interface XlsxRendererProps {
   url: string;
 }
 
+async function loadXlsxWorkbook(data: Uint8Array): Promise<ExcelJS.Workbook> {
+  try {
+    return await new ExcelJS.Workbook().xlsx.load(data.slice().buffer as ArrayBuffer);
+  } catch (error) {
+    if (error instanceof TypeError && /sheets/i.test(error.message)) {
+      throw new Error('Excel 文件格式无效或已损坏');
+    }
+    throw error;
+  }
+}
+
 export const XlsxRenderer = forwardRef<RendererHandle, XlsxRendererProps>(({ url }, ref) => {
   const t = useTranslator();
   const fetcher = useFetcher();
@@ -23,7 +37,8 @@ export const XlsxRenderer = forwardRef<RendererHandle, XlsxRendererProps>(({ url
   const [error, setError] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const spreadsheetRef = useRef<Spreadsheet | null>(null);
-  const sheetDataRef = useRef<Record<string, unknown>[] | null>(null);
+  const sheetDataRef = useRef<XSheetData[] | null>(null);
+  const rowLenRef = useRef(100);
   const resizeObserverRef = useRef<ResizeObserver | null>(null);
   const resizeTimeoutRef = useRef<number | null>(null);
   const lastDimensionsRef = useRef({ width: 0, height: 0 });
@@ -53,7 +68,7 @@ export const XlsxRenderer = forwardRef<RendererHandle, XlsxRendererProps>(({ url
       showContextmenu: false,
       showGrid: true,
       row: {
-        len: 100,
+        len: rowLenRef.current,
         height: 25,
       },
       col: {
@@ -150,19 +165,29 @@ export const XlsxRenderer = forwardRef<RendererHandle, XlsxRendererProps>(({ url
           }
         }
 
-        const arrayBuffer = await response.arrayBuffer();
+        const excelBuffer = normalizeExcelBuffer(await response.arrayBuffer());
 
-        if (arrayBuffer.byteLength === 0) {
+        if (excelBuffer.byteLength === 0) {
           throw new Error('文件为空');
         }
 
-        const sheetData = isLegacyXls(arrayBuffer)
-          ? convertLegacyXlsToSpreadsheetData(parseLegacyXls(arrayBuffer))
-          : convertWorkbookToSpreadsheetData(await new ExcelJS.Workbook().xlsx.load(arrayBuffer));
+        let sheetData: XSheetData[];
+        if (isLegacyXls(excelBuffer)) {
+          const legacyWorkbook = parseLegacyXls(excelBuffer);
+          if (!legacyWorkbook || !Array.isArray(legacyWorkbook.sheets)) {
+            throw new Error('Invalid legacy Excel workbook data');
+          }
+          sheetData = convertLegacyXlsToSpreadsheetData(legacyWorkbook);
+        } else {
+          sheetData = convertWorkbookToSpreadsheetData(
+              await loadXlsxWorkbook(excelBuffer),
+          );
+        }
 
         if (!isMounted) return;
 
-        sheetDataRef.current = sheetData as unknown as Record<string, unknown>[];
+        sheetDataRef.current = sheetData;
+        rowLenRef.current = getSpreadsheetRowCount(sheetData);
 
         // 挂载 x-data-spreadsheet
         mountSpreadsheet();
@@ -191,6 +216,7 @@ export const XlsxRenderer = forwardRef<RendererHandle, XlsxRendererProps>(({ url
       isMounted = false;
       clearTimeout(timer);
       sheetDataRef.current = null;
+      rowLenRef.current = 100;
       if (containerRef.current) {
         containerRef.current.innerHTML = '';
       }

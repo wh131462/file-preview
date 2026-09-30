@@ -55,7 +55,7 @@ const MAX_ZIP_NESTING_DEPTH = 3;
         #rootRef
         [attr.tabindex]="mode() === 'embed' ? 0 : -1"
         [attr.data-theme]="resolvedTheme()"
-        class="afp-relative afp-w-full afp-h-full afp-flex afp-flex-col afp-overflow-hidden afp-outline-none"
+        class="afp-root afp-relative afp-w-full afp-h-full afp-flex afp-flex-col afp-overflow-hidden afp-outline-none"
       >
         @if (!headless()) {
           <afp-file-preview-toolbar

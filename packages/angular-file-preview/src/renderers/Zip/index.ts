@@ -119,11 +119,7 @@ function ensureZipTipStyles(): void {
           }
         </div>
         <div splitRight class="afp-w-full afp-h-full afp-flex afp-flex-col">
-          @if (!selected()) {
-            <div class="afp-flex-1 afp-flex afp-items-center afp-justify-center afp-text-fg-muted afp-text-sm afp-p-6">
-              从左侧选择一个文件以预览
-            </div>
-          } @else if (previewLoading()) {
+          @if (previewLoading()) {
             <div class="afp-renderer-loading afp-flex-1">
               <div class="afp-renderer-loading-content">
                 <div class="afp-renderer-spinner"></div>
@@ -131,7 +127,13 @@ function ensureZipTipStyles(): void {
               </div>
             </div>
           } @else if (previewError()) {
-            <div class="afp-flex-1 afp-flex afp-items-center afp-justify-center afp-text-fg-secondary">{{ previewError() }}</div>
+            <div class="afp-flex-1">
+              <afp-renderer-error [message]="previewError()!" />
+            </div>
+          } @else if (!selected()) {
+            <div class="afp-flex-1 afp-flex afp-items-center afp-justify-center afp-text-fg-muted afp-text-sm afp-p-6">
+              从左侧选择一个文件以预览
+            </div>
           } @else {
             <div class="afp-flex-1 afp-min-h-0 afp-overflow-hidden afp-flex afp-relative afp-z-0">
               <FilePreviewContent
@@ -238,6 +240,7 @@ export class ZipRenderer implements RendererHandle {
     if (!z || node.isDir || this.selected()?.path === node.path || this.selectingPath === node.path) return;
     this.selectingPath = node.path;
     this.revokeCurrent();
+    this.selected.set(null);
     this.previewLoading.set(true);
     this.previewError.set(null);
 
@@ -249,7 +252,8 @@ export class ZipRenderer implements RendererHandle {
       this.splitRef()?.switchTab('right');
     } catch (err) {
       console.error(err);
-      this.previewError.set('条目读取失败');
+      this.previewError.set(this.t('zip.load_failed'));
+      this.splitRef()?.switchTab('right');
     } finally {
       this.previewLoading.set(false);
       if (this.selectingPath === node.path) this.selectingPath = null;

@@ -8,14 +8,44 @@ import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { useTranslator } from '../../composables/useTranslator';
 import { useFetcher } from '../../composables/useRequest';
+import RendererError from '../RendererError.vue';
 import { ToolbarEventEmitter } from '../base.types';
 import type { RendererHandle } from '../base.types';
 import { getCadToolbarGroups } from './toolbar';
+
+const getAssetBasePath = (url: string): string => {
+  if (!url || url.startsWith('blob:') || url.startsWith('data:')) return '';
+  try {
+    return new URL('.', new URL(url, document.baseURI)).href;
+  } catch {
+    return '';
+  }
+};
+
+const fitCameraToModel = (
+  camera: THREE.PerspectiveCamera,
+  controls: OrbitControls,
+  center: THREE.Vector3,
+  maxDim: number,
+) => {
+  const safeMaxDim = Number.isFinite(maxDim) && maxDim > 0 ? maxDim : 1;
+  const fov = camera.fov * (Math.PI / 180);
+  const cameraZ = Math.abs(safeMaxDim / 2 / Math.tan(fov / 2)) * 1.5;
+
+  camera.near = Math.max(safeMaxDim * 1e-3, 1e-4);
+  camera.far = Math.max(cameraZ * 4, center.length() * 2 + safeMaxDim * 4, camera.near * 100);
+  camera.position.set(center.x + cameraZ, center.y + cameraZ, center.z + cameraZ);
+  camera.lookAt(center);
+  controls.target.copy(center);
+  controls.update();
+  camera.updateProjectionMatrix();
+};
 
 interface Props {
   url: string;
   file?: File;
   fileName?: string;
+  baseUrl?: string;
 }
 
 const props = defineProps<Props>();
@@ -39,6 +69,7 @@ let axes: THREE.AxesHelper | null = null;
 let animationId: number | null = null;
 let abortController: AbortController | null = null;
 let isCleanedUp = false;
+let renderPending = true;
 
 const toolbarEmitter = new ToolbarEventEmitter();
 
@@ -64,14 +95,8 @@ const resetView = () => {
   const center = box.getCenter(new THREE.Vector3());
   const size = box.getSize(new THREE.Vector3());
   const maxDim = Math.max(size.x, size.y, size.z);
-  const fov = camera.fov * (Math.PI / 180);
-  let cameraZ = Math.abs(maxDim / 2 / Math.tan(fov / 2));
-  cameraZ *= 1.5;
-
-  camera.position.set(center.x + cameraZ, center.y + cameraZ, center.z + cameraZ);
-  camera.lookAt(center);
-  controls.target.copy(center);
-  controls.update();
+  fitCameraToModel(camera, controls, center, maxDim);
+  renderPending = true;
 };
 
 // 切换线框模式
@@ -93,6 +118,7 @@ const toggleWireframe = () => {
       }
     });
   }
+  renderPending = true;
   toolbarEmitter.notify();
 };
 
@@ -102,6 +128,7 @@ const toggleGrid = () => {
   if (grid) {
     grid.visible = showGrid.value;
   }
+  renderPending = true;
   toolbarEmitter.notify();
 };
 
@@ -111,16 +138,25 @@ const toggleAxes = () => {
   if (axes) {
     axes.visible = showAxes.value;
   }
+  renderPending = true;
   toolbarEmitter.notify();
 };
 
 // 根据模型包围盒调整参考物大小，避免 OBJ/STL 单位差异造成参考线比例失真
-const updateReferenceHelpers = (maxDim: number) => {
+const updateReferenceHelpers = (box: THREE.Box3) => {
   if (!scene) return;
 
+  const size = box.getSize(new THREE.Vector3());
+  const maxDim = Math.max(size.x, size.y, size.z);
   const safeMaxDim = Number.isFinite(maxDim) && maxDim > 0 ? maxDim : 1;
-  const axesSize = safeMaxDim * 0.5;
-  const gridSize = safeMaxDim * 2;
+  const rawExtent = Math.max(
+    Math.abs(box.min.x), Math.abs(box.max.x),
+    Math.abs(box.min.y), Math.abs(box.max.y),
+    Math.abs(box.min.z), Math.abs(box.max.z),
+  );
+  const extent = Number.isFinite(rawExtent) ? rawExtent : safeMaxDim;
+  const axesSize = Math.max(safeMaxDim, extent * 1.25);
+  const gridSize = Math.max(safeMaxDim * 2, extent * 2.5);
 
   if (grid) {
     grid.geometry.dispose();
@@ -203,13 +239,14 @@ const initScene = () => {
   scene.background = new THREE.Color(0x1a1a1a);
 
   // 创建相机
-  camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 10000);
+  camera = new THREE.PerspectiveCamera(45, width / height, 0.01, 1_000_000);
   camera.position.set(100, 100, 100);
 
   // 创建渲染器
   renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setSize(width, height);
-  renderer.setPixelRatio(window.devicePixelRatio);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderPending = true;
   container.appendChild(renderer.domElement);
 
   // 创建控制器
@@ -236,9 +273,10 @@ const initScene = () => {
   const animate = () => {
     if (isCleanedUp) return;
     animationId = requestAnimationFrame(animate);
-    controls?.update();
-    if (scene && camera && renderer) {
+    const cameraChanged = controls?.update();
+    if ((cameraChanged || renderPending) && scene && camera && renderer) {
       renderer.render(scene, camera);
+      renderPending = false;
     }
   };
   animate();
@@ -296,6 +334,11 @@ const loadModel = () => {
     } else if (ext === 'gltf' || ext === 'glb') {
       // GLTF/GLB 返回 { scene, ... }
       loadedModel = object.scene as THREE.Object3D;
+      if (!loadedModel) {
+        error.value = t.value('cad.parse_failed');
+        loading.value = false;
+        return;
+      }
     } else {
       // DXF 和 OBJ 返回 Object3D
       loadedModel = object as THREE.Object3D;
@@ -311,23 +354,22 @@ const loadModel = () => {
       });
     }
 
+    const box = new THREE.Box3().setFromObject(loadedModel);
+    if (box.isEmpty()) {
+      error.value = t.value('cad.parse_failed');
+      loading.value = false;
+      return;
+    }
     scene!.add(loadedModel);
     model = loadedModel;
 
     // 自动调整视角
-    const box = new THREE.Box3().setFromObject(loadedModel);
     const center = box.getCenter(new THREE.Vector3());
     const size = box.getSize(new THREE.Vector3());
     const maxDim = Math.max(size.x, size.y, size.z);
-    updateReferenceHelpers(maxDim);
-    const fov = camera!.fov * (Math.PI / 180);
-    let cameraZ = Math.abs(maxDim / 2 / Math.tan(fov / 2));
-    cameraZ *= 1.5;
-
-    camera!.position.set(center.x + cameraZ, center.y + cameraZ, center.z + cameraZ);
-    camera!.lookAt(center);
-    controls!.target.copy(center);
-    controls!.update();
+    updateReferenceHelpers(box);
+    fitCameraToModel(camera!, controls!, center, maxDim);
+    renderPending = true;
 
     loading.value = false;
     toolbarEmitter.notify();
@@ -368,7 +410,7 @@ const loadModel = () => {
       } else if (ext === 'gltf' || ext === 'glb') {
         loader.parse(
           data,
-          '',
+          getAssetBasePath(props.baseUrl || props.url),
           (gltf: any) => {
             if (!isCleanedUp) {
               handleLoadSuccess(gltf, ext);
@@ -429,6 +471,7 @@ const handleResize = () => {
   camera.aspect = newWidth / newHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(newWidth, newHeight);
+  renderPending = true;
 };
 
 // 清理
@@ -495,13 +538,8 @@ watch(() => props.url, () => {
 <template>
   <div ref="containerRef" class="vfp-relative vfp-w-full vfp-h-full vfp-bg-media-bg">
     <!-- 错误覆盖层 -->
-    <div
-      v-if="error"
-      class="vfp-absolute vfp-inset-0 vfp-renderer-loading vfp-bg-surface-3 vfp-z-10"
-    >
-      <div class="vfp-text-center">
-        <p class="vfp-text-fg-primary">{{ error }}</p>
-      </div>
+    <div v-if="error" class="vfp-absolute vfp-inset-0 vfp-bg-surface-3 vfp-z-10">
+      <RendererError :message="error" />
     </div>
 
     <!-- 加载覆盖层 -->

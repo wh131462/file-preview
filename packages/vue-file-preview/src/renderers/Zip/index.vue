@@ -141,6 +141,7 @@ const handleSelect = async (node: ZipTreeNode) => {
   if (!zip.value || node.isDir || selected.value?.path === node.path || selectingPath.value === node.path) return;
   selectingPath.value = node.path;
   revokeCurrent();
+  selected.value = null;
   previewLoading.value = true;
   previewError.value = null;
 
@@ -153,7 +154,8 @@ const handleSelect = async (node: ZipTreeNode) => {
     splitRef.value?.switchTab('right');
   } catch (err) {
     console.error(err);
-    previewError.value = '条目读取失败';
+    previewError.value = t.value('zip.load_failed');
+    splitRef.value?.switchTab('right');
   } finally {
     previewLoading.value = false;
     if (selectingPath.value === node.path) selectingPath.value = null;
@@ -207,16 +209,18 @@ const previewFiles = computed(() => {
 
       <template #right>
         <div class="vfp-w-full vfp-h-full vfp-flex vfp-flex-col">
-          <div v-if="!selected" class="vfp-flex-1 vfp-flex vfp-items-center vfp-justify-center vfp-text-fg-muted vfp-text-sm vfp-p-6">
-            从左侧选择一个文件以预览
-          </div>
-          <div v-else-if="previewLoading" class="vfp-renderer-loading vfp-flex-1">
+          <div v-if="previewLoading" class="vfp-renderer-loading vfp-flex-1">
             <div class="vfp-renderer-loading-content">
               <div class="vfp-renderer-spinner" />
               <span class="vfp-renderer-loading-text">{{ t('common.loading') }}</span>
             </div>
           </div>
-          <div v-else-if="previewError" class="vfp-flex-1 vfp-flex vfp-items-center vfp-justify-center vfp-text-fg-secondary">{{ previewError }}</div>
+          <div v-else-if="previewError" class="vfp-flex-1">
+            <RendererError :message="previewError" />
+          </div>
+          <div v-else-if="!selected" class="vfp-flex-1 vfp-flex vfp-items-center vfp-justify-center vfp-text-fg-muted vfp-text-sm vfp-p-6">
+            从左侧选择一个文件以预览
+          </div>
           <template v-else>
             <div class="vfp-flex-1 vfp-min-h-0 vfp-overflow-hidden vfp-flex vfp-relative vfp-z-0">
               <LazyFilePreviewContent

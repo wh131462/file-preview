@@ -35,6 +35,10 @@ interface FoliateView extends HTMLElement {
 
 const READER_CSS = `
   @namespace epub "http://www.idpf.org/2007/ops";
+  :root {
+    --theme-bg-color: #ffffff;
+    background: #ffffff !important;
+  }
   html { color-scheme: light; }
   body {
     background: #ffffff !important;
@@ -95,7 +99,7 @@ let totalLocations = 1;
 const currentChapter = ref(1);
 const totalChapters = ref(1);
 
-const loading = ref(false);
+const loading = ref(true);
 const error = ref<string | null>(null);
 const toc = ref<TocItem[]>([]);
 const showToc = ref(false);
@@ -419,7 +423,13 @@ onBeforeUnmount(() => {
       v-if="!error"
       ref="hostRef"
       class="vfp-h-full vfp-bg-surface-toolbar vfp-shadow-lg"
-      :style="{ width: isFullWidth ? '100%' : A4_WIDTH + 'px', maxWidth: '100%', transition: 'width 0.3s ease' }"
+      :style="{
+        width: isFullWidth ? '100%' : A4_WIDTH + 'px',
+        maxWidth: '100%',
+        transition: 'width 0.3s ease',
+        // foliate 会先插入未套用样式的内容，首屏完成前保持不可见，避免闪出链接。
+        visibility: loading ? 'hidden' : 'visible',
+      }"
     />
   </div>
 </template>

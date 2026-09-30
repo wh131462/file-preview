@@ -14,6 +14,7 @@ type VideoJsPlayer = ReturnType<typeof videojs>;
 const props = defineProps<{
   url: string;
   fileName?: string;
+  mimeType?: string;
 }>();
 
 const { t } = useTranslator();
@@ -55,7 +56,7 @@ const initPlayer = () => {
   videoElement.classList.add('vjs-big-play-centered', 'rfp-video-player');
   videoContainerRef.value.appendChild(videoElement);
 
-  const videoType = getVideoMimeType(props.url);
+  const videoType = getVideoMimeType(props.url, props.mimeType);
 
   // 为特定格式提供多个 MIME 类型作为备用
   let sources: Array<{ src: string; type: string }>;
@@ -133,10 +134,10 @@ const initPlayer = () => {
 onMounted(initPlayer);
 
 watch(
-  () => props.url,
+  [() => props.url, () => props.mimeType],
   () => {
     if (player && !player.isDisposed()) {
-      player.src({ src: props.url, type: getVideoMimeType(props.url) });
+      player.src({ src: props.url, type: getVideoMimeType(props.url, props.mimeType) });
     }
   }
 );

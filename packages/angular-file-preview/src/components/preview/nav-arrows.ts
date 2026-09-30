@@ -23,7 +23,7 @@ const NAV_HIDE_DELAY = 2000;
     @if (hasPrev()) {
       <button
         type="button"
-        class="afp-absolute afp-z-20 afp-left-2 md:afp-left-4 afp-top-1/2 afp-w-10 afp-h-10 md:afp-w-12 md:afp-h-12 afp-rounded-full afp-backdrop-blur-xl afp-border afp-flex afp-items-center afp-justify-center afp-shadow-2xl afp-bg-surface-nav afp-border-line hover:afp-bg-surface-nav-hover afp-text-fg-primary"
+        class="nav-arrow afp-absolute afp-z-20 afp-left-2 md:afp-left-4 afp-top-1/2 afp-w-10 afp-h-10 md:afp-w-12 md:afp-h-12 afp-rounded-full afp-backdrop-blur-xl afp-border afp-flex afp-items-center afp-justify-center afp-shadow-2xl afp-bg-surface-nav afp-border-line hover:afp-bg-surface-nav-hover afp-text-fg-primary"
         [style.opacity]="visible() ? 1 : 0"
         [style.transform]="visible() ? 'translateY(-50%)' : 'translateY(-50%) translateX(-20px)'"
         [style.pointerEvents]="visible() ? 'auto' : 'none'"
@@ -39,7 +39,7 @@ const NAV_HIDE_DELAY = 2000;
     @if (hasNext()) {
       <button
         type="button"
-        class="afp-absolute afp-z-20 afp-right-2 md:afp-right-4 afp-top-1/2 afp-w-10 afp-h-10 md:afp-w-12 md:afp-h-12 afp-rounded-full afp-backdrop-blur-xl afp-border afp-flex afp-items-center afp-justify-center afp-shadow-2xl afp-bg-surface-nav afp-border-line hover:afp-bg-surface-nav-hover afp-text-fg-primary"
+        class="nav-arrow afp-absolute afp-z-20 afp-right-2 md:afp-right-4 afp-top-1/2 afp-w-10 afp-h-10 md:afp-w-12 md:afp-h-12 afp-rounded-full afp-backdrop-blur-xl afp-border afp-flex afp-items-center afp-justify-center afp-shadow-2xl afp-bg-surface-nav afp-border-line hover:afp-bg-surface-nav-hover afp-text-fg-primary"
         [style.opacity]="visible() ? 1 : 0"
         [style.transform]="visible() ? 'translateY(-50%)' : 'translateY(-50%) translateX(20px)'"
         [style.pointerEvents]="visible() ? 'auto' : 'none'"
@@ -53,6 +53,18 @@ const NAV_HIDE_DELAY = 2000;
       </button>
     }
   `,
+  styles: [`
+    .nav-arrow {
+      appearance: none;
+      background-color: var(--fp-surface-nav, rgb(0 0 0 / 0.4));
+      border: 1px solid var(--fp-line, rgb(255 255 255 / 0.1));
+      color: var(--fp-fg-primary, rgb(255 255 255 / 0.9));
+      transition: background-color 0.2s;
+    }
+    .nav-arrow:hover {
+      background-color: var(--fp-surface-nav-hover, rgb(0 0 0 / 0.6));
+    }
+  `],
 })
 export class NavArrows {
   container = input<HTMLElement | null>(null);

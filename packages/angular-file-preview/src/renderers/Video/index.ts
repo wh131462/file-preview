@@ -62,6 +62,7 @@ const BROWSER_UNSUPPORTED_EXTS = new Set(['avi', 'wmv', 'flv']);
 export class VideoRenderer implements RendererHandle {
   url = input.required<string>();
   fileName = input<string | undefined>(undefined);
+  mimeType = input<string | undefined>(undefined);
 
   private readonly emitter = new ToolbarEventEmitter();
   private readonly locale = inject(LocaleService, { optional: true });
@@ -83,9 +84,10 @@ export class VideoRenderer implements RendererHandle {
     });
     effect(() => {
       const url = this.url();
+      const mimeType = this.mimeType();
       untracked(() => {
         if (this.player && !this.player.isDisposed()) {
-          this.player.src({ src: url, type: getVideoMimeType(url) });
+          this.player.src({ src: url, type: getVideoMimeType(url, mimeType) });
         }
       });
     });
@@ -124,7 +126,7 @@ export class VideoRenderer implements RendererHandle {
     videoElement.classList.add('vjs-big-play-centered', 'rfp-video-player');
     container.appendChild(videoElement);
 
-    const videoType = getVideoMimeType(this.url());
+    const videoType = getVideoMimeType(this.url(), this.mimeType());
 
     let sources: Array<{ src: string; type: string }>;
     if (videoType === 'video/quicktime') {

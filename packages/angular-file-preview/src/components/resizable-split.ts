@@ -25,24 +25,18 @@ import {
         <div class="afp-flex afp-flex-shrink-0 afp-border-b afp-border-line-weak afp-bg-surface-toolbar">
           <button
             type="button"
-            class="afp-flex-1 afp-py-2.5 afp-text-sm afp-transition-colors"
-            [class.afp-text-fg-primary]="activeTab() === 'left'"
-            [class.afp-border-b-2]="activeTab() === 'left'"
-            [class.afp-border-fg-primary]="activeTab() === 'left'"
-            [class.-afp-mb-px]="activeTab() === 'left'"
-            [class.afp-text-fg-secondary]="activeTab() !== 'left'"
+            class="split-tab"
+            [class.active]="activeTab() === 'left'"
+            [attr.aria-selected]="activeTab() === 'left'"
             (click)="switchTab('left')"
           >
             {{ leftTabLabel() }}
           </button>
           <button
             type="button"
-            class="afp-flex-1 afp-py-2.5 afp-text-sm afp-transition-colors"
-            [class.afp-text-fg-primary]="activeTab() === 'right'"
-            [class.afp-border-b-2]="activeTab() === 'right'"
-            [class.afp-border-fg-primary]="activeTab() === 'right'"
-            [class.-afp-mb-px]="activeTab() === 'right'"
-            [class.afp-text-fg-secondary]="activeTab() !== 'right'"
+            class="split-tab"
+            [class.active]="activeTab() === 'right'"
+            [attr.aria-selected]="activeTab() === 'right'"
             (click)="switchTab('right')"
           >
             {{ rightTabLabel() }}
@@ -78,6 +72,26 @@ import {
   `,
   styles: [`
     :host { display: block; width: 100%; height: 100%; }
+    .split-tab {
+      flex: 1 1 0%;
+      min-width: 0;
+      padding: 0.625rem;
+      color: var(--fp-fg-secondary);
+      font: inherit;
+      font-size: 0.875rem;
+      line-height: 1.25rem;
+      text-align: center;
+      background: transparent;
+      border: 0;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      cursor: pointer;
+      transition: color 0.15s;
+    }
+    .split-tab.active {
+      color: var(--fp-fg-primary);
+      border-bottom-color: var(--fp-fg-primary);
+    }
     .split-divider {
       background: var(--fp-line-weak);
     }

@@ -7,16 +7,46 @@ import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { useTranslator } from '../../i18n/LocaleContext';
 import { useFetcher } from '../../RequestContext';
+import { RendererError } from '../RendererError';
 import type { RendererHandle } from '../base.types';
 import { getCadToolbarGroups } from './toolbar';
+
+function getAssetBasePath(url: string): string {
+  if (!url || url.startsWith('blob:') || url.startsWith('data:')) return '';
+  try {
+    return new URL('.', new URL(url, document.baseURI)).href;
+  } catch {
+    return '';
+  }
+}
+
+function fitCameraToModel(
+  camera: THREE.PerspectiveCamera,
+  controls: OrbitControls,
+  center: THREE.Vector3,
+  maxDim: number,
+): void {
+  const safeMaxDim = Number.isFinite(maxDim) && maxDim > 0 ? maxDim : 1;
+  const fov = camera.fov * (Math.PI / 180);
+  const cameraZ = Math.abs(safeMaxDim / 2 / Math.tan(fov / 2)) * 1.5;
+
+  camera.near = Math.max(safeMaxDim * 1e-3, 1e-4);
+  camera.far = Math.max(cameraZ * 4, center.length() * 2 + safeMaxDim * 4, camera.near * 100);
+  camera.position.set(center.x + cameraZ, center.y + cameraZ, center.z + cameraZ);
+  camera.lookAt(center);
+  controls.target.copy(center);
+  controls.update();
+  camera.updateProjectionMatrix();
+}
 
 export interface CadRendererProps {
   url: string;
   file?: File;
   fileName?: string;
+  baseUrl?: string;
 }
 
-export const CadRenderer = forwardRef<RendererHandle, CadRendererProps>(({ url, file, fileName }, ref) => {
+export const CadRenderer = forwardRef<RendererHandle, CadRendererProps>(({ url, file, fileName, baseUrl }, ref) => {
   const t = useTranslator();
   const fetcher = useFetcher();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -29,6 +59,7 @@ export const CadRenderer = forwardRef<RendererHandle, CadRendererProps>(({ url, 
   const axesRef = useRef<THREE.AxesHelper | null>(null);
   const showGridRef = useRef(true);
   const showAxesRef = useRef(true);
+  const renderPendingRef = useRef(true);
   const cadRef = useRef<any>(null);
 
   const [loading, setLoading] = useState(true);
@@ -93,14 +124,8 @@ export const CadRenderer = forwardRef<RendererHandle, CadRendererProps>(({ url, 
     const center = box.getCenter(new THREE.Vector3());
     const size = box.getSize(new THREE.Vector3());
     const maxDim = Math.max(size.x, size.y, size.z);
-    const fov = cameraRef.current.fov * (Math.PI / 180);
-    let cameraZ = Math.abs(maxDim / 2 / Math.tan(fov / 2));
-    cameraZ *= 1.5;
-
-    cameraRef.current.position.set(center.x + cameraZ, center.y + cameraZ, center.z + cameraZ);
-    cameraRef.current.lookAt(center);
-    controlsRef.current.target.copy(center);
-    controlsRef.current.update();
+    fitCameraToModel(cameraRef.current, controlsRef.current, center, maxDim);
+    renderPendingRef.current = true;
   }, []);
 
   // 切换线框模式
@@ -123,6 +148,7 @@ export const CadRenderer = forwardRef<RendererHandle, CadRendererProps>(({ url, 
           }
         });
       }
+      renderPendingRef.current = true;
       notifyToolbarChange();
       return newWireframe;
     });
@@ -136,6 +162,7 @@ export const CadRenderer = forwardRef<RendererHandle, CadRendererProps>(({ url, 
       if (gridRef.current) {
         gridRef.current.visible = newShow;
       }
+      renderPendingRef.current = true;
       notifyToolbarChange();
       return newShow;
     });
@@ -149,16 +176,25 @@ export const CadRenderer = forwardRef<RendererHandle, CadRendererProps>(({ url, 
       if (axesRef.current) {
         axesRef.current.visible = newShow;
       }
+      renderPendingRef.current = true;
       notifyToolbarChange();
       return newShow;
     });
   }, [notifyToolbarChange]);
 
   // 根据模型包围盒调整参考物大小，避免 OBJ/STL 单位差异造成参考线比例失真
-  const updateReferenceHelpers = useCallback((maxDim: number, scene: THREE.Scene) => {
+  const updateReferenceHelpers = useCallback((box: THREE.Box3, scene: THREE.Scene) => {
+    const size = box.getSize(new THREE.Vector3());
+    const maxDim = Math.max(size.x, size.y, size.z);
     const safeMaxDim = Number.isFinite(maxDim) && maxDim > 0 ? maxDim : 1;
-    const axesSize = safeMaxDim * 0.5;
-    const gridSize = safeMaxDim * 2;
+    const rawExtent = Math.max(
+      Math.abs(box.min.x), Math.abs(box.max.x),
+      Math.abs(box.min.y), Math.abs(box.max.y),
+      Math.abs(box.min.z), Math.abs(box.max.z),
+    );
+    const extent = Number.isFinite(rawExtent) ? rawExtent : safeMaxDim;
+    const axesSize = Math.max(safeMaxDim, extent * 1.25);
+    const gridSize = Math.max(safeMaxDim * 2, extent * 2.5);
 
     if (gridRef.current) {
       gridRef.current.geometry.dispose();
@@ -230,16 +266,17 @@ export const CadRenderer = forwardRef<RendererHandle, CadRendererProps>(({ url, 
     sceneRef.current = scene;
 
     // 初始化相机
-    const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 10000);
+    const camera = new THREE.PerspectiveCamera(45, width / height, 0.01, 1_000_000);
     camera.position.set(100, 100, 100);
     cameraRef.current = camera;
 
     // 初始化渲染器
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(width, height);
-    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     container.appendChild(renderer.domElement);
     rendererRef.current = renderer;
+    renderPendingRef.current = true;
 
     // 初始化控制器
     const controls = new OrbitControls(camera, renderer.domElement);
@@ -305,7 +342,7 @@ export const CadRenderer = forwardRef<RendererHandle, CadRendererProps>(({ url, 
         } else if (ext === 'gltf' || ext === 'glb') {
           loader.parse(
             data,
-            '',
+            getAssetBasePath(baseUrl || url),
             (gltf: any) => {
               if (!isCleanedUp) {
                 handleLoadSuccess(gltf, ext, scene, camera, controls);
@@ -388,6 +425,11 @@ export const CadRenderer = forwardRef<RendererHandle, CadRendererProps>(({ url, 
       } else if (ext === 'gltf' || ext === 'glb') {
         // GLTF/GLB 返回 { scene, ... }
         model = object.scene as THREE.Object3D;
+        if (!model) {
+          setError(t('cad.parse_failed'));
+          setLoading(false);
+          return;
+        }
       } else {
         // DXF 和 OBJ 返回 Object3D
         model = object as THREE.Object3D;
@@ -403,23 +445,22 @@ export const CadRenderer = forwardRef<RendererHandle, CadRendererProps>(({ url, 
         });
       }
 
+      const box = new THREE.Box3().setFromObject(model);
+      if (box.isEmpty()) {
+        setError(t('cad.parse_failed'));
+        setLoading(false);
+        return;
+      }
       scene.add(model);
       modelRef.current = model;
 
       // 自动调整视角
-      const box = new THREE.Box3().setFromObject(model);
       const center = box.getCenter(new THREE.Vector3());
       const size = box.getSize(new THREE.Vector3());
       const maxDim = Math.max(size.x, size.y, size.z);
-      updateReferenceHelpers(maxDim, scene);
-      const fov = camera.fov * (Math.PI / 180);
-      let cameraZ = Math.abs(maxDim / 2 / Math.tan(fov / 2));
-      cameraZ *= 1.5;
-
-      camera.position.set(center.x + cameraZ, center.y + cameraZ, center.z + cameraZ);
-      camera.lookAt(center);
-      controls.target.copy(center);
-      controls.update();
+      updateReferenceHelpers(box, scene);
+      fitCameraToModel(camera, controls, center, maxDim);
+      renderPendingRef.current = true;
 
       setLoading(false);
       notifyToolbarChange();
@@ -439,8 +480,11 @@ export const CadRenderer = forwardRef<RendererHandle, CadRendererProps>(({ url, 
     const animate = () => {
       if (isCleanedUp) return;
       animationId = requestAnimationFrame(animate);
-      controls.update();
-      renderer.render(scene, camera);
+      const cameraChanged = controls.update();
+      if (cameraChanged || renderPendingRef.current) {
+        renderer.render(scene, camera);
+        renderPendingRef.current = false;
+      }
     };
     animate();
 
@@ -452,6 +496,7 @@ export const CadRenderer = forwardRef<RendererHandle, CadRendererProps>(({ url, 
       camera.aspect = newWidth / newHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(newWidth, newHeight);
+      renderPendingRef.current = true;
     };
     window.addEventListener('resize', handleResize);
 
@@ -489,16 +534,14 @@ export const CadRenderer = forwardRef<RendererHandle, CadRendererProps>(({ url, 
         container.removeChild(renderer.domElement);
       }
     };
-  }, [url, t, notifyToolbarChange, disposeThreeResources, file, fetcher, updateReferenceHelpers]);
+  }, [url, baseUrl, fileName, t, notifyToolbarChange, disposeThreeResources, file, fetcher, updateReferenceHelpers]);
 
   return (
     <div ref={containerRef} className="rfp-relative rfp-w-full rfp-h-full rfp-bg-media-bg">
       {/* 错误覆盖层 */}
       {error && (
-        <div className="rfp-absolute rfp-inset-0 rfp-renderer-loading rfp-bg-surface-3 rfp-z-10">
-          <div className="rfp-renderer-loading-content">
-            <p className="rfp-text-fg-primary">{error}</p>
-          </div>
+        <div className="rfp-absolute rfp-inset-0 rfp-bg-surface-3 rfp-z-10">
+          <RendererError message={error} />
         </div>
       )}
 

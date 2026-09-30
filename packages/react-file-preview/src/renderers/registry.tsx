@@ -144,6 +144,7 @@ export const BUILTIN_RENDERERS: BuiltinRendererConfig[] = [
     getProps: (ctx) => ({
       url: ctx.resolvedUrl,
       fileName: ctx.currentFile.name,
+      mimeType: ctx.currentFile.type,
     }),
   },
   {
@@ -223,6 +224,7 @@ export const BUILTIN_RENDERERS: BuiltinRendererConfig[] = [
       url: ctx.resolvedUrl,
       file: ctx.currentFile.file, // 传递原始 File 对象（如果有）
       fileName: ctx.currentFile.name, // 传递原始文件名用于识别扩展名
+      baseUrl: ctx.currentFile.url,
     }),
   },
 ];

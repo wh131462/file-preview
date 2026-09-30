@@ -48,6 +48,10 @@ interface FoliateView extends HTMLElement {
 
 const READER_CSS = `
   @namespace epub "http://www.idpf.org/2007/ops";
+  :root {
+    --theme-bg-color: #ffffff;
+    background: #ffffff !important;
+  }
   html { color-scheme: light; }
   body {
     background: #ffffff !important;

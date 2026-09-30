@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48" fill="none">
+  <path d="M26 4L8 28h12l-2 16L38 20H26l2-16z" fill="#fef3c7" stroke="#f59e0b" stroke-width="2.5" stroke-linejoin="round"/>
+  <path d="M26 4L8 28h12l-2 16L38 20H26l2-16z" fill="url(#lightning-grad)" stroke="#f59e0b" stroke-width="2.5" stroke-linejoin="round"/>
+  <defs>
+    <linearGradient id="lightning-grad" x1="14" y1="4" x2="34" y2="44" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#fde68a"/>
+      <stop offset="1" stop-color="#f59e0b"/>
+    </linearGradient>
+  </defs>
+</svg>

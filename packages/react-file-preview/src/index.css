@@ -207,36 +207,46 @@
 }
 
 /* 作用域内滚动条样式 */
+.rfp-root,
+.rfp-root * {
+  scrollbar-width: thin;
+  scrollbar-color: var(--fp-scrollbar-thumb) var(--fp-scrollbar-track);
+}
+
 .rfp-root ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 9px;
+  height: 9px;
 }
 
 .rfp-root ::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.1);
-  border-radius: 4px;
+  background: var(--fp-scrollbar-track);
+  border-radius: 5px;
 }
 
 .rfp-root ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.3);
-  border-radius: 4px;
+  background: var(--fp-scrollbar-thumb);
+  border-radius: 5px;
 }
 
 .rfp-root ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.5);
+  background: var(--fp-scrollbar-thumb-hover);
+}
+
+.rfp-root ::-webkit-scrollbar-thumb:active {
+  background: var(--fp-scrollbar-thumb-active);
 }
 
 /* Light 主题滚动条 */
 .rfp-root[data-theme="light"] ::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.05);
+  background: var(--fp-scrollbar-track);
 }
 
 .rfp-root[data-theme="light"] ::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.2);
+  background: var(--fp-scrollbar-thumb);
 }
 
 .rfp-root[data-theme="light"] ::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.35);
+  background: var(--fp-scrollbar-thumb-hover);
 }
 
 /* 音频播放器：紧凑、单色的媒体控件 */
@@ -474,8 +484,9 @@
 }
 
 .rfp-root .rfp-video-player.video-js .vjs-control-bar {
-  height: 52px;
-  padding: 16px 12px 0;
+  height: 60px;
+  padding: 16px 12px 8px;
+  box-sizing: border-box;
   display: flex;
   align-items: center;
   gap: 2px;
@@ -505,6 +516,11 @@
   margin: 0;
   background: rgb(255 255 255 / 0.28);
   transition: height 120ms ease;
+}
+
+/* 覆盖 Video.js 的默认 10px 外边距，使轨道与进度控件同宽 */
+.rfp-root .rfp-video-player.video-js .vjs-progress-control .vjs-progress-holder {
+  margin: 0;
 }
 
 .rfp-root .rfp-video-player.video-js .vjs-progress-control:hover .vjs-progress-holder,
@@ -818,22 +834,29 @@
 
 /* 自定义滚动条适配深色主题 */
 .rfp-root .xlsx-spreadsheet-container .x-spreadsheet-scrollbar {
-  background-color: rgba(0, 0, 0, 0.2);
+  background-color: var(--fp-scrollbar-track);
 }
 
 .rfp-root .xlsx-spreadsheet-container .x-spreadsheet-scrollbar.vertical > div,
 .rfp-root .xlsx-spreadsheet-container .x-spreadsheet-scrollbar.horizontal > div {
-  background: rgba(255, 255, 255, 0.15);
+  background: var(--fp-scrollbar-thumb);
+  border-radius: 4px;
+  transition: background-color 120ms ease;
+}
+
+.rfp-root .xlsx-spreadsheet-container .x-spreadsheet-scrollbar.vertical > div:hover,
+.rfp-root .xlsx-spreadsheet-container .x-spreadsheet-scrollbar.horizontal > div:hover {
+  background: var(--fp-scrollbar-thumb-hover);
 }
 
 /* Light 主题 xlsx 滚动条 */
 .rfp-root[data-theme="light"] .xlsx-spreadsheet-container .x-spreadsheet-scrollbar {
-  background-color: rgba(0, 0, 0, 0.05);
+  background-color: var(--fp-scrollbar-track);
 }
 
 .rfp-root[data-theme="light"] .xlsx-spreadsheet-container .x-spreadsheet-scrollbar.vertical > div,
 .rfp-root[data-theme="light"] .xlsx-spreadsheet-container .x-spreadsheet-scrollbar.horizontal > div {
-  background: rgba(0, 0, 0, 0.2);
+  background: var(--fp-scrollbar-thumb);
 }
 
 /* 移动端优化 */
@@ -896,6 +919,12 @@
   --fp-line-strong:  rgb(255 255 255 / 0.2);
   --fp-divide:       rgb(255 255 255 / 0.1);
 
+  /* 滚动条 */
+  --fp-scrollbar-track:      rgb(0 0 0 / 0.28);
+  --fp-scrollbar-thumb:      rgb(255 255 255 / 0.42);
+  --fp-scrollbar-thumb-hover: rgb(255 255 255 / 0.62);
+  --fp-scrollbar-thumb-active: rgb(255 255 255 / 0.72);
+
   /* 品牌强调色 */
   --fp-accent:        rgb(99 102 241);
   --fp-accent-hover:  rgb(129 140 248);
@@ -938,6 +967,11 @@
   --fp-line:         rgb(0 0 0 / 0.1);
   --fp-line-strong:  rgb(0 0 0 / 0.18);
   --fp-divide:       rgb(0 0 0 / 0.08);
+
+  --fp-scrollbar-track:      rgb(0 0 0 / 0.08);
+  --fp-scrollbar-thumb:      rgb(0 0 0 / 0.32);
+  --fp-scrollbar-thumb-hover: rgb(0 0 0 / 0.5);
+  --fp-scrollbar-thumb-active: rgb(0 0 0 / 0.6);
 
   --fp-spinner-track: rgb(0 0 0 / 0.1);
   --fp-spinner-head:  rgb(23 23 23 / 0.85);

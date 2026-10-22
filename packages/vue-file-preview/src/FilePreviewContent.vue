@@ -17,7 +17,7 @@ import {
   type ShouldFetchAsBlob,
 } from '@eternalheart/file-preview-core';
 import type { CustomRenderer, CustomRendererContext } from './types';
-import { provideLocale, useTranslator } from './composables/useTranslator';
+import { provideLocale } from './composables/useTranslator';
 import { provideResolvedTheme } from './composables/useResolvedTheme';
 import { provideRequestContext, useResolvedUrl, useFetcher } from './composables/useRequest';
 import { useThemeMode } from './composables/useThemeMode';
@@ -97,8 +97,7 @@ const emit = defineEmits<{
   (e: 'custom-event', payload: CustomRendererEventPayload): void;
 }>();
 
-provideLocale(toRef(props, 'locale'), toRef(props, 'messages'));
-const { t } = useTranslator();
+const { t, locale } = provideLocale(toRef(props, 'locale'), toRef(props, 'messages'));
 
 const resolvedTheme = useThemeMode(toRef(props, 'theme'));
 provideResolvedTheme(resolvedTheme);
@@ -190,7 +189,7 @@ const customCtx = computed<CustomRendererContext>(() => ({
   emit: emitCustom,
   t: t.value,
   theme: resolvedTheme.value,
-  locale: (props.locale ?? 'zh-CN') as Locale,
+  locale: locale.value,
 }));
 
 // 通过 provide 暴露给深层子组件 inject 使用

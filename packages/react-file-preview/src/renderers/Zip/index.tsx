@@ -1,3 +1,4 @@
+import { PreviewError } from '@eternalheart/file-preview-core';
 import { useState, useEffect, useMemo, useCallback, useRef, lazy, Suspense, forwardRef, useImperativeHandle } from 'react';
 import React from 'react';
 import { createPortal } from 'react-dom';
@@ -199,7 +200,7 @@ export const ZipRenderer = forwardRef<RendererHandle, ZipRendererProps>(({ url, 
         setLoading(true);
         setError(null);
         const res = await fetcher(url);
-        if (!res.ok) throw new Error('加载失败');
+        if (!res.ok) throw new PreviewError('common.load_failed');
         const buf = await res.arrayBuffer();
         const z = await loadZip(buf);
         if (cancelled) return;
@@ -312,7 +313,7 @@ export const ZipRenderer = forwardRef<RendererHandle, ZipRendererProps>(({ url, 
       } catch (err) {
         console.error(err);
         if (selectionIdRef.current === selectionId) {
-          setPreviewError(t('zip.load_failed'));
+          setPreviewError(t('zip.entry_read_failed'));
           splitRef.current?.switchTab('right');
         }
       } finally {
@@ -375,7 +376,7 @@ export const ZipRenderer = forwardRef<RendererHandle, ZipRendererProps>(({ url, 
     <div className="rfp-w-full rfp-h-full rfp-flex rfp-flex-col">
       {!selected && !previewLoading && !previewError && (
         <div className="rfp-flex-1 rfp-flex rfp-items-center rfp-justify-center rfp-text-fg-muted rfp-text-sm rfp-p-6">
-          从左侧选择一个文件以预览
+          {t('zip.select_file')}
         </div>
       )}
       {!selected && previewLoading && (
@@ -428,8 +429,8 @@ export const ZipRenderer = forwardRef<RendererHandle, ZipRendererProps>(({ url, 
         maxLeftWidth={560}
         storageKey="rfp-zip-split-left"
         mobileTabMode
-        leftTabLabel="文件树"
-        rightTabLabel="预览"
+        leftTabLabel={t('zip.file_tree')}
+        rightTabLabel={t('toolbar.preview')}
       />
       {/* 文件名 hover tooltip（portal 到 body，避免被滚动区裁剪） */}
       {hoverTip &&

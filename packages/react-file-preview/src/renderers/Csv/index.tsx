@@ -142,7 +142,7 @@ export const CsvRenderer = forwardRef<RendererHandle, CsvRendererProps>(({ url, 
       } catch (err: any) {
         if (err.name === 'AbortError') return;
         if (isMounted) {
-          console.error('CSV 解析错误:', err);
+          console.error(t('csv.parse_failed') + ':', err);
           setError(t('csv.load_failed'));
           setLoading(false);
         }

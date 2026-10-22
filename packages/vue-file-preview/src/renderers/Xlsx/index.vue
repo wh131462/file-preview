@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { PreviewError, translateError } from '@eternalheart/file-preview-core';
 import type { RendererHandle } from '../base.types';
 import type { ToolbarGroup } from '../toolbar.types';
 
@@ -23,7 +24,7 @@ async function loadXlsxWorkbook(data: Uint8Array): Promise<ExcelJS.Workbook> {
     return await new ExcelJS.Workbook().xlsx.load(data.slice().buffer as ArrayBuffer);
   } catch (error) {
     if (error instanceof TypeError && /sheets/i.test(error.message)) {
-      throw new Error('Excel 文件格式无效或已损坏');
+      throw new PreviewError('xlsx.invalid_format');
     }
     throw error;
   }
@@ -101,21 +102,21 @@ const loadExcel = async () => {
 
     if (!response.ok) {
       if (response.status === 404) throw new Error(t.value('xlsx.not_found'));
-      if (response.status === 403) throw new Error('无权限访问此文件');
-      throw new Error(`文件加载失败 (${response.status})`);
+      if (response.status === 403) throw new PreviewError('file.forbidden');
+      throw new PreviewError('file.load_failed_status', { status: response.status });
     }
 
     const excelBuffer = normalizeExcelBuffer(await response.arrayBuffer());
 
     if (excelBuffer.byteLength === 0) {
-      throw new Error('文件为空');
+      throw new PreviewError('file.empty');
     }
 
     let data: XSheetData[];
     if (isLegacyXls(excelBuffer)) {
       const legacyWorkbook = parseLegacyXls(excelBuffer);
       if (!legacyWorkbook || !Array.isArray(legacyWorkbook.sheets)) {
-        throw new Error('Invalid legacy Excel workbook data');
+        throw new PreviewError('xlsx.invalid_legacy_data');
       }
       data = convertLegacyXlsToSpreadsheetData(legacyWorkbook);
     } else {
@@ -129,9 +130,9 @@ const loadExcel = async () => {
     mountSpreadsheet();
     loading.value = false;
   } catch (err) {
-    console.error('Excel 解析错误:', err);
+    console.error(t.value('xlsx.parse_failed') + ':', err);
     let errorMsg = t.value('xlsx.parse_failed');
-    if (err instanceof Error) errorMsg = err.message;
+    if (err instanceof Error) errorMsg = translateError(t.value, err);
     error.value = errorMsg;
     loading.value = false;
   }

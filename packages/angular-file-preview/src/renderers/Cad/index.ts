@@ -1,3 +1,4 @@
+import { PreviewError } from '../../fp-core';
 import {
   afterNextRender,
   ChangeDetectionStrategy,
@@ -85,7 +86,7 @@ export class CadRenderer implements RendererHandle {
 
   private readonly locale = inject(LocaleService, { optional: true });
   private readonly request = inject(RequestService, { optional: true });
-  protected readonly t = this.locale?.t() ?? getFallbackTranslator();
+  protected readonly t = this.locale?.translate ?? getFallbackTranslator();
   private readonly container = viewChild<ElementRef<HTMLDivElement>>('containerRef');
   private readonly toolbarEmitter = new ToolbarEventEmitter();
   private readonly mounted = signal(false);
@@ -417,7 +418,7 @@ export class CadRenderer implements RendererHandle {
       ? file.arrayBuffer()
       : fetcher(this.url(), { signal: this.abortController?.signal }).then(response => {
           if (this.isCleanedUp) return undefined;
-          if (!response.ok) throw new Error('Failed to fetch file');
+          if (!response.ok) throw new PreviewError('file.load_failed');
           return response.arrayBuffer();
         });
 

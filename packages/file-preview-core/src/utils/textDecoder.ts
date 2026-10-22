@@ -1,3 +1,4 @@
+import { PreviewError } from '../i18n';
 import type { Fetcher } from '../types';
 
 /**
@@ -85,7 +86,7 @@ export async function fetchTextUtf8(
   const mergedInit = signal ? { ...init, signal } : init;
 
   const res = await fetcher(url, mergedInit);
-  if (!res.ok) throw new Error(`请求失败: ${res.status}`);
+  if (!res.ok) throw new PreviewError('request.failed', { status: res.status });
   const buf = await res.arrayBuffer();
   return decodeText(buf);
 }

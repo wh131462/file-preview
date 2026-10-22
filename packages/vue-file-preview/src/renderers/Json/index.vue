@@ -150,7 +150,7 @@ const JsonNode = defineComponent({
     const expanded = ref(props.defaultExpanded);
     const toggle = () => { expanded.value = !expanded.value; };
     const injected = inject(LOCALE_KEY, null);
-    const tFunc = computed<Translator>(() => injected?.t.value ?? createTranslator({ locale: 'zh-CN' }));
+    const tFunc = computed<Translator>(() => injected?.t.value ?? createTranslator({ locale: 'en-US' }));
     const resolvedTheme = useResolvedTheme();
     const colors = computed<JsonColors>(() => pickColors(resolvedTheme.value));
     return { expanded, toggle, tFunc, colors };

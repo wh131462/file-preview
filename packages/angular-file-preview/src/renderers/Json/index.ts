@@ -134,7 +134,7 @@ export class JsonNode {
 
   private readonly locale = inject(LocaleService, { optional: true });
   private readonly themeService = inject(ThemeService, { optional: true });
-  protected readonly t = this.locale?.t() ?? getFallbackTranslator();
+  protected readonly t = this.locale?.translate ?? getFallbackTranslator();
 
   protected readonly chevronRight = ChevronRight;
   protected readonly chevronDown = ChevronDown;
@@ -281,7 +281,7 @@ export class JsonRenderer implements RendererHandle {
 
   private readonly locale = inject(LocaleService, { optional: true });
   private readonly request = inject(RequestService, { optional: true });
-  protected readonly t = this.locale?.t() ?? getFallbackTranslator();
+  protected readonly t = this.locale?.translate ?? getFallbackTranslator();
 
   readonly data = signal<unknown>(null);
   readonly loading = signal(true);

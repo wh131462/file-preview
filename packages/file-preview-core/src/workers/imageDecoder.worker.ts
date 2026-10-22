@@ -7,9 +7,10 @@
  * 消息协议：
  * - 接收：{ id: string, mimeType: string, buffer: ArrayBuffer, options?: DecodeOptions }
  * - 返回成功：{ id: string, success: true, data: ArrayBuffer, mimeType: string }
- * - 返回失败：{ id: string, success: false, error: string }
+ * - 返回失败：{ id: string, success: false, error: PreviewErrorDetail }
  */
 
+import { PreviewError, serializeError, type PreviewErrorDetail } from '../i18n';
 import type { DecodeOptions } from '../loaders/types';
 
 declare const self: DedicatedWorkerGlobalScope;
@@ -31,7 +32,7 @@ interface DecodeSuccessResponse {
 interface DecodeErrorResponse {
   id: string;
   success: false;
-  error: string;
+  error: PreviewErrorDetail;
 }
 
 type DecodeResponse = DecodeSuccessResponse | DecodeErrorResponse;
@@ -69,7 +70,7 @@ self.onmessage = async (event: MessageEvent<DecodeRequest>) => {
       const response: DecodeErrorResponse = {
         id,
         success: false,
-        error: `不支持的 MIME 类型: ${mimeType}`,
+        error: serializeError(new PreviewError('image.unsupported_mime', { type: mimeType })),
       };
       self.postMessage(response);
       return;
@@ -91,7 +92,7 @@ self.onmessage = async (event: MessageEvent<DecodeRequest>) => {
     const response: DecodeErrorResponse = {
       id,
       success: false,
-      error: error?.message || '解码失败',
+      error: serializeError(error || new PreviewError('image.decode_failed')),
     };
     self.postMessage(response);
   }

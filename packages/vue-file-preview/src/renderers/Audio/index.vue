@@ -83,7 +83,7 @@ defineExpose<RendererHandle>({
 </script>
 
 <template>
-  <RendererError v-if="error" :message="error" />
+  <RendererError v-if="error" :message="t(error)" />
 
   <div
     v-else

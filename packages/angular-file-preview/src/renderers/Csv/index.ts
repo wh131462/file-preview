@@ -66,7 +66,7 @@ export class CsvRenderer implements RendererHandle {
   private readonly locale = inject(LocaleService, { optional: true });
   private readonly request = inject(RequestService, { optional: true });
   private readonly destroyRef = inject(DestroyRef);
-  protected readonly t = this.locale?.t() ?? getFallbackTranslator();
+  protected readonly t = this.locale?.translate ?? getFallbackTranslator();
 
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
@@ -194,7 +194,7 @@ export class CsvRenderer implements RendererHandle {
       this.mountSpreadsheet();
       this.loading.set(false);
     } catch (err) {
-      console.error('CSV 解析错误:', err);
+      console.error(this.t('csv.parse_failed') + ':', err);
       this.error.set(this.t('csv.load_failed'));
       this.loading.set(false);
     }

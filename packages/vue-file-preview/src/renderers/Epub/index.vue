@@ -260,7 +260,7 @@ const loadEpub = async () => {
       }
     });
   } catch (err) {
-    console.error('EPUB 加载错误:', err);
+    console.error(t.value('epub.load_failed') + ':', err);
     error.value = t.value('epub.load_failed');
     loading.value = false;
   }

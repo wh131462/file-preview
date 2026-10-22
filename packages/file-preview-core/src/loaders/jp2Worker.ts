@@ -1,4 +1,5 @@
 /// <reference lib="webworker" />
+import { PreviewError, serializeError, type PreviewErrorDetail } from '../i18n';
 
 /**
  * JPEG 2000 解码 Worker
@@ -31,7 +32,7 @@ interface DecodeResult {
 interface DecodeError {
   id: number;
   ok: false;
-  error: string;
+  error: PreviewErrorDetail;
 }
 
 function tilesToRgba(
@@ -71,7 +72,7 @@ function decodeWithJpeg2000(
   const mod: any = jpegModule;
   const JpxImage = mod.JpxImage || mod.default?.JpxImage;
   if (typeof JpxImage !== 'function') {
-    throw new Error('jpeg2000 库 API 不符合预期：未找到 JpxImage');
+    throw new PreviewError('image.jp2_invalid_api');
   }
 
   const jpx = new JpxImage();
@@ -113,7 +114,7 @@ async function loadOpenJpegModule(): Promise<any> {
           ? OpenJPEGFactory
           : (OpenJPEGFactory as any)?.default || OpenJPEGFactory;
       if (typeof factory !== 'function') {
-        throw new Error('@cornerstonejs/codec-openjpeg 库 API 不符合预期：未找到工厂函数');
+        throw new PreviewError('image.openjpeg_invalid_api');
       }
       return await factory();
     })();
@@ -181,7 +182,7 @@ async function decodeWithOpenJpeg(
 ): Promise<{ rgba: Uint8ClampedArray; width: number; height: number }> {
   const Module = await loadOpenJpegModule();
   if (!Module || typeof Module.J2KDecoder !== 'function') {
-    throw new Error('@cornerstonejs/codec-openjpeg 未暴露 J2KDecoder');
+    throw new PreviewError('image.openjpeg_no_decoder');
   }
   const decoder = new Module.J2KDecoder();
   try {
@@ -204,7 +205,7 @@ async function decodeWithOpenJpeg(
 
 self.onmessage = async (e: MessageEvent<DecodeRequest>) => {
   const { id, codestream } = e.data;
-  const errors: string[] = [];
+  const errors: PreviewErrorDetail[] = [];
 
   try {
     const r = decodeWithJpeg2000(codestream);
@@ -212,7 +213,7 @@ self.onmessage = async (e: MessageEvent<DecodeRequest>) => {
     (self as DedicatedWorkerGlobalScope).postMessage(result, [r.rgba.buffer]);
     return;
   } catch (err: any) {
-    errors.push(`jpeg2000: ${err?.message || '未知错误'}`);
+    errors.push(serializeError(new PreviewError('image.decoder_failed', { decoder: 'jpeg2000' }, err || new PreviewError('common.unknown_error'))));
   }
 
   try {
@@ -221,10 +222,10 @@ self.onmessage = async (e: MessageEvent<DecodeRequest>) => {
     (self as DedicatedWorkerGlobalScope).postMessage(result, [r.rgba.buffer]);
     return;
   } catch (err: any) {
-    errors.push(`openjpeg: ${err?.message || '未知错误'}`);
+    errors.push(serializeError(new PreviewError('image.decoder_failed', { decoder: 'openjpeg' }, err || new PreviewError('common.unknown_error'))));
   }
 
-  const errResult: DecodeError = { id, ok: false, error: errors.join('；') };
+  const errResult: DecodeError = { id, ok: false, error: errors };
   (self as DedicatedWorkerGlobalScope).postMessage(errResult);
 };
 

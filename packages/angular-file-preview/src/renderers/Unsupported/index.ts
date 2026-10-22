@@ -39,7 +39,7 @@ export class UnsupportedRenderer implements RendererHandle {
   protected readonly fileQuestion = FileQuestion;
   protected readonly downloadIcon = Download;
   private readonly locale = inject(LocaleService, { optional: true });
-  protected readonly t = this.locale?.t() ?? getFallbackTranslator();
+  protected readonly t = this.locale?.translate ?? getFallbackTranslator();
 
   getToolbarGroups(): ToolbarGroup[] {
     return [];

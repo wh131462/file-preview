@@ -216,7 +216,7 @@ export class AudioRenderer implements RendererHandle {
   private readonly emitter = new ToolbarEventEmitter();
   private readonly locale = inject(LocaleService, { optional: true });
   private readonly destroyRef = inject(DestroyRef);
-  protected readonly t = this.locale?.t() ?? getFallbackTranslator();
+  protected readonly t = this.locale?.translate ?? getFallbackTranslator();
   protected readonly formatTime = formatTime;
   protected readonly Math = Math;
 

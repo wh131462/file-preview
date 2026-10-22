@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { PreviewError, translateError } from '@eternalheart/file-preview-core';
 import type { RendererHandle } from '../base.types';
 import type { ToolbarGroup } from '../toolbar.types';
 
@@ -87,13 +88,13 @@ const loadPptx = async () => {
 
     if (!response.ok) {
       if (response.status === 404) throw new Error(t.value('pptx.not_found'));
-      if (response.status === 403) throw new Error('无权限访问此文件');
-      if (response.status >= 500) throw new Error('服务器错误，请稍后重试');
-      throw new Error(`文件加载失败 (${response.status})`);
+      if (response.status === 403) throw new PreviewError('file.forbidden');
+      if (response.status >= 500) throw new PreviewError('file.server_error');
+      throw new PreviewError('file.load_failed_status', { status: response.status });
     }
 
     const arrayBuffer = await response.arrayBuffer();
-    if (arrayBuffer.byteLength === 0) throw new Error('文件为空');
+    if (arrayBuffer.byteLength === 0) throw new PreviewError('file.empty');
 
     arrayBufferRef = arrayBuffer;
     slideRatio = (await readPptxSlideSize(arrayBuffer)).ratio;
@@ -150,7 +151,7 @@ const loadPptx = async () => {
   } catch (err) {
     if (timeoutId !== null) clearTimeout(timeoutId);
     let errorMsg = t.value('pptx.parse_failed');
-    if (err instanceof Error) errorMsg = err.message;
+    if (err instanceof Error) errorMsg = translateError(t.value, err);
     else if (typeof err === 'string') errorMsg = err;
     error.value = errorMsg;
     loading.value = false;

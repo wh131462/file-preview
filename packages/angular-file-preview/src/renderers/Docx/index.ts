@@ -1,3 +1,4 @@
+import { PreviewError } from '../../fp-core';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -66,7 +67,7 @@ export class DocxRenderer implements RendererHandle {
   private readonly locale = inject(LocaleService, { optional: true });
   private readonly request = inject(RequestService, { optional: true });
   private readonly sanitizer = inject(DomSanitizer);
-  protected readonly t = this.locale?.t() ?? getFallbackTranslator();
+  protected readonly t = this.locale?.translate ?? getFallbackTranslator();
 
   readonly html = signal('');
   readonly loading = signal(true);
@@ -136,7 +137,7 @@ export class DocxRenderer implements RendererHandle {
     try {
       const fetcher = this.request?.fetcher() ?? ((u: string, init?: RequestInit) => fetch(u, init));
       const response = await fetcher(this.url());
-      if (!response.ok) throw new Error('文件加载失败');
+      if (!response.ok) throw new PreviewError('file.load_failed');
       const arrayBuffer = await response.arrayBuffer();
       const [converted, theme] = await Promise.all([
         mammoth.convertToHtml({ arrayBuffer }, { styleMap: DOCX_MAMMOTH_STYLE_MAP }),
@@ -145,7 +146,7 @@ export class DocxRenderer implements RendererHandle {
       this.theme.set(theme);
       this.html.set(converted.value);
     } catch (err) {
-      console.error('Docx 解析错误:', err);
+      console.error(this.t('docx.parse_failed') + ':', err);
       this.error.set(this.t('docx.parse_failed'));
     } finally {
       this.loading.set(false);

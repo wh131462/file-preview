@@ -1,3 +1,4 @@
+import { useTranslator } from '../i18n/LocaleContext';
 import React, { useEffect, useImperativeHandle, useRef, useState, useCallback, forwardRef } from 'react';
 
 export interface ResizableSplitProps {
@@ -49,9 +50,10 @@ export const ResizableSplit = forwardRef<ResizableSplitHandle, ResizableSplitPro
   desktopMedia = '(min-width: 768px)',
   className = '',
   mobileTabMode = false,
-  leftTabLabel = '文件树',
-  rightTabLabel = '预览',
+  leftTabLabel,
+  rightTabLabel,
 }, ref) => {
+  const t = useTranslator();
   const containerRef = useRef<HTMLDivElement>(null);
   const [leftWidth, setLeftWidth] = useState<number>(() => {
     if (storageKey && typeof window !== 'undefined') {
@@ -150,7 +152,7 @@ export const ResizableSplit = forwardRef<ResizableSplitHandle, ResizableSplitPro
                 : 'rfp-text-fg-secondary'
             }`}
           >
-            {leftTabLabel}
+            {leftTabLabel ?? t('zip.file_tree')}
           </button>
           <button
             type="button"
@@ -161,7 +163,7 @@ export const ResizableSplit = forwardRef<ResizableSplitHandle, ResizableSplitPro
                 : 'rfp-text-fg-secondary'
             }`}
           >
-            {rightTabLabel}
+            {rightTabLabel ?? t('toolbar.preview')}
           </button>
         </div>
         <div

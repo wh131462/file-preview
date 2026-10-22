@@ -1,3 +1,4 @@
+import { PreviewError } from '@eternalheart/file-preview-core';
 import { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { renderLegacyDocHtml } from '@eternalheart/file-preview-core';
 import { useTranslator } from '../../i18n/LocaleContext';
@@ -25,11 +26,11 @@ export const DocRenderer = forwardRef<RendererHandle, DocRendererProps>(({ url }
       setHtml('');
       try {
         const response = await fetcher(url);
-        if (!response.ok) throw new Error('load failed');
+        if (!response.ok) throw new PreviewError('file.load_failed');
         const buffer = await response.arrayBuffer();
         setHtml(await renderLegacyDocHtml(buffer));
       } catch (err) {
-        console.error('Doc 解析错误:', err);
+        console.error(t('doc.parse_failed') + ':', err);
         setError(t('doc.parse_failed'));
       } finally {
         setLoading(false);

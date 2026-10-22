@@ -62,7 +62,7 @@ export class XmlRenderer implements RendererHandle {
   private readonly locale = inject(LocaleService, { optional: true });
   private readonly request = inject(RequestService, { optional: true });
   private readonly sanitizer = inject(DomSanitizer);
-  protected readonly t = this.locale?.t() ?? getFallbackTranslator();
+  protected readonly t = this.locale?.translate ?? getFallbackTranslator();
 
   readonly content = signal('');
   readonly loading = signal(true);

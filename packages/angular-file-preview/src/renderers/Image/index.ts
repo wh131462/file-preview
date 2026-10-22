@@ -1,3 +1,4 @@
+import { PreviewError, translateError } from '../../fp-core';
 import {
   afterNextRender,
   ChangeDetectionStrategy,
@@ -50,7 +51,7 @@ import type { ToolbarGroup } from '../toolbar.types';
           <div class="afp-renderer-loading-content">
             <div class="afp-renderer-spinner"></div>
             <p class="afp-renderer-loading-text afp-text-fg-secondary">
-              {{ t('common.loading') }}
+              {{ t('image.decoding') }}
               @if (decodeProgress() > 0) {
                 <span>{{ Math.round(decodeProgress()) }}%</span>
               }
@@ -135,7 +136,7 @@ export class ImageRenderer implements RendererHandle {
   private readonly locale = inject(LocaleService, { optional: true });
   private readonly request = inject(RequestService, { optional: true });
   private readonly destroyRef = inject(DestroyRef);
-  protected readonly t = this.locale?.t() ?? getFallbackTranslator();
+  protected readonly t = this.locale?.translate ?? getFallbackTranslator();
   protected readonly Math = Math;
 
   readonly zoom = signal(1);
@@ -351,7 +352,7 @@ export class ImageRenderer implements RendererHandle {
       } else {
         const fetcher = this.request?.fetcher() ?? ((u: string, init?: RequestInit) => fetch(u, init));
         const response = await fetcher(this.url());
-        if (!response.ok) throw new Error('Failed to fetch file');
+        if (!response.ok) throw new PreviewError('file.load_failed');
         fileBlob = await response.blob();
       }
 
@@ -401,7 +402,7 @@ export class ImageRenderer implements RendererHandle {
       this.imageSrc.set(url);
       this.decoding.set(false);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : this.t('image.decode_failed');
+      const message = translateError(this.t, err) || this.t('image.decode_failed');
       this.decodeError.set(message || this.t('image.decode_failed'));
       this.decoding.set(false);
     }
@@ -439,7 +440,7 @@ export class ImageRenderer implements RendererHandle {
       this.imageSrc.set(url);
       this.decoding.set(false);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : this.t('image.decode_failed');
+      const message = translateError(this.t, err) || this.t('image.decode_failed');
       this.decodeError.set(message || this.t('image.decode_failed'));
       this.decoding.set(false);
     }

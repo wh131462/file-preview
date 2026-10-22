@@ -1,3 +1,4 @@
+import { PreviewError } from '../i18n';
 import type { ImageDecoder, DecodeOptions, ImageMetadata } from './types';
 
 /**
@@ -148,7 +149,7 @@ class RawLoader implements ImageDecoder {
       if (jpegBlob) {
         return jpegBlob;
       }
-      throw new Error('未在 RAW 文件中找到嵌入的预览图像（该文件可能已被剥离 JPEG 预览）。');
+      throw new PreviewError('image.raw_no_preview');
     }
 
     // 完整模式：当前版本未集成 RAW 完整解码引擎
@@ -158,7 +159,7 @@ class RawLoader implements ImageDecoder {
     if (jpegBlob) {
       return jpegBlob;
     }
-    throw new Error('完整 RAW 解码暂未实现，且无法提取嵌入预览图。');
+    throw new PreviewError('image.raw_not_implemented');
   }
 
   async getMetadata(_file: Blob | ArrayBuffer): Promise<ImageMetadata> {

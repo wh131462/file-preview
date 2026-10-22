@@ -1,3 +1,4 @@
+import { PreviewError } from '@eternalheart/file-preview-core';
 import React, { useState, useEffect, useRef, useCallback, forwardRef, useImperativeHandle } from 'react';
 import { parse } from 'opentype.js';
 import type { Font as OpentypeFont } from 'opentype.js';
@@ -38,12 +39,6 @@ interface FontMetadata {
   glyphCount: number;
   format: string;
 }
-
-const DEFAULT_SAMPLES = {
-  latin: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ\nabcdefghijklmnopqrstuvwxyz\n0123456789 .,;:!?@#$%&*()[]{}',
-  chinese: '春夏秋冬东南西北天地人和风雨雷电山水日月',
-  mixed: 'The Quick Brown Fox Jumps Over The Lazy Dog\n敏捷的棕色狐狸跳过了懒狗',
-};
 
 const SIZES = [72, 48, 36, 24, 18];
 
@@ -118,12 +113,12 @@ export const FontRenderer = forwardRef<RendererHandle, FontRendererProps>(({ url
     ): Promise<void> => {
       if (magic === 'woff2') {
         // 直接标记为不可用,但保留 format 信息
-        throw new Error('WOFF2 metadata parsing intentionally skipped');
+        throw new PreviewError('font.metadata_skipped');
       }
 
       const fontData = parse(arrayBuffer) as unknown as OpentypeFont;
       if (!fontData) {
-        throw new Error('Font data is invalid');
+        throw new PreviewError('font.invalid_data');
       }
 
       // opentype.js 2.x 的 names 嵌在 platform 表下,优先 windows / macintosh / unicode,再回退 1.x 平铺
@@ -164,7 +159,7 @@ export const FontRenderer = forwardRef<RendererHandle, FontRendererProps>(({ url
 
         const response = await fetcher(url);
         if (!response.ok) {
-          throw new Error('Failed to load font file');
+          throw new PreviewError('font.load_failed');
         }
         const arrayBuffer = await response.arrayBuffer();
         if (!mounted) return;
@@ -246,7 +241,7 @@ export const FontRenderer = forwardRef<RendererHandle, FontRendererProps>(({ url
     return <RendererError message={error || t('font.parse_failed')} />;
   }
 
-  const displayText = customText || DEFAULT_SAMPLES.mixed;
+  const displayText = customText || t('font.sample_pangram');
   const metadataLoadingLabel = t('font.metadata_loading');
   const metadataUnavailableLabel = t('font.metadata_unavailable');
   const showMetaPlaceholder = metadataStatus !== 'ready';
@@ -333,10 +328,10 @@ export const FontRenderer = forwardRef<RendererHandle, FontRendererProps>(({ url
           {/* 字符集样例 */}
           <div className="rfp-space-y-6 rfp-pt-6 rfp-border-t rfp-border-line-weak rfp-min-w-0">
             <div className="rfp-min-w-0">
-              <div className="rfp-text-sm rfp-text-fg-tertiary rfp-mb-3">Latin Alphabet</div>
+              <div className="rfp-text-sm rfp-text-fg-tertiary rfp-mb-3">{t('font.latin_samples')}</div>
               <FontPreviewLine
                 font={font}
-                text={DEFAULT_SAMPLES.latin}
+                text={t('font.sample_latin')}
                 fontSize={24}
                 renderMode={canRenderCanvas ? 'canvas' : 'fontface'}
                 theme={resolvedTheme}
@@ -344,10 +339,10 @@ export const FontRenderer = forwardRef<RendererHandle, FontRendererProps>(({ url
             </div>
 
             <div className="rfp-min-w-0">
-              <div className="rfp-text-sm rfp-text-fg-tertiary rfp-mb-3">Chinese Characters</div>
+              <div className="rfp-text-sm rfp-text-fg-tertiary rfp-mb-3">{t('font.chinese_samples')}</div>
               <FontPreviewLine
                 font={font}
-                text={DEFAULT_SAMPLES.chinese}
+                text={t('font.sample_chinese')}
                 fontSize={24}
                 renderMode={canRenderCanvas ? 'canvas' : 'fontface'}
                 theme={resolvedTheme}

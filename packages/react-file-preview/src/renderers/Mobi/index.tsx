@@ -1,3 +1,4 @@
+import { PreviewError } from '@eternalheart/file-preview-core';
 import {
   useEffect,
   useRef,
@@ -56,7 +57,7 @@ async function renderInitialPage(renderer: { next?: () => Promise<void> }): Prom
       nextPromise,
       new Promise<never>((_, reject) => {
         timer = window.setTimeout(
-          () => reject(new Error('MOBI initial render timed out')),
+          () => reject(new PreviewError('mobi.timeout')),
           INITIAL_RENDER_TIMEOUT_MS,
         );
       }),
@@ -344,7 +345,7 @@ export const MobiRenderer = forwardRef<MobiRendererHandle, MobiRendererProps>(
 
           const res = await fetcher(url);
           if (cancelled) return;
-          if (!res.ok) throw new Error(`请求失败: ${res.status}`);
+          if (!res.ok) throw new PreviewError('request.failed', { status: res.status });
           const blob = await res.blob();
           if (cancelled) return;
           let name = 'book.mobi';

@@ -67,7 +67,7 @@ export class VideoRenderer implements RendererHandle {
   private readonly emitter = new ToolbarEventEmitter();
   private readonly locale = inject(LocaleService, { optional: true });
   private readonly destroyRef = inject(DestroyRef);
-  protected readonly t = this.locale?.t() ?? getFallbackTranslator();
+  protected readonly t = this.locale?.translate ?? getFallbackTranslator();
 
   readonly error = signal<ErrorState | null>(null);
   readonly isLoading = signal(true);

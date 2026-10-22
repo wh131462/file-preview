@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useTranslator } from '../composables/useTranslator';
 import { ref, computed, onBeforeUnmount, onMounted, watch } from 'vue';
 
 interface Props {
@@ -29,11 +30,10 @@ const props = withDefaults(defineProps<Props>(), {
   minRightWidth: 200,
   desktopMedia: '(min-width: 768px)',
   mobileTabMode: false,
-  leftTabLabel: '文件树',
-  rightTabLabel: '预览',
 });
 
 defineOptions({ name: 'ResizableSplit' });
+const { t } = useTranslator();
 
 const containerRef = ref<HTMLDivElement | null>(null);
 const leftWidth = ref<number>(
@@ -155,7 +155,7 @@ defineExpose({ switchTab });
             : 'vfp-text-fg-secondary'"
           @click="switchTab('left')"
         >
-          {{ leftTabLabel }}
+          {{ leftTabLabel ?? t('zip.file_tree') }}
         </button>
         <button
           type="button"
@@ -165,7 +165,7 @@ defineExpose({ switchTab });
             : 'vfp-text-fg-secondary'"
           @click="switchTab('right')"
         >
-          {{ rightTabLabel }}
+          {{ rightTabLabel ?? t('toolbar.preview') }}
         </button>
       </div>
       <div v-show="activeTab === 'left'" class="vfp-flex-1 vfp-min-h-0 vfp-min-w-0 vfp-w-full vfp-overflow-hidden">

@@ -12,7 +12,7 @@ interface FilePreviewModalProps {
   onClose: () => void;
   onNavigate?: (index: number) => void;
   customRenderers?: CustomRenderer[];
-  /** 国际化语言，默认 'zh-CN' */
+  /** 国际化语言，默认 'en-US' */
   locale?: Locale;
   /** 用户自定义翻译字典 */
   messages?: Partial<Record<Locale, Partial<Messages>>>;

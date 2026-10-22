@@ -74,7 +74,7 @@ export function useAudioPlayer({
     const onEnded = () => setIsPlaying(false);
 
     const onError = () => {
-      setError('音频加载失败');
+      setError('audio.load_failed');
       setIsLoading(false);
     };
 

@@ -1,3 +1,4 @@
+import { PreviewError } from '../../fp-core';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -47,12 +48,6 @@ const detectMagic = (buf: ArrayBuffer): DetectedFormat => {
   if (m === MAGIC_OTTO) return 'otf';
   if (m === MAGIC_TTF1 || m === MAGIC_TRUE) return 'ttf';
   return 'unknown';
-};
-
-const DEFAULT_SAMPLES = {
-  latin: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ\nabcdefghijklmnopqrstuvwxyz\n0123456789 .,;:!?@#$%&*()[]{}',
-  chinese: '春夏秋冬东南西北天地人和风雨雷电山水日月',
-  mixed: 'The Quick Brown Fox Jumps Over The Lazy Dog\n敏捷的棕色狐狸跳过了懒狗',
 };
 
 const SIZES = [72, 48, 36, 24, 18];
@@ -148,10 +143,10 @@ const SIZES = [72, 48, 36, 24, 18];
 
             <div class="afp-space-y-6 afp-pt-6 afp-border-t afp-border-line-weak afp-min-w-0">
               <div class="afp-min-w-0">
-                <div class="afp-text-sm afp-text-fg-tertiary afp-mb-3">Latin Alphabet</div>
+                <div class="afp-text-sm afp-text-fg-tertiary afp-mb-3">{{ t('font.latin_samples') }}</div>
                 <afp-font-preview-line
                   [font]="font()"
-                  [text]="samples.latin"
+                  [text]="t('font.sample_latin')"
                   [fontSize]="24"
                   [renderMode]="effectiveRenderMode()"
                   [theme]="resolvedTheme()"
@@ -159,10 +154,10 @@ const SIZES = [72, 48, 36, 24, 18];
               </div>
 
               <div class="afp-min-w-0">
-                <div class="afp-text-sm afp-text-fg-tertiary afp-mb-3">Chinese Characters</div>
+                <div class="afp-text-sm afp-text-fg-tertiary afp-mb-3">{{ t('font.chinese_samples') }}</div>
                 <afp-font-preview-line
                   [font]="font()"
-                  [text]="samples.chinese"
+                  [text]="t('font.sample_chinese')"
                   [fontSize]="24"
                   [renderMode]="effectiveRenderMode()"
                   [theme]="resolvedTheme()"
@@ -181,10 +176,9 @@ export class FontRenderer implements RendererHandle {
   private readonly locale = inject(LocaleService, { optional: true });
   private readonly request = inject(RequestService, { optional: true });
   private readonly theme = inject(ThemeService, { optional: true });
-  protected readonly t = this.locale?.t() ?? getFallbackTranslator();
+  protected readonly t = this.locale?.translate ?? getFallbackTranslator();
 
   protected readonly sizes = SIZES;
-  protected readonly samples = DEFAULT_SAMPLES;
 
   readonly font = signal<OpentypeFont | null>(null);
   readonly metadata = signal<FontMetadata | null>(null);
@@ -194,7 +188,7 @@ export class FontRenderer implements RendererHandle {
   readonly customText = signal('');
   readonly renderMode = signal<RenderMode>('fontface');
 
-  readonly displayText = computed(() => this.customText() || DEFAULT_SAMPLES.mixed);
+  readonly displayText = computed(() => this.customText() || this.t('font.sample_pangram'));
   readonly showMetaPlaceholder = computed(() => this.metadataStatus() !== 'ready');
   readonly metaPlaceholder = computed(() =>
     this.metadataStatus() === 'loading' ? this.t('font.metadata_loading') : this.t('font.metadata_unavailable'),
@@ -266,12 +260,12 @@ export class FontRenderer implements RendererHandle {
 
   private async loadMetadata(arrayBuffer: ArrayBuffer, magic: DetectedFormat): Promise<void> {
     if (magic === 'woff2') {
-      throw new Error('WOFF2 metadata parsing intentionally skipped');
+      throw new PreviewError('font.metadata_skipped');
     }
 
     const fontData = parse(arrayBuffer) as unknown as OpentypeFont;
     if (!fontData) {
-      throw new Error('Font data is invalid');
+      throw new PreviewError('font.invalid_data');
     }
 
     const rawNames = (fontData.names || {}) as unknown as Record<string, unknown>;
@@ -314,7 +308,7 @@ export class FontRenderer implements RendererHandle {
       const fetcher = this.request?.fetcher() ?? ((u: string, init?: RequestInit) => fetch(u, init));
       const response = await fetcher(this.url());
       if (!response.ok) {
-        throw new Error('Failed to load font file');
+        throw new PreviewError('font.load_failed');
       }
       const arrayBuffer = await response.arrayBuffer();
 

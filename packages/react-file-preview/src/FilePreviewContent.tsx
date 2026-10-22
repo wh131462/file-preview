@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useRef, useState, useEffect } from 'react';
 import { getFileType, createTranslator, resolveShowClose, type Locale, type Messages, type Translator, type Theme, downloadFileWithFetcher } from '@eternalheart/file-preview-core';
-import { LocaleProvider } from './i18n/LocaleContext';
+import { LocaleProvider, useLocale, useTranslator } from './i18n/LocaleContext';
 import { ThemeProvider } from './ThemeContext';
 import type { PreviewFileInput, CustomRenderer, CustomRendererContext } from './types';
 import type { CustomRendererEventPayload, PreviewFile, RequestHandler, RequestInitFactory, ShouldFetchAsBlob } from '@eternalheart/file-preview-core';
@@ -66,7 +66,7 @@ const FilePreviewContentInner: React.FC<FilePreviewContentProps> = ({
   mode = 'modal',
   onClose,
   zipNestingDepth = 0,
-  locale = 'zh-CN',
+  locale: localeProp,
   messages: userMessages,
   headless = false,
   theme = 'dark',
@@ -81,9 +81,14 @@ const FilePreviewContentInner: React.FC<FilePreviewContentProps> = ({
   requestHandler: _requestHandler,
   shouldFetchAsBlob: _shouldFetchAsBlob,
 }) => {
+  const parentLocale = useLocale();
+  const parentT = useTranslator();
+  const locale = localeProp ?? parentLocale;
   const t: Translator = useMemo(
-    () => createTranslator({ locale, messages: userMessages }),
-    [locale, userMessages],
+    () => userMessages === undefined && locale === parentLocale
+      ? parentT
+      : createTranslator({ locale, messages: userMessages }),
+    [locale, userMessages, parentLocale, parentT],
   );
 
   const normalizedFiles = useMemo(() => normalizeFiles(files), [files]);

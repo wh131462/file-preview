@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { PreviewError } from '@eternalheart/file-preview-core';
 import type { RendererHandle } from '../base.types';
 import type { ToolbarGroup } from '../toolbar.types';
 import { ref, watch } from 'vue';
@@ -24,11 +25,11 @@ const loadDoc = async () => {
   html.value = '';
   try {
     const response = await fetcher.value(props.url);
-    if (!response.ok) throw new Error('load failed');
+    if (!response.ok) throw new PreviewError('file.load_failed');
     const buffer = await response.arrayBuffer();
     html.value = await renderLegacyDocHtml(buffer);
   } catch (err) {
-    console.error('Doc 解析错误:', err);
+    console.error(t.value('doc.parse_failed') + ':', err);
     error.value = t.value('doc.parse_failed');
   } finally {
     loading.value = false;

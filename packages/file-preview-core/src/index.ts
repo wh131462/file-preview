@@ -115,7 +115,7 @@ export type { PdfWorkerOptions, PdfDocumentOptions } from './utils/pdfWorker';
 export { installUint8ArrayHexBase64Polyfill } from './utils/uint8ArrayPolyfill';
 
 // 导出 i18n 国际化
-export { createTranslator, builtInMessages } from './i18n';
+export { createTranslator, builtInMessages, PreviewError, translateError } from './i18n';
 export type {
   Locale,
   MessageKey,

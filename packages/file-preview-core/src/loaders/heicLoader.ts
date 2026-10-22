@@ -1,3 +1,4 @@
+import { PreviewError } from '../i18n';
 import type { ImageDecoder, DecodeOptions, ImageMetadata } from './types';
 
 /**
@@ -40,11 +41,11 @@ class HeicLoader implements ImageDecoder {
     } catch (error: any) {
       // DRM 保护或文件损坏
       if (error?.message?.includes('DRM') || error?.message?.includes('protected')) {
-        throw new Error('HEIC 解码失败，文件受 DRM 保护');
+        throw new PreviewError('image.heic_drm');
       }
 
       // 其他解码错误
-      throw new Error(`HEIC 解码失败，文件可能损坏: ${error?.message || '未知错误'}`);
+      throw new PreviewError('image.heic_decode_failed', undefined, error || new PreviewError('common.unknown_error'));
     }
   }
 

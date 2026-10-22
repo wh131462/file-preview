@@ -130,7 +130,7 @@ export const AudioRenderer = forwardRef<RendererHandle, AudioRendererProps>(({ u
   }), []);
 
   if (error) {
-    return <RendererError message={error} />;
+    return <RendererError message={t(error)} />;
   }
 
   return (

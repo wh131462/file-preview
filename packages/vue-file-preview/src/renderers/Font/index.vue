@@ -81,10 +81,10 @@
           <!-- 字符集样例 -->
           <div class="vfp-space-y-6 vfp-pt-6 vfp-border-t vfp-border-line-weak vfp-min-w-0">
             <div class="vfp-min-w-0">
-              <div class="vfp-text-sm vfp-text-fg-tertiary vfp-mb-3">Latin Alphabet</div>
+              <div class="vfp-text-sm vfp-text-fg-tertiary vfp-mb-3">{{ t('font.latin_samples') }}</div>
               <FontPreviewLine
                 :font="font"
-                :text="DEFAULT_SAMPLES.latin"
+                :text="t('font.sample_latin')"
                 :font-size="24"
                 :render-mode="effectiveRenderMode"
                 :theme="resolvedTheme"
@@ -92,10 +92,10 @@
             </div>
 
             <div class="vfp-min-w-0">
-              <div class="vfp-text-sm vfp-text-fg-tertiary vfp-mb-3">Chinese Characters</div>
+              <div class="vfp-text-sm vfp-text-fg-tertiary vfp-mb-3">{{ t('font.chinese_samples') }}</div>
               <FontPreviewLine
                 :font="font"
-                :text="DEFAULT_SAMPLES.chinese"
+                :text="t('font.sample_chinese')"
                 :font-size="24"
                 :render-mode="effectiveRenderMode"
                 :theme="resolvedTheme"
@@ -109,6 +109,7 @@
 </template>
 
 <script setup lang="ts">
+import { PreviewError } from '@eternalheart/file-preview-core';
 import type { RendererHandle } from '../base.types';
 import type { ToolbarGroup } from '../toolbar.types';
 
@@ -152,12 +153,6 @@ const detectMagic = (buf: ArrayBuffer): DetectedFormat => {
   return 'unknown';
 };
 
-const DEFAULT_SAMPLES = {
-  latin: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ\nabcdefghijklmnopqrstuvwxyz\n0123456789 .,;:!?@#$%&*()[]{}',
-  chinese: '春夏秋冬东南西北天地人和风雨雷电山水日月',
-  mixed: 'The Quick Brown Fox Jumps Over The Lazy Dog\n敏捷的棕色狐狸跳过了懒狗',
-};
-
 const SIZES = [72, 48, 36, 24, 18];
 
 const props = defineProps<{
@@ -178,7 +173,7 @@ const renderMode = ref<RenderMode>('fontface');
 
 let fontFace: FontFace | null = null;
 
-const displayText = computed(() => customText.value || DEFAULT_SAMPLES.mixed);
+const displayText = computed(() => customText.value || t.value('font.sample_pangram'));
 
 const showMetaPlaceholder = computed(() => metadataStatus.value !== 'ready');
 const metaPlaceholder = computed(() =>
@@ -227,12 +222,12 @@ const loadFontFace = async (faceBuffer: ArrayBuffer): Promise<void> => {
 // （opentype.js 不支持 Brotli;独立解压链路引入 emscripten wasm 与挂死风险,代价过大)
 const loadMetadata = async (arrayBuffer: ArrayBuffer, magic: DetectedFormat): Promise<void> => {
   if (magic === 'woff2') {
-    throw new Error('WOFF2 metadata parsing intentionally skipped');
+    throw new PreviewError('font.metadata_skipped');
   }
 
   const fontData = parse(arrayBuffer) as unknown as OpentypeFont;
   if (!fontData) {
-    throw new Error('Font data is invalid');
+    throw new PreviewError('font.invalid_data');
   }
 
   const rawNames = (fontData.names || {}) as unknown as Record<string, unknown>;
@@ -273,7 +268,7 @@ onMounted(async () => {
 
     const response = await fetcher.value(props.url);
     if (!response.ok) {
-      throw new Error('Failed to load font file');
+      throw new PreviewError('font.load_failed');
     }
     const arrayBuffer = await response.arrayBuffer();
 

@@ -1,3 +1,4 @@
+import { PreviewError } from '../i18n';
 import type { ImageDecoder, DecodeOptions, ImageMetadata } from './types';
 
 /**
@@ -70,7 +71,7 @@ class AvifLoader implements ImageDecoder {
       canvas.height = imageData.height;
       const ctx = canvas.getContext('2d');
       if (!ctx) {
-        throw new Error('无法创建 Canvas 2D 上下文');
+        throw new PreviewError('image.canvas_context_failed');
       }
       ctx.putImageData(imageData, 0, 0);
 
@@ -81,14 +82,14 @@ class AvifLoader implements ImageDecoder {
             if (blob) {
               resolve(blob);
             } else {
-              reject(new Error('AVIF Canvas 转换为 PNG 失败'));
+              reject(new PreviewError('image.canvas_export_failed', { format: 'AVIF', output: 'PNG' }));
             }
           },
           options?.outputFormat || 'image/png'
         );
       });
     } catch (error: any) {
-      throw new Error(`AVIF 解码失败: ${error?.message || '未知错误'}`);
+      throw new PreviewError('image.avif_decode_failed', undefined, error || new PreviewError('common.unknown_error'));
     }
   }
 

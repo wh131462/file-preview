@@ -189,7 +189,7 @@ export const PdfRenderer = forwardRef<PdfRendererHandle, PdfRendererProps>(({
       }
     } catch (err: any) {
       if (err?.name !== 'RenderingCancelledException') {
-        console.error(`渲染页面 ${pageNumber} 失败:`, err);
+        console.error(t('pdf.page_render_failed', { page: pageNumber }) + ':', err);
       }
     } finally {
       state.rendering = false;
@@ -372,7 +372,7 @@ export const PdfRenderer = forwardRef<PdfRendererHandle, PdfRendererProps>(({
           await buildOutlinePageMap(outlineData, pdfDoc);
         }
       } catch (err) {
-        console.warn('PDF 大纲提取失败:', err);
+        console.warn(t('pdf.outline_failed') + ':', err);
       }
 
       if (!isCurrentLoad()) {
@@ -384,7 +384,7 @@ export const PdfRenderer = forwardRef<PdfRendererHandle, PdfRendererProps>(({
       setIsLoading(false);
     } catch (err) {
       if (!isCurrentLoad()) return;
-      console.error('PDF 加载错误:', err);
+      console.error(t('pdf.load_failed') + ':', err);
       setError(t('pdf.load_failed'));
       setIsLoading(false);
     }
@@ -572,7 +572,7 @@ export const PdfRenderer = forwardRef<PdfRendererHandle, PdfRendererProps>(({
         setTimeout(() => onClose(), 300);
       }
     } catch (err) {
-      console.error('大纲跳转失败:', err);
+      console.error(t('pdf.outline_jump_failed') + ':', err);
     }
   }, []);
 

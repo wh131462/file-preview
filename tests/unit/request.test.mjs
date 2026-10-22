@@ -62,7 +62,7 @@ test('creates Blob URLs through an injected fetcher and rejects failed responses
 
   await assert.rejects(
     core.fetchAsBlobUrl('/missing', async () => new Response('', { status: 404 })),
-    /请求失败: 404/,
+    /Request failed: 404/,
   );
 });
 

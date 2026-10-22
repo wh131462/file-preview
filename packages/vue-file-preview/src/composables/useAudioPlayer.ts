@@ -61,7 +61,7 @@ export function useAudioPlayer(url: Ref<string>) {
     };
 
     const onError = () => {
-      error.value = '音频加载失败';
+      error.value = 'audio.load_failed';
       isLoading.value = false;
     };
 

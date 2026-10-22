@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { PreviewError } from '@eternalheart/file-preview-core';
 import { ref, computed, watch, onBeforeUnmount, defineAsyncComponent } from 'vue';
 import type JSZip from 'jszip';
 import {
@@ -78,7 +79,7 @@ const load = async () => {
   error.value = null;
   try {
     const res = await fetcher.value(props.url);
-    if (!res.ok) throw new Error('加载失败');
+    if (!res.ok) throw new PreviewError('common.load_failed');
     const buf = await res.arrayBuffer();
     const z = await loadZip(buf);
     const entries = listZipEntries(z);
@@ -154,7 +155,7 @@ const handleSelect = async (node: ZipTreeNode) => {
     splitRef.value?.switchTab('right');
   } catch (err) {
     console.error(err);
-    previewError.value = t.value('zip.load_failed');
+    previewError.value = t.value('zip.entry_read_failed');
     splitRef.value?.switchTab('right');
   } finally {
     previewLoading.value = false;
@@ -187,8 +188,8 @@ const previewFiles = computed(() => {
       :max-left-width="560"
       storage-key="vfp-zip-split-left"
       mobile-tab-mode
-      left-tab-label="文件树"
-      right-tab-label="预览"
+      :left-tab-label="t('zip.file_tree')"
+      :right-tab-label="t('toolbar.preview')"
     >
       <template #left>
         <div class="vfp-w-full vfp-h-full vfp-overflow-auto">
@@ -219,7 +220,7 @@ const previewFiles = computed(() => {
             <RendererError :message="previewError" />
           </div>
           <div v-else-if="!selected" class="vfp-flex-1 vfp-flex vfp-items-center vfp-justify-center vfp-text-fg-muted vfp-text-sm vfp-p-6">
-            从左侧选择一个文件以预览
+            {{ t('zip.select_file') }}
           </div>
           <template v-else>
             <div class="vfp-flex-1 vfp-min-h-0 vfp-overflow-hidden vfp-flex vfp-relative vfp-z-0">

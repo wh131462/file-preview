@@ -174,7 +174,7 @@ export class EpubRenderer implements RendererHandle {
   private readonly emitter = new ToolbarEventEmitter();
   private readonly locale = inject(LocaleService, { optional: true });
   private readonly request = inject(RequestService, { optional: true });
-  protected readonly t = this.locale?.t() ?? getFallbackTranslator();
+  protected readonly t = this.locale?.translate ?? getFallbackTranslator();
   private readonly viewer = viewChild<ElementRef<HTMLDivElement>>('viewerRef');
 
   protected readonly xIcon = X;
@@ -462,7 +462,7 @@ export class EpubRenderer implements RendererHandle {
         }
       });
     } catch (err) {
-      console.error('EPUB 加载错误:', err);
+      console.error(this.t('epub.load_failed') + ':', err);
       this.error.set(this.t('epub.load_failed'));
       this.loading.set(false);
     }

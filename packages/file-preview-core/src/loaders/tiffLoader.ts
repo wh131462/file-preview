@@ -1,3 +1,4 @@
+import { PreviewError } from '../i18n';
 import type { ImageDecoder, DecodeOptions, ImageMetadata } from './types';
 
 /**
@@ -33,7 +34,7 @@ class TiffLoader implements ImageDecoder {
       const ifds = UTIF.decode(arrayBuffer);
 
       if (ifds.length === 0) {
-        throw new Error('TIFF 文件不包含任何图像');
+        throw new PreviewError('image.tiff_empty');
       }
 
       // 默认渲染第 1 页（1-based）
@@ -52,7 +53,7 @@ class TiffLoader implements ImageDecoder {
       canvas.height = height;
       const ctx = canvas.getContext('2d');
       if (!ctx) {
-        throw new Error('无法创建 Canvas 2D 上下文');
+        throw new PreviewError('image.canvas_context_failed');
       }
 
       const imageData = new ImageData(new Uint8ClampedArray(rgba.buffer), width, height);
@@ -65,14 +66,14 @@ class TiffLoader implements ImageDecoder {
             if (blob) {
               resolve(blob);
             } else {
-              reject(new Error('TIFF Canvas 转换为 PNG 失败'));
+              reject(new PreviewError('image.canvas_export_failed', { format: 'TIFF', output: 'PNG' }));
             }
           },
           options?.outputFormat || 'image/png'
         );
       });
     } catch (error: any) {
-      throw new Error(`TIFF 解码失败: ${error?.message || '未知错误'}`);
+      throw new PreviewError('image.tiff_decode_failed', undefined, error || new PreviewError('common.unknown_error'));
     }
   }
 

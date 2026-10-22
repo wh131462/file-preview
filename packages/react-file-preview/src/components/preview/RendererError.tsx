@@ -1,6 +1,6 @@
 import React from 'react';
 import { AlertCircle, Download, RotateCw } from 'lucide-react';
-import type { Translator } from '@eternalheart/file-preview-core';
+import { translateError, type Translator } from '@eternalheart/file-preview-core';
 
 export interface RendererErrorProps {
   error: Error;
@@ -28,7 +28,7 @@ export const RendererError: React.FC<RendererErrorProps> = ({
         {t('common.unknown_error')}
       </h3>
       <p className="rfp-text-sm rfp-text-fg-secondary rfp-mb-1 rfp-max-w-md rfp-text-center">
-        {error.message}
+        {translateError(t, error)}
       </p>
       <p className="rfp-text-xs rfp-text-fg-tertiary rfp-mb-6 rfp-max-w-md rfp-text-center">
         {fileName}

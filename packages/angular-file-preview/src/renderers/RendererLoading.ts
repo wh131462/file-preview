@@ -17,5 +17,5 @@ import { LocaleService, getFallbackTranslator } from '../di/locale.service';
 })
 export class RendererLoading {
   private readonly locale = inject(LocaleService, { optional: true });
-  protected readonly t = this.locale?.t() ?? getFallbackTranslator();
+  protected readonly t = this.locale?.translate ?? getFallbackTranslator();
 }

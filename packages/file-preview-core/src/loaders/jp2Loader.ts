@@ -1,3 +1,4 @@
+import { PreviewError, type PreviewErrorDetail } from '../i18n';
 import type { ImageDecoder, DecodeOptions, ImageMetadata } from './types';
 // Vite 特有语法：`?worker&inline` 把 worker 代码（含 jpeg2000/openjpeg 依赖）
 // 在 build 时打包并以 base64 内联到当前 chunk，运行时通过 Blob URL 启动。
@@ -110,18 +111,18 @@ function getWorker(): Worker {
     w.addEventListener('message', (e: MessageEvent) => {
       const data = e.data as
         | { id: number; ok: true; rgba: Uint8ClampedArray; width: number; height: number }
-        | { id: number; ok: false; error: string };
+        | { id: number; ok: false; error: PreviewErrorDetail };
       const pending = pendingRequests.get(data.id);
       if (!pending) return;
       pendingRequests.delete(data.id);
       if (data.ok) {
         pending.resolve({ rgba: data.rgba, width: data.width, height: data.height });
       } else {
-        pending.reject(new Error(`JPEG 2000 解码失败：${data.error}`));
+        pending.reject(new PreviewError('image.jp2_decode_failed', undefined, data.error));
       }
     });
     w.addEventListener('error', (e: ErrorEvent) => {
-      const err = new Error(`JPEG 2000 Worker 异常：${e.message || '未知错误'}`);
+      const err = new PreviewError('image.worker_failed', undefined, e.message || new PreviewError('common.unknown_error'));
       pendingRequests.forEach(({ reject }) => reject(err));
       pendingRequests.clear();
     });
@@ -157,7 +158,7 @@ function rgbaToBlob(
   canvas.width = width;
   canvas.height = height;
   const ctx = canvas.getContext('2d');
-  if (!ctx) throw new Error('无法创建 Canvas 2D 上下文');
+  if (!ctx) throw new PreviewError('image.canvas_context_failed');
   const imageData = new ImageData(
     rgba as Uint8ClampedArray<ArrayBuffer>,
     width,
@@ -169,7 +170,7 @@ function rgbaToBlob(
     canvas.toBlob(
       (blob) => {
         if (blob) resolve(blob);
-        else reject(new Error('JPEG 2000 Canvas 转 Blob 失败'));
+        else reject(new PreviewError('image.canvas_export_failed', { format: 'JPEG 2000', output: 'Blob' }));
       },
       outputFormat
     );

@@ -72,7 +72,7 @@ export const NavArrows: React.FC<NavArrowsProps> = ({
           onClick={onPrev}
           onMouseEnter={show}
           style={{ pointerEvents: visible ? 'auto' : 'none' }}
-          aria-label={t('accessibility.previousFile') || '上一个文件'}
+          aria-label={t('accessibility.previousFile')}
           aria-keyshortcuts="ArrowLeft"
           className="rfp-absolute rfp-z-20 rfp-left-2 md:rfp-left-4 rfp-top-1/2 -rfp-translate-y-1/2 rfp-w-10 rfp-h-10 md:rfp-w-12 md:rfp-h-12 rfp-rounded-full rfp-backdrop-blur-xl rfp-border rfp-flex rfp-items-center rfp-justify-center rfp-transition-colors rfp-shadow-2xl rfp-bg-surface-nav rfp-border-line hover:rfp-bg-surface-nav-hover rfp-text-fg-primary"
         >
@@ -87,7 +87,7 @@ export const NavArrows: React.FC<NavArrowsProps> = ({
           onClick={onNext}
           onMouseEnter={show}
           style={{ pointerEvents: visible ? 'auto' : 'none' }}
-          aria-label={t('accessibility.nextFile') || '下一个文件'}
+          aria-label={t('accessibility.nextFile')}
           aria-keyshortcuts="ArrowRight"
           className="rfp-absolute rfp-z-20 rfp-right-2 md:rfp-right-4 rfp-top-1/2 -rfp-translate-y-1/2 rfp-w-10 rfp-h-10 md:rfp-w-12 md:rfp-h-12 rfp-rounded-full rfp-backdrop-blur-xl rfp-border rfp-flex rfp-items-center rfp-justify-center rfp-transition-colors rfp-shadow-2xl rfp-bg-surface-nav rfp-border-line hover:rfp-bg-surface-nav-hover rfp-text-fg-primary"
         >

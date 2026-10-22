@@ -254,7 +254,7 @@ export class SubtitleRenderer implements RendererHandle {
 
   private readonly locale = inject(LocaleService, { optional: true });
   private readonly request = inject(RequestService, { optional: true });
-  protected readonly t = this.locale?.t() ?? getFallbackTranslator();
+  protected readonly t = this.locale?.translate ?? getFallbackTranslator();
 
   readonly text = signal('');
   readonly loading = signal(true);

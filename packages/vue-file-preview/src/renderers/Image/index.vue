@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { PreviewError, translateError } from '@eternalheart/file-preview-core';
 import { ref, watch, onMounted, onBeforeUnmount, computed } from 'vue';
 import { ZoomIn, ZoomOut, RotateCw, RotateCcw, Scan, RefreshCw, Maximize2 } from 'lucide-vue-next';
 import {
@@ -230,7 +231,7 @@ watch(
         fileBlob = props.file.file;
       } else {
         const response = await fetch(props.url);
-        if (!response.ok) throw new Error('Failed to fetch file');
+        if (!response.ok) throw new PreviewError('file.load_failed');
         fileBlob = await response.blob();
       }
 
@@ -291,7 +292,7 @@ watch(
       imageSrc.value = url;
       decoding.value = false;
     } catch (err: any) {
-      decodeError.value = err?.message || '解码失败';
+      decodeError.value = translateError(t.value, err) || t.value('image.decode_failed');
       decoding.value = false;
     }
   },
@@ -334,7 +335,7 @@ const handlePageChange = async (page: number) => {
     imageSrc.value = url;
     decoding.value = false;
   } catch (err: any) {
-    decodeError.value = err?.message || '翻页解码失败';
+    decodeError.value = translateError(t.value, err) || t.value('image.page_decode_failed');
     decoding.value = false;
   }
 };
@@ -602,7 +603,7 @@ const sizeText = computed(() => {
       <div class="vfp-renderer-loading-content">
         <div class="vfp-renderer-spinner" />
         <p class="vfp-renderer-loading-text vfp-text-fg-secondary">
-          正在解码... <span v-if="decodeProgress > 0">{{ Math.round(decodeProgress) }}%</span>
+          {{ t('image.decoding') }} <span v-if="decodeProgress > 0">{{ Math.round(decodeProgress) }}%</span>
         </p>
       </div>
     </div>
@@ -650,7 +651,7 @@ const sizeText = computed(() => {
         class="vfp-px-2 vfp-py-0.5 vfp-rounded hover:vfp-bg-surface-nav-hover disabled:vfp-opacity-40 disabled:vfp-cursor-not-allowed"
         @click="handlePageChange(currentPage - 1)"
       >
-        上一页
+        {{ t('toolbar.prev_page') }}
       </button>
       <span class="vfp-text-fg-secondary vfp-tabular-nums">
         {{ currentPage }} / {{ totalPages }}
@@ -661,7 +662,7 @@ const sizeText = computed(() => {
         class="vfp-px-2 vfp-py-0.5 vfp-rounded hover:vfp-bg-surface-nav-hover disabled:vfp-opacity-40 disabled:vfp-cursor-not-allowed"
         @click="handlePageChange(currentPage + 1)"
       >
-        下一页
+        {{ t('toolbar.next_page') }}
       </button>
     </div>
   </div>

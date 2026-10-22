@@ -1,3 +1,4 @@
+import { PreviewError, translateError } from '../../fp-core';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -63,7 +64,7 @@ export class PptxRenderer implements RendererHandle {
   private readonly locale = inject(LocaleService, { optional: true });
   private readonly request = inject(RequestService, { optional: true });
   private readonly destroyRef = inject(DestroyRef);
-  protected readonly t = this.locale?.t() ?? getFallbackTranslator();
+  protected readonly t = this.locale?.translate ?? getFallbackTranslator();
 
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
@@ -202,13 +203,13 @@ export class PptxRenderer implements RendererHandle {
 
       if (!response.ok) {
         if (response.status === 404) throw new Error(this.t('pptx.not_found'));
-        if (response.status === 403) throw new Error('无权限访问此文件');
-        if (response.status >= 500) throw new Error('服务器错误，请稍后重试');
-        throw new Error(`文件加载失败 (${response.status})`);
+        if (response.status === 403) throw new PreviewError('file.forbidden');
+        if (response.status >= 500) throw new PreviewError('file.server_error');
+        throw new PreviewError('file.load_failed_status', { status: response.status });
       }
 
       const arrayBuffer = await response.arrayBuffer();
-      if (arrayBuffer.byteLength === 0) throw new Error('文件为空');
+      if (arrayBuffer.byteLength === 0) throw new PreviewError('file.empty');
 
       this.arrayBufferRef = arrayBuffer;
       this.slideRatio = (await readPptxSlideSize(arrayBuffer)).ratio;
@@ -265,7 +266,7 @@ export class PptxRenderer implements RendererHandle {
     } catch (err) {
       if (timeoutId !== null) clearTimeout(timeoutId);
       let errorMsg = this.t('pptx.parse_failed');
-      if (err instanceof Error) errorMsg = err.message;
+      if (err instanceof Error) errorMsg = translateError(this.t, err);
       else if (typeof err === 'string') errorMsg = err;
       this.error.set(errorMsg);
       this.loading.set(false);

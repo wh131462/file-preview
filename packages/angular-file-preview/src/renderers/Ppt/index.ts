@@ -1,3 +1,4 @@
+import { PreviewError } from '../../fp-core';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -44,7 +45,7 @@ export class PptRenderer implements RendererHandle {
   private readonly locale = inject(LocaleService, { optional: true });
   private readonly request = inject(RequestService, { optional: true });
   private readonly sanitizer = inject(DomSanitizer);
-  protected readonly t = this.locale?.t() ?? getFallbackTranslator();
+  protected readonly t = this.locale?.translate ?? getFallbackTranslator();
 
   readonly html = signal('');
   readonly loading = signal(true);
@@ -75,11 +76,11 @@ export class PptRenderer implements RendererHandle {
     try {
       const fetcher = this.request?.fetcher() ?? ((u: string, init?: RequestInit) => fetch(u, init));
       const response = await fetcher(this.url());
-      if (!response.ok) throw new Error('load failed');
+      if (!response.ok) throw new PreviewError('file.load_failed');
       const buffer = await response.arrayBuffer();
       this.html.set(await renderLegacyPptHtml(buffer));
     } catch (err) {
-      console.error('Ppt 解析错误:', err);
+      console.error(this.t('ppt.parse_failed') + ':', err);
       this.error.set(this.t('ppt.parse_failed'));
     } finally {
       this.loading.set(false);

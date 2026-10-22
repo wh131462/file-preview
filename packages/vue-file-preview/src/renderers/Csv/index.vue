@@ -86,7 +86,7 @@ const loadCsv = async () => {
     mountSpreadsheet();
     loading.value = false;
   } catch (err) {
-    console.error('CSV 解析错误:', err);
+    console.error(t.value('csv.parse_failed') + ':', err);
     error.value = t.value('csv.load_failed');
     loading.value = false;
   }

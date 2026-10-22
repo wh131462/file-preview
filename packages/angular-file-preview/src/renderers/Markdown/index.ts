@@ -140,7 +140,7 @@ export class MarkdownRenderer implements RendererHandle {
   private readonly themeService = inject(ThemeService, { optional: true });
   private readonly sanitizer = inject(DomSanitizer);
   private readonly injector = inject(Injector);
-  protected readonly t = this.locale?.t() ?? getFallbackTranslator();
+  protected readonly t = this.locale?.translate ?? getFallbackTranslator();
 
   readonly viewMode = signal<'preview' | 'source'>('preview');
   readonly content = signal('');

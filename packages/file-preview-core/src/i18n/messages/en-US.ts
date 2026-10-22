@@ -11,6 +11,15 @@ export const enUS: Messages = {
   'common.unknown_error': 'Unknown error',
   'common.unsupported_preview': 'Preview not supported for this file type ({type})',
   'common.retry': 'Retry',
+  'common.load_failed': 'Failed to load',
+  'request.failed': 'Request failed: {status}',
+  'file.forbidden': 'You do not have permission to access this file',
+  'file.server_error': 'Server error, please try again later',
+  'file.load_failed': 'Failed to load file',
+  'file.load_failed_status': 'Failed to load file ({status})',
+  'file.empty': 'File is empty',
+
+  'common.unknown_file': 'Unknown file',
 
   // ─────── accessibility ───────
   'accessibility.previousFile': 'Previous file',
@@ -38,10 +47,40 @@ export const enUS: Messages = {
   'toolbar.preview': 'Preview',
 
   // ─────── image ───────
+  'image.offscreen_context_failed': 'Unable to create an OffscreenCanvas 2D context',
+  'image.offscreen_unsupported': 'OffscreenCanvas is not supported in this Worker',
+  'image.canvas_export_failed': 'Failed to convert {format} Canvas to {output}',
+  'image.psd_invalid_api': 'Unexpected ag-psd API',
+  'image.jp2_invalid_api': 'Unexpected jpeg2000 API: JpxImage is missing',
+  'image.openjpeg_invalid_api': 'Unexpected codec-openjpeg API: factory is missing',
+  'image.openjpeg_no_decoder': 'codec-openjpeg does not expose J2KDecoder',
+  'image.worker_failed': 'Image Worker failed: {error}',
+  'image.worker_create_failed': 'Unable to create Worker: {error}',
+  'image.worker_crashed': 'Worker crashed: {error}',
+  'image.out_of_memory': 'Device is out of memory',
+  'image.unsupported_mime': 'Unsupported MIME type: {type}',
+  'image.decoder_failed': '{decoder}: {error}',
+  'image.decoding': 'Decoding...',
   'image.load_failed': 'Failed to load image',
   'image.decode_failed': 'Failed to decode image',
+  'image.page_decode_failed': 'Failed to decode page',
+  'image.avif_decode_failed': 'AVIF decode failed: {error}',
+  'image.heic_drm': 'HEIC decode failed: file is DRM-protected',
+  'image.heic_decode_failed': 'HEIC decode failed, file may be corrupted: {error}',
+  'image.jp2_decode_failed': 'JPEG 2000 decode failed: {error}',
+  'image.tiff_decode_failed': 'TIFF decode failed: {error}',
+  'image.psd_decode_failed': 'PSD decode failed: {error}',
+  'image.canvas_context_failed': 'Unable to create a Canvas 2D context',
+  'image.tiff_empty': 'TIFF file contains no images',
+  'image.psd_no_preview': 'PSD file does not contain a composite preview image',
+  'image.raw_no_preview': 'No embedded preview image was found in the RAW file',
+  'image.raw_not_implemented': 'Full RAW decoding is not implemented and no embedded preview was found',
 
   // ─────── pdf ───────
+  'pdf.outline_failed': 'Failed to extract PDF outline',
+  'pdf.outline_jump_failed': 'Failed to jump to outline target',
+  'pdf.outline_target_failed': 'Failed to resolve outline target',
+  'pdf.page_render_failed': 'Failed to render page {page}',
   'pdf.load_failed': 'Failed to load PDF',
 
   // ─────── docx ───────
@@ -56,6 +95,8 @@ export const enUS: Messages = {
   'ppt.loading': 'Loading PPT...',
 
   // ─────── xlsx ───────
+  'xlsx.invalid_legacy_data': 'Invalid legacy Excel workbook data',
+  'xlsx.invalid_format': 'Excel file format is invalid or corrupted',
   'xlsx.loading': 'Loading Excel...',
   'xlsx.load_failed': 'Failed to load Excel',
   'xlsx.parse_failed': 'Failed to parse Excel file',
@@ -75,6 +116,7 @@ export const enUS: Messages = {
   'pptx.timeout': 'Loading timed out, please check your network and retry',
 
   // ─────── msg ───────
+  'msg.no_subject': '(No subject)',
   'msg.parse_failed': 'Failed to parse Outlook message',
   'msg.parse_failed_short': 'Failed to parse message',
   'msg.empty_body': '(No message body)',
@@ -83,6 +125,7 @@ export const enUS: Messages = {
   'epub.load_failed': 'Failed to load EPUB',
 
   // ─────── mobi ───────
+  'mobi.timeout': 'Initial ebook rendering timed out',
   'mobi.load_failed': 'Failed to load ebook — file may be corrupted or DRM-protected',
 
   // ─────── video ───────
@@ -105,6 +148,7 @@ export const enUS: Messages = {
   'audio.aria.loop_off': 'Disable loop',
   'audio.aria.progress': 'Playback progress',
   'audio.aria.volume': 'Volume',
+  'audio.load_failed': 'Failed to load audio',
 
   // ─────── markdown ───────
   'markdown.load_failed': 'Failed to load Markdown',
@@ -140,13 +184,18 @@ export const enUS: Messages = {
   'subtitle.meta.version': 'Version',
 
   // ─────── zip ───────
+  'zip.entry_read_failed': 'Failed to read archive entry',
   'zip.load_failed': 'Failed to load ZIP',
   'zip.parse_failed': 'Failed to parse ZIP',
+  'zip.select_file': 'Select a file from the left to preview',
+  'zip.file_tree': 'File tree',
 
   // ─────── text ───────
   'text.load_failed': 'Failed to load text file',
 
   // ─────── font ───────
+  'font.invalid_data': 'Font data is invalid',
+  'font.metadata_skipped': 'WOFF2 metadata parsing is not supported',
   'font.loading': 'Loading font...',
   'font.load_failed': 'Failed to load font',
   'font.parse_failed': 'Failed to parse font',
@@ -159,6 +208,11 @@ export const enUS: Messages = {
   'font.meta.glyphs': 'Glyphs',
   'font.meta.format': 'Format',
   'font.sample_text_placeholder': 'Type custom text...',
+  'font.latin_samples': 'Latin Alphabet',
+  'font.chinese_samples': 'Character Samples',
+  'font.sample_latin': 'ABCDEFGHIJKLMNOPQRSTUVWXYZ\nabcdefghijklmnopqrstuvwxyz\n0123456789 .,;:!?@#$%&*()[]{}',
+  'font.sample_chinese': 'Sphinx of black quartz, judge my vow',
+  'font.sample_pangram': 'The Quick Brown Fox Jumps Over The Lazy Dog',
 
   // ─────── cad ───────
   'cad.loading': 'Loading CAD file...',

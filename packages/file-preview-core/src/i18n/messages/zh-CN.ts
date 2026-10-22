@@ -1,7 +1,7 @@
 import type { Messages } from '../types';
 
 /**
- * 内置中文字典（默认 / 兜底语言）
+ * 内置中文字典
  */
 export const zhCN: Messages = {
   // ─────── common ───────
@@ -11,6 +11,15 @@ export const zhCN: Messages = {
   'common.unknown_error': '未知错误',
   'common.unsupported_preview': '不支持预览此文件类型 ({type})',
   'common.retry': '重试',
+  'common.load_failed': '加载失败',
+  'request.failed': '请求失败: {status}',
+  'file.forbidden': '无权限访问此文件',
+  'file.server_error': '服务器错误，请稍后重试',
+  'file.load_failed': '文件加载失败',
+  'file.load_failed_status': '文件加载失败 ({status})',
+  'file.empty': '文件为空',
+
+  'common.unknown_file': '未知文件',
 
   // ─────── accessibility ───────
   'accessibility.previousFile': '上一个文件',
@@ -38,10 +47,40 @@ export const zhCN: Messages = {
   'toolbar.preview': '预览',
 
   // ─────── image ───────
+  'image.offscreen_context_failed': '无法创建 OffscreenCanvas 2D 上下文',
+  'image.offscreen_unsupported': '当前 Worker 环境不支持 OffscreenCanvas',
+  'image.canvas_export_failed': '{format} Canvas 转换为 {output} 失败',
+  'image.psd_invalid_api': 'ag-psd 库 API 不符合预期',
+  'image.jp2_invalid_api': 'jpeg2000 库 API 不符合预期：未找到 JpxImage',
+  'image.openjpeg_invalid_api': '@cornerstonejs/codec-openjpeg 库 API 不符合预期：未找到工厂函数',
+  'image.openjpeg_no_decoder': '@cornerstonejs/codec-openjpeg 未暴露 J2KDecoder',
+  'image.worker_failed': '图片 Worker 异常: {error}',
+  'image.worker_create_failed': '无法创建 Worker: {error}',
+  'image.worker_crashed': 'Worker 崩溃: {error}',
+  'image.out_of_memory': '设备内存不足',
+  'image.unsupported_mime': '不支持的 MIME 类型: {type}',
+  'image.decoder_failed': '{decoder}: {error}',
+  'image.decoding': '正在解码...',
   'image.load_failed': '图片加载失败',
   'image.decode_failed': '图片解码失败',
+  'image.page_decode_failed': '翻页解码失败',
+  'image.avif_decode_failed': 'AVIF 解码失败: {error}',
+  'image.heic_drm': 'HEIC 解码失败，文件受 DRM 保护',
+  'image.heic_decode_failed': 'HEIC 解码失败，文件可能损坏: {error}',
+  'image.jp2_decode_failed': 'JPEG 2000 解码失败：{error}',
+  'image.tiff_decode_failed': 'TIFF 解码失败: {error}',
+  'image.psd_decode_failed': 'PSD 解码失败: {error}',
+  'image.canvas_context_failed': '无法创建 Canvas 2D 上下文',
+  'image.tiff_empty': 'TIFF 文件不包含任何图像',
+  'image.psd_no_preview': 'PSD 文件不包含合并的预览图像（可能仅含图层数据）',
+  'image.raw_no_preview': '未在 RAW 文件中找到嵌入的预览图像（该文件可能已被剥离 JPEG 预览）。',
+  'image.raw_not_implemented': '完整 RAW 解码暂未实现，且无法提取嵌入预览图。',
 
   // ─────── pdf ───────
+  'pdf.outline_failed': 'PDF 大纲提取失败',
+  'pdf.outline_jump_failed': '大纲跳转失败',
+  'pdf.outline_target_failed': '解析大纲目标失败',
+  'pdf.page_render_failed': '渲染页面 {page} 失败',
   'pdf.load_failed': 'PDF 文件加载失败',
 
   // ─────── docx ───────
@@ -56,6 +95,8 @@ export const zhCN: Messages = {
   'ppt.loading': '加载 PPT 中...',
 
   // ─────── xlsx ───────
+  'xlsx.invalid_legacy_data': '旧版 Excel 工作簿数据无效',
+  'xlsx.invalid_format': 'Excel 文件格式无效或已损坏',
   'xlsx.loading': '加载 Excel 中...',
   'xlsx.load_failed': 'Excel 加载失败',
   'xlsx.parse_failed': 'Excel 文件解析失败',
@@ -75,6 +116,7 @@ export const zhCN: Messages = {
   'pptx.timeout': '加载超时，请检查网络或稍后重试',
 
   // ─────── msg ───────
+  'msg.no_subject': '（无主题）',
   'msg.parse_failed': 'Outlook 邮件解析失败',
   'msg.parse_failed_short': '邮件解析失败',
   'msg.empty_body': '（无邮件正文）',
@@ -83,6 +125,7 @@ export const zhCN: Messages = {
   'epub.load_failed': 'EPUB 文件加载失败',
 
   // ─────── mobi ───────
+  'mobi.timeout': '电子书首次渲染超时',
   'mobi.load_failed': '电子书加载失败，文件可能已损坏或带有 DRM 保护',
 
   // ─────── video ───────
@@ -105,6 +148,7 @@ export const zhCN: Messages = {
   'audio.aria.loop_off': '关闭循环',
   'audio.aria.progress': '播放进度',
   'audio.aria.volume': '音量',
+  'audio.load_failed': '音频加载失败',
 
   // ─────── markdown ───────
   'markdown.load_failed': 'Markdown 文件加载失败',
@@ -140,13 +184,18 @@ export const zhCN: Messages = {
   'subtitle.meta.version': '版本',
 
   // ─────── zip ───────
+  'zip.entry_read_failed': '条目读取失败',
   'zip.load_failed': 'ZIP 文件加载失败',
   'zip.parse_failed': 'ZIP 解析失败',
+  'zip.select_file': '从左侧选择一个文件以预览',
+  'zip.file_tree': '文件树',
 
   // ─────── text ───────
   'text.load_failed': '文本文件加载失败',
 
   // ─────── font ───────
+  'font.invalid_data': '字体数据无效',
+  'font.metadata_skipped': '暂不支持解析 WOFF2 元数据',
   'font.loading': '加载字体中...',
   'font.load_failed': '字体文件加载失败',
   'font.parse_failed': '字体解析失败',
@@ -159,6 +208,11 @@ export const zhCN: Messages = {
   'font.meta.glyphs': '字形数量',
   'font.meta.format': '格式',
   'font.sample_text_placeholder': '输入自定义文本...',
+  'font.latin_samples': '英文字母',
+  'font.chinese_samples': '中文字符',
+  'font.sample_latin': 'ABCDEFGHIJKLMNOPQRSTUVWXYZ\nabcdefghijklmnopqrstuvwxyz\n0123456789 .,;:!?@#$%&*()[]{}',
+  'font.sample_chinese': '春夏秋冬东南西北天地人和风雨雷电山水日月',
+  'font.sample_pangram': 'The Quick Brown Fox Jumps Over The Lazy Dog\n敏捷的棕色狐狸跳过了懒狗',
 
   // ─────── cad ───────
   'cad.loading': '加载 CAD 文件中...',

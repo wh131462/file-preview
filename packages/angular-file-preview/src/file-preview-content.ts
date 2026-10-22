@@ -181,7 +181,7 @@ export class FilePreviewContent {
     },
     t: this.t(),
     theme: this.resolvedTheme(),
-    locale: this.locale() ?? 'zh-CN',
+    locale: this.locale() ?? 'en-US',
   }));
 
   readonly customRendererCmp = computed(() => {

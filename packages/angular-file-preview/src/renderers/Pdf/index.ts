@@ -169,7 +169,7 @@ export class PdfRenderer implements RendererHandle {
   private readonly locale = inject(LocaleService, { optional: true });
   private readonly sanitizer = inject(DomSanitizer);
   private readonly destroyRef = inject(DestroyRef);
-  protected readonly t = this.locale?.t() ?? getFallbackTranslator();
+  protected readonly t = this.locale?.translate ?? getFallbackTranslator();
 
   protected readonly xIcon = X;
 
@@ -413,7 +413,7 @@ export class PdfRenderer implements RendererHandle {
       const dest = JSON.parse(destStr);
       void this.handleOutlineClick(dest, itemKey);
     } catch (err) {
-      console.error('解析大纲目标失败:', err);
+      console.error(this.t('pdf.outline_target_failed') + ':', err);
     }
   }
 
@@ -535,7 +535,7 @@ export class PdfRenderer implements RendererHandle {
         this.showOutline.set(false);
       }, 300);
     } catch (err) {
-      console.error('大纲跳转失败:', err);
+      console.error(this.t('pdf.outline_jump_failed') + ':', err);
     }
   }
 
@@ -616,7 +616,7 @@ export class PdfRenderer implements RendererHandle {
       }
     } catch (err: unknown) {
       if ((err as { name?: string })?.name !== 'RenderingCancelledException') {
-        console.error(`渲染页面 ${pageNumber} 失败:`, err);
+        console.error(this.t('pdf.page_render_failed', { page: pageNumber }) + ':', err);
       }
     } finally {
       state.rendering = false;
@@ -711,12 +711,12 @@ export class PdfRenderer implements RendererHandle {
           this.updateActiveOutlineByPage(this.currentPage());
         }
       } catch (err) {
-        console.warn('PDF 大纲提取失败:', err);
+        console.warn(this.t('pdf.outline_failed') + ':', err);
       }
 
       this.loading.set(false);
     } catch (err) {
-      console.error('PDF 加载错误:', err);
+      console.error(this.t('pdf.load_failed') + ':', err);
       this.error.set(this.t('pdf.load_failed'));
       this.loading.set(false);
     }

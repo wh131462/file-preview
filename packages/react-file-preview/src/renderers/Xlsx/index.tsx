@@ -1,3 +1,4 @@
+import { PreviewError, translateError } from '@eternalheart/file-preview-core';
 import { useState, useEffect, useRef, useCallback, forwardRef, useImperativeHandle } from 'react';
 import ExcelJS from 'exceljs';
 import Spreadsheet from 'x-data-spreadsheet';
@@ -24,7 +25,7 @@ async function loadXlsxWorkbook(data: Uint8Array): Promise<ExcelJS.Workbook> {
     return await new ExcelJS.Workbook().xlsx.load(data.slice().buffer as ArrayBuffer);
   } catch (error) {
     if (error instanceof TypeError && /sheets/i.test(error.message)) {
-      throw new Error('Excel 文件格式无效或已损坏');
+      throw new PreviewError('xlsx.invalid_format');
     }
     throw error;
   }
@@ -159,23 +160,23 @@ export const XlsxRenderer = forwardRef<RendererHandle, XlsxRendererProps>(({ url
           if (response.status === 404) {
             throw new Error(t('xlsx.not_found'));
           } else if (response.status === 403) {
-            throw new Error('无权限访问此文件');
+            throw new PreviewError('file.forbidden');
           } else {
-            throw new Error(`文件加载失败 (${response.status})`);
+            throw new PreviewError('file.load_failed_status', { status: response.status });
           }
         }
 
         const excelBuffer = normalizeExcelBuffer(await response.arrayBuffer());
 
         if (excelBuffer.byteLength === 0) {
-          throw new Error('文件为空');
+          throw new PreviewError('file.empty');
         }
 
         let sheetData: XSheetData[];
         if (isLegacyXls(excelBuffer)) {
           const legacyWorkbook = parseLegacyXls(excelBuffer);
           if (!legacyWorkbook || !Array.isArray(legacyWorkbook.sheets)) {
-            throw new Error('Invalid legacy Excel workbook data');
+            throw new PreviewError('xlsx.invalid_legacy_data');
           }
           sheetData = convertLegacyXlsToSpreadsheetData(legacyWorkbook);
         } else {
@@ -195,10 +196,10 @@ export const XlsxRenderer = forwardRef<RendererHandle, XlsxRendererProps>(({ url
         setLoading(false);
       } catch (err) {
         if (isMounted) {
-          console.error('Excel 解析错误:', err);
+          console.error(t('xlsx.parse_failed') + ':', err);
           let errorMsg = t('xlsx.parse_failed');
           if (err instanceof Error) {
-            errorMsg = err.message;
+            errorMsg = translateError(t, err);
           }
           setError(errorMsg);
           setLoading(false);

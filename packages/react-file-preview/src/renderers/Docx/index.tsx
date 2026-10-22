@@ -1,3 +1,4 @@
+import { PreviewError } from '@eternalheart/file-preview-core';
 import { useState, useEffect, useRef, useCallback, useMemo, forwardRef, useImperativeHandle } from 'react';
 import mammoth from 'mammoth';
 import { DOCX_MAMMOTH_STYLE_MAP, docxThemeToCssVars, readDocxTheme, type DocxTheme } from '@eternalheart/file-preview-core';
@@ -45,7 +46,7 @@ export const DocxRenderer = forwardRef<RendererHandle, DocxRendererProps>(({ url
       try {
         const response = await fetcher(url);
         if (!response.ok) {
-          throw new Error('文件加载失败');
+          throw new PreviewError('file.load_failed');
         }
 
         const arrayBuffer = await response.arrayBuffer();
@@ -56,7 +57,7 @@ export const DocxRenderer = forwardRef<RendererHandle, DocxRendererProps>(({ url
         setTheme(nextTheme);
         setHtml(converted.value);
       } catch (err) {
-        console.error('Docx 解析错误:', err);
+        console.error(t('docx.parse_failed') + ':', err);
         setError(t('docx.parse_failed'));
       } finally {
         setLoading(false);

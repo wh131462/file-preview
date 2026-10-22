@@ -345,7 +345,7 @@ export const EpubRenderer = forwardRef<EpubRendererHandle, EpubRendererProps>(
           });
 
         } catch (err) {
-          console.error('EPUB 加载错误:', err);
+          console.error(t('epub.load_failed') + ':', err);
           if (!cancelled) {
             setError(t('epub.load_failed'));
             setLoading(false);

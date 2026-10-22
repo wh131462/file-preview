@@ -1,3 +1,4 @@
+import { PreviewError } from '@eternalheart/file-preview-core';
 import { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { renderLegacyPptHtml } from '@eternalheart/file-preview-core';
 import { useTranslator } from '../../i18n/LocaleContext';
@@ -25,11 +26,11 @@ export const PptRenderer = forwardRef<RendererHandle, PptRendererProps>(({ url }
       setHtml('');
       try {
         const response = await fetcher(url);
-        if (!response.ok) throw new Error('load failed');
+        if (!response.ok) throw new PreviewError('file.load_failed');
         const buffer = await response.arrayBuffer();
         setHtml(await renderLegacyPptHtml(buffer));
       } catch (err) {
-        console.error('Ppt 解析错误:', err);
+        console.error(t('ppt.parse_failed') + ':', err);
         setError(t('ppt.parse_failed'));
       } finally {
         setLoading(false);

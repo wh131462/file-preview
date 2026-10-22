@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { PreviewError } from '@eternalheart/file-preview-core';
 import { ref, onMounted, onUnmounted, watch } from 'vue';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
@@ -390,7 +391,7 @@ const loadModel = () => {
     ? props.file.arrayBuffer()
     : fetcher.value(props.url, { signal: abortController?.signal }).then(response => {
         if (isCleanedUp) return undefined;
-        if (!response.ok) throw new Error('Failed to fetch file');
+        if (!response.ok) throw new PreviewError('file.load_failed');
         return response.arrayBuffer();
       });
 

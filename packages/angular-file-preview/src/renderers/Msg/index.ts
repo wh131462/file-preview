@@ -1,3 +1,4 @@
+import { PreviewError } from '../../fp-core';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -185,7 +186,7 @@ function formatMessageClass(messageClass: string | undefined): string {
                     <div class="msg-value msg-attachments">
                       @for (a of attachments(); track $index) {
                         <span class="msg-attachment">
-                          {{ a.fileName || a.name || unknownFileLabel }}
+                          {{ a.fileName || a.name || unknownFileLabel() }}
                           @if (formatAttachmentSize(a.contentLength); as size) {
                             <span class="msg-attachment-size">({{ size }})</span>
                           }
@@ -327,7 +328,7 @@ export class MsgRenderer implements RendererHandle {
   private readonly locale = inject(LocaleService, { optional: true });
   private readonly request = inject(RequestService, { optional: true });
   private readonly sanitizer = inject(DomSanitizer);
-  protected readonly t = this.locale?.t() ?? getFallbackTranslator();
+  protected readonly t = this.locale?.translate ?? getFallbackTranslator();
 
   protected readonly userIcon = User;
   protected readonly usersIcon = Users;
@@ -337,13 +338,13 @@ export class MsgRenderer implements RendererHandle {
   protected readonly tagIcon = Tag;
   protected readonly clockIcon = Clock;
   protected readonly hashIcon = Hash;
-  protected readonly unknownFileLabel = '未知文件';
+  protected readonly unknownFileLabel = () => this.t('common.unknown_file');
 
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
   readonly fields = signal<FieldsData | null>(null);
 
-  readonly subject = computed(() => this.fields()?.subject || '（无主题）');
+  readonly subject = computed(() => this.fields()?.subject || this.t('msg.no_subject'));
   readonly sender = computed(() => {
     const f = this.fields();
     if (!f) return '';
@@ -425,12 +426,12 @@ export class MsgRenderer implements RendererHandle {
     try {
       const fetcher = this.request?.fetcher() ?? ((u: string, init?: RequestInit) => fetch(u, init));
       const response = await fetcher(this.url());
-      if (!response.ok) throw new Error('文件加载失败');
+      if (!response.ok) throw new PreviewError('file.load_failed');
       const arrayBuffer = await response.arrayBuffer();
       const msgReader = new MsgReader(arrayBuffer);
       this.fields.set(msgReader.getFileData());
     } catch (err) {
-      console.error('MSG 解析错误:', err);
+      console.error(this.t('msg.parse_failed') + ':', err);
       this.error.set(this.t('msg.parse_failed'));
     } finally {
       this.loading.set(false);

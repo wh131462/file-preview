@@ -146,7 +146,7 @@ const customRenderers: CustomRenderer[] = [
 
 - **类型**: `Locale`（`'zh-CN' | 'en-US' | string`）
 - **必需**: 否
-- **默认值**: `'zh-CN'`
+- **默认值**: `'en-US'`
 - **描述**: 界面语言。内置支持 `'zh-CN'`（中文）和 `'en-US'`（英文），也可传入任意 locale 字符串并通过 `messages` prop 提供字典。
 
 ```tsx
@@ -401,7 +401,7 @@ function Panel() {
 | `height` | `number \| string` | ❌ | `'100%'` | 容器高度 |
 | `className` | `string` | ❌ | - | 根节点额外 className |
 | `style` | `CSSProperties` | ❌ | - | 根节点额外内联样式 |
-| `locale` | `Locale` | ❌ | `'zh-CN'` | 界面语言 |
+| `locale` | `Locale` | ❌ | `'en-US'` | 界面语言 |
 | `messages` | `Partial<Record<Locale, Partial<Messages>>>` | ❌ | - | 自定义翻译字典 |
 | `headless` | `boolean` | ❌ | `false` | 无头模式,隐藏工具栏和导航箭头 |
 | `theme` | `Theme` | ❌ | `'dark'` | 主题模式: `'auto' \| 'dark' \| 'light'` |
@@ -499,7 +499,7 @@ function DetailPanel() {
 | `showClose` | `boolean` | ❌ | `undefined` | 是否显示关闭按钮（未设置时根据 `mode` 决定：modal 为 `true`，embed 为 `false`） |
 | `showNavigation` | `boolean` | ❌ | `true` | 是否显示文件导航箭头 |
 | `loopNavigation` | `boolean` | ❌ | `false` | 是否循环导航文件 |
-| `locale` | `Locale` | ❌ | `'zh-CN'` | 界面语言 |
+| `locale` | `Locale` | ❌ | `'en-US'` | 界面语言 |
 | `messages` | `Partial<Record<Locale, Partial<Messages>>>` | ❌ | - | 自定义翻译字典 |
 | `onCustomEvent` | `(e: CustomRendererEventPayload) => void` | ❌ | - | 自定义渲染器事件出口 |
 | `requestInit` | `RequestInit \| (url) => RequestInit \| Promise<RequestInit>` | ❌ | - | 自定义 RequestInit |

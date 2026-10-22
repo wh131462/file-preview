@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { PreviewError } from '@eternalheart/file-preview-core';
 import type { RendererHandle } from '../base.types';
 import type { ToolbarGroup } from '../toolbar.types';
 
@@ -88,12 +89,12 @@ const loadMsg = async () => {
 
   try {
     const response = await fetcher.value(props.url);
-    if (!response.ok) throw new Error('文件加载失败');
+    if (!response.ok) throw new PreviewError('file.load_failed');
     const arrayBuffer = await response.arrayBuffer();
     const msgReader = new MsgReader(arrayBuffer);
     fields.value = msgReader.getFileData();
   } catch (err) {
-    console.error('MSG 解析错误:', err);
+    console.error(t.value('msg.parse_failed') + ':', err);
     error.value = t.value('msg.parse_failed');
   } finally {
     loading.value = false;
@@ -105,7 +106,7 @@ watch(() => props.url, (newUrl) => {
   if (newUrl) loadMsg();
 }, { immediate: true });
 
-const subject = computed(() => fields.value?.subject || '（无主题）');
+const subject = computed(() => fields.value?.subject || t.value('msg.no_subject'));
 const sender = computed(() => {
   if (!fields.value) return '';
   const senderName = fields.value.senderName || '';
@@ -244,7 +245,7 @@ defineExpose<RendererHandle>({
               <span class="msg-label">Attachments</span>
               <div class="msg-value msg-attachments">
                 <span v-for="(a, i) in attachments" :key="i" class="msg-attachment">
-                  {{ a.fileName || a.name || '未知文件' }}
+                  {{ a.fileName || a.name || t('common.unknown_file') }}
                   <span v-if="formatAttachmentSize(a.contentLength)" class="msg-attachment-size">
                     ({{ formatAttachmentSize(a.contentLength) }})
                   </span>

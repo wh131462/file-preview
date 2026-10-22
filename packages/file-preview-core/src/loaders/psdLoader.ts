@@ -1,3 +1,4 @@
+import { PreviewError } from '../i18n';
 import type { ImageDecoder, DecodeOptions, ImageMetadata } from './types';
 
 /**
@@ -18,7 +19,7 @@ class PsdLoader implements ImageDecoder {
       const agPsdModule = await import('ag-psd');
       const readPsd = (agPsdModule as any).readPsd || (agPsdModule as any).default?.readPsd;
       if (typeof readPsd !== 'function') {
-        throw new Error('ag-psd 库 API 不符合预期');
+        throw new PreviewError('image.psd_invalid_api');
       }
 
       const arrayBuffer = file instanceof Blob ? await file.arrayBuffer() : file;
@@ -41,9 +42,9 @@ class PsdLoader implements ImageDecoder {
         return await imageDataToBlob(imageData, options?.outputFormat || 'image/png');
       }
 
-      throw new Error('PSD 文件不包含合并的预览图像（可能仅含图层数据）');
+      throw new PreviewError('image.psd_no_preview');
     } catch (error: any) {
-      throw new Error(`PSD 解码失败: ${error?.message || '未知错误'}`);
+      throw new PreviewError('image.psd_decode_failed', undefined, error || new PreviewError('common.unknown_error'));
     }
   }
 
@@ -78,27 +79,27 @@ async function imageDataToBlob(imageData: ImageData, type: string): Promise<Blob
   if (typeof OffscreenCanvas !== 'undefined') {
     const canvas = new OffscreenCanvas(imageData.width, imageData.height);
     const context = canvas.getContext('2d');
-    if (!context) throw new Error('无法创建 OffscreenCanvas 2D 上下文');
+    if (!context) throw new PreviewError('image.offscreen_context_failed');
     context.putImageData(imageData, 0, 0);
     return canvas.convertToBlob({ type });
   }
 
   if (typeof document === 'undefined') {
-    throw new Error('当前 Worker 环境不支持 OffscreenCanvas');
+    throw new PreviewError('image.offscreen_unsupported');
   }
 
   const canvas = document.createElement('canvas');
   canvas.width = imageData.width;
   canvas.height = imageData.height;
   const context = canvas.getContext('2d');
-  if (!context) throw new Error('无法创建 Canvas 2D 上下文');
+  if (!context) throw new PreviewError('image.canvas_context_failed');
   context.putImageData(imageData, 0, 0);
 
   return new Promise<Blob>((resolve, reject) => {
     canvas.toBlob(
       (blob) => {
         if (blob) resolve(blob);
-        else reject(new Error('PSD Canvas 转换为 Blob 失败'));
+        else reject(new PreviewError('image.canvas_export_failed', { format: 'PSD', output: 'Blob' }));
       },
       type
     );

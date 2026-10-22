@@ -1,3 +1,4 @@
+import { PreviewError, translateError } from '../../fp-core';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -33,7 +34,7 @@ async function loadXlsxWorkbook(data: Uint8Array): Promise<ExcelJS.Workbook> {
     return await new ExcelJS.Workbook().xlsx.load(data.slice().buffer as ArrayBuffer);
   } catch (error) {
     if (error instanceof TypeError && /sheets/i.test(error.message)) {
-      throw new Error('Excel 文件格式无效或已损坏');
+      throw new PreviewError('xlsx.invalid_format');
     }
     throw error;
   }
@@ -82,7 +83,7 @@ export class XlsxRenderer implements RendererHandle {
   private readonly locale = inject(LocaleService, { optional: true });
   private readonly request = inject(RequestService, { optional: true });
   private readonly destroyRef = inject(DestroyRef);
-  protected readonly t = this.locale?.t() ?? getFallbackTranslator();
+  protected readonly t = this.locale?.translate ?? getFallbackTranslator();
 
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
@@ -213,21 +214,21 @@ export class XlsxRenderer implements RendererHandle {
 
       if (!response.ok) {
         if (response.status === 404) throw new Error(this.t('xlsx.not_found'));
-        if (response.status === 403) throw new Error('无权限访问此文件');
-        throw new Error(`文件加载失败 (${response.status})`);
+        if (response.status === 403) throw new PreviewError('file.forbidden');
+        throw new PreviewError('file.load_failed_status', { status: response.status });
       }
 
       const excelBuffer = normalizeExcelBuffer(await response.arrayBuffer());
 
       if (excelBuffer.byteLength === 0) {
-        throw new Error('文件为空');
+        throw new PreviewError('file.empty');
       }
 
       let data: XSheetData[];
       if (isLegacyXls(excelBuffer)) {
         const legacyWorkbook = parseLegacyXls(excelBuffer);
         if (!legacyWorkbook || !Array.isArray(legacyWorkbook.sheets)) {
-          throw new Error('Invalid legacy Excel workbook data');
+          throw new PreviewError('xlsx.invalid_legacy_data');
         }
         data = convertLegacyXlsToSpreadsheetData(legacyWorkbook);
       } else {
@@ -241,9 +242,9 @@ export class XlsxRenderer implements RendererHandle {
       this.mountSpreadsheet();
       this.loading.set(false);
     } catch (err) {
-      console.error('Excel 解析错误:', err);
+      console.error(this.t('xlsx.parse_failed') + ':', err);
       let errorMsg = this.t('xlsx.parse_failed');
-      if (err instanceof Error) errorMsg = err.message;
+      if (err instanceof Error) errorMsg = translateError(this.t, err);
       this.error.set(errorMsg);
       this.loading.set(false);
     }

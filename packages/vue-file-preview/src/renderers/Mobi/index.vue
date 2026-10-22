@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { PreviewError } from '@eternalheart/file-preview-core';
 import { ref, watch, onBeforeUnmount, onMounted, defineComponent, h, type PropType } from 'vue';
 import { X, ChevronLeft, ChevronRight, List, Maximize2, Minimize2 } from 'lucide-vue-next';
 import 'foliate-js/view.js';
@@ -74,7 +75,7 @@ const renderInitialPage = async (renderer: { next?: () => Promise<void> }) => {
       nextPromise,
       new Promise<never>((_, reject) => {
         timer = window.setTimeout(
-          () => reject(new Error('MOBI initial render timed out')),
+          () => reject(new PreviewError('mobi.timeout')),
           INITIAL_RENDER_TIMEOUT_MS,
         );
       }),
@@ -324,7 +325,7 @@ const load = async () => {
     });
 
     const res = await fetcher.value(props.url);
-    if (!res.ok) throw new Error(`请求失败: ${res.status}`);
+    if (!res.ok) throw new PreviewError('request.failed', { status: res.status });
     const blob = await res.blob();
     let name = 'book.mobi';
     try {
@@ -355,7 +356,7 @@ const load = async () => {
       reportProgress(0, view.book?.sections.length ?? 1);
     }
   } catch (err) {
-    console.error('MOBI/AZW3 加载错误:', err);
+    console.error(t.value('mobi.load_failed') + ':', err);
     error.value = t.value('mobi.load_failed');
     loading.value = false;
   }

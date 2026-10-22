@@ -24,6 +24,6 @@ export interface CreateTranslatorOptions {
   locale: Locale;
   /** 用户自定义字典，浅合并到内置字典之上 */
   messages?: Partial<Record<Locale, Partial<Messages>>>;
-  /** locale 命中失败时的兜底语言，默认 'zh-CN' */
+  /** locale 命中失败时的兜底语言，默认 'en-US' */
   fallbackLocale?: Locale;
 }

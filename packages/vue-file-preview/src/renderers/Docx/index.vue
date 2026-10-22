@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { PreviewError } from '@eternalheart/file-preview-core';
 import type { RendererHandle } from '../base.types';
 import type { ToolbarGroup } from '../toolbar.types';
 
@@ -38,7 +39,7 @@ const loadDocx = async () => {
 
   try {
     const response = await fetcher.value(props.url);
-    if (!response.ok) throw new Error('文件加载失败');
+    if (!response.ok) throw new PreviewError('file.load_failed');
     const arrayBuffer = await response.arrayBuffer();
     const [converted, nextTheme] = await Promise.all([
       mammoth.convertToHtml({ arrayBuffer }, { styleMap: DOCX_MAMMOTH_STYLE_MAP }),
@@ -47,7 +48,7 @@ const loadDocx = async () => {
     theme.value = nextTheme;
     html.value = converted.value;
   } catch (err) {
-    console.error('Docx 解析错误:', err);
+    console.error(t.value('docx.parse_failed') + ':', err);
     error.value = t.value('docx.parse_failed');
   } finally {
     loading.value = false;

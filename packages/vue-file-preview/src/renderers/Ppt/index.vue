@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { PreviewError } from '@eternalheart/file-preview-core';
 import type { RendererHandle } from '../base.types';
 import type { ToolbarGroup } from '../toolbar.types';
 import { ref, watch } from 'vue';
@@ -24,11 +25,11 @@ const loadPpt = async () => {
   html.value = '';
   try {
     const response = await fetcher.value(props.url);
-    if (!response.ok) throw new Error('load failed');
+    if (!response.ok) throw new PreviewError('file.load_failed');
     const buffer = await response.arrayBuffer();
     html.value = await renderLegacyPptHtml(buffer);
   } catch (err) {
-    console.error('Ppt 解析错误:', err);
+    console.error(t.value('ppt.parse_failed') + ':', err);
     error.value = t.value('ppt.parse_failed');
   } finally {
     loading.value = false;

@@ -450,7 +450,7 @@ const files = [
 | `onClose` | `() => void` | ✅ | Close callback |
 | `onNavigate` | `(index: number) => void` | ❌ | Navigation callback |
 | `customRenderers` | `CustomRenderer[]` | ❌ | Custom renderers for specific file types |
-| `locale` | `Locale` | ❌ | UI language (`'zh-CN'` default, `'en-US'` built-in) |
+| `locale` | `Locale` | ❌ | UI language (`'en-US'` default, `'zh-CN'` built-in) |
 | `messages` | `Partial<Record<Locale, Partial<Messages>>>` | ❌ | Custom translation overrides |
 | `headless` | `boolean` | ❌ | Headless mode — hides toolbar and navigation arrows |
 | `theme` | `Theme` | ❌ | Theme mode: `'auto' \| 'dark' \| 'light'` (default `'dark'`) |
@@ -471,7 +471,7 @@ const files = [
 | `height` | `number \| string` | ❌ | `'100%'` | Container height |
 | `className` | `string` | ❌ | - | Extra class on the root wrapper |
 | `style` | `CSSProperties` | ❌ | - | Extra inline style on the root wrapper |
-| `locale` | `Locale` | ❌ | `'zh-CN'` | UI language (`'zh-CN'` or `'en-US'`) |
+| `locale` | `Locale` | ❌ | `'en-US'` | UI language (`'zh-CN'` or `'en-US'`) |
 | `messages` | `Partial<Record<Locale, Partial<Messages>>>` | ❌ | - | Custom translation overrides |
 | `headless` | `boolean` | ❌ | `false` | Headless mode — hides toolbar and navigation arrows |
 | `theme` | `Theme` | ❌ | `'dark'` | Theme mode: `'auto' \| 'dark' \| 'light'` |

@@ -314,7 +314,7 @@ const handleOutlineClick = async (dest: any, itemKey: string) => {
     // 跳转后自动关闭侧边栏
     setTimeout(() => { showOutline.value = false; }, 300);
   } catch (err) {
-    console.error('大纲跳转失败:', err);
+    console.error(t.value('pdf.outline_jump_failed') + ':', err);
   }
 };
 
@@ -393,7 +393,7 @@ const renderPage = async (pageNumber: number, scale: number) => {
     }
   } catch (err: any) {
     if (err?.name !== 'RenderingCancelledException') {
-      console.error(`渲染页面 ${pageNumber} 失败:`, err);
+      console.error(t.value('pdf.page_render_failed', { page: pageNumber }) + ':', err);
     }
   } finally {
     state.rendering = false;
@@ -491,12 +491,12 @@ const loadPdf = async () => {
         await buildOutlinePageMap(outlineData, pdfDoc);
       }
     } catch (err) {
-      console.warn('PDF 大纲提取失败:', err);
+      console.warn(t.value('pdf.outline_failed') + ':', err);
     }
 
     isLoading.value = false;
   } catch (err) {
-    console.error('PDF 加载错误:', err);
+    console.error(t.value('pdf.load_failed') + ':', err);
     error.value = t.value('pdf.load_failed');
     isLoading.value = false;
   }
@@ -549,7 +549,7 @@ const setupOutlineEventDelegation = () => {
         const dest = JSON.parse(destStr);
         handleOutlineClick(dest, itemKey);
       } catch (err) {
-        console.error('解析大纲目标失败:', err);
+        console.error(t.value('pdf.outline_target_failed') + ':', err);
       }
     });
   });

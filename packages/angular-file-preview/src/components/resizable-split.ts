@@ -1,3 +1,4 @@
+import { LocaleService, getFallbackTranslator } from '../di/locale.service';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -30,7 +31,7 @@ import {
             [attr.aria-selected]="activeTab() === 'left'"
             (click)="switchTab('left')"
           >
-            {{ leftTabLabel() }}
+            {{ leftTabLabel() ?? t('zip.file_tree') }}
           </button>
           <button
             type="button"
@@ -39,7 +40,7 @@ import {
             [attr.aria-selected]="activeTab() === 'right'"
             (click)="switchTab('right')"
           >
-            {{ rightTabLabel() }}
+            {{ rightTabLabel() ?? t('toolbar.preview') }}
           </button>
         </div>
       }
@@ -108,6 +109,9 @@ import {
   `],
 })
 export class ResizableSplit {
+  private readonly locale = inject(LocaleService, { optional: true });
+  protected readonly t = this.locale?.translate ?? getFallbackTranslator();
+
   initialLeftWidth = input(280);
   minLeftWidth = input(160);
   maxLeftWidth = input(640);
@@ -115,8 +119,8 @@ export class ResizableSplit {
   storageKey = input<string | undefined>(undefined);
   desktopMedia = input('(min-width: 768px)');
   mobileTabMode = input(false);
-  leftTabLabel = input('文件树');
-  rightTabLabel = input('预览');
+  leftTabLabel = input<string | undefined>(undefined);
+  rightTabLabel = input<string | undefined>(undefined);
 
   private readonly container = viewChild<ElementRef<HTMLDivElement>>('containerRef');
   private readonly destroyRef = inject(DestroyRef);

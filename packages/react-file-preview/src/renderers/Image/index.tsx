@@ -1,3 +1,4 @@
+import { PreviewError, translateError } from '@eternalheart/file-preview-core';
 import { useState, useEffect, useRef, useCallback, useImperativeHandle, forwardRef } from 'react';
 import { ZoomIn, ZoomOut, RotateCw, RotateCcw, Scan, RefreshCw } from 'lucide-react';
 import { useTranslator } from '../../i18n/LocaleContext';
@@ -146,7 +147,7 @@ export const ImageRenderer = forwardRef<ImageRendererHandle, ImageRendererProps>
           fileBlob = file.file;
         } else {
           const response = await fetch(url);
-          if (!response.ok) throw new Error('Failed to fetch file');
+          if (!response.ok) throw new PreviewError('file.load_failed');
           fileBlob = await response.blob();
         }
 
@@ -209,7 +210,7 @@ export const ImageRenderer = forwardRef<ImageRendererHandle, ImageRendererProps>
         setDecoding(false);
       } catch (err: any) {
         if (!cancelled) {
-          setDecodeError(err?.message || '解码失败');
+          setDecodeError(translateError(t, err) || t('image.decode_failed'));
           setDecoding(false);
         }
       }
@@ -223,7 +224,7 @@ export const ImageRenderer = forwardRef<ImageRendererHandle, ImageRendererProps>
     return () => {
       cancelled = true;
     };
-  }, [url, file]);
+  }, [url, file, t]);
 
   // 多页 TIFF 翻页：切换页码时重新解码
   const handlePageChange = useCallback(async (page: number) => {
@@ -261,10 +262,10 @@ export const ImageRenderer = forwardRef<ImageRendererHandle, ImageRendererProps>
       setImageSrc(blobUrl);
       setDecoding(false);
     } catch (err: any) {
-      setDecodeError(err?.message || '翻页解码失败');
+      setDecodeError(translateError(t, err) || t('image.page_decode_failed'));
       setDecoding(false);
     }
-  }, [totalPages]);
+  }, [totalPages, t]);
 
   // Cleanup blob URL on unmount
   useEffect(() => {
@@ -580,7 +581,7 @@ export const ImageRenderer = forwardRef<ImageRendererHandle, ImageRendererProps>
           <div className="rfp-renderer-loading-content">
             <div className="rfp-renderer-spinner" />
             <p className="rfp-renderer-loading-text rfp-text-fg-secondary">
-              正在解码... {decodeProgress > 0 && `${Math.round(decodeProgress)}%`}
+              {t('image.decoding')} {decodeProgress > 0 && `${Math.round(decodeProgress)}%`}
             </p>
           </div>
         </div>
@@ -640,7 +641,7 @@ export const ImageRenderer = forwardRef<ImageRendererHandle, ImageRendererProps>
             disabled={currentPage <= 1 || decoding}
             className="rfp-px-2 rfp-py-0.5 rfp-rounded hover:rfp-bg-surface-nav-hover disabled:rfp-opacity-40 disabled:rfp-cursor-not-allowed"
           >
-            上一页
+            {t('toolbar.prev_page')}
           </button>
           <span className="rfp-text-fg-secondary rfp-tabular-nums">
             {currentPage} / {totalPages}
@@ -651,7 +652,7 @@ export const ImageRenderer = forwardRef<ImageRendererHandle, ImageRendererProps>
             disabled={currentPage >= totalPages || decoding}
             className="rfp-px-2 rfp-py-0.5 rfp-rounded hover:rfp-bg-surface-nav-hover disabled:rfp-opacity-40 disabled:rfp-cursor-not-allowed"
           >
-            下一页
+            {t('toolbar.next_page')}
           </button>
         </div>
       )}

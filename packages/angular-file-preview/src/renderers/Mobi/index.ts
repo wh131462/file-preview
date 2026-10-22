@@ -1,3 +1,4 @@
+import { PreviewError } from '../../fp-core';
 import {
   afterNextRender,
   ChangeDetectionStrategy,
@@ -87,7 +88,7 @@ async function renderInitialPage(renderer: { next?: () => Promise<void> }): Prom
       nextPromise,
       new Promise<never>((_, reject) => {
         timer = window.setTimeout(
-          () => reject(new Error('MOBI initial render timed out')),
+          () => reject(new PreviewError('mobi.timeout')),
           INITIAL_RENDER_TIMEOUT_MS,
         );
       }),
@@ -224,7 +225,7 @@ export class MobiRenderer implements RendererHandle {
   private readonly emitter = new ToolbarEventEmitter();
   private readonly locale = inject(LocaleService, { optional: true });
   private readonly request = inject(RequestService, { optional: true });
-  protected readonly t = this.locale?.t() ?? getFallbackTranslator();
+  protected readonly t = this.locale?.translate ?? getFallbackTranslator();
   private readonly host = viewChild<ElementRef<HTMLDivElement>>('hostRef');
 
   protected readonly xIcon = X;
@@ -469,7 +470,7 @@ export class MobiRenderer implements RendererHandle {
 
       const fetcher = this.request?.fetcher() ?? ((u: string, init?: RequestInit) => fetch(u, init));
       const res = await fetcher(this.url());
-      if (!res.ok) throw new Error(`请求失败: ${res.status}`);
+      if (!res.ok) throw new PreviewError('request.failed', { status: res.status });
       const blob = await res.blob();
       let name = 'book.mobi';
       try {
@@ -496,7 +497,7 @@ export class MobiRenderer implements RendererHandle {
         this.reportProgress(0, view.book?.sections.length ?? 1);
       }
     } catch (err) {
-      console.error('MOBI/AZW3 加载错误:', err);
+      console.error(this.t('mobi.load_failed') + ':', err);
       this.error.set(this.t('mobi.load_failed'));
       this.loading.set(false);
     }

@@ -1,3 +1,4 @@
+import { PreviewError } from '@eternalheart/file-preview-core';
 import { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
 import MsgReader from '@kenjiuno/msgreader';
 import type { FieldsData } from '@kenjiuno/msgreader';
@@ -128,7 +129,7 @@ export const MsgRenderer = forwardRef<RendererHandle, MsgRendererProps>(({ url }
       try {
         const response = await fetcher(url);
         if (!response.ok) {
-          throw new Error('文件加载失败');
+          throw new PreviewError('file.load_failed');
         }
 
         const arrayBuffer = await response.arrayBuffer();
@@ -136,7 +137,7 @@ export const MsgRenderer = forwardRef<RendererHandle, MsgRendererProps>(({ url }
         const fileData = msgReader.getFileData();
         setFields(fileData);
       } catch (err) {
-        console.error('MSG 解析错误:', err);
+        console.error(t('msg.parse_failed') + ':', err);
         setError(t('msg.parse_failed'));
       } finally {
         setLoading(false);
@@ -178,7 +179,7 @@ export const MsgRenderer = forwardRef<RendererHandle, MsgRendererProps>(({ url }
   const receivedDate = formatDate(fields.messageDeliveryTime);
   const createdDate = formatDate(fields.creationTime);
   const lastModified = formatDate(fields.lastModificationTime);
-  const subject = fields.subject || '（无主题）';
+  const subject = fields.subject || t('msg.no_subject');
   const attachments = (fields.attachments || []).filter((a) => !a.attachmentHidden);
   const bodyHtml = decodeHtmlBody(fields, t('msg.empty_body'));
   const messageClass = formatMessageClass(fields.messageClass);
@@ -329,7 +330,7 @@ export const MsgRenderer = forwardRef<RendererHandle, MsgRendererProps>(({ url }
                   <span style={labelStyle}>Attachments</span>
                   <div style={{ ...valueStyle, display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                     {attachments.map((a, i) => {
-                      const name = a.fileName || a.name || '未知文件';
+                      const name = a.fileName || a.name || t('common.unknown_file');
                       const size = a.contentLength;
                       const sizeStr = size
                         ? size > 1048576

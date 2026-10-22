@@ -1,4 +1,6 @@
+import { PreviewError } from '../i18n';
 import type { DecodeOptions } from '../loaders/types';
+import type { DecodeResponse } from './imageDecoder.worker';
 // 内联 Worker，避免 core 产物被上层 React/Vue 包再次打包时丢失相对资源路径。
 // @ts-ignore - Vite 虚拟模块，无类型声明
 import AdvancedImageDecoderWorker from './imageDecoder.worker?worker&inline';
@@ -43,13 +45,13 @@ export async function decodeInWorker(
     try {
       worker = new AdvancedImageDecoderWorker();
     } catch (err: any) {
-      reject(new Error(`无法创建 Worker: ${err?.message || '未知错误'}`));
+      reject(new PreviewError('image.worker_create_failed', undefined, err || new PreviewError('common.unknown_error')));
       return;
     }
 
     const requestId = Math.random().toString(36).slice(2);
 
-    const handleMessage = (event: MessageEvent) => {
+    const handleMessage = (event: MessageEvent<DecodeResponse>) => {
       const response = event.data;
       if (response.id !== requestId) return;
 
@@ -59,13 +61,16 @@ export async function decodeInWorker(
         resolve(blob);
       } else {
         cleanup();
-        reject(new Error(response.error || '解码失败'));
+        const detail = response.error;
+        reject(detail && typeof detail === 'object' && 'key' in detail
+          ? new PreviewError(detail.key, detail.params, detail.detail)
+          : new PreviewError('image.decode_failed', undefined, detail));
       }
     };
 
     const handleError = (event: ErrorEvent) => {
       cleanup();
-      reject(new Error(`Worker 崩溃: ${event.message || '设备内存不足'}`));
+      reject(new PreviewError('image.worker_crashed', undefined, event.message || new PreviewError('image.out_of_memory')));
     };
 
     const cleanup = () => {

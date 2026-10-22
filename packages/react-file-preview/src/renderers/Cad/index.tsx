@@ -1,3 +1,4 @@
+import { PreviewError } from '@eternalheart/file-preview-core';
 import { useEffect, useRef, useState, forwardRef, useImperativeHandle, useCallback } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
@@ -322,7 +323,7 @@ export const CadRenderer = forwardRef<RendererHandle, CadRendererProps>(({ url, 
       ? file.arrayBuffer()
       : fetcher(url, { signal: abortController.signal }).then((response) => {
           if (isCleanedUp) return undefined;
-          if (!response.ok) throw new Error('Failed to fetch file');
+          if (!response.ok) throw new PreviewError('file.load_failed');
           return response.arrayBuffer();
         });
 

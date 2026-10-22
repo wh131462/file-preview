@@ -1,3 +1,4 @@
+import { PreviewError } from '../../fp-core';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -101,8 +102,8 @@ function ensureZipTipStyles(): void {
         [maxLeftWidth]="560"
         storageKey="afp-zip-split-left"
         [mobileTabMode]="true"
-        leftTabLabel="文件树"
-        rightTabLabel="预览"
+        [leftTabLabel]="t('zip.file_tree')"
+        [rightTabLabel]="t('toolbar.preview')"
       >
         <div splitLeft class="afp-w-full afp-h-full afp-overflow-auto">
           @for (child of tree()!.children || []; track child.path) {
@@ -132,7 +133,7 @@ function ensureZipTipStyles(): void {
             </div>
           } @else if (!selected()) {
             <div class="afp-flex-1 afp-flex afp-items-center afp-justify-center afp-text-fg-muted afp-text-sm afp-p-6">
-              从左侧选择一个文件以预览
+              {{ t('zip.select_file') }}
             </div>
           } @else {
             <div class="afp-flex-1 afp-min-h-0 afp-overflow-hidden afp-flex afp-relative afp-z-0">
@@ -156,7 +157,7 @@ export class ZipRenderer implements RendererHandle {
   private readonly emitter = new ToolbarEventEmitter();
   private readonly locale = inject(LocaleService, { optional: true });
   private readonly request = inject(RequestService, { optional: true });
-  protected readonly t = this.locale?.t() ?? getFallbackTranslator();
+  protected readonly t = this.locale?.translate ?? getFallbackTranslator();
   private readonly splitRef = viewChild(ResizableSplit);
 
   readonly zip = signal<JSZip | null>(null);
@@ -252,7 +253,7 @@ export class ZipRenderer implements RendererHandle {
       this.splitRef()?.switchTab('right');
     } catch (err) {
       console.error(err);
-      this.previewError.set(this.t('zip.load_failed'));
+      this.previewError.set(this.t('zip.entry_read_failed'));
       this.splitRef()?.switchTab('right');
     } finally {
       this.previewLoading.set(false);
@@ -294,7 +295,7 @@ export class ZipRenderer implements RendererHandle {
     try {
       const fetcher = this.request?.fetcher() ?? ((u: string, init?: RequestInit) => fetch(u, init));
       const res = await fetcher(this.url());
-      if (!res.ok) throw new Error('加载失败');
+      if (!res.ok) throw new PreviewError('common.load_failed');
       const buf = await res.arrayBuffer();
       const z = await loadZip(buf);
       const entries = listZipEntries(z);

@@ -1,3 +1,4 @@
+import { PreviewError } from '../i18n';
 import type {
   Fetcher,
   RequestHandler,
@@ -71,7 +72,7 @@ export async function fetchAsBlobUrl(
   init?: RequestInit,
 ): Promise<string> {
   const res = await fetcher(url, init);
-  if (!res.ok) throw new Error(`请求失败: ${res.status}`);
+  if (!res.ok) throw new PreviewError('request.failed', { status: res.status });
   const blob = await res.blob();
   return URL.createObjectURL(blob);
 }
@@ -90,7 +91,7 @@ export async function downloadFileWithFetcher(
   init?: RequestInit,
 ): Promise<void> {
   const res = await fetcher(url, init);
-  if (!res.ok) throw new Error(`请求失败: ${res.status}`);
+  if (!res.ok) throw new PreviewError('request.failed', { status: res.status });
   const blob = await res.blob();
   const blobUrl = URL.createObjectURL(blob);
   try {

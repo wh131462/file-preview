@@ -1,3 +1,4 @@
+import { PreviewError, translateError } from '@eternalheart/file-preview-core';
 import { useState, useEffect, useRef, useCallback, forwardRef, useImperativeHandle } from 'react';
 import { init } from 'pptx-preview';
 import { readPptxSlideSize } from '@eternalheart/file-preview-core';
@@ -164,11 +165,11 @@ export const PptxRenderer = forwardRef<RendererHandle, PptxRendererProps>(({ url
           if (response.status === 404) {
             throw new Error(t('pptx.not_found'));
           } else if (response.status === 403) {
-            throw new Error('无权限访问此文件');
+            throw new PreviewError('file.forbidden');
           } else if (response.status >= 500) {
-            throw new Error('服务器错误，请稍后重试');
+            throw new PreviewError('file.server_error');
           } else {
-            throw new Error(`文件加载失败 (${response.status})`);
+            throw new PreviewError('file.load_failed_status', { status: response.status });
           }
         }
 
@@ -176,7 +177,7 @@ export const PptxRenderer = forwardRef<RendererHandle, PptxRendererProps>(({ url
 
         // 验证文件大小
         if (arrayBuffer.byteLength === 0) {
-          throw new Error('文件为空');
+          throw new PreviewError('file.empty');
         }
 
         arrayBufferRef.current = arrayBuffer;
@@ -260,7 +261,7 @@ export const PptxRenderer = forwardRef<RendererHandle, PptxRendererProps>(({ url
         if (isMounted) {
           let errorMsg = t('pptx.parse_failed');
           if (err instanceof Error) {
-            errorMsg = err.message;
+            errorMsg = translateError(t, err);
           } else if (typeof err === 'string') {
             errorMsg = err;
           }

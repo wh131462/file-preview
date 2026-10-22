@@ -6,6 +6,10 @@ import { readOleStream, readOleStreamAny, u8ToDataView } from './ole';
 
 const WORD_IDENT = 0xa5ec;
 const CELL_MARK = '\u001e';
+// MS-DOC FcCompressed maps these bytes to Unicode, independently of the document locale.
+const COMPRESSED_SPECIAL =
+  '\u0080\u0081‚ƒ„…†‡ˆ‰Š‹Œ\u008d\u008e\u008f' +
+  '\u0090‘’“”•–—˜™š›œ\u009d\u009eŸ';
 
 export interface LegacyDocTheme {
   font: string;
@@ -128,8 +132,8 @@ function decodeCompressed(bytes: Uint8Array, start: number, end: number): string
       out += CELL_MARK;
     } else if (c === 0x09) {
       out += '\t';
-    } else if (c >= 0x20 && c < 0x7F) {
-      out += String.fromCharCode(c);
+    } else if (c >= 0x20 && c !== 0x7f) {
+      out += c >= 0x80 && c <= 0x9f ? COMPRESSED_SPECIAL[c - 0x80] : String.fromCharCode(c);
     }
     i++;
   }
@@ -148,7 +152,7 @@ function decodeUnicode(bytes: Uint8Array, start: number, end: number): string {
     }
   }
 
-  const limit = Math.min(end, bytes.length - (bytes.length % 2 === 0 ? 0 : 1));
+  const limit = Math.min(end, bytes.length);
   while (i + 1 < limit) {
     const c = view.getUint16(i, true);
     if (c === 0x000d || c === 0x000b || c === 0x000c) {
@@ -303,11 +307,10 @@ function readFibFields(word: Uint8Array): { fc: number; lcb: number }[] | null {
 function findClxLocation(word: Uint8Array, tableLen: number): { fcClx: number; lcbClx: number } | null {
   const fields = readFibFields(word);
   if (!fields) return null;
-  for (const idx of [31, 33]) {
-    const field = fields[idx];
-    if (field && field.lcb >= 16 && field.fc + field.lcb <= tableLen) {
-      return { fcClx: field.fc, lcbClx: field.lcb };
-    }
+  // FibRgFcLcb97[31] is Dop (document properties); Clx is always at index 33.
+  const field = fields[33];
+  if (field && field.lcb >= 21 && field.fc + field.lcb <= tableLen) {
+    return { fcClx: field.fc, lcbClx: field.lcb };
   }
   return null;
 }
@@ -489,17 +492,20 @@ function extractViaPieceTable(word: Uint8Array, table: Uint8Array): string | nul
     const cpStart = view.getUint32(plcPcdStart + p * 4, true);
     const cpEnd = view.getUint32(plcPcdStart + (p + 1) * 4, true);
     const charCount = cpEnd - cpStart;
-    if (charCount <= 0 || charCount > 5_000_000) {
-      continue;
+    if ((p === 0 && cpStart !== 0) || charCount <= 0 || charCount > 5_000_000) {
+      return null;
     }
     const pcdOffset = plcPcdStart + 4 * (n + 1) + p * 8;
     const fcCompressed = view.getUint32(pcdOffset + 2, true);
     const fCompressed = (fcCompressed & 0x40000000) !== 0;
     const fc = fcCompressed & 0x3fffffff;
     if (fCompressed) {
+      if (fc % 2 !== 0) return null;
       const byteFc = Math.floor(fc / 2);
+      if (byteFc + charCount > word.length) return null;
       text += decodeCompressed(word, byteFc, byteFc + charCount);
     } else {
+      if (fc + charCount * 2 > word.length) return null;
       text += decodeUnicode(word, fc, fc + charCount * 2);
     }
   }
@@ -514,16 +520,32 @@ function extractSimpleRange(word: Uint8Array): string | null {
   }
   const fcMin = view.getUint32(0x18, true);
   const fcMac = view.getUint32(0x1c, true);
-  if (fcMac <= fcMin || fcMac > word.length) {
+  if (fcMin < 0x20 || fcMac <= fcMin || fcMac > word.length) {
     return null;
   }
   const span = word.subarray(fcMin, fcMac);
-  const uni = cleanDocText(decodeUnicode(span, 0, span.length));
-  const cmp = cleanDocText(decodeCompressed(span, 0, span.length));
-  if (uni.length >= cmp.length && uni.length > 0) {
-    return uni;
+  let isUnicode = (view.getUint16(0x0a, true) & 0x1000) !== 0;
+  // Word 97+ always sets fExtChar, even for compressed text; prefer the stored character count.
+  if (view.getUint16(2, true) >= 0x00c1 && word.length >= 34) {
+    const lwOffset = 34 + view.getUint16(32, true) * 2;
+    if (lwOffset + 46 <= word.length && view.getUint16(lwOffset, true) >= 11) {
+      const ccpText = view.getUint32(lwOffset + 2 + 3 * 4, true);
+      let otherChars = 0;
+      for (const index of [4, 5, 7, 8, 9, 10]) {
+        otherChars += view.getUint32(lwOffset + 2 + index * 4, true);
+      }
+      const charCount = ccpText + otherChars + (otherChars > 0 ? 1 : 0);
+      if (charCount > 0) {
+        if (span.length === charCount * 2) isUnicode = true;
+        else if (span.length === charCount) isUnicode = false;
+      }
+    }
   }
-  return cmp.length ? cmp : null;
+  if (isUnicode && span.length % 2 !== 0) return null;
+  const text = cleanDocText(isUnicode
+    ? decodeUnicode(span, 0, span.length)
+    : decodeCompressed(span, 0, span.length));
+  return text.length ? text : null;
 }
 
 function splitCells(line: string): string[] {
@@ -899,11 +921,13 @@ function formatInline(text: string, emphasizeLead = true): string {
 
 export function parseLegacyDoc(data: ArrayBuffer): LegacyDocPreview {
   const word = readOleStream(data, 'WordDocument');
-  if (!word?.length) {
+  if (!word || word.length < 0x20 || u8ToDataView(word).getUint16(0, true) !== WORD_IDENT) {
     throw new Error('Not a valid Word .doc (missing WordDocument stream)');
   }
 
-  const table = readOleStreamAny(data, ['1Table', '0Table']) ?? new Uint8Array(0);
+  const use1Table = (u8ToDataView(word).getUint16(0x0a, true) & 0x0200) !== 0;
+  const table = readOleStreamAny(data, use1Table ? ['1Table', '0Table'] : ['0Table', '1Table'])
+    ?? new Uint8Array(0);
   const structured =
     (table.length ? extractViaPieceTable(word, table) : null) ?? extractSimpleRange(word);
   const text = structured ?? heuristicUnicodeExtract(word);

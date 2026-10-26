@@ -1,3 +1,5 @@
+/// <reference path="../../types/three.d.ts" />
+
 import { PreviewError } from '../../fp-core';
 import {
   afterNextRender,

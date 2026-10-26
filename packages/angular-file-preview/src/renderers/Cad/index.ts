@@ -14,7 +14,6 @@ import {
 } from '@angular/core';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-// @ts-expect-error three-dxf-loader has no types
 import { DXFLoader } from 'three-dxf-loader';
 import { STLLoader } from 'three/examples/jsm/loaders/STLLoader.js';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
@@ -37,12 +36,31 @@ function getAssetBasePath(url: string): string {
 }
 
 function fitCameraToModel(
-  camera: THREE.PerspectiveCamera,
+  camera: THREE.PerspectiveCamera | THREE.OrthographicCamera,
   controls: OrbitControls,
   center: THREE.Vector3,
-  maxDim: number,
+  size: THREE.Vector3,
 ): void {
+  const maxDim = Math.max(size.x, size.y, size.z);
   const safeMaxDim = Number.isFinite(maxDim) && maxDim > 0 ? maxDim : 1;
+  if (camera instanceof THREE.OrthographicCamera) {
+    const aspect = (camera.right - camera.left) / (camera.top - camera.bottom);
+    const halfHeight = (Math.max(size.y, size.x / aspect) || safeMaxDim) * 0.55;
+    camera.left = -halfHeight * aspect;
+    camera.right = halfHeight * aspect;
+    camera.top = halfHeight;
+    camera.bottom = -halfHeight;
+    camera.near = 0;
+    camera.far = safeMaxDim * 4;
+    camera.zoom = 1;
+    camera.up.set(0, 1, 0);
+    camera.position.set(center.x, center.y, center.z + safeMaxDim * 2);
+    camera.lookAt(center);
+    controls.target.copy(center);
+    controls.update();
+    camera.updateProjectionMatrix();
+    return;
+  }
   const fov = camera.fov * (Math.PI / 180);
   const cameraZ = Math.abs(safeMaxDim / 2 / Math.tan(fov / 2)) * 1.5;
 
@@ -98,12 +116,13 @@ export class CadRenderer implements RendererHandle {
   readonly showAxes = signal(true);
 
   private scene: THREE.Scene | null = null;
-  private camera: THREE.PerspectiveCamera | null = null;
+  private camera: THREE.PerspectiveCamera | THREE.OrthographicCamera | null = null;
   private renderer: THREE.WebGLRenderer | null = null;
   private controls: OrbitControls | null = null;
   private model: THREE.Object3D | null = null;
   private grid: THREE.GridHelper | null = null;
   private axes: THREE.AxesHelper | null = null;
+  private resizeObserver: ResizeObserver | null = null;
   private animationId: number | null = null;
   private abortController: AbortController | null = null;
   private isCleanedUp = false;
@@ -135,6 +154,7 @@ export class CadRenderer implements RendererHandle {
         toggleGrid: () => this.toggleGrid(),
         toggleAxes: () => this.toggleAxes(),
       },
+      isDxf: this.getExtension(this.url(), this.fileName(), this.file()) === 'dxf',
       wireframe: this.wireframe(),
       showGrid: this.showGrid(),
       showAxes: this.showAxes(),
@@ -160,8 +180,7 @@ export class CadRenderer implements RendererHandle {
     const box = new THREE.Box3().setFromObject(this.model);
     const center = box.getCenter(new THREE.Vector3());
     const size = box.getSize(new THREE.Vector3());
-    const maxDim = Math.max(size.x, size.y, size.z);
-    fitCameraToModel(this.camera, this.controls, center, maxDim);
+    fitCameraToModel(this.camera, this.controls, center, size);
     this.renderPending = true;
   }
 
@@ -220,7 +239,8 @@ export class CadRenderer implements RendererHandle {
     );
     const extent = Number.isFinite(rawExtent) ? rawExtent : safeMaxDim;
     const axesSize = Math.max(safeMaxDim, extent * 1.25);
-    const gridSize = Math.max(safeMaxDim * 2, extent * 2.5);
+    const isDxf = this.camera instanceof THREE.OrthographicCamera;
+    const gridSize = isDxf ? safeMaxDim * 2 : Math.max(safeMaxDim * 2, extent * 2.5);
 
     if (this.grid) {
       this.grid.geometry.dispose();
@@ -234,6 +254,11 @@ export class CadRenderer implements RendererHandle {
     }
 
     this.grid = new THREE.GridHelper(gridSize, 20, 0x444444, 0x222222);
+    if (isDxf) {
+      this.grid.rotation.x = Math.PI / 2;
+      box.getCenter(this.grid.position);
+      this.grid.position.z = box.min.z - safeMaxDim * 1e-3;
+    }
     this.grid.visible = this.showGrid();
     this.scene.add(this.grid);
 
@@ -282,7 +307,11 @@ export class CadRenderer implements RendererHandle {
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(0x1a1a1a);
 
-    this.camera = new THREE.PerspectiveCamera(45, width / height, 0.01, 1_000_000);
+    const isDxf = this.getExtension(this.url(), this.fileName(), this.file()) === 'dxf';
+    const aspect = Math.max(width, 1) / Math.max(height, 1);
+    this.camera = isDxf
+      ? new THREE.OrthographicCamera(-aspect, aspect, 1, -1, 0, 1_000_000)
+      : new THREE.PerspectiveCamera(45, aspect, 0.01, 1_000_000);
     this.camera.position.set(100, 100, 100);
 
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -294,6 +323,13 @@ export class CadRenderer implements RendererHandle {
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
     this.controls.enableDamping = true;
     this.controls.dampingFactor = 0.05;
+    if (isDxf) {
+      this.controls.enableRotate = false;
+      this.controls.screenSpacePanning = true;
+      this.controls.mouseButtons.LEFT = THREE.MOUSE.PAN;
+      this.controls.touches.ONE = THREE.TOUCH.PAN;
+      this.controls.touches.TWO = THREE.TOUCH.DOLLY_PAN;
+    }
 
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
     this.scene.add(ambientLight);
@@ -319,7 +355,8 @@ export class CadRenderer implements RendererHandle {
     };
     animate();
 
-    window.addEventListener('resize', this.handleResize);
+    this.resizeObserver = new ResizeObserver(this.handleResize);
+    this.resizeObserver.observe(container);
   }
 
   private loadModel(): void {
@@ -394,9 +431,8 @@ export class CadRenderer implements RendererHandle {
 
       const center = box.getCenter(new THREE.Vector3());
       const size = box.getSize(new THREE.Vector3());
-      const maxDim = Math.max(size.x, size.y, size.z);
       this.updateReferenceHelpers(box);
-      fitCameraToModel(this.camera!, this.controls!, center, maxDim);
+      fitCameraToModel(this.camera!, this.controls!, center, size);
       this.renderPending = true;
 
       this.loading.set(false);
@@ -489,9 +525,16 @@ export class CadRenderer implements RendererHandle {
     if (!container || !this.camera || !this.renderer || this.isCleanedUp) return;
     const newWidth = container.clientWidth;
     const newHeight = container.clientHeight;
-    this.camera.aspect = newWidth / newHeight;
+    if (newWidth <= 0 || newHeight <= 0) return;
+    if (this.camera instanceof THREE.OrthographicCamera) {
+      this.camera.right = this.camera.top * newWidth / newHeight;
+      this.camera.left = -this.camera.right;
+    } else {
+      this.camera.aspect = newWidth / newHeight;
+    }
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(newWidth, newHeight);
+    this.renderPending = true;
   };
 
   private cleanup(): void {
@@ -503,7 +546,8 @@ export class CadRenderer implements RendererHandle {
       cancelAnimationFrame(this.animationId);
       this.animationId = null;
     }
-    window.removeEventListener('resize', this.handleResize);
+    this.resizeObserver?.disconnect();
+    this.resizeObserver = null;
 
     if (this.model) {
       this.disposeThreeResources(this.model);

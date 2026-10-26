@@ -24,12 +24,31 @@ const getAssetBasePath = (url: string): string => {
 };
 
 const fitCameraToModel = (
-  camera: THREE.PerspectiveCamera,
+  camera: THREE.PerspectiveCamera | THREE.OrthographicCamera,
   controls: OrbitControls,
   center: THREE.Vector3,
-  maxDim: number,
+  size: THREE.Vector3,
 ) => {
+  const maxDim = Math.max(size.x, size.y, size.z);
   const safeMaxDim = Number.isFinite(maxDim) && maxDim > 0 ? maxDim : 1;
+  if (camera instanceof THREE.OrthographicCamera) {
+    const aspect = (camera.right - camera.left) / (camera.top - camera.bottom);
+    const halfHeight = (Math.max(size.y, size.x / aspect) || safeMaxDim) * 0.55;
+    camera.left = -halfHeight * aspect;
+    camera.right = halfHeight * aspect;
+    camera.top = halfHeight;
+    camera.bottom = -halfHeight;
+    camera.near = 0;
+    camera.far = safeMaxDim * 4;
+    camera.zoom = 1;
+    camera.up.set(0, 1, 0);
+    camera.position.set(center.x, center.y, center.z + safeMaxDim * 2);
+    camera.lookAt(center);
+    controls.target.copy(center);
+    controls.update();
+    camera.updateProjectionMatrix();
+    return;
+  }
   const fov = camera.fov * (Math.PI / 180);
   const cameraZ = Math.abs(safeMaxDim / 2 / Math.tan(fov / 2)) * 1.5;
 
@@ -61,12 +80,13 @@ const showGrid = ref(true);
 const showAxes = ref(true);
 
 let scene: THREE.Scene | null = null;
-let camera: THREE.PerspectiveCamera | null = null;
+let camera: THREE.PerspectiveCamera | THREE.OrthographicCamera | null = null;
 let renderer: THREE.WebGLRenderer | null = null;
 let controls: OrbitControls | null = null;
 let model: THREE.Object3D | null = null;
 let grid: THREE.GridHelper | null = null;
 let axes: THREE.AxesHelper | null = null;
+let resizeObserver: ResizeObserver | null = null;
 let animationId: number | null = null;
 let abortController: AbortController | null = null;
 let isCleanedUp = false;
@@ -95,8 +115,7 @@ const resetView = () => {
   const box = new THREE.Box3().setFromObject(model);
   const center = box.getCenter(new THREE.Vector3());
   const size = box.getSize(new THREE.Vector3());
-  const maxDim = Math.max(size.x, size.y, size.z);
-  fitCameraToModel(camera, controls, center, maxDim);
+  fitCameraToModel(camera, controls, center, size);
   renderPending = true;
 };
 
@@ -157,7 +176,8 @@ const updateReferenceHelpers = (box: THREE.Box3) => {
   );
   const extent = Number.isFinite(rawExtent) ? rawExtent : safeMaxDim;
   const axesSize = Math.max(safeMaxDim, extent * 1.25);
-  const gridSize = Math.max(safeMaxDim * 2, extent * 2.5);
+  const isDxf = camera instanceof THREE.OrthographicCamera;
+  const gridSize = isDxf ? safeMaxDim * 2 : Math.max(safeMaxDim * 2, extent * 2.5);
 
   if (grid) {
     grid.geometry.dispose();
@@ -171,6 +191,11 @@ const updateReferenceHelpers = (box: THREE.Box3) => {
   }
 
   grid = new THREE.GridHelper(gridSize, 20, 0x444444, 0x222222);
+  if (isDxf) {
+    grid.rotation.x = Math.PI / 2;
+    box.getCenter(grid.position);
+    grid.position.z = box.min.z - safeMaxDim * 1e-3;
+  }
   grid.visible = showGrid.value;
   scene.add(grid);
 
@@ -184,6 +209,7 @@ defineExpose<RendererHandle>({
   getToolbarGroups: () => {
     return getCadToolbarGroups({
       cadRef: { resetView, toggleWireframe, toggleGrid, toggleAxes },
+      isDxf: getExtension(props.url, props.fileName, props.file) === 'dxf',
       wireframe: wireframe.value,
       showGrid: showGrid.value,
       showAxes: showAxes.value,
@@ -240,7 +266,11 @@ const initScene = () => {
   scene.background = new THREE.Color(0x1a1a1a);
 
   // 创建相机
-  camera = new THREE.PerspectiveCamera(45, width / height, 0.01, 1_000_000);
+  const isDxf = getExtension(props.url, props.fileName, props.file) === 'dxf';
+  const aspect = Math.max(width, 1) / Math.max(height, 1);
+  camera = isDxf
+    ? new THREE.OrthographicCamera(-aspect, aspect, 1, -1, 0, 1_000_000)
+    : new THREE.PerspectiveCamera(45, aspect, 0.01, 1_000_000);
   camera.position.set(100, 100, 100);
 
   // 创建渲染器
@@ -254,6 +284,13 @@ const initScene = () => {
   controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true;
   controls.dampingFactor = 0.05;
+  if (isDxf) {
+    controls.enableRotate = false;
+    controls.screenSpacePanning = true;
+    controls.mouseButtons.LEFT = THREE.MOUSE.PAN;
+    controls.touches.ONE = THREE.TOUCH.PAN;
+    controls.touches.TWO = THREE.TOUCH.DOLLY_PAN;
+  }
 
   // 添加灯光
   const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
@@ -283,7 +320,8 @@ const initScene = () => {
   animate();
 
   // 处理窗口大小变化
-  window.addEventListener('resize', handleResize);
+  resizeObserver = new ResizeObserver(handleResize);
+  resizeObserver.observe(container);
 };
 
 // 加载模型
@@ -367,9 +405,8 @@ const loadModel = () => {
     // 自动调整视角
     const center = box.getCenter(new THREE.Vector3());
     const size = box.getSize(new THREE.Vector3());
-    const maxDim = Math.max(size.x, size.y, size.z);
     updateReferenceHelpers(box);
-    fitCameraToModel(camera!, controls!, center, maxDim);
+    fitCameraToModel(camera!, controls!, center, size);
     renderPending = true;
 
     loading.value = false;
@@ -469,7 +506,13 @@ const handleResize = () => {
   if (!containerRef.value || !camera || !renderer || isCleanedUp) return;
   const newWidth = containerRef.value.clientWidth;
   const newHeight = containerRef.value.clientHeight;
-  camera.aspect = newWidth / newHeight;
+  if (newWidth <= 0 || newHeight <= 0) return;
+  if (camera instanceof THREE.OrthographicCamera) {
+    camera.right = camera.top * newWidth / newHeight;
+    camera.left = -camera.right;
+  } else {
+    camera.aspect = newWidth / newHeight;
+  }
   camera.updateProjectionMatrix();
   renderer.setSize(newWidth, newHeight);
   renderPending = true;
@@ -485,7 +528,8 @@ const cleanup = () => {
     cancelAnimationFrame(animationId);
     animationId = null;
   }
-  window.removeEventListener('resize', handleResize);
+  resizeObserver?.disconnect();
+  resizeObserver = null;
 
   // 释放 THREE.js 资源
   if (model) {

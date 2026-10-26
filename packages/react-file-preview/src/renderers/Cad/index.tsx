@@ -22,12 +22,31 @@ function getAssetBasePath(url: string): string {
 }
 
 function fitCameraToModel(
-  camera: THREE.PerspectiveCamera,
+  camera: THREE.PerspectiveCamera | THREE.OrthographicCamera,
   controls: OrbitControls,
   center: THREE.Vector3,
-  maxDim: number,
+  size: THREE.Vector3,
 ): void {
+  const maxDim = Math.max(size.x, size.y, size.z);
   const safeMaxDim = Number.isFinite(maxDim) && maxDim > 0 ? maxDim : 1;
+  if (camera instanceof THREE.OrthographicCamera) {
+    const aspect = (camera.right - camera.left) / (camera.top - camera.bottom);
+    const halfHeight = (Math.max(size.y, size.x / aspect) || safeMaxDim) * 0.55;
+    camera.left = -halfHeight * aspect;
+    camera.right = halfHeight * aspect;
+    camera.top = halfHeight;
+    camera.bottom = -halfHeight;
+    camera.near = 0;
+    camera.far = safeMaxDim * 4;
+    camera.zoom = 1;
+    camera.up.set(0, 1, 0);
+    camera.position.set(center.x, center.y, center.z + safeMaxDim * 2);
+    camera.lookAt(center);
+    controls.target.copy(center);
+    controls.update();
+    camera.updateProjectionMatrix();
+    return;
+  }
   const fov = camera.fov * (Math.PI / 180);
   const cameraZ = Math.abs(safeMaxDim / 2 / Math.tan(fov / 2)) * 1.5;
 
@@ -52,7 +71,7 @@ export const CadRenderer = forwardRef<RendererHandle, CadRendererProps>(({ url, 
   const fetcher = useFetcher();
   const containerRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
-  const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
+  const cameraRef = useRef<THREE.PerspectiveCamera | THREE.OrthographicCamera | null>(null);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const controlsRef = useRef<OrbitControls | null>(null);
   const modelRef = useRef<THREE.Object3D | null>(null);
@@ -89,6 +108,8 @@ export const CadRenderer = forwardRef<RendererHandle, CadRendererProps>(({ url, 
     return url.split('.').pop()?.toLowerCase().split('?')[0] || '';
   };
 
+  const isDxf = getExtension(url, fileName, file) === 'dxf';
+
   // 释放 THREE.js 资源
   const disposeThreeResources = useCallback((obj: THREE.Object3D) => {
     obj.traverse((child: any) => {
@@ -124,8 +145,7 @@ export const CadRenderer = forwardRef<RendererHandle, CadRendererProps>(({ url, 
     const box = new THREE.Box3().setFromObject(modelRef.current);
     const center = box.getCenter(new THREE.Vector3());
     const size = box.getSize(new THREE.Vector3());
-    const maxDim = Math.max(size.x, size.y, size.z);
-    fitCameraToModel(cameraRef.current, controlsRef.current, center, maxDim);
+    fitCameraToModel(cameraRef.current, controlsRef.current, center, size);
     renderPendingRef.current = true;
   }, []);
 
@@ -195,7 +215,8 @@ export const CadRenderer = forwardRef<RendererHandle, CadRendererProps>(({ url, 
     );
     const extent = Number.isFinite(rawExtent) ? rawExtent : safeMaxDim;
     const axesSize = Math.max(safeMaxDim, extent * 1.25);
-    const gridSize = Math.max(safeMaxDim * 2, extent * 2.5);
+    const isDxf = cameraRef.current instanceof THREE.OrthographicCamera;
+    const gridSize = isDxf ? safeMaxDim * 2 : Math.max(safeMaxDim * 2, extent * 2.5);
 
     if (gridRef.current) {
       gridRef.current.geometry.dispose();
@@ -209,6 +230,11 @@ export const CadRenderer = forwardRef<RendererHandle, CadRendererProps>(({ url, 
     }
 
     const grid = new THREE.GridHelper(gridSize, 20, 0x444444, 0x222222);
+    if (isDxf) {
+      grid.rotation.x = Math.PI / 2;
+      box.getCenter(grid.position);
+      grid.position.z = box.min.z - safeMaxDim * 1e-3;
+    }
     grid.visible = showGridRef.current;
     scene.add(grid);
     gridRef.current = grid;
@@ -233,6 +259,7 @@ export const CadRenderer = forwardRef<RendererHandle, CadRendererProps>(({ url, 
       getToolbarGroups: () => {
         return getCadToolbarGroups({
           cadRef: { current: cadRef.current },
+          isDxf,
           wireframe,
           showGrid,
           showAxes,
@@ -246,7 +273,7 @@ export const CadRenderer = forwardRef<RendererHandle, CadRendererProps>(({ url, 
         };
       },
     }),
-    [wireframe, showGrid, showAxes, t]
+    [isDxf, wireframe, showGrid, showAxes, t]
   );
 
   useEffect(() => {
@@ -267,7 +294,10 @@ export const CadRenderer = forwardRef<RendererHandle, CadRendererProps>(({ url, 
     sceneRef.current = scene;
 
     // 初始化相机
-    const camera = new THREE.PerspectiveCamera(45, width / height, 0.01, 1_000_000);
+    const aspect = Math.max(width, 1) / Math.max(height, 1);
+    const camera = isDxf
+      ? new THREE.OrthographicCamera(-aspect, aspect, 1, -1, 0, 1_000_000)
+      : new THREE.PerspectiveCamera(45, aspect, 0.01, 1_000_000);
     camera.position.set(100, 100, 100);
     cameraRef.current = camera;
 
@@ -283,6 +313,13 @@ export const CadRenderer = forwardRef<RendererHandle, CadRendererProps>(({ url, 
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
+    if (isDxf) {
+      controls.enableRotate = false;
+      controls.screenSpacePanning = true;
+      controls.mouseButtons.LEFT = THREE.MOUSE.PAN;
+      controls.touches.ONE = THREE.TOUCH.PAN;
+      controls.touches.TWO = THREE.TOUCH.DOLLY_PAN;
+    }
     controlsRef.current = controls;
 
     // 添加灯光
@@ -400,7 +437,7 @@ export const CadRenderer = forwardRef<RendererHandle, CadRendererProps>(({ url, 
       object: any,
       ext: string,
       scene: THREE.Scene,
-      camera: THREE.PerspectiveCamera,
+      camera: THREE.PerspectiveCamera | THREE.OrthographicCamera,
       controls: OrbitControls
     ) => {
       if (isCleanedUp) return;
@@ -458,9 +495,8 @@ export const CadRenderer = forwardRef<RendererHandle, CadRendererProps>(({ url, 
       // 自动调整视角
       const center = box.getCenter(new THREE.Vector3());
       const size = box.getSize(new THREE.Vector3());
-      const maxDim = Math.max(size.x, size.y, size.z);
       updateReferenceHelpers(box, scene);
-      fitCameraToModel(camera, controls, center, maxDim);
+      fitCameraToModel(camera, controls, center, size);
       renderPendingRef.current = true;
 
       setLoading(false);
@@ -494,12 +530,19 @@ export const CadRenderer = forwardRef<RendererHandle, CadRendererProps>(({ url, 
       if (!container || isCleanedUp) return;
       const newWidth = container.clientWidth;
       const newHeight = container.clientHeight;
-      camera.aspect = newWidth / newHeight;
+      if (newWidth <= 0 || newHeight <= 0) return;
+      if (camera instanceof THREE.OrthographicCamera) {
+        camera.right = camera.top * newWidth / newHeight;
+        camera.left = -camera.right;
+      } else {
+        camera.aspect = newWidth / newHeight;
+      }
       camera.updateProjectionMatrix();
       renderer.setSize(newWidth, newHeight);
       renderPendingRef.current = true;
     };
-    window.addEventListener('resize', handleResize);
+    const resizeObserver = new ResizeObserver(handleResize);
+    resizeObserver.observe(container);
 
     // 清理
     return () => {
@@ -508,7 +551,7 @@ export const CadRenderer = forwardRef<RendererHandle, CadRendererProps>(({ url, 
       if (animationId) {
         cancelAnimationFrame(animationId);
       }
-      window.removeEventListener('resize', handleResize);
+      resizeObserver.disconnect();
 
       // 释放 THREE.js 资源
       if (modelRef.current) {
@@ -535,7 +578,7 @@ export const CadRenderer = forwardRef<RendererHandle, CadRendererProps>(({ url, 
         container.removeChild(renderer.domElement);
       }
     };
-  }, [url, baseUrl, fileName, t, notifyToolbarChange, disposeThreeResources, file, fetcher, updateReferenceHelpers]);
+  }, [url, baseUrl, fileName, isDxf, t, notifyToolbarChange, disposeThreeResources, file, fetcher, updateReferenceHelpers]);
 
   return (
     <div ref={containerRef} className="rfp-relative rfp-w-full rfp-h-full rfp-bg-media-bg">

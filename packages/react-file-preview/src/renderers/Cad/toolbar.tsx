@@ -12,6 +12,7 @@ export interface CadRendererHandle {
 
 export interface CadToolbarContext {
   cadRef: React.RefObject<CadRendererHandle | null>;
+  isDxf: boolean;
   wireframe: boolean;
   showGrid: boolean;
   showAxes: boolean;
@@ -32,13 +33,15 @@ export function getCadToolbarGroups(ctx: CadToolbarContext): ToolbarGroup[] {
     },
     {
       items: [
-        {
-          type: 'button',
-          icon: <Box className="rfp-w-4 rfp-h-4" />,
-          tooltip: ctx.wireframe ? ctx.t('cad.solid') : ctx.t('cad.wireframe'),
-          active: ctx.wireframe,
-          action: () => ctx.cadRef.current?.toggleWireframe(),
-        },
+        ...(!ctx.isDxf ? [
+          {
+            type: 'button' as const,
+            icon: <Box className="rfp-w-4 rfp-h-4" />,
+            tooltip: ctx.wireframe ? ctx.t('cad.solid') : ctx.t('cad.wireframe'),
+            active: ctx.wireframe,
+            action: () => ctx.cadRef.current?.toggleWireframe(),
+          },
+        ] : []),
         {
           type: 'button',
           icon: <Grid3x3 className="rfp-w-4 rfp-h-4" />,

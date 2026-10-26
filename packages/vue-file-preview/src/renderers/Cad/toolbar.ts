@@ -4,6 +4,7 @@ import type { Translator } from '@eternalheart/file-preview-core';
 
 export interface CadToolbarContext {
   cadRef: { resetView: () => void; toggleWireframe: () => void; toggleGrid: () => void; toggleAxes: () => void } | null;
+  isDxf: boolean;
   wireframe: boolean;
   showGrid: boolean;
   showAxes: boolean;
@@ -24,13 +25,15 @@ export function getCadToolbarGroups(ctx: CadToolbarContext): ToolbarGroup[] {
     },
     {
       items: [
-        {
-          type: 'button',
-          icon: Box,
-          tooltip: ctx.wireframe ? ctx.t('cad.solid') : ctx.t('cad.wireframe'),
-          active: ctx.wireframe,
-          action: () => ctx.cadRef?.toggleWireframe(),
-        },
+        ...(!ctx.isDxf ? [
+          {
+            type: 'button' as const,
+            icon: Box,
+            tooltip: ctx.wireframe ? ctx.t('cad.solid') : ctx.t('cad.wireframe'),
+            active: ctx.wireframe,
+            action: () => ctx.cadRef?.toggleWireframe(),
+          },
+        ] : []),
         {
           type: 'button',
           icon: Grid3x3,

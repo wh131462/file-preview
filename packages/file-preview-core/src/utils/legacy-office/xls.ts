@@ -210,10 +210,13 @@ class SstReader {
     const cch = this.readU16();
     const flags = this.readU8();
     const compressed = (flags & 1) === 0;
-    const rich = (flags & 0x04) !== 0;
-    const asian = (flags & 0x08) !== 0;
+    // BIFF8 grbit: fExtSt=0x04, fRichSt=0x08.
+    // These bits were previously reversed, which desynchronised SST parsing
+    // at the first rich-text string and blanked all following LABELSST cells.
+    const extended = (flags & 0x04) !== 0;
+    const rich = (flags & 0x08) !== 0;
     const cRun = rich ? this.readU16() : 0;
-    const cbExt = asian ? this.readU32() : 0;
+    const cbExt = extended ? this.readU32() : 0;
     const text = this.readChars(cch, compressed);
     if (cRun) {
       this.skip(cRun * 4);

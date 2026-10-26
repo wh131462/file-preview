@@ -48,6 +48,7 @@ const DEFAULT_ROW_COUNT = 100;
 const ZIP_LOCAL_FILE_HEADER = [0x50, 0x4b, 0x03, 0x04];
 const ZIP_EMPTY_ARCHIVE = [0x50, 0x4b, 0x05, 0x06];
 const ZIP64_END_OF_CENTRAL_DIRECTORY = [0x50, 0x4b, 0x06, 0x06];
+const OLE_COMPOUND_FILE_SIGNATURE = [0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1];
 
 function hasSignature(bytes: Uint8Array, offset: number, signature: number[]): boolean {
   return signature.every((value, index) => bytes[offset + index] === value);
@@ -59,6 +60,12 @@ function hasSignature(bytes: Uint8Array, offset: number, signature: number[]): b
  */
 export function normalizeExcelBuffer(data: ArrayBuffer | Uint8Array): Uint8Array {
   const bytes = data instanceof Uint8Array ? data : new Uint8Array(data);
+
+  // OLE/BIFF .xls 文件可能在 Workbook 流中包含看起来像 ZIP 的字节序列。
+  // 不能对这类文件做 ZIP 头扫描，否则会截断原始 OLE 容器并导致空白预览。
+  if (hasSignature(bytes, 0, OLE_COMPOUND_FILE_SIGNATURE)) {
+    return bytes;
+  }
 
   if (
     hasSignature(bytes, 0, ZIP_LOCAL_FILE_HEADER) ||

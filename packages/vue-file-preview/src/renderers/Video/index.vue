@@ -168,7 +168,7 @@ defineExpose<RendererHandle>({
       >
         <div class="vfp-renderer-loading-content">
           <div class="vfp-renderer-spinner" />
-          <p class="vfp-renderer-loading-text vfp-text-sm vfp-text-fg-secondary vfp-font-medium">{{ t('video.loading') }}</p>
+          <p class="vfp-renderer-loading-text">{{ t('video.loading') }}</p>
         </div>
       </div>
 

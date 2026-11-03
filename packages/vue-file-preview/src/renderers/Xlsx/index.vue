@@ -211,28 +211,28 @@ defineExpose<RendererHandle>({
   <div class="vfp-relative vfp-flex vfp-flex-col vfp-items-center vfp-w-full vfp-h-full">
     <div
       v-if="loading"
-      class="vfp-absolute vfp-inset-0 vfp-renderer-loading vfp-bg-surface-toolbar vfp-backdrop-blur-sm vfp-z-10"
+      class="vfp-renderer-overlay vfp-renderer-loading"
     >
       <div class="vfp-renderer-loading-content">
         <div class="vfp-renderer-spinner" />
-        <p class="vfp-renderer-loading-text vfp-text-xs md:vfp-text-sm vfp-text-fg-secondary vfp-font-medium">{{ t('xlsx.loading') }}</p>
+        <p class="vfp-renderer-loading-text">{{ t('xlsx.loading') }}</p>
       </div>
     </div>
 
     <!-- 空文件状态：覆盖层，保持容器挂载 -->
     <div
       v-if="empty && !loading && showEmptyHint"
-      class="vfp-absolute vfp-inset-0 vfp-bg-surface-toolbar vfp-z-10"
+      class="vfp-renderer-overlay"
     >
       <EmptyState />
     </div>
 
-    <RendererError
-      v-if="error && !loading"
-      :message="t('xlsx.load_failed')"
-      :detail="error"
-      class="vfp-absolute vfp-inset-0 vfp-bg-surface-toolbar vfp-backdrop-blur-sm vfp-z-10"
-    />
+    <div v-if="error && !loading" class="vfp-renderer-overlay">
+      <RendererError
+        :message="t('xlsx.load_failed')"
+        :detail="error"
+      />
+    </div>
 
     <div
       v-if="!error"

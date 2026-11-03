@@ -329,7 +329,7 @@ const hasToolGroups = computed(() => toolGroups.value.length > 0);
     <!-- 顶部工具栏 -->
     <div
       v-if="!headless"
-      class="vfp-flex-shrink-0 vfp-z-10 vfp-backdrop-blur-md vfp-border-b vfp-bg-surface-toolbar vfp-border-line"
+      class="vfp-relative vfp-flex-shrink-0 vfp-z-30 vfp-backdrop-blur-md vfp-border-b vfp-bg-surface-toolbar vfp-border-line"
       style="padding-top: env(safe-area-inset-top, 0px)"
     >
       <!-- 第一行: 文件名 + 桌面端工具按钮 -->
@@ -440,7 +440,7 @@ const hasToolGroups = computed(() => toolGroups.value.length > 0);
     <!-- 内容区域 -->
     <div
       ref="contentRef"
-      class="vfp-flex-1 vfp-flex vfp-items-center vfp-justify-center vfp-overflow-auto"
+      class="vfp-isolate vfp-flex-1 vfp-flex vfp-items-center vfp-justify-center vfp-overflow-auto"
       :key="currentFile?.url"
     >
       <template v-if="currentFile">

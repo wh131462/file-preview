@@ -594,7 +594,7 @@ watch(() => props.url, () => {
     >
       <div class="vfp-renderer-loading-content">
         <div class="vfp-renderer-spinner" />
-        <p class="vfp-renderer-loading-text vfp-text-fg-secondary">{{ t('cad.loading') }}</p>
+        <p class="vfp-renderer-loading-text">{{ t('cad.loading') }}</p>
       </div>
     </div>
   </div>

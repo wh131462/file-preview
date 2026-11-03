@@ -602,7 +602,7 @@ const sizeText = computed(() => {
     >
       <div class="vfp-renderer-loading-content">
         <div class="vfp-renderer-spinner" />
-        <p class="vfp-renderer-loading-text vfp-text-fg-secondary">
+        <p class="vfp-renderer-loading-text">
           {{ t('image.decoding') }} <span v-if="decodeProgress > 0">{{ Math.round(decodeProgress) }}%</span>
         </p>
       </div>

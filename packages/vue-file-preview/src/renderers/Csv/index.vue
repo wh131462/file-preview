@@ -156,7 +156,7 @@ defineExpose<RendererHandle>({
     >
       <div class="vfp-renderer-loading-content">
         <div class="vfp-renderer-spinner" />
-        <p class="vfp-renderer-loading-text vfp-text-xs md:vfp-text-sm vfp-text-fg-secondary vfp-font-medium">{{ t('csv.loading') }}</p>
+        <p class="vfp-renderer-loading-text">{{ t('csv.loading') }}</p>
       </div>
     </div>
 

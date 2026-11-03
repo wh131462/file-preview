@@ -13,20 +13,22 @@ withDefaults(defineProps<Props>(), {
 </script>
 
 <template>
-  <div class="vfp-flex vfp-items-center vfp-justify-center vfp-w-full vfp-h-full">
-    <div class="vfp-text-center">
+  <div class="vfp-renderer-error">
+    <div class="vfp-renderer-error-content">
       <div
         v-if="showIcon"
-        class="vfp-w-12 vfp-h-12 vfp-mx-auto vfp-mb-3 vfp-rounded-full vfp-bg-red-500/10 vfp-flex vfp-items-center vfp-justify-center"
+        class="vfp-w-12 vfp-h-12 vfp-rounded-full vfp-bg-red-500/10 vfp-flex vfp-items-center vfp-justify-center"
       >
         <AlertCircle class="vfp-w-6 vfp-h-6 vfp-text-red-400" />
       </div>
-      <p class="vfp-text-base vfp-font-medium vfp-text-fg-primary vfp-mb-1">
-        {{ message }}
-      </p>
-      <p v-if="detail" class="vfp-text-xs vfp-text-fg-tertiary">
-        {{ detail }}
-      </p>
+      <div>
+        <p class="vfp-renderer-error-text">
+          {{ message }}
+        </p>
+        <p v-if="detail" class="vfp-renderer-error-detail">
+          {{ detail }}
+        </p>
+      </div>
     </div>
   </div>
 </template>

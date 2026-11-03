@@ -278,14 +278,12 @@ onMounted(async () => {
     const facePromise = loadFontFace(faceBuffer);
     const metadataPromise = loadMetadata(arrayBuffer, magic);
 
-    await facePromise.catch(() => {
-      // FontFace 失败由 metadata 兜底
-    });
+    const [faceResult, metadataResult] = await Promise.allSettled([facePromise, metadataPromise]);
     loading.value = false;
 
-    try {
-      await metadataPromise;
-    } catch (metaErr) {
+    if (metadataResult.status === 'rejected') {
+      if (faceResult.status === 'rejected') throw faceResult.reason;
+      const metaErr = metadataResult.reason;
       if (magic !== 'woff2') {
         console.warn(
           '[FontRenderer] Metadata parse failed, font is still rendered via FontFace:',

@@ -246,7 +246,7 @@ export const XlsxRenderer = forwardRef<RendererHandle, XlsxRendererProps>(({ url
     <div className="rfp-relative rfp-flex rfp-flex-col rfp-items-center rfp-w-full rfp-h-full">
       {/* 加载状态 */}
       {loading && (
-        <div className="rfp-absolute rfp-inset-0 rfp-renderer-loading rfp-bg-surface-toolbar rfp-backdrop-blur-sm rfp-z-10">
+        <div className="rfp-renderer-overlay rfp-renderer-loading">
           <div className="rfp-renderer-loading-content">
             <div className="rfp-renderer-spinner" />
             <p className="rfp-renderer-loading-text">{t('xlsx.loading')}</p>
@@ -256,14 +256,14 @@ export const XlsxRenderer = forwardRef<RendererHandle, XlsxRendererProps>(({ url
 
       {/* 空文件状态 */}
       {showEmptyHint && (
-        <div className="rfp-absolute rfp-inset-0 rfp-bg-surface-toolbar rfp-z-10">
+        <div className="rfp-renderer-overlay">
           <EmptyState />
         </div>
       )}
 
       {/* 错误状态 */}
       {error && !loading && (
-        <div className="rfp-absolute rfp-inset-0 rfp-renderer-loading rfp-bg-surface-toolbar rfp-backdrop-blur-sm rfp-z-10">
+        <div className="rfp-renderer-overlay">
           <RendererError message={t('xlsx.load_failed')} detail={error} />
         </div>
       )}

@@ -324,7 +324,7 @@ export const PptxRenderer = forwardRef<RendererHandle, PptxRendererProps>(({ url
     <div className="rfp-relative rfp-flex rfp-flex-col rfp-items-center rfp-w-full rfp-h-full">
       {/* 加载状态 - 绝对定位覆盖 */}
       {loading && (
-        <div className="rfp-absolute rfp-inset-0 rfp-renderer-loading rfp-bg-surface-toolbar rfp-backdrop-blur-sm rfp-z-10">
+        <div className="rfp-renderer-overlay rfp-renderer-loading">
           <div className="rfp-renderer-loading-content">
             <div className="rfp-renderer-spinner" />
             <p className="rfp-renderer-loading-text">{t('pptx.loading')}</p>
@@ -334,14 +334,16 @@ export const PptxRenderer = forwardRef<RendererHandle, PptxRendererProps>(({ url
 
       {/* 空文件状态 - 绝对定位覆盖 */}
       {showEmptyHint && (
-        <div className="rfp-absolute rfp-inset-0 rfp-bg-surface-toolbar rfp-z-10">
+        <div className="rfp-renderer-overlay">
           <EmptyState />
         </div>
       )}
 
       {/* 错误状态 - 绝对定位覆盖 */}
       {error && !loading && (
-        <RendererError message={t('pptx.load_failed')} detail={error} />
+        <div className="rfp-renderer-overlay">
+          <RendererError message={t('pptx.load_failed')} detail={error} />
+        </div>
       )}
 
       {/* PPT 容器 - 仅在非错误状态下渲染 */}

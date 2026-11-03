@@ -259,7 +259,7 @@ const FilePreviewContentInner: React.FC<FilePreviewContentProps> = ({
 
           <div
             ref={contentRef}
-            className="rfp-flex-1 rfp-flex rfp-items-center rfp-justify-center rfp-overflow-auto"
+            className="rfp-isolate rfp-flex-1 rfp-flex rfp-items-center rfp-justify-center rfp-overflow-auto"
           >
             <FilePreviewRenderer
               currentFile={currentFile}

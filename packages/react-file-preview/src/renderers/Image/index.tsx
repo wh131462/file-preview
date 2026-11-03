@@ -580,7 +580,7 @@ export const ImageRenderer = forwardRef<ImageRendererHandle, ImageRendererProps>
         <div className="rfp-absolute rfp-inset-0 rfp-renderer-loading rfp-bg-surface-1/80 rfp-z-10">
           <div className="rfp-renderer-loading-content">
             <div className="rfp-renderer-spinner" />
-            <p className="rfp-renderer-loading-text rfp-text-fg-secondary">
+            <p className="rfp-renderer-loading-text">
               {t('image.decoding')} {decodeProgress > 0 && `${Math.round(decodeProgress)}%`}
             </p>
           </div>

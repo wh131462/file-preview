@@ -69,7 +69,7 @@ export const FilePreviewToolbar: React.FC<FilePreviewToolbarProps> = ({
 
   return (
     <div
-      className="rfp-flex-shrink-0 rfp-z-10 rfp-backdrop-blur-md rfp-border-b rfp-bg-surface-toolbar rfp-border-line"
+      className="rfp-relative rfp-flex-shrink-0 rfp-z-30 rfp-backdrop-blur-md rfp-border-b rfp-bg-surface-toolbar rfp-border-line"
       style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
     >
       {/* 第一行：文件名 + 分页 + 关闭/下载（移动端右侧）/全部按钮（桌面端） */}

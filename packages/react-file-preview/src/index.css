@@ -74,7 +74,9 @@
   animation: rfp-spin 1s linear infinite;
 }
 
-.rfp-root .rfp-renderer-loading {
+.rfp-root .rfp-renderer-loading,
+.rfp-root .rfp-renderer-empty,
+.rfp-root .rfp-renderer-error {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -87,19 +89,40 @@
   color: var(--fp-fg-muted);
 }
 
-.rfp-root .rfp-renderer-loading-content {
+.rfp-root .rfp-renderer-loading-content,
+.rfp-root .rfp-renderer-empty-content,
+.rfp-root .rfp-renderer-error-content {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 0.75rem;
+  max-width: 100%;
+  padding: 1rem;
   text-align: center;
 }
 
-.rfp-root .rfp-renderer-loading-text {
+.rfp-root .rfp-renderer-loading-text,
+.rfp-root .rfp-renderer-empty-text,
+.rfp-root .rfp-renderer-error-text {
   font-size: 0.875rem;
   font-weight: 600;
   color: var(--fp-fg-primary);
+}
+
+.rfp-root .rfp-renderer-error-detail {
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--fp-fg-tertiary);
+  overflow-wrap: anywhere;
+}
+
+.rfp-root .rfp-renderer-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  background: var(--fp-surface-toolbar);
+  backdrop-filter: blur(4px);
 }
 
 /* 组件根元素基础样式 */

@@ -171,16 +171,13 @@ export const FontRenderer = forwardRef<RendererHandle, FontRendererProps>(({ url
         const facePromise = loadFontFace(faceBuffer);
         const metadataPromise = loadMetadata(arrayBuffer, magic);
 
-        await facePromise.catch(() => {
-          // FontFace 失败由 metadata 兜底
-        });
+        const [faceResult, metadataResult] = await Promise.allSettled([facePromise, metadataPromise]);
         if (!mounted) return;
         setLoading(false);
 
-        try {
-          await metadataPromise;
-        } catch (metaErr) {
-          if (!mounted) return;
+        if (metadataResult.status === 'rejected') {
+          if (faceResult.status === 'rejected') throw faceResult.reason;
+          const metaErr = metadataResult.reason;
           // WOFF2 是“按设计跳过”，其他格式失败才需要 warn
           if (magic !== 'woff2') {
             console.warn(

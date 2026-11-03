@@ -1,0 +1,1 @@
+var i=Object.defineProperty,s=(r,e,t)=>e in r?i(r,e,{enumerable:!0,configurable:!0,writable:!0,value:t}):r[e]=t,n=(r,e,t)=>s(r,e+"",t);class a{constructor(){n(this,"listeners",new Set)}subscribe(e){return this.listeners.add(e),()=>this.listeners.delete(e)}notify(){this.listeners.forEach(e=>e())}}export{a};

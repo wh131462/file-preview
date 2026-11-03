@@ -50,7 +50,7 @@ import type { ToolbarGroup } from '../toolbar.types';
         <div class="afp-absolute afp-inset-0 afp-renderer-loading afp-bg-surface-1/80 afp-z-10">
           <div class="afp-renderer-loading-content">
             <div class="afp-renderer-spinner"></div>
-            <p class="afp-renderer-loading-text afp-text-fg-secondary">
+            <p class="afp-renderer-loading-text">
               {{ t('image.decoding') }}
               @if (decodeProgress() > 0) {
                 <span>{{ Math.round(decodeProgress()) }}%</span>

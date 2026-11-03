@@ -74,7 +74,7 @@ const MAX_ZIP_NESTING_DEPTH = 3;
 
         <div
           #contentRef
-          class="afp-flex-1 afp-flex afp-items-center afp-justify-center afp-overflow-auto"
+          class="afp-isolate afp-flex-1 afp-flex afp-items-center afp-justify-center afp-overflow-auto"
         >
           @if (customRendererCmp()) {
             <afp-renderer-outlet

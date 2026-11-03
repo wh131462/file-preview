@@ -14,12 +14,12 @@ import { FileMinus, LucideAngularModule } from 'lucide-angular';
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'afp-block afp-w-full afp-h-full' },
   template: `
-    <div class="afp-flex afp-items-center afp-justify-center afp-w-full afp-h-full">
-      <div class="afp-text-center">
-        <div class="afp-w-12 afp-h-12 afp-mx-auto afp-mb-3 afp-rounded-full afp-bg-surface-2 afp-flex afp-items-center afp-justify-center">
+    <div class="afp-renderer-empty">
+      <div class="afp-renderer-empty-content">
+        <div class="afp-w-12 afp-h-12 afp-rounded-full afp-bg-surface-2 afp-flex afp-items-center afp-justify-center">
           <i-lucide [img]="fileMinus" class="afp-w-6 afp-h-6 afp-text-fg-tertiary" />
         </div>
-        <p class="afp-text-base afp-font-medium afp-text-fg-primary">{{ message() }}</p>
+        <p class="afp-renderer-empty-text">{{ message() }}</p>
       </div>
     </div>
   `,

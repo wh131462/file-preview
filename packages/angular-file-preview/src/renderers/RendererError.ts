@@ -7,19 +7,22 @@ import { LucideAngularModule } from 'lucide-angular';
   standalone: true,
   imports: [LucideAngularModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { class: 'afp-block afp-w-full afp-h-full' },
   template: `
-    <div class="afp-flex afp-items-center afp-justify-center afp-w-full afp-h-full">
-      <div class="afp-text-center">
+    <div class="afp-renderer-error">
+      <div class="afp-renderer-error-content">
         @if (showIcon()) {
-          <div class="afp-w-12 afp-h-12 afp-mx-auto afp-mb-3 afp-rounded-full afp-flex afp-items-center afp-justify-center"
+          <div class="afp-w-12 afp-h-12 afp-rounded-full afp-flex afp-items-center afp-justify-center"
                style="background: color-mix(in srgb, #ef4444 10%, transparent)">
             <i-lucide [img]="alertCircle" class="afp-w-6 afp-h-6" style="color: #f87171" />
           </div>
         }
-        <p class="afp-text-base afp-font-medium afp-text-fg-primary afp-mb-1">{{ message() }}</p>
-        @if (detail()) {
-          <p class="afp-text-xs afp-text-fg-tertiary">{{ detail() }}</p>
-        }
+        <div>
+          <p class="afp-renderer-error-text">{{ message() }}</p>
+          @if (detail()) {
+            <p class="afp-renderer-error-detail">{{ detail() }}</p>
+          }
+        </div>
       </div>
     </div>
   `,

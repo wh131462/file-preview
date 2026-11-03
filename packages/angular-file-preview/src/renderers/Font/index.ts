@@ -318,14 +318,12 @@ export class FontRenderer implements RendererHandle {
       const facePromise = this.loadFontFace(faceBuffer);
       const metadataPromise = this.loadMetadata(arrayBuffer, magic);
 
-      await facePromise.catch(() => {
-        // FontFace 失败由 metadata 兜底
-      });
+      const [faceResult, metadataResult] = await Promise.allSettled([facePromise, metadataPromise]);
       this.loading.set(false);
 
-      try {
-        await metadataPromise;
-      } catch (metaErr) {
+      if (metadataResult.status === 'rejected') {
+        if (faceResult.status === 'rejected') throw faceResult.reason;
+        const metaErr = metadataResult.reason;
         if (magic !== 'woff2') {
           console.warn(
             '[FontRenderer] Metadata parse failed, font is still rendered via FontFace:',

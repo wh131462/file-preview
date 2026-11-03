@@ -91,7 +91,7 @@ function fitCameraToModel(
         <div class="afp-absolute afp-inset-0 afp-renderer-loading afp-bg-surface-3 afp-z-10">
           <div class="afp-renderer-loading-content">
             <div class="afp-renderer-spinner"></div>
-            <p class="afp-renderer-loading-text afp-text-fg-secondary">{{ t('cad.loading') }}</p>
+            <p class="afp-renderer-loading-text">{{ t('cad.loading') }}</p>
           </div>
         </div>
       }

@@ -52,27 +52,28 @@ async function loadXlsxWorkbook(data: Uint8Array): Promise<ExcelJS.Workbook> {
     <div class="afp-relative afp-flex afp-flex-col afp-items-center afp-w-full afp-h-full">
       @if (loading()) {
         <div
-          class="afp-absolute afp-inset-0 afp-renderer-loading afp-bg-surface-toolbar afp-backdrop-blur-sm afp-z-10"
+          class="afp-renderer-overlay afp-renderer-loading"
         >
           <div class="afp-renderer-loading-content">
             <div class="afp-renderer-spinner"></div>
-            <p class="afp-renderer-loading-text afp-text-xs md:afp-text-sm afp-text-fg-secondary afp-font-medium">{{ t('xlsx.loading') }}</p>
+            <p class="afp-renderer-loading-text">{{ t('xlsx.loading') }}</p>
           </div>
         </div>
       }
 
       @if (empty() && !loading() && showEmptyHint()) {
-        <div class="afp-absolute afp-inset-0 afp-bg-surface-toolbar afp-z-10">
+        <div class="afp-renderer-overlay">
           <afp-empty-state [message]="t('file.empty')" />
         </div>
       }
 
       @if (error() && !loading()) {
-        <afp-renderer-error
-          [message]="t('xlsx.load_failed')"
-          [detail]="error()!"
-          class="afp-absolute afp-inset-0 afp-bg-surface-toolbar afp-backdrop-blur-sm afp-z-10"
-        />
+        <div class="afp-renderer-overlay">
+          <afp-renderer-error
+            [message]="t('xlsx.load_failed')"
+            [detail]="error()!"
+          />
+        </div>
       }
 
       @if (!error()) {

@@ -64,7 +64,9 @@
   to { transform: rotate(360deg); }
 }
 
-.afp-root .afp-renderer-loading {
+.afp-root .afp-renderer-loading,
+.afp-root .afp-renderer-empty,
+.afp-root .afp-renderer-error {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -77,12 +79,16 @@
   color: var(--fp-fg-muted);
 }
 
-.afp-root .afp-renderer-loading-content {
+.afp-root .afp-renderer-loading-content,
+.afp-root .afp-renderer-empty-content,
+.afp-root .afp-renderer-error-content {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 0.75rem;
+  max-width: 100%;
+  padding: 1rem;
   text-align: center;
 }
 
@@ -95,10 +101,27 @@
   animation: afp-spin 1s linear infinite;
 }
 
-.afp-root .afp-renderer-loading-text {
+.afp-root .afp-renderer-loading-text,
+.afp-root .afp-renderer-empty-text,
+.afp-root .afp-renderer-error-text {
   font-size: 0.875rem;
   font-weight: 600;
   color: var(--fp-fg-primary);
+}
+
+.afp-root .afp-renderer-error-detail {
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--fp-fg-tertiary);
+  overflow-wrap: anywhere;
+}
+
+.afp-root .afp-renderer-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  background: var(--fp-surface-toolbar);
+  backdrop-filter: blur(4px);
 }
 
 /* 组件根元素基础样式 */

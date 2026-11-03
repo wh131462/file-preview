@@ -37,7 +37,7 @@ import type { ToolbarGroup } from '../toolbar.types';
         >
           <div class="afp-renderer-loading-content">
             <div class="afp-renderer-spinner"></div>
-            <p class="afp-renderer-loading-text afp-text-xs md:afp-text-sm afp-text-fg-secondary afp-font-medium">{{ t('csv.loading') }}</p>
+            <p class="afp-renderer-loading-text">{{ t('csv.loading') }}</p>
           </div>
         </div>
       }

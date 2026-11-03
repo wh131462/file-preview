@@ -44,7 +44,7 @@ const BROWSER_UNSUPPORTED_EXTS = new Set(['avi', 'wmv', 'flv']);
             <div class="afp-absolute afp-inset-0 afp-renderer-loading afp-bg-surface-3 afp-backdrop-blur-sm afp-z-10">
               <div class="afp-renderer-loading-content">
                 <div class="afp-renderer-spinner"></div>
-                <p class="afp-renderer-loading-text afp-text-sm afp-text-fg-secondary afp-font-medium">{{ t('video.loading') }}</p>
+                <p class="afp-renderer-loading-text">{{ t('video.loading') }}</p>
               </div>
             </div>
           }

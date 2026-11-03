@@ -399,7 +399,7 @@ export function convertWorkbookToSpreadsheetData(
     const rows: Record<string, XRowData> = {};
     const cols: Record<string, { width?: number; hide?: boolean } | number> = {};
 
-    const colCount = Math.max(worksheet.columnCount, worksheet.columns.length);
+    const colCount = Math.max(worksheet.columnCount, worksheet.columns?.length ?? 0);
     for (let c = 1; c <= colCount; c++) {
       const col = worksheet.getColumn(c);
       if (col.hidden) {

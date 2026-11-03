@@ -27,6 +27,16 @@ export function useShikiHighlight(
 
   useEffect(() => {
     let cancelled = false;
+
+    // 空串短路：shiki 对 '' 仍会产出单个空行，会导致行号布局多出「1」这一行；
+    // 与 vue/angular 实现保持一致，空内容直接返回空结果，交回渲染器的空白兜底。
+    if (!code) {
+      setHtml('');
+      setLineHtmls([]);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
 
     const lineNumbersTransformer: ShikiTransformer = {

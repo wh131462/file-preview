@@ -59,7 +59,7 @@
     "build:css": "postcss src/index.css -o lib/index.css",
     "build:esm": "node ../../scripts/ng-packagr-angular.mjs && node ../../scripts/bundle-angular-core.mjs && node ../../scripts/patch-angular-lib-types.mjs && pnpm build:css",
     "build": "pnpm --filter @eternalheart/file-preview-core build && pnpm build:esm",
-    "dev": "node ../../scripts/ng-packagr-angular.mjs --watch",
+    "dev": "pnpm build:css && concurrently --kill-others-on-fail \"node ../../scripts/ng-packagr-angular.mjs --watch\" \"postcss src/index.css -o lib/index.css --watch\"",
     "prepublishOnly": "pnpm build",
     "version": "node ../../scripts/sync-angular-version.mjs",
     "version:patch": "npm version patch",

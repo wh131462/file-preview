@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { PreviewError, resolveEmptyHint, translateError, type EmptyHintMode } from '@eternalheart/file-preview-core';
+import { PreviewError, translateError, type EmptyHintMode } from '@eternalheart/file-preview-core';
 import type { RendererHandle } from '../base.types';
 import type { ToolbarGroup } from '../toolbar.types';
 
-import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue';
+import { ref, watch, onMounted, onBeforeUnmount } from 'vue';
 import ExcelJS from 'exceljs';
 import Spreadsheet from 'x-data-spreadsheet';
 import {
@@ -18,7 +18,6 @@ import {
 import { useTranslator } from '../../composables/useTranslator';
 import { useFetcher } from '../../composables/useRequest';
 import RendererError from '../RendererError.vue';
-import EmptyState from '../EmptyState.vue';
 
 async function loadXlsxWorkbook(data: Uint8Array): Promise<ExcelJS.Workbook> {
   try {
@@ -33,7 +32,7 @@ async function loadXlsxWorkbook(data: Uint8Array): Promise<ExcelJS.Workbook> {
 
 const props = defineProps<{
   url: string;
-  /** 空内容提示策略，默认 'auto'（结构化类型显示提示） */
+  /** 保留通用预览参数；空 Excel 始终展示默认工作簿。 */
   emptyHint?: EmptyHintMode;
 }>();
 
@@ -42,7 +41,6 @@ const fetcher = useFetcher();
 
 const loading = ref(true);
 const error = ref<string | null>(null);
-const empty = ref(false);
 const containerRef = ref<HTMLDivElement | null>(null);
 let sheetData: XSheetData[] | null = null;
 let rowLen = 100;
@@ -96,7 +94,6 @@ const loadExcel = async () => {
 
   loading.value = true;
   error.value = null;
-  empty.value = false;
 
   try {
     const response = await fetcher.value(props.url, {
@@ -113,15 +110,10 @@ const loadExcel = async () => {
 
     const excelBuffer = normalizeExcelBuffer(await response.arrayBuffer());
 
-    // 空文件不是错误：标记空态，由 emptyHint 决定是否提示
-    if (excelBuffer.byteLength === 0) {
-      empty.value = true;
-      loading.value = false;
-      return;
-    }
-
     let data: XSheetData[];
-    if (isLegacyXls(excelBuffer)) {
+    if (excelBuffer.byteLength === 0) {
+      data = [{ name: 'Sheet1' }];
+    } else if (isLegacyXls(excelBuffer)) {
       const legacyWorkbook = parseLegacyXls(excelBuffer);
       if (!legacyWorkbook || !Array.isArray(legacyWorkbook.sheets)) {
         throw new PreviewError('xlsx.invalid_legacy_data');
@@ -133,7 +125,7 @@ const loadExcel = async () => {
       );
     }
 
-    sheetData = data;
+    sheetData = data.length ? data : [{ name: 'Sheet1' }];
     rowLen = getSpreadsheetRowCount(data);
     mountSpreadsheet();
     loading.value = false;
@@ -198,9 +190,6 @@ onBeforeUnmount(() => {
 
 const getToolbarGroups = (): ToolbarGroup[] => [];
 
-// 空文件：结构化类型无原生空白，默认显示中性空提示
-const showEmptyHint = computed(() => resolveEmptyHint(props.emptyHint, 'structured'));
-
 defineExpose<RendererHandle>({
   getToolbarGroups,
 });
@@ -219,14 +208,6 @@ defineExpose<RendererHandle>({
       </div>
     </div>
 
-    <!-- 空文件状态：覆盖层，保持容器挂载 -->
-    <div
-      v-if="empty && !loading && showEmptyHint"
-      class="vfp-renderer-overlay"
-    >
-      <EmptyState />
-    </div>
-
     <div v-if="error && !loading" class="vfp-renderer-overlay">
       <RendererError
         :message="t('xlsx.load_failed')"
@@ -238,7 +219,7 @@ defineExpose<RendererHandle>({
       v-if="!error"
       ref="containerRef"
       class="xlsx-spreadsheet-container vfp-w-full vfp-h-full"
-      :style="{ opacity: loading || empty ? 0 : 1 }"
+      :style="{ opacity: loading ? 0 : 1 }"
     />
   </div>
 </template>

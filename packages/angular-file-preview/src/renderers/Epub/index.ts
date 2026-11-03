@@ -51,6 +51,7 @@ interface BookLike {
     locationFromCfi: (cfi: string) => number;
   };
   renderTo: (el: HTMLElement, opts: Record<string, unknown>) => RenditionLike;
+  on: (event: string, cb: (...args: unknown[]) => void) => void;
   destroy: () => void;
 }
 
@@ -380,9 +381,18 @@ export class EpubRenderer implements RendererHandle {
         bookInput = await resp.arrayBuffer();
       }
 
-      this.book = ePub(bookInput) as unknown as BookLike;
+      const book = ePub(bookInput) as unknown as BookLike;
+      this.book = book;
 
-      this.rendition = this.book.renderTo(el, {
+      // epub-ts 打开失败时只会 emit openFailed，不会 reject ready/navigation/display，
+      // 不监听该事件会导致空文件或非法文件一直停留在加载中
+      const openFailed = new Promise<never>((_, reject) => {
+        book.on('openFailed', (err: unknown) => {
+          reject(err instanceof Error ? err : new Error('EPUB open failed'));
+        });
+      });
+
+      this.rendition = book.renderTo(el, {
         manager: 'continuous',
         flow: 'scrolled',
         width: '100%',
@@ -411,7 +421,7 @@ export class EpubRenderer implements RendererHandle {
       });
       this.rendition.themes.select('default');
 
-      await this.book.ready;
+      await Promise.race([book.ready, openFailed]);
 
       this.book.locations.generate(1024).then(() => {
         if (!this.book) return;
@@ -422,12 +432,12 @@ export class EpubRenderer implements RendererHandle {
         this.totalChapters.set(this.totalLocations);
       }).catch(() => { /* ignore */ });
 
-      const nav = await this.book.loaded.navigation as { toc?: TocItem[] };
+      const nav = await Promise.race([book.loaded.navigation, openFailed]) as { toc?: TocItem[] };
       if (Array.isArray(nav?.toc)) {
         this.toc.set(nav.toc);
       }
 
-      await this.rendition.display();
+      await Promise.race([this.rendition.display(), openFailed]);
 
       this.loading.set(false);
       this.currentChapter.set(1);

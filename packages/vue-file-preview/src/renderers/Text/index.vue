@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
 import { WrapText, Code, Eye } from 'lucide-vue-next';
-import { getLanguageFromFileName, fetchTextUtf8 } from '@eternalheart/file-preview-core';
+import { getLanguageFromFileName, fetchTextUtf8, isEmptyContent, resolveEmptyHint, type EmptyHintMode } from '@eternalheart/file-preview-core';
 import { useTranslator } from '../../composables/useTranslator';
 import { useFetcher } from '../../composables/useRequest';
 import { useShikiHighlight } from '../../composables/useShikiHighlight';
 import RendererError from '../RendererError.vue';
+import EmptyState from '../EmptyState.vue';
 import { ToolbarEventEmitter } from '../base.types';
 import type { RendererHandle } from '../base.types';
 import type { ToolbarGroup } from '../toolbar.types';
@@ -13,6 +14,8 @@ import type { ToolbarGroup } from '../toolbar.types';
 const props = defineProps<{
   url: string;
   fileName: string;
+  /** 空内容提示策略，默认 'auto'（文本类保持原生空白） */
+  emptyHint?: EmptyHintMode;
 }>();
 
 const emitter = new ToolbarEventEmitter();
@@ -33,6 +36,11 @@ const codeForShiki = computed(() => (language.value !== 'text' ? content.value :
 const { lineHtmls, loading: highlightLoading } = useShikiHighlight(codeForShiki, language);
 
 const isHtml = computed(() => language.value === 'html');
+
+// 空内容：默认保持原生空白，仅在 emptyHint 显式开启时提示
+const showEmpty = computed(
+  () => !loading.value && !error.value && isEmptyContent(content.value) && resolveEmptyHint(props.emptyHint, 'textual'),
+);
 
 // 监听状态变化，通知工具栏更新
 watch([wordWrap, htmlPreview, loading, isHtml], () => {
@@ -105,6 +113,9 @@ defineExpose<RendererHandle>({
   </div>
 
   <RendererError v-else-if="error" :message="error" />
+
+  <!-- 空内容提示（仅 emptyHint 显式开启） -->
+  <EmptyState v-else-if="showEmpty" />
 
   <!-- HTML 预览模式 -->
   <div v-else-if="htmlPreview && language === 'html'" class="vfp-w-full vfp-h-full vfp-bg-surface-toolbar">

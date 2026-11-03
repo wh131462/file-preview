@@ -9,10 +9,11 @@ import {
 } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import { WrapText, Code, Eye } from 'lucide-angular';
-import { getLanguageFromFileName, fetchTextUtf8 } from '../../fp-core';
+import { getLanguageFromFileName, fetchTextUtf8, isEmptyContent, resolveEmptyHint, type EmptyHintMode } from '../../fp-core';
 import { LocaleService, getFallbackTranslator } from '../../di/locale.service';
 import { RequestService } from '../../di/request.service';
 import { RendererError } from '../RendererError';
+import { EmptyState } from '../EmptyState';
 import { ToolbarEventEmitter } from '../base.types';
 import type { RendererHandle } from '../base.types';
 import type { ToolbarGroup } from '../toolbar.types';
@@ -21,7 +22,7 @@ import { createShikiHighlight } from '../../utils/shiki-highlight';
 @Component({
   selector: 'afp-text-renderer',
   standalone: true,
-  imports: [RendererError],
+  imports: [RendererError, EmptyState],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'afp-block afp-w-full afp-h-full' },
   template: `
@@ -34,6 +35,8 @@ import { createShikiHighlight } from '../../utils/shiki-highlight';
       </div>
     } @else if (error()) {
       <afp-renderer-error [message]="error()!" />
+    } @else if (showEmptyHint()) {
+      <afp-empty-state [message]="t('file.empty')" />
     } @else if (htmlPreview() && language() === 'html') {
       <div class="afp-w-full afp-h-full afp-bg-surface-toolbar">
         <iframe
@@ -73,6 +76,8 @@ import { createShikiHighlight } from '../../utils/shiki-highlight';
 export class TextRenderer implements RendererHandle {
   url = input.required<string>();
   fileName = input.required<string>();
+  /** 空内容提示策略，默认 'auto'（文本类保持原生空白） */
+  emptyHint = input<EmptyHintMode | undefined>(undefined);
 
   private readonly emitter = new ToolbarEventEmitter();
   private readonly locale = inject(LocaleService, { optional: true });
@@ -89,6 +94,10 @@ export class TextRenderer implements RendererHandle {
   readonly language = computed(() => getLanguageFromFileName(this.fileName()));
   readonly isHtml = computed(() => this.language() === 'html');
   readonly lines = computed(() => this.content().split('\n'));
+  /** 空内容：默认保持原生空白，仅在 emptyHint 显式开启时提示 */
+  readonly showEmptyHint = computed(
+    () => isEmptyContent(this.content()) && resolveEmptyHint(this.emptyHint(), 'textual'),
+  );
 
   private readonly shiki = createShikiHighlight(
     () => (this.language() !== 'text' ? this.content() : ''),

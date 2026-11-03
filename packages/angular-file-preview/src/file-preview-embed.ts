@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, effect, input, output } from '@angular/core';
 import type {
   CustomRendererEventPayload,
+  EmptyHintMode,
   Locale,
   Messages,
   PreviewFile,
@@ -45,6 +46,7 @@ import { createSystemDarkSignal, resolveTheme } from './di/theme-mode';
           [showDownload]="showDownload()"
           [showNavigation]="showNavigation()"
           [loopNavigation]="loopNavigation()"
+          [emptyHint]="emptyHint()"
           (close)="close.emit()"
           (navigate)="navigate.emit($event)"
           (customEvent)="customEvent.emit($event)"
@@ -71,6 +73,8 @@ export class FilePreviewEmbed {
   showDownload = input(true);
   showNavigation = input(true);
   loopNavigation = input(false);
+  /** 空内容提示策略，默认 'auto'（文本类空白、结构化类型提示） */
+  emptyHint = input<EmptyHintMode>('auto');
 
   navigate = output<number>();
   customEvent = output<CustomRendererEventPayload>();

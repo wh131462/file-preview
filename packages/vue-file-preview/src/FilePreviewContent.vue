@@ -15,6 +15,7 @@ import {
   type RequestHandler,
   type RequestInitFactory,
   type ShouldFetchAsBlob,
+  type EmptyHintMode,
 } from '@eternalheart/file-preview-core';
 import type { CustomRenderer, CustomRendererContext } from './types';
 import { provideLocale } from './composables/useTranslator';
@@ -64,6 +65,13 @@ interface Props {
   showNavigation?: boolean;
   /** 是否循环导航文件，默认 false */
   loopNavigation?: boolean;
+  /**
+   * 空内容提示策略，默认 'auto'
+   * - 'auto'：文本类（text/json）保持原生空白；结构化类型（xlsx/pptx）显示空提示
+   * - 'always'：全部显示空提示，文案取 `messages['file.empty']`
+   * - 'never'：一律保持空白
+   */
+  emptyHint?: EmptyHintMode;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -83,6 +91,7 @@ const props = withDefaults(defineProps<Props>(), {
   showDownload: true,
   showNavigation: true,
   loopNavigation: false,
+  emptyHint: 'auto',
 });
 
 provideRequestContext(() => ({
@@ -174,6 +183,7 @@ const builtinRendererProps = computed(() => {
     resolvedUrl: resolvedUrl.value,
     zipNestingDepth: props.zipNestingDepth,
     currentFile: currentFile.value,
+    emptyHint: props.emptyHint,
   });
 });
 

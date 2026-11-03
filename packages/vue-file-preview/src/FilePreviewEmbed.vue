@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { toRef } from 'vue';
 import type { CSSProperties } from 'vue';
-import type { PreviewFile, PreviewFileInput, Locale, Messages, Theme, CustomRendererEventPayload, RequestHandler, RequestInitFactory, ShouldFetchAsBlob } from '@eternalheart/file-preview-core';
+import type { PreviewFile, PreviewFileInput, EmptyHintMode, Locale, Messages, Theme, CustomRendererEventPayload, RequestHandler, RequestInitFactory, ShouldFetchAsBlob } from '@eternalheart/file-preview-core';
 import type { CustomRenderer } from './types';
 import FilePreviewContent from './FilePreviewContent.vue';
 import { useThemeMode } from './composables/useThemeMode';
@@ -40,6 +40,8 @@ interface Props {
   showNavigation?: boolean;
   /** 是否循环导航文件，默认 false */
   loopNavigation?: boolean;
+  /** 空内容提示策略，默认 'auto'（文本类空白、结构化类型提示） */
+  emptyHint?: EmptyHintMode;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -60,6 +62,7 @@ const props = withDefaults(defineProps<Props>(), {
   showDownload: true,
   showNavigation: true,
   loopNavigation: false,
+  emptyHint: 'auto',
 });
 
 const emit = defineEmits<{
@@ -97,6 +100,7 @@ const wrapperStyle: CSSProperties = {
         :show-download="showDownload"
         :show-navigation="showNavigation"
         :loop-navigation="loopNavigation"
+        :empty-hint="emptyHint"
         @navigate="(i) => emit('navigate', i)"
         @custom-event="(p) => emit('custom-event', p)"
         @close="() => emit('close')"

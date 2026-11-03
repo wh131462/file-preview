@@ -1,19 +1,22 @@
 <script setup lang="ts">
-import { PreviewError, translateError } from '@eternalheart/file-preview-core';
+import { PreviewError, resolveEmptyHint, translateError, type EmptyHintMode } from '@eternalheart/file-preview-core';
 import type { RendererHandle } from '../base.types';
 import type { ToolbarGroup } from '../toolbar.types';
 
-import { ref, watch, onMounted, onBeforeUnmount } from 'vue';
+import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue';
 import { init } from 'pptx-preview';
 import { readPptxSlideSize } from '@eternalheart/file-preview-core';
 import { useTranslator } from '../../composables/useTranslator';
 import { useFetcher } from '../../composables/useRequest';
 import RendererError from '../RendererError.vue';
+import EmptyState from '../EmptyState.vue';
 
 const props = withDefaults(
   defineProps<{
     url: string;
     tiled?: boolean;
+    /** 空内容提示策略，默认 'auto'（结构化类型显示提示） */
+    emptyHint?: EmptyHintMode;
   }>(),
   { tiled: true }
 );
@@ -23,6 +26,7 @@ const fetcher = useFetcher();
 
 const loading = ref(true);
 const error = ref<string | null>(null);
+const empty = ref(false);
 const slideCount = ref(0);
 const containerRef = ref<HTMLDivElement | null>(null);
 let previewer: ReturnType<typeof init> | null = null;
@@ -73,6 +77,7 @@ const loadPptx = async () => {
 
   loading.value = true;
   error.value = null;
+  empty.value = false;
 
   let timeoutId: number | null = window.setTimeout(() => {
     error.value = t.value('pptx.timeout');
@@ -94,7 +99,13 @@ const loadPptx = async () => {
     }
 
     const arrayBuffer = await response.arrayBuffer();
-    if (arrayBuffer.byteLength === 0) throw new PreviewError('file.empty');
+    // 空文件不是错误：标记空态，由 emptyHint 决定是否提示
+    if (arrayBuffer.byteLength === 0) {
+      if (timeoutId !== null) clearTimeout(timeoutId);
+      empty.value = true;
+      loading.value = false;
+      return;
+    }
 
     arrayBufferRef = arrayBuffer;
     slideRatio = (await readPptxSlideSize(arrayBuffer)).ratio;
@@ -219,6 +230,9 @@ onBeforeUnmount(() => {
 
 const getToolbarGroups = (): ToolbarGroup[] => [];
 
+// 空文件：结构化类型无原生空白，默认显示中性空提示
+const showEmptyHint = computed(() => resolveEmptyHint(props.emptyHint, 'structured'));
+
 defineExpose<RendererHandle>({
   getToolbarGroups,
 });
@@ -237,6 +251,14 @@ defineExpose<RendererHandle>({
       </div>
     </div>
 
+    <!-- 空文件状态：覆盖层，保持容器挂载 -->
+    <div
+      v-if="empty && !loading && showEmptyHint"
+      class="vfp-absolute vfp-inset-0 vfp-bg-surface-toolbar vfp-z-10"
+    >
+      <EmptyState />
+    </div>
+
     <RendererError
       v-if="error && !loading"
       :message="t('pptx.load_failed')"
@@ -248,7 +270,7 @@ defineExpose<RendererHandle>({
       v-if="!error"
       ref="containerRef"
       class="pptx-wrapper vfp-w-full vfp-max-w-full md:vfp-max-w-6xl"
-      :style="{ opacity: loading ? 0 : 1 }"
+      :style="{ opacity: loading || empty ? 0 : 1 }"
     />
   </div>
 </template>

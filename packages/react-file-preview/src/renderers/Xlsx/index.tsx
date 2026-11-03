@@ -1,4 +1,4 @@
-import { PreviewError, translateError } from '@eternalheart/file-preview-core';
+import { PreviewError, translateError, resolveEmptyHint, type EmptyHintMode } from '@eternalheart/file-preview-core';
 import { useState, useEffect, useRef, useCallback, forwardRef, useImperativeHandle } from 'react';
 import ExcelJS from 'exceljs';
 import Spreadsheet from 'x-data-spreadsheet';
@@ -14,10 +14,13 @@ import {
 import { useTranslator } from '../../i18n/LocaleContext';
 import { useFetcher } from '../../RequestContext';
 import { RendererError } from '../RendererError';
+import { EmptyState } from '../EmptyState';
 import type { RendererHandle } from '../base.types';
 
 interface XlsxRendererProps {
   url: string;
+  /** 空内容提示策略，默认 'auto'（结构化类型显示提示） */
+  emptyHint?: EmptyHintMode;
 }
 
 async function loadXlsxWorkbook(data: Uint8Array): Promise<ExcelJS.Workbook> {
@@ -31,11 +34,12 @@ async function loadXlsxWorkbook(data: Uint8Array): Promise<ExcelJS.Workbook> {
   }
 }
 
-export const XlsxRenderer = forwardRef<RendererHandle, XlsxRendererProps>(({ url }, ref) => {
+export const XlsxRenderer = forwardRef<RendererHandle, XlsxRendererProps>(({ url, emptyHint }, ref) => {
   const t = useTranslator();
   const fetcher = useFetcher();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [empty, setEmpty] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const spreadsheetRef = useRef<Spreadsheet | null>(null);
   const sheetDataRef = useRef<XSheetData[] | null>(null);
@@ -148,6 +152,7 @@ export const XlsxRenderer = forwardRef<RendererHandle, XlsxRendererProps>(({ url
 
       setLoading(true);
       setError(null);
+      setEmpty(false);
 
       try {
         const response = await fetcher(url, {
@@ -168,8 +173,12 @@ export const XlsxRenderer = forwardRef<RendererHandle, XlsxRendererProps>(({ url
 
         const excelBuffer = normalizeExcelBuffer(await response.arrayBuffer());
 
+        // 空文件不是错误：标记空态，由 emptyHint 决定是否提示
         if (excelBuffer.byteLength === 0) {
-          throw new PreviewError('file.empty');
+          if (!isMounted) return;
+          setEmpty(true);
+          setLoading(false);
+          return;
         }
 
         let sheetData: XSheetData[];
@@ -230,6 +239,9 @@ export const XlsxRenderer = forwardRef<RendererHandle, XlsxRendererProps>(({ url
     getToolbarGroups: () => [],
   }), []);
 
+  // 空文件：结构化类型无原生空白，默认显示中性空提示（用覆盖层，保持容器挂载）
+  const showEmptyHint = empty && !loading && resolveEmptyHint(emptyHint, 'structured');
+
   return (
     <div className="rfp-relative rfp-flex rfp-flex-col rfp-items-center rfp-w-full rfp-h-full">
       {/* 加载状态 */}
@@ -239,6 +251,13 @@ export const XlsxRenderer = forwardRef<RendererHandle, XlsxRendererProps>(({ url
             <div className="rfp-renderer-spinner" />
             <p className="rfp-renderer-loading-text">{t('xlsx.loading')}</p>
           </div>
+        </div>
+      )}
+
+      {/* 空文件状态 */}
+      {showEmptyHint && (
+        <div className="rfp-absolute rfp-inset-0 rfp-bg-surface-toolbar rfp-z-10">
+          <EmptyState />
         </div>
       )}
 
@@ -254,7 +273,7 @@ export const XlsxRenderer = forwardRef<RendererHandle, XlsxRendererProps>(({ url
         <div
           ref={containerRef}
           className="xlsx-spreadsheet-container rfp-w-full rfp-h-full"
-          style={{ opacity: loading ? 0 : 1 }}
+          style={{ opacity: loading || empty ? 0 : 1 }}
         />
       )}
     </div>

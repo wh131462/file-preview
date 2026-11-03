@@ -11,11 +11,12 @@ import {
 } from '@angular/core';
 import { ChevronRight, ChevronDown, LucideAngularModule } from 'lucide-angular';
 import { parse as parseJsonc } from 'jsonc-parser';
-import { fetchTextUtf8 } from '../../fp-core';
+import { fetchTextUtf8, isEmptyContent, resolveEmptyHint, type EmptyHintMode } from '../../fp-core';
 import { LocaleService, getFallbackTranslator } from '../../di/locale.service';
 import { RequestService } from '../../di/request.service';
 import { ThemeService, type ResolvedTheme } from '../../di/theme.service';
 import { RendererError } from '../RendererError';
+import { EmptyState } from '../EmptyState';
 import type { RendererHandle } from '../base.types';
 import type { ToolbarGroup } from '../toolbar.types';
 
@@ -214,7 +215,7 @@ export class JsonNode {
 @Component({
   selector: 'afp-json-renderer',
   standalone: true,
-  imports: [RendererError, JsonNode],
+  imports: [RendererError, EmptyState, JsonNode],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'afp-block afp-w-full afp-h-full' },
   encapsulation: ViewEncapsulation.None,
@@ -228,6 +229,10 @@ export class JsonNode {
       </div>
     } @else if (error()) {
       <afp-renderer-error [message]="error()!" />
+    } @else if (empty() && showEmptyHint()) {
+      <afp-empty-state [message]="t('file.empty')" />
+    } @else if (empty()) {
+      <div class="afp-w-full afp-h-full afp-bg-code-bg"></div>
     } @else {
       <div class="afp-w-full afp-h-full afp-overflow-auto afp-bg-code-bg afp-py-6 afp-px-4">
         <afp-json-node [value]="data()" [depth]="0" [defaultExpanded]="true" />
@@ -278,14 +283,20 @@ export class JsonNode {
 export class JsonRenderer implements RendererHandle {
   url = input.required<string>();
   fileName = input.required<string>();
+  /** 空内容提示策略，默认 'auto'（文本类保持原生空白） */
+  emptyHint = input<EmptyHintMode | undefined>(undefined);
 
   private readonly locale = inject(LocaleService, { optional: true });
   private readonly request = inject(RequestService, { optional: true });
   protected readonly t = this.locale?.translate ?? getFallbackTranslator();
 
   readonly data = signal<unknown>(null);
+  readonly empty = signal(false);
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
+
+  /** 空内容：默认保持原生空白，仅在 emptyHint 显式开启时提示 */
+  readonly showEmptyHint = computed(() => resolveEmptyHint(this.emptyHint(), 'textual'));
 
   constructor() {
     effect(() => {
@@ -299,10 +310,14 @@ export class JsonRenderer implements RendererHandle {
   private async loadJson(): Promise<void> {
     this.loading.set(true);
     this.error.set(null);
+    this.empty.set(false);
     try {
       const fetcher = this.request?.fetcher() ?? ((u: string, init?: RequestInit) => fetch(u, init));
       const text = await fetchTextUtf8(this.url(), { fetcher });
-      this.data.set(parseJsonc(text));
+      // 空文档（含仅空白字符）没有可解析的值，保持空态而不是渲染 undefined
+      const isEmpty = isEmptyContent(text);
+      this.empty.set(isEmpty);
+      this.data.set(isEmpty ? null : parseJsonc(text));
     } catch (err) {
       console.error(err);
       this.error.set(this.t('json.load_failed'));

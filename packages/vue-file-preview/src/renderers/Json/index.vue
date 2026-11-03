@@ -4,29 +4,38 @@ import type { ToolbarGroup } from '../toolbar.types';
 
 import { ref, watch } from 'vue';
 import { parse as parseJsonc } from 'jsonc-parser';
-import { fetchTextUtf8 } from '@eternalheart/file-preview-core';
+import { fetchTextUtf8, isEmptyContent, resolveEmptyHint, type EmptyHintMode } from '@eternalheart/file-preview-core';
 import { useTranslator } from '../../composables/useTranslator';
 import { useFetcher } from '../../composables/useRequest';
 import RendererError from '../RendererError.vue';
+import EmptyState from '../EmptyState.vue';
 
 const props = defineProps<{
   url: string;
   fileName: string;
+  /** 空内容提示策略，默认 'auto'（文本类保持原生空白） */
+  emptyHint?: EmptyHintMode;
 }>();
 
 const { t } = useTranslator();
 const fetcher = useFetcher();
 
 const data = ref<unknown>(null);
+const empty = ref(false);
 const loading = ref(true);
 const error = ref<string | null>(null);
+
+// 空内容：默认保持原生空白，仅在 emptyHint 显式开启时提示
+const showEmptyHint = () => resolveEmptyHint(props.emptyHint, 'textual');
 
 const loadJson = async () => {
   loading.value = true;
   error.value = null;
   try {
     const text = await fetchTextUtf8(props.url, { fetcher: fetcher.value });
-    data.value = parseJsonc(text);
+    // 空文档（含仅空白字符）没有可解析的值，保持空态而不是渲染 undefined
+    empty.value = isEmptyContent(text);
+    data.value = empty.value ? null : parseJsonc(text);
   } catch (err) {
     console.error(err);
     error.value = t.value('json.load_failed');
@@ -54,6 +63,10 @@ defineExpose<RendererHandle>({
     </div>
 
   <RendererError v-else-if="error" :message="error" />
+
+  <!-- 空文档：默认保持原生空白，仅在 emptyHint 显式开启时提示 -->
+  <EmptyState v-else-if="empty && showEmptyHint()" />
+  <div v-else-if="empty" class="vfp-w-full vfp-h-full vfp-bg-code-bg" />
 
   <div v-else class="vfp-w-full vfp-h-full vfp-overflow-auto vfp-bg-code-bg vfp-py-6 vfp-px-4">
     <JsonNode :value="data" :depth="0" :default-expanded="true" />

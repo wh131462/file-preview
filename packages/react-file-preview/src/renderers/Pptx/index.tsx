@@ -1,23 +1,27 @@
-import { PreviewError, translateError } from '@eternalheart/file-preview-core';
+import { PreviewError, resolveEmptyHint, translateError, type EmptyHintMode } from '@eternalheart/file-preview-core';
 import { useState, useEffect, useRef, useCallback, forwardRef, useImperativeHandle } from 'react';
 import { init } from 'pptx-preview';
 import { readPptxSlideSize } from '@eternalheart/file-preview-core';
 import { useTranslator } from '../../i18n/LocaleContext';
 import { useFetcher } from '../../RequestContext';
 import { RendererError } from '../RendererError';
+import { EmptyState } from '../EmptyState';
 import type { RendererHandle } from '../base.types';
 
 interface PptxRendererProps {
   url: string;
   /** 是否平铺展示所有页面，默认 true */
   tiled?: boolean;
+  /** 空内容提示策略，默认 'auto'（结构化类型显示提示） */
+  emptyHint?: EmptyHintMode;
 }
 
-export const PptxRenderer = forwardRef<RendererHandle, PptxRendererProps>(({ url, tiled = true }, ref) => {
+export const PptxRenderer = forwardRef<RendererHandle, PptxRendererProps>(({ url, tiled = true, emptyHint }, ref) => {
   const t = useTranslator();
   const fetcher = useFetcher();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [empty, setEmpty] = useState(false);
   const [slideCount, setSlideCount] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const previewerRef = useRef<ReturnType<typeof init> | null>(null);
@@ -144,6 +148,7 @@ export const PptxRenderer = forwardRef<RendererHandle, PptxRendererProps>(({ url
 
       setLoading(true);
       setError(null);
+      setEmpty(false);
 
       // 设置30秒超时
       timeoutId = setTimeout(() => {
@@ -175,9 +180,16 @@ export const PptxRenderer = forwardRef<RendererHandle, PptxRendererProps>(({ url
 
         const arrayBuffer = await response.arrayBuffer();
 
-        // 验证文件大小
+        // 空文件不是错误：标记空态，由 emptyHint 决定是否提示
         if (arrayBuffer.byteLength === 0) {
-          throw new PreviewError('file.empty');
+          if (timeoutId) {
+            clearTimeout(timeoutId);
+            timeoutId = null;
+          }
+          if (!isMounted) return;
+          setEmpty(true);
+          setLoading(false);
+          return;
         }
 
         arrayBufferRef.current = arrayBuffer;
@@ -305,6 +317,9 @@ export const PptxRenderer = forwardRef<RendererHandle, PptxRendererProps>(({ url
     getToolbarGroups: () => [],
   }), []);
 
+  // 空文件：结构化类型无原生空白，默认显示中性空提示（用覆盖层，保持容器挂载）
+  const showEmptyHint = empty && !loading && resolveEmptyHint(emptyHint, 'structured');
+
   return (
     <div className="rfp-relative rfp-flex rfp-flex-col rfp-items-center rfp-w-full rfp-h-full">
       {/* 加载状态 - 绝对定位覆盖 */}
@@ -314,6 +329,13 @@ export const PptxRenderer = forwardRef<RendererHandle, PptxRendererProps>(({ url
             <div className="rfp-renderer-spinner" />
             <p className="rfp-renderer-loading-text">{t('pptx.loading')}</p>
           </div>
+        </div>
+      )}
+
+      {/* 空文件状态 - 绝对定位覆盖 */}
+      {showEmptyHint && (
+        <div className="rfp-absolute rfp-inset-0 rfp-bg-surface-toolbar rfp-z-10">
+          <EmptyState />
         </div>
       )}
 
@@ -327,7 +349,7 @@ export const PptxRenderer = forwardRef<RendererHandle, PptxRendererProps>(({ url
         <div
           ref={containerRef}
           className="pptx-wrapper rfp-w-full rfp-max-w-full md:rfp-max-w-6xl"
-          style={{ opacity: loading ? 0 : 1 }}
+          style={{ opacity: loading || empty ? 0 : 1 }}
         />
       )}
     </div>

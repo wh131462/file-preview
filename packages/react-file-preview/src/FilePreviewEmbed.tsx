@@ -1,7 +1,7 @@
 import { PreviewFileInput, CustomRenderer } from './types';
 import { FilePreviewContent } from './FilePreviewContent';
 import { useThemeMode } from './hooks';
-import type { Locale, Messages, Theme, CustomRendererEventPayload, PreviewFile, RequestHandler, RequestInitFactory, ShouldFetchAsBlob } from '@eternalheart/file-preview-core';
+import type { EmptyHintMode, Locale, Messages, Theme, CustomRendererEventPayload, PreviewFile, RequestHandler, RequestInitFactory, ShouldFetchAsBlob } from '@eternalheart/file-preview-core';
 
 interface FilePreviewEmbedProps {
   files: PreviewFileInput[];
@@ -42,6 +42,8 @@ interface FilePreviewEmbedProps {
   showNavigation?: boolean;
   /** 是否循环导航文件，默认 false */
   loopNavigation?: boolean;
+  /** 空内容提示策略，默认 'auto'（文本类空白、结构化类型提示） */
+  emptyHint?: EmptyHintMode;
 }
 
 export const FilePreviewEmbed: React.FC<FilePreviewEmbedProps> = ({
@@ -67,6 +69,7 @@ export const FilePreviewEmbed: React.FC<FilePreviewEmbedProps> = ({
   showDownload,
   showNavigation,
   loopNavigation,
+  emptyHint,
 }) => {
   const resolvedTheme = useThemeMode(theme);
 
@@ -97,6 +100,7 @@ export const FilePreviewEmbed: React.FC<FilePreviewEmbedProps> = ({
           showDownload={showDownload}
           showNavigation={showNavigation}
           loopNavigation={loopNavigation}
+          emptyHint={emptyHint}
         />
       </div>
     </div>

@@ -1,10 +1,11 @@
-import { PreviewError, translateError } from '../../fp-core';
+import { PreviewError, resolveEmptyHint, translateError, type EmptyHintMode } from '../../fp-core';
 import {
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
   ElementRef,
   afterNextRender,
+  computed,
   effect,
   inject,
   input,
@@ -17,13 +18,14 @@ import { readPptxSlideSize } from '../../fp-core';
 import { LocaleService, getFallbackTranslator } from '../../di/locale.service';
 import { RequestService } from '../../di/request.service';
 import { RendererError } from '../RendererError';
+import { EmptyState } from '../EmptyState';
 import type { RendererHandle } from '../base.types';
 import type { ToolbarGroup } from '../toolbar.types';
 
 @Component({
   selector: 'afp-pptx-renderer',
   standalone: true,
-  imports: [RendererError],
+  imports: [RendererError, EmptyState],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'afp-block afp-w-full afp-h-full' },
   template: `
@@ -39,6 +41,12 @@ import type { ToolbarGroup } from '../toolbar.types';
         </div>
       }
 
+      @if (empty() && !loading() && showEmptyHint()) {
+        <div class="afp-absolute afp-inset-0 afp-bg-surface-toolbar afp-z-10">
+          <afp-empty-state [message]="t('file.empty')" />
+        </div>
+      }
+
       @if (error() && !loading()) {
         <afp-renderer-error
           [message]="t('pptx.load_failed')"
@@ -51,7 +59,7 @@ import type { ToolbarGroup } from '../toolbar.types';
         <div
           #containerRef
           class="pptx-wrapper afp-w-full afp-max-w-full md:afp-max-w-6xl"
-          [style.opacity]="loading() ? 0 : 1"
+          [style.opacity]="loading() || empty() ? 0 : 1"
         ></div>
       }
     </div>
@@ -60,6 +68,8 @@ import type { ToolbarGroup } from '../toolbar.types';
 export class PptxRenderer implements RendererHandle {
   url = input.required<string>();
   tiled = input(true);
+  /** 空内容提示策略，默认 'auto'（结构化类型显示提示） */
+  emptyHint = input<EmptyHintMode | undefined>(undefined);
 
   private readonly locale = inject(LocaleService, { optional: true });
   private readonly request = inject(RequestService, { optional: true });
@@ -68,7 +78,11 @@ export class PptxRenderer implements RendererHandle {
 
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
+  readonly empty = signal(false);
   readonly slideCount = signal(0);
+
+  /** 空文件：结构化类型无原生空白，默认显示中性空提示 */
+  readonly showEmptyHint = computed(() => resolveEmptyHint(this.emptyHint(), 'structured'));
 
   private readonly containerRef = viewChild<ElementRef<HTMLDivElement>>('containerRef');
   private previewer: ReturnType<typeof init> | null = null;
@@ -187,6 +201,7 @@ export class PptxRenderer implements RendererHandle {
 
     this.loading.set(true);
     this.error.set(null);
+    this.empty.set(false);
 
     let timeoutId: number | null = window.setTimeout(() => {
       this.error.set(this.t('pptx.timeout'));
@@ -209,7 +224,14 @@ export class PptxRenderer implements RendererHandle {
       }
 
       const arrayBuffer = await response.arrayBuffer();
-      if (arrayBuffer.byteLength === 0) throw new PreviewError('file.empty');
+      // 空文件不是错误：标记空态，由 emptyHint 决定是否提示
+      if (arrayBuffer.byteLength === 0) {
+        window.clearTimeout(timeoutId);
+        timeoutId = null;
+        this.empty.set(true);
+        this.loading.set(false);
+        return;
+      }
 
       this.arrayBufferRef = arrayBuffer;
       this.slideRatio = (await readPptxSlideSize(arrayBuffer)).ratio;

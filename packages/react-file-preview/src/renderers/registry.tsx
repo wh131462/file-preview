@@ -1,5 +1,5 @@
 import type { LazyExoticComponent, ComponentType } from 'react';
-import type { FileType, PreviewFile } from '@eternalheart/file-preview-core';
+import type { EmptyHintMode, FileType, PreviewFile } from '@eternalheart/file-preview-core';
 import {
   ImageRenderer,
   PdfRenderer,
@@ -34,6 +34,8 @@ export interface RendererContext {
   zipNestingDepth: number;
   /** 当前文件对象 */
   currentFile: PreviewFile;
+  /** 空内容提示策略（透传给支持空态判定的渲染器） */
+  emptyHint?: EmptyHintMode;
 }
 
 /**
@@ -94,6 +96,7 @@ export const BUILTIN_RENDERERS: BuiltinRendererConfig[] = [
     component: XlsxRenderer,
     getProps: (ctx) => ({
       url: ctx.resolvedUrl,
+      emptyHint: ctx.emptyHint,
     }),
   },
   {
@@ -101,6 +104,7 @@ export const BUILTIN_RENDERERS: BuiltinRendererConfig[] = [
     component: XlsxRenderer,
     getProps: (ctx) => ({
       url: ctx.resolvedUrl,
+      emptyHint: ctx.emptyHint,
     }),
   },
   {
@@ -108,6 +112,7 @@ export const BUILTIN_RENDERERS: BuiltinRendererConfig[] = [
     component: PptxRenderer,
     getProps: (ctx) => ({
       url: ctx.resolvedUrl,
+      emptyHint: ctx.emptyHint,
     }),
   },
   {
@@ -168,6 +173,7 @@ export const BUILTIN_RENDERERS: BuiltinRendererConfig[] = [
     getProps: (ctx) => ({
       url: ctx.resolvedUrl,
       fileName: ctx.currentFile.name,
+      emptyHint: ctx.emptyHint,
     }),
   },
   {
@@ -208,6 +214,7 @@ export const BUILTIN_RENDERERS: BuiltinRendererConfig[] = [
     getProps: (ctx) => ({
       url: ctx.resolvedUrl,
       fileName: ctx.currentFile.name,
+      emptyHint: ctx.emptyHint,
     }),
   },
   {

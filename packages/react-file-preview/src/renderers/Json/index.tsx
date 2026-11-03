@@ -1,16 +1,19 @@
 import { useState, useEffect, useCallback, useMemo, forwardRef, useImperativeHandle } from 'react';
 import { ChevronRight, ChevronDown } from 'lucide-react';
 import { parse as parseJsonc } from 'jsonc-parser';
-import { fetchTextUtf8 } from '@eternalheart/file-preview-core';
+import { fetchTextUtf8, isEmptyContent, resolveEmptyHint, type EmptyHintMode } from '@eternalheart/file-preview-core';
 import { useTranslator } from '../../i18n/LocaleContext';
 import { useFetcher } from '../../RequestContext';
 import { useResolvedTheme, type ResolvedTheme } from '../../ThemeContext';
 import { RendererError } from '../RendererError';
+import { EmptyState } from '../EmptyState';
 import type { RendererHandle } from '../base.types';
 
 interface JsonRendererProps {
   url: string;
   fileName: string;
+  /** 空内容提示策略，默认 'auto'（文本类保持原生空白） */
+  emptyHint?: EmptyHintMode;
 }
 
 interface JsonColors {
@@ -163,12 +166,13 @@ function pickColors(theme: ResolvedTheme): JsonColors {
 
 // ---------- Main ----------
 
-export const JsonRenderer = forwardRef<RendererHandle, JsonRendererProps>(({ url }, ref) => {
+export const JsonRenderer = forwardRef<RendererHandle, JsonRendererProps>(({ url, emptyHint }, ref) => {
   const t = useTranslator();
   const fetcher = useFetcher();
   const resolvedTheme = useResolvedTheme();
   const colors = useMemo(() => pickColors(resolvedTheme), [resolvedTheme]);
   const [data, setData] = useState<unknown>(null);
+  const [empty, setEmpty] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -179,8 +183,10 @@ export const JsonRenderer = forwardRef<RendererHandle, JsonRendererProps>(({ url
         setLoading(true);
         setError(null);
         const text = await fetchTextUtf8(url, { fetcher, signal: controller.signal });
-        const parsed = parseJsonc(text);
-        setData(parsed);
+        // 空文档（含仅空白字符）没有可解析的值，保持空态而不是渲染 undefined
+        const isEmpty = isEmptyContent(text);
+        setEmpty(isEmpty);
+        setData(isEmpty ? null : parseJsonc(text));
       } catch (err: any) {
         if (err.name === 'AbortError') return;
         setError(t('json.load_failed'));
@@ -211,6 +217,12 @@ export const JsonRenderer = forwardRef<RendererHandle, JsonRendererProps>(({ url
 
   if (error) {
     return <RendererError message={error} />;
+  }
+
+  // 空文档：默认保持原生空白，仅在 emptyHint 显式开启时提示
+  if (empty) {
+    if (resolveEmptyHint(emptyHint, 'textual')) return <EmptyState />;
+    return <div className="rfp-w-full rfp-h-full rfp-bg-code-bg" />;
   }
 
   return (

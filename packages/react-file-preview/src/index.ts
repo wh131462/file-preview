@@ -49,4 +49,5 @@ export type {
   TranslateParams,
   CreateTranslatorOptions,
   Theme,
+  EmptyHintMode,
 } from '@eternalheart/file-preview-core';

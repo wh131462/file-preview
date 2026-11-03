@@ -29,6 +29,10 @@ export {
 export { resolveShowClose } from './utils/previewMode';
 export type { PreviewMode } from './utils/previewMode';
 
+// 导出空内容判定与提示策略
+export { isEmptyContent, resolveEmptyHint } from './utils/emptyState';
+export type { EmptyHintMode, EmptyContentKind } from './utils/emptyState';
+
 // 导出文件类型识别 / 格式化工具
 export {
   getFileType,

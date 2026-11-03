@@ -1,10 +1,11 @@
-import { PreviewError, translateError } from '../../fp-core';
+import { PreviewError, resolveEmptyHint, translateError, type EmptyHintMode } from '../../fp-core';
 import {
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
   ElementRef,
   afterNextRender,
+  computed,
   effect,
   inject,
   input,
@@ -26,6 +27,7 @@ import {
 import { LocaleService, getFallbackTranslator } from '../../di/locale.service';
 import { RequestService } from '../../di/request.service';
 import { RendererError } from '../RendererError';
+import { EmptyState } from '../EmptyState';
 import type { RendererHandle } from '../base.types';
 import type { ToolbarGroup } from '../toolbar.types';
 
@@ -43,7 +45,7 @@ async function loadXlsxWorkbook(data: Uint8Array): Promise<ExcelJS.Workbook> {
 @Component({
   selector: 'afp-xlsx-renderer',
   standalone: true,
-  imports: [RendererError],
+  imports: [RendererError, EmptyState],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'afp-block afp-w-full afp-h-full' },
   template: `
@@ -59,6 +61,12 @@ async function loadXlsxWorkbook(data: Uint8Array): Promise<ExcelJS.Workbook> {
         </div>
       }
 
+      @if (empty() && !loading() && showEmptyHint()) {
+        <div class="afp-absolute afp-inset-0 afp-bg-surface-toolbar afp-z-10">
+          <afp-empty-state [message]="t('file.empty')" />
+        </div>
+      }
+
       @if (error() && !loading()) {
         <afp-renderer-error
           [message]="t('xlsx.load_failed')"
@@ -71,7 +79,7 @@ async function loadXlsxWorkbook(data: Uint8Array): Promise<ExcelJS.Workbook> {
         <div
           #containerRef
           class="xlsx-spreadsheet-container afp-w-full afp-h-full"
-          [style.opacity]="loading() ? 0 : 1"
+          [style.opacity]="loading() || empty() ? 0 : 1"
         ></div>
       }
     </div>
@@ -79,6 +87,8 @@ async function loadXlsxWorkbook(data: Uint8Array): Promise<ExcelJS.Workbook> {
 })
 export class XlsxRenderer implements RendererHandle {
   url = input.required<string>();
+  /** 空内容提示策略，默认 'auto'（结构化类型显示提示） */
+  emptyHint = input<EmptyHintMode | undefined>(undefined);
 
   private readonly locale = inject(LocaleService, { optional: true });
   private readonly request = inject(RequestService, { optional: true });
@@ -87,6 +97,10 @@ export class XlsxRenderer implements RendererHandle {
 
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
+  readonly empty = signal(false);
+
+  /** 空文件：结构化类型无原生空白，默认显示中性空提示 */
+  readonly showEmptyHint = computed(() => resolveEmptyHint(this.emptyHint(), 'structured'));
 
   private readonly containerRef = viewChild<ElementRef<HTMLDivElement>>('containerRef');
   private sheetData: XSheetData[] | null = null;
@@ -203,6 +217,7 @@ export class XlsxRenderer implements RendererHandle {
 
     this.loading.set(true);
     this.error.set(null);
+    this.empty.set(false);
 
     try {
       const fetcher = this.request?.fetcher() ?? ((u: string, init?: RequestInit) => fetch(u, init));
@@ -220,8 +235,11 @@ export class XlsxRenderer implements RendererHandle {
 
       const excelBuffer = normalizeExcelBuffer(await response.arrayBuffer());
 
+      // 空文件不是错误：标记空态，由 emptyHint 决定是否提示
       if (excelBuffer.byteLength === 0) {
-        throw new PreviewError('file.empty');
+        this.empty.set(true);
+        this.loading.set(false);
+        return;
       }
 
       let data: XSheetData[];

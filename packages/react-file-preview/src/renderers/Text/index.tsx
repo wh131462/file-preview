@@ -1,9 +1,10 @@
 import { useState, useEffect, Fragment, forwardRef, useCallback, useImperativeHandle, useRef } from 'react';
-import { fetchTextUtf8, getLanguageFromFileName } from '@eternalheart/file-preview-core';
+import { fetchTextUtf8, getLanguageFromFileName, isEmptyContent, resolveEmptyHint, type EmptyHintMode } from '@eternalheart/file-preview-core';
 import { useTranslator } from '../../i18n/LocaleContext';
 import { useFetcher } from '../../RequestContext';
 import { useShikiHighlight } from '../../hooks/useShikiHighlight';
 import { RendererError } from '../RendererError';
+import { EmptyState } from '../EmptyState';
 import { WrapText, Code, Eye } from 'lucide-react';
 import type { RendererHandle } from '../base.types';
 import type { ToolbarGroup } from '../toolbar.types';
@@ -11,11 +12,14 @@ import type { ToolbarGroup } from '../toolbar.types';
 interface TextRendererProps {
   url: string;
   fileName: string;
+  /** 空内容提示策略，默认 'auto'（文本类保持原生空白） */
+  emptyHint?: EmptyHintMode;
 }
 
 export const TextRenderer = forwardRef<RendererHandle, TextRendererProps>(({
   url,
   fileName,
+  emptyHint,
 }, ref) => {
   const t = useTranslator();
   const fetcher = useFetcher();
@@ -136,6 +140,11 @@ export const TextRenderer = forwardRef<RendererHandle, TextRendererProps>(({
 
   if (error) {
     return <RendererError message={error} />;
+  }
+
+  // 空内容：默认保持原生空白（pre 渲染空字符串），仅在 emptyHint 显式开启时提示
+  if (isEmptyContent(content) && resolveEmptyHint(emptyHint, 'textual')) {
+    return <EmptyState />;
   }
 
   // HTML 预览模式

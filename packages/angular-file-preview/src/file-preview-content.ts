@@ -25,6 +25,7 @@ import {
   type ShouldFetchAsBlob,
   type Theme,
   type CustomRendererEventPayload,
+  type EmptyHintMode,
 } from './fp-core';
 import type { CustomRenderer, CustomRendererContext } from './types';
 import type { RendererHandle } from './renderers/base.types';
@@ -135,6 +136,13 @@ export class FilePreviewContent {
   showDownload = input(true);
   showNavigation = input(true);
   loopNavigation = input(false);
+  /**
+   * 空内容提示策略，默认 'auto'
+   * - 'auto'：文本类（text/json）保持原生空白；结构化类型（xlsx/pptx）显示空提示
+   * - 'always'：全部显示空提示，文案取 `messages['file.empty']`
+   * - 'never'：一律保持空白
+   */
+  emptyHint = input<EmptyHintMode>('auto');
 
   navigate = output<number>();
   close = output<void>();
@@ -215,6 +223,7 @@ export class FilePreviewContent {
       resolvedUrl: this.resolvedUrl(),
       zipNestingDepth: this.zipNestingDepth(),
       currentFile: file,
+      emptyHint: this.emptyHint(),
     });
   });
 

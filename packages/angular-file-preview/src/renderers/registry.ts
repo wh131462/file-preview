@@ -1,4 +1,4 @@
-import type { FileType, PreviewFile } from '../fp-core';
+import type { EmptyHintMode, FileType, PreviewFile } from '../fp-core';
 import type { RendererLoader } from './lazy';
 import {
   loadImageRenderer,
@@ -28,6 +28,8 @@ export interface RendererContext {
   resolvedUrl: string;
   zipNestingDepth: number;
   currentFile: PreviewFile;
+  /** 空内容提示策略（透传给支持空态判定的渲染器） */
+  emptyHint?: EmptyHintMode;
 }
 
 export interface BuiltinRendererConfig {
@@ -64,17 +66,17 @@ export const BUILTIN_RENDERERS: BuiltinRendererConfig[] = [
   {
     fileType: 'xlsx',
     loader: loadXlsxRenderer,
-    getProps: (ctx) => ({ url: ctx.resolvedUrl }),
+    getProps: (ctx) => ({ url: ctx.resolvedUrl, emptyHint: ctx.emptyHint }),
   },
   {
     fileType: 'xls',
     loader: loadXlsxRenderer,
-    getProps: (ctx) => ({ url: ctx.resolvedUrl }),
+    getProps: (ctx) => ({ url: ctx.resolvedUrl, emptyHint: ctx.emptyHint }),
   },
   {
     fileType: 'pptx',
     loader: loadPptxRenderer,
-    getProps: (ctx) => ({ url: ctx.resolvedUrl }),
+    getProps: (ctx) => ({ url: ctx.resolvedUrl, emptyHint: ctx.emptyHint }),
   },
   {
     fileType: 'ppt',
@@ -124,6 +126,7 @@ export const BUILTIN_RENDERERS: BuiltinRendererConfig[] = [
     getProps: (ctx) => ({
       url: ctx.resolvedUrl,
       fileName: ctx.currentFile.name,
+      emptyHint: ctx.emptyHint,
     }),
   },
   {
@@ -164,6 +167,7 @@ export const BUILTIN_RENDERERS: BuiltinRendererConfig[] = [
     getProps: (ctx) => ({
       url: ctx.resolvedUrl,
       fileName: ctx.currentFile.name,
+      emptyHint: ctx.emptyHint,
     }),
   },
   {

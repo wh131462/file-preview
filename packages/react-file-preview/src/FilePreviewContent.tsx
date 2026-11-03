@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useRef, useState, useEffect } from 'react';
-import { getFileType, createTranslator, resolveShowClose, type Locale, type Messages, type Translator, type Theme, downloadFileWithFetcher } from '@eternalheart/file-preview-core';
+import { getFileType, createTranslator, resolveShowClose, type EmptyHintMode, type Locale, type Messages, type Translator, type Theme, downloadFileWithFetcher } from '@eternalheart/file-preview-core';
 import { LocaleProvider, useLocale, useTranslator } from './i18n/LocaleContext';
 import { ThemeProvider } from './ThemeContext';
 import type { PreviewFileInput, CustomRenderer, CustomRendererContext } from './types';
@@ -43,6 +43,13 @@ export interface FilePreviewContentProps {
   showNavigation?: boolean;
   /** 是否循环导航文件，默认 false */
   loopNavigation?: boolean;
+  /**
+   * 空内容提示策略，默认 'auto'
+   * - 'auto'：文本类（text/json）保持原生空白；结构化类型（xlsx/pptx）显示空提示
+   * - 'always'：全部显示空提示，文案取 `messages['file.empty']`
+   * - 'never'：一律保持空白
+   */
+  emptyHint?: EmptyHintMode;
 }
 
 export const FilePreviewContent: React.FC<FilePreviewContentProps> = (props) => {
@@ -77,6 +84,7 @@ const FilePreviewContentInner: React.FC<FilePreviewContentProps> = ({
   showDownload = true,
   showNavigation = true,
   loopNavigation = false,
+  emptyHint,
   requestInit: _requestInit,
   requestHandler: _requestHandler,
   shouldFetchAsBlob: _shouldFetchAsBlob,
@@ -286,6 +294,7 @@ const FilePreviewContentInner: React.FC<FilePreviewContentProps> = ({
                     resolvedUrl,
                     zipNestingDepth,
                     currentFile,
+                    emptyHint,
                   });
                   return <RendererComponent ref={rendererRef} {...rendererProps} />;
                 }

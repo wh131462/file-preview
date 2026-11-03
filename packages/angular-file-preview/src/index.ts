@@ -30,7 +30,7 @@ export {
 } from './fp-core';
 
 export type { PdfWorkerOptions } from './fp-core';
-export type { Locale, Messages, Translator, Theme } from './fp-core';
+export type { EmptyHintMode, Locale, Messages, Translator, Theme } from './fp-core';
 
 export { LocaleService } from './di/locale.service';
 export { ThemeService } from './di/theme.service';

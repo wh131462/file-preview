@@ -234,6 +234,27 @@ const customRenderers: CustomRenderer[] = [
 - **默认值**: `false`
 - **描述**: 是否循环导航文件。启用后，在首个文件继续向前会跳到末尾，在末尾继续向后会跳到首个文件。
 
+#### emptyHint
+
+- **类型**: `'auto' | 'always' | 'never'`
+- **必需**: 否
+- **默认值**: `'auto'`
+- **描述**: 空内容提示策略。默认不打扰：内容由文件内容直接构成的类型（TXT / JSON）保持原生空白；只有内容必须由解析器产出的结构化类型（XLSX / PPTX）在空文件时显示中性提示。
+  - `'auto'`：按类型取默认值（TXT / JSON 空白，XLSX / PPTX 提示）
+  - `'always'`：文本类也显示提示
+  - `'never'`：一律保持空白
+
+提示文案使用内置 key `file.empty`（中文为「文件为空」），可配合 `messages` 覆盖，实现自定义与多语言：
+
+```tsx
+<FilePreviewModal
+  locale="zh-CN"
+  emptyHint="always"
+  messages={{ 'zh-CN': { 'file.empty': '这个文件没有任何内容' } }}
+  ...
+/>
+```
+
 #### onCustomEvent
 
 - **类型**: `(event: CustomRendererEventPayload) => void`
@@ -409,6 +430,7 @@ function Panel() {
 | `showClose` | `boolean` | ❌ | `false` | 是否显示关闭按钮（embed 模式默认 `false`） |
 | `showNavigation` | `boolean` | ❌ | `true` | 是否显示文件导航箭头 |
 | `loopNavigation` | `boolean` | ❌ | `false` | 是否循环导航文件 |
+| `emptyHint` | `'auto' \| 'always' \| 'never'` | ❌ | `'auto'` | 空内容提示策略：文本类默认空白，结构化类型默认提示 |
 | `onCustomEvent` | `(e: CustomRendererEventPayload) => void` | ❌ | - | 自定义渲染器事件出口,载荷 `{ name, payload, file }` |
 | `requestInit` | `RequestInit \| (url) => RequestInit \| Promise<RequestInit>` | ❌ | - | 自定义 RequestInit，注入鉴权头等 |
 | `requestHandler` | `(url, init?) => Promise<Response>` | ❌ | - | 完全接管库内 fetch |
@@ -499,6 +521,7 @@ function DetailPanel() {
 | `showClose` | `boolean` | ❌ | `undefined` | 是否显示关闭按钮（未设置时根据 `mode` 决定：modal 为 `true`，embed 为 `false`） |
 | `showNavigation` | `boolean` | ❌ | `true` | 是否显示文件导航箭头 |
 | `loopNavigation` | `boolean` | ❌ | `false` | 是否循环导航文件 |
+| `emptyHint` | `'auto' \| 'always' \| 'never'` | ❌ | `'auto'` | 空内容提示策略：文本类默认空白，结构化类型默认提示 |
 | `locale` | `Locale` | ❌ | `'en-US'` | 界面语言 |
 | `messages` | `Partial<Record<Locale, Partial<Messages>>>` | ❌ | - | 自定义翻译字典 |
 | `onCustomEvent` | `(e: CustomRendererEventPayload) => void` | ❌ | - | 自定义渲染器事件出口 |

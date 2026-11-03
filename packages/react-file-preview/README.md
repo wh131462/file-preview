@@ -458,6 +458,7 @@ const files = [
 | `showClose` | `boolean` | ❌ | Whether to show the close button (default `true` for modal) |
 | `showNavigation` | `boolean` | ❌ | Whether to show file navigation arrows (default `true`) |
 | `loopNavigation` | `boolean` | ❌ | Whether file navigation wraps around (default `false`) |
+| `emptyHint` | `'auto' \| 'always' \| 'never'` | ❌ | Empty-file hint policy: text types stay blank, structured types show hint (default `auto`) |
 
 ### FilePreviewEmbed Props
 
@@ -479,6 +480,7 @@ const files = [
 | `showClose` | `boolean` | ❌ | `false` | Whether to show the close button (default `false` for embed) |
 | `showNavigation` | `boolean` | ❌ | `true` | Whether to show file navigation arrows |
 | `loopNavigation` | `boolean` | ❌ | `false` | Whether file navigation wraps around |
+| `emptyHint` | `'auto' \| 'always' \| 'never'` | ❌ | `'auto'` | Empty-file hint policy: text types stay blank, structured types show hint |
 
 > `FilePreviewEmbed` has no `isOpen` / `onClose`. To hide/show it, conditionally render it from the parent. The close button is hidden by default but can be enabled via `showClose`.
 

@@ -385,6 +385,7 @@ Differences from `FilePreviewModal`:
 | `showClose` | `boolean` | ❌ | Whether to show the close button (default `true` for modal) |
 | `showNavigation` | `boolean` | ❌ | Whether to show file navigation arrows (default `true`) |
 | `loopNavigation` | `boolean` | ❌ | Whether file navigation wraps around (default `false`) |
+| `emptyHint` | `'auto' \| 'always' \| 'never'` | ❌ | Empty-file hint policy: text types stay blank, structured types show hint (default `auto`) |
 
 ### FilePreviewModal Events
 
@@ -410,6 +411,7 @@ Differences from `FilePreviewModal`:
 | `showClose` | `boolean` | ❌ | `false` | Whether to show the close button (default `false` for embed) |
 | `showNavigation` | `boolean` | ❌ | `true` | Whether to show file navigation arrows |
 | `loopNavigation` | `boolean` | ❌ | `false` | Whether file navigation wraps around |
+| `emptyHint` | `'auto' \| 'always' \| 'never'` | ❌ | `'auto'` | Empty-file hint policy: text types stay blank, structured types show hint |
 
 ### FilePreviewEmbed Events
 

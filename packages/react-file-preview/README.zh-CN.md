@@ -456,6 +456,7 @@ const files = [
 | `showClose` | `boolean` | ❌ | 是否显示关闭按钮（modal 模式默认 `true`） |
 | `showNavigation` | `boolean` | ❌ | 是否显示文件导航箭头（默认 `true`） |
 | `loopNavigation` | `boolean` | ❌ | 是否循环导航文件（默认 `false`） |
+| `emptyHint` | `'auto' \| 'always' \| 'never'` | ❌ | 空内容提示策略（默认 `auto`）：文本类保持空白，结构化类型显示提示 |
 
 ### FilePreviewEmbed Props
 
@@ -477,6 +478,7 @@ const files = [
 | `showClose` | `boolean` | ❌ | `false` | 是否显示关闭按钮（embed 模式默认 `false`） |
 | `showNavigation` | `boolean` | ❌ | `true` | 是否显示文件导航箭头 |
 | `loopNavigation` | `boolean` | ❌ | `false` | 是否循环导航文件 |
+| `emptyHint` | `'auto' \| 'always' \| 'never'` | ❌ | `'auto'` | 空内容提示策略：文本类保持空白，结构化类型显示提示 |
 
 > `FilePreviewEmbed` 没有 `isOpen` / `onClose`,若要显示/隐藏,请在父组件中条件渲染。关闭按钮默认隐藏，但可通过 `showClose` 启用。
 

@@ -3,9 +3,10 @@ import { getFileType, createTranslator, resolveShowClose, type EmptyHintMode, ty
 import { LocaleProvider, useLocale, useTranslator } from './i18n/LocaleContext';
 import { ThemeProvider } from './ThemeContext';
 import type { PreviewFileInput, CustomRenderer, CustomRendererContext } from './types';
-import type { CustomRendererEventPayload, PreviewFile, RequestHandler, RequestInitFactory, ShouldFetchAsBlob } from '@eternalheart/file-preview-core';
+import type { CustomRendererEventPayload, PreviewFile, RequestHandler, RequestInitFactory, ShouldFetchAsBlob, PreviewErrorPayload } from '@eternalheart/file-preview-core';
 import { normalizeFiles } from './utils/fileNormalizer';
 import { RequestProvider, useResolvedUrl, useFetcher } from './RequestContext';
+import { usePreviewEventsChannel, PreviewEventsProvider } from './PreviewEventsContext';
 import type { RendererHandle } from './renderers/base.types';
 import type { ToolbarGroup } from './renderers/toolbar.types';
 import { UnsupportedRenderer } from './renderers/Unsupported';
@@ -35,7 +36,12 @@ export interface FilePreviewContentProps {
   requestHandler?: RequestHandler;
   shouldFetchAsBlob?: ShouldFetchAsBlob;
   onDownload?: (file: PreviewFile) => void;
-  onError?: (error: Error, errorInfo: React.ErrorInfo) => void;
+  /**
+   * 加载/渲染失败回调。
+   * 每次加载最多触发一次，payload 已由顶层补全 file/index/stage；
+   * 早于 1.6.x 的 `(error, errorInfo)` 签名已废弃。
+   */
+  onError?: (payload: PreviewErrorPayload) => void;
   /** 是否显示关闭按钮，默认根据 mode 决定（modal: true, embed: false） */
   showClose?: boolean;
   showDownload?: boolean;
@@ -54,18 +60,30 @@ export interface FilePreviewContentProps {
 
 export const FilePreviewContent: React.FC<FilePreviewContentProps> = (props) => {
   const { requestInit, requestHandler, shouldFetchAsBlob } = props;
+  // 请求层错误出口：RequestProvider 在上层创建 fetcher，Inner 负责绑定事件通道
+  const requestErrorRef = useRef<((url: string, error: unknown) => void) | null>(null);
+  const handleRequestError = useCallback((url: string, error: unknown) => {
+    requestErrorRef.current?.(url, error);
+  }, []);
+
   return (
     <RequestProvider
       requestInit={requestInit}
       requestHandler={requestHandler}
       shouldFetchAsBlob={shouldFetchAsBlob}
+      onRequestError={handleRequestError}
     >
-      <FilePreviewContentInner {...props} />
+      <FilePreviewContentInner {...props} requestErrorRef={requestErrorRef} />
     </RequestProvider>
   );
 };
 
-const FilePreviewContentInner: React.FC<FilePreviewContentProps> = ({
+interface FilePreviewContentInnerProps extends FilePreviewContentProps {
+  /** 请求层错误出口，绑定到事件通道 */
+  requestErrorRef?: React.MutableRefObject<((url: string, error: unknown) => void) | null>;
+}
+
+const FilePreviewContentInner: React.FC<FilePreviewContentInnerProps> = ({
   files,
   currentIndex,
   onNavigate,
@@ -80,6 +98,7 @@ const FilePreviewContentInner: React.FC<FilePreviewContentProps> = ({
   onCustomEvent,
   onDownload,
   onError,
+  requestErrorRef,
   showClose,
   showDownload = true,
   showNavigation = true,
@@ -101,8 +120,44 @@ const FilePreviewContentInner: React.FC<FilePreviewContentProps> = ({
 
   const normalizedFiles = useMemo(() => normalizeFiles(files), [files]);
   const currentFile = normalizedFiles[currentIndex];
-  const resolvedUrl = useResolvedUrl(currentFile);
+  // blob 预取失败出口：延迟绑定事件通道，避免声明顺序依赖
+  const reportBlobErrorRef = useRef<((error: unknown) => void) | null>(null);
+  const handleBlobError = useCallback((error: unknown) => {
+    reportBlobErrorRef.current?.(error);
+  }, []);
+  const resolvedUrl = useResolvedUrl(currentFile, handleBlobError);
   const fetcher = useFetcher();
+
+  // 事件通道：渲染器上报口 + 顶层聚合（补 file/index、代次校验、去重）
+  const events = usePreviewEventsChannel(
+    () => ({
+      file: currentFile,
+      index: currentIndex,
+      urls: [currentFile?.url ?? '', resolvedUrl].filter(Boolean),
+    }),
+    onError,
+  );
+
+  useEffect(() => {
+    reportBlobErrorRef.current = (error) => events.report(error, 'request');
+  }, [events]);
+
+  useEffect(() => {
+    if (!requestErrorRef) return;
+    // blob 预取场景下 fetcher 收到的是原始 URL，按原 URL 校验代次
+    requestErrorRef.current = (url, error) => {
+      if (!currentFile || url !== currentFile.url) return;
+      events.report(error, 'request');
+    };
+    return () => {
+      requestErrorRef.current = null;
+    };
+  }, [events, requestErrorRef, currentFile]);
+
+  // 切换文件或换 URL 即进入新代次，允许再次上报
+  useEffect(() => {
+    events.reset();
+  }, [events, currentFile]);
 
   const customRenderer = useMemo(() => {
     if (!currentFile) return null;
@@ -232,6 +287,14 @@ const FilePreviewContentInner: React.FC<FilePreviewContentProps> = ({
     }
   }, [currentFile, onDownload, fetcher]);
 
+  // 错误边界捕获（渲染器抛出的未捕获异常）统一走事件通道
+  const handleRendererError = useCallback(
+    (error: Error, errorInfo: React.ErrorInfo) => {
+      events.report(error, 'render', errorInfo);
+    },
+    [events],
+  );
+
   if (!currentFile) return null;
 
   return (
@@ -261,14 +324,15 @@ const FilePreviewContentInner: React.FC<FilePreviewContentProps> = ({
             ref={contentRef}
             className="rfp-isolate rfp-flex-1 rfp-flex rfp-items-center rfp-justify-center rfp-overflow-auto"
           >
-            <FilePreviewRenderer
-              currentFile={currentFile}
-              customRenderer={customRenderer}
-              customRendererContext={customCtx}
-              t={t}
-              onDownload={handleDownload}
-              onError={onError}
-            >
+            <PreviewEventsProvider value={events}>
+              <FilePreviewRenderer
+                currentFile={currentFile}
+                customRenderer={customRenderer}
+                customRendererContext={customCtx}
+                t={t}
+                onDownload={handleDownload}
+                onError={handleRendererError}
+              >
               {(() => {
                 // ZIP 嵌套深度超限：fallback 到 Unsupported
                 if (fileType === 'zip' && zipNestingDepth >= MAX_ZIP_NESTING_DEPTH) {
@@ -308,7 +372,8 @@ const FilePreviewContentInner: React.FC<FilePreviewContentProps> = ({
                   />
                 );
               })()}
-            </FilePreviewRenderer>
+              </FilePreviewRenderer>
+            </PreviewEventsProvider>
           </div>
 
           {!headless && showNavigation && normalizedFiles.length > 1 && (

@@ -8,6 +8,7 @@ import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { useTranslator } from '../../i18n/LocaleContext';
 import { useFetcher } from '../../RequestContext';
+import { usePreviewEvents } from '../../PreviewEventsContext';
 import { RendererError } from '../RendererError';
 import type { RendererHandle } from '../base.types';
 import { getCadToolbarGroups } from './toolbar';
@@ -69,6 +70,7 @@ export interface CadRendererProps {
 export const CadRenderer = forwardRef<RendererHandle, CadRendererProps>(({ url, file, fileName, baseUrl }, ref) => {
   const t = useTranslator();
   const fetcher = useFetcher();
+  const reporter = usePreviewEvents();
   const containerRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | THREE.OrthographicCamera | null>(null);
@@ -356,6 +358,7 @@ export const CadRenderer = forwardRef<RendererHandle, CadRendererProps>(({ url, 
     }
 
     // 如果有 File 对象，直接读取；否则使用 fetcher
+    reporter.begin(url);
     const loadPromise = file
       ? file.arrayBuffer()
       : fetcher(url, { signal: abortController.signal }).then((response) => {
@@ -511,6 +514,7 @@ export const CadRenderer = forwardRef<RendererHandle, CadRendererProps>(({ url, 
       }
       setError(t('cad.load_failed'));
       setLoading(false);
+      reporter.error(err);
     };
 
     // 动画循环

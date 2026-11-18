@@ -13,6 +13,7 @@ import {
 } from '@eternalheart/file-preview-core';
 import { useTranslator } from '../../i18n/LocaleContext';
 import { useFetcher } from '../../RequestContext';
+import { usePreviewEvents } from '../../PreviewEventsContext';
 import { RendererError } from '../RendererError';
 import type { RendererHandle } from '../base.types';
 
@@ -36,6 +37,7 @@ async function loadXlsxWorkbook(data: Uint8Array): Promise<ExcelJS.Workbook> {
 export const XlsxRenderer = forwardRef<RendererHandle, XlsxRendererProps>(({ url }, ref) => {
   const t = useTranslator();
   const fetcher = useFetcher();
+  const reporter = usePreviewEvents();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -147,6 +149,7 @@ export const XlsxRenderer = forwardRef<RendererHandle, XlsxRendererProps>(({ url
 
     const loadExcel = async () => {
       if (!containerRef.current) return;
+      reporter.begin(url);
 
       setLoading(true);
       setError(null);
@@ -203,6 +206,7 @@ export const XlsxRenderer = forwardRef<RendererHandle, XlsxRendererProps>(({ url
           }
           setError(errorMsg);
           setLoading(false);
+          reporter.error(err);
         }
       }
     };

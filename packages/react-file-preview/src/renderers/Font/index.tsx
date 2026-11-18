@@ -4,6 +4,7 @@ import { parse } from 'opentype.js';
 import type { Font as OpentypeFont } from 'opentype.js';
 import { useTranslator } from '../../i18n/LocaleContext';
 import { useFetcher } from '../../RequestContext';
+import { usePreviewEvents } from '../../PreviewEventsContext';
 import { useResolvedTheme } from '../../ThemeContext';
 import { RendererError } from '../RendererError';
 import type { RendererHandle } from '../base.types';
@@ -51,6 +52,7 @@ type MetadataStatus = 'loading' | 'ready' | 'unavailable';
 export const FontRenderer = forwardRef<RendererHandle, FontRendererProps>(({ url }, ref) => {
   const t = useTranslator();
   const fetcher = useFetcher();
+  const reporter = usePreviewEvents();
   const resolvedTheme = useResolvedTheme();
   const [font, setFont] = useState<OpentypeFont | null>(null);
   const [metadata, setMetadata] = useState<FontMetadata | null>(null);
@@ -152,6 +154,7 @@ export const FontRenderer = forwardRef<RendererHandle, FontRendererProps>(({ url
     };
 
     const run = async () => {
+      reporter.begin(url);
       try {
         setLoading(true);
         setError(null);
@@ -204,6 +207,7 @@ export const FontRenderer = forwardRef<RendererHandle, FontRendererProps>(({ url
         setError(t('font.load_failed'));
         setLoading(false);
         setMetadataStatus('unavailable');
+        reporter.error(err);
       }
     };
 

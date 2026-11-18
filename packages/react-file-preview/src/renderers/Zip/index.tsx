@@ -27,6 +27,7 @@ import {
 import { ResizableSplit, type ResizableSplitHandle } from '../../components/ResizableSplit';
 import { useTranslator } from '../../i18n/LocaleContext';
 import { useFetcher } from '../../RequestContext';
+import { usePreviewEvents } from '../../PreviewEventsContext';
 
 export interface ZipToolbarStats {
   files: number;
@@ -172,6 +173,7 @@ const TreeItem: React.FC<TreeItemProps> = ({
 export const ZipRenderer = forwardRef<RendererHandle, ZipRendererProps>(({ url, nestingDepth = 0, onStatsChange }, ref) => {
   const t = useTranslator();
   const fetcher = useFetcher();
+  const reporter = usePreviewEvents();
   const [zip, setZip] = useState<JSZip | null>(null);
   const [tree, setTree] = useState<ZipTreeNode | null>(null);
   const [loading, setLoading] = useState(true);
@@ -196,6 +198,7 @@ export const ZipRenderer = forwardRef<RendererHandle, ZipRendererProps>(({ url, 
 
     let cancelled = false;
     const load = async () => {
+      reporter.begin(url);
       try {
         setLoading(true);
         setError(null);
@@ -215,7 +218,10 @@ export const ZipRenderer = forwardRef<RendererHandle, ZipRendererProps>(({ url, 
         setExpanded(init);
       } catch (err) {
         console.error(err);
-        if (!cancelled) setError(t('zip.load_failed'));
+        if (!cancelled) {
+          setError(t('zip.load_failed'));
+          reporter.error(err);
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }

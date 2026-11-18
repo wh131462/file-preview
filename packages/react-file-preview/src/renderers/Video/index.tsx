@@ -2,6 +2,7 @@ import { useRef, useEffect, useState, forwardRef, useImperativeHandle } from 're
 import videojs from 'video.js';
 import 'video.js/dist/video-js.css';
 import { useTranslator } from '../../i18n/LocaleContext';
+import { usePreviewEvents } from '../../PreviewEventsContext';
 import { RendererError } from '../RendererError';
 import type { RendererHandle } from '../base.types';
 
@@ -53,12 +54,14 @@ interface ErrorState {
 
 export const VideoRenderer = forwardRef<RendererHandle, VideoRendererProps>(({ url, fileName, mimeType }, ref) => {
   const t = useTranslator();
+  const reporter = usePreviewEvents();
   const [error, setError] = useState<ErrorState | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const videoRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<VideoJsPlayer | null>(null);
 
   useEffect(() => {
+    reporter.begin(url);
     const videoExt = getVideoExt(url, fileName);
 
     // 已知浏览器不支持的容器：跳过 videojs 初始化，直接展示友好提示
@@ -152,6 +155,7 @@ export const VideoRenderer = forwardRef<RendererHandle, VideoRendererProps>(({ u
           });
         }
         setIsLoading(false);
+        reporter.error(err);
       });
 
       playerRef.current = player;

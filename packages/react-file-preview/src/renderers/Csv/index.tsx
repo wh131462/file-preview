@@ -8,6 +8,7 @@ import {
 } from '@eternalheart/file-preview-core';
 import { useTranslator } from '../../i18n/LocaleContext';
 import { useFetcher } from '../../RequestContext';
+import { usePreviewEvents } from '../../PreviewEventsContext';
 import { RendererError } from '../RendererError';
 import type { RendererHandle } from '../base.types';
 
@@ -19,6 +20,7 @@ interface CsvRendererProps {
 export const CsvRenderer = forwardRef<RendererHandle, CsvRendererProps>(({ url, fileName }, ref) => {
   const t = useTranslator();
   const fetcher = useFetcher();
+  const reporter = usePreviewEvents();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -125,6 +127,7 @@ export const CsvRenderer = forwardRef<RendererHandle, CsvRendererProps>(({ url, 
 
     const loadCsv = async () => {
       if (!containerRef.current) return;
+      reporter.begin(url);
 
       setLoading(true);
       setError(null);
@@ -145,6 +148,7 @@ export const CsvRenderer = forwardRef<RendererHandle, CsvRendererProps>(({ url, 
           console.error(t('csv.parse_failed') + ':', err);
           setError(t('csv.load_failed'));
           setLoading(false);
+          reporter.error(err);
         }
       }
     };

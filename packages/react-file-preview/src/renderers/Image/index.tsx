@@ -2,6 +2,8 @@ import { PreviewError, translateError } from '@eternalheart/file-preview-core';
 import { useState, useEffect, useRef, useCallback, useImperativeHandle, forwardRef } from 'react';
 import { ZoomIn, ZoomOut, RotateCw, RotateCcw, Scan, RefreshCw } from 'lucide-react';
 import { useTranslator } from '../../i18n/LocaleContext';
+import { useFetcher } from '../../RequestContext';
+import { usePreviewEvents } from '../../PreviewEventsContext';
 import {
   decodeInWorker,
   detectImageFormat,
@@ -47,6 +49,8 @@ export const ImageRenderer = forwardRef<ImageRendererHandle, ImageRendererProps>
   file,
 }, ref) => {
   const t = useTranslator();
+  const fetcher = useFetcher();
+  const reporter = usePreviewEvents();
 
   // 内部状态管理
   const [loaded, setLoaded] = useState(false);
@@ -96,6 +100,7 @@ export const ImageRenderer = forwardRef<ImageRendererHandle, ImageRendererProps>
     let cancelled = false;
 
     const decodeIfNeeded = async () => {
+      reporter.begin(url);
       // 重置状态：清空 src 以避免上一张图片的 onLoad/onError 误触发到新文件
       setImageSrc('');
       setLoaded(false);
@@ -146,7 +151,7 @@ export const ImageRenderer = forwardRef<ImageRendererHandle, ImageRendererProps>
         } else if (file.file instanceof Blob) {
           fileBlob = file.file;
         } else {
-          const response = await fetch(url);
+          const response = await fetcher(url);
           if (!response.ok) throw new PreviewError('file.load_failed');
           fileBlob = await response.blob();
         }
@@ -212,6 +217,7 @@ export const ImageRenderer = forwardRef<ImageRendererHandle, ImageRendererProps>
         if (!cancelled) {
           setDecodeError(translateError(t, err) || t('image.decode_failed'));
           setDecoding(false);
+          reporter.error(err);
         }
       }
     };
@@ -320,6 +326,7 @@ export const ImageRenderer = forwardRef<ImageRendererHandle, ImageRendererProps>
   const handleError = () => {
     setError(t('image.load_failed'));
     setLoaded(true);
+    reporter.error(new PreviewError('image.load_failed'), 'request');
   };
 
   // 双击复原：居中 + 缩放100%

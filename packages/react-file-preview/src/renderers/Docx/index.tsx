@@ -4,6 +4,7 @@ import mammoth from 'mammoth';
 import { DOCX_MAMMOTH_STYLE_MAP, docxThemeToCssVars, readDocxTheme, type DocxTheme } from '@eternalheart/file-preview-core';
 import { useTranslator } from '../../i18n/LocaleContext';
 import { useFetcher } from '../../RequestContext';
+import { usePreviewEvents } from '../../PreviewEventsContext';
 import { RendererError } from '../RendererError';
 import type { RendererHandle } from '../base.types';
 
@@ -25,6 +26,7 @@ function themeToContentStyle(theme: DocxTheme): React.CSSProperties {
 export const DocxRenderer = forwardRef<RendererHandle, DocxRendererProps>(({ url }, ref) => {
   const t = useTranslator();
   const fetcher = useFetcher();
+  const reporter = usePreviewEvents();
   const [html, setHtml] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -38,6 +40,7 @@ export const DocxRenderer = forwardRef<RendererHandle, DocxRendererProps>(({ url
     if (!url) return;
 
     const loadDocx = async () => {
+      reporter.begin(url);
       setLoading(true);
       setError(null);
       setHtml('');
@@ -59,6 +62,7 @@ export const DocxRenderer = forwardRef<RendererHandle, DocxRendererProps>(({ url
       } catch (err) {
         console.error(t('docx.parse_failed') + ':', err);
         setError(t('docx.parse_failed'));
+        reporter.error(err);
       } finally {
         setLoading(false);
       }

@@ -12,6 +12,7 @@ import 'foliate-js/view.js';
 import type { FoliateView, TocItem } from 'foliate-js/view.js';
 import { useTranslator } from '../../i18n/LocaleContext';
 import { useFetcher } from '../../RequestContext';
+import { usePreviewEvents } from '../../PreviewEventsContext';
 import { RendererError } from '../RendererError';
 import type { RendererHandle } from '../base.types';
 import type { ToolbarGroup } from '../toolbar.types';
@@ -82,6 +83,7 @@ export const MobiRenderer = forwardRef<MobiRendererHandle, MobiRendererProps>(
   ({ url }, ref) => {
     const t = useTranslator();
     const fetcher = useFetcher();
+    const reporter = usePreviewEvents();
     const hostRef = useRef<HTMLDivElement>(null);
     const viewRef = useRef<FoliateView | null>(null);
 
@@ -224,6 +226,7 @@ export const MobiRenderer = forwardRef<MobiRendererHandle, MobiRendererProps>(
 
       const load = async () => {
         if (cancelled) return;
+        reporter.begin(url);
 
         setLoading(true);
         setError(null);
@@ -391,6 +394,7 @@ export const MobiRenderer = forwardRef<MobiRendererHandle, MobiRendererProps>(
           if (!cancelled) {
             setError(t('mobi.load_failed'));
             setLoading(false);
+            reporter.error(err);
           }
         }
       };

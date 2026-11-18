@@ -38,6 +38,13 @@ export { SUPPORTED_FILE_TYPES } from '@eternalheart/file-preview-core';
 export { configurePdfjs, pdfjs } from './utils/pdfConfig';
 export type { PdfConfigOptions } from './utils/pdfConfig';
 
+// 导出预览事件类型
+export type {
+  PreviewErrorStage,
+  PreviewErrorPayload,
+  PreviewReporter,
+} from '@eternalheart/file-preview-core';
+
 // 导出 i18n 国际化
 export { LocaleProvider, useTranslator, useLocale } from './i18n/LocaleContext';
 export type { LocaleProviderProps, LocaleContextValue } from './i18n/LocaleContext';

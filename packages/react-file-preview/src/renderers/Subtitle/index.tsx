@@ -8,6 +8,7 @@ import {
 } from '@eternalheart/file-preview-core';
 import { useTranslator } from '../../i18n/LocaleContext';
 import { useFetcher } from '../../RequestContext';
+import { usePreviewEvents } from '../../PreviewEventsContext';
 import { RendererError } from '../RendererError';
 import type { RendererHandle } from '../base.types';
 
@@ -35,6 +36,7 @@ const getFormat = (fileName: string): SubtitleFormat | undefined => {
 export const SubtitleRenderer = forwardRef<RendererHandle, SubtitleRendererProps>(({ url, fileName }, ref) => {
   const t = useTranslator();
   const fetcher = useFetcher();
+  const reporter = usePreviewEvents();
   const [text, setText] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -42,6 +44,7 @@ export const SubtitleRenderer = forwardRef<RendererHandle, SubtitleRendererProps
   useEffect(() => {
     const controller = new AbortController();
     const load = async () => {
+      reporter.begin(url);
       try {
         setLoading(true);
         setError(null);
@@ -50,6 +53,7 @@ export const SubtitleRenderer = forwardRef<RendererHandle, SubtitleRendererProps
         if (err.name === 'AbortError') return;
         console.warn('[SubtitleRenderer] Failed to load subtitle:', err instanceof Error ? err.message : String(err));
         setError(t('subtitle.load_failed'));
+        reporter.error(err);
       } finally {
         setLoading(false);
       }
@@ -65,6 +69,7 @@ export const SubtitleRenderer = forwardRef<RendererHandle, SubtitleRendererProps
     } catch (err) {
       // 字幕解析失败通常是格式不支持或文件损坏，用 warn 级别记录
       console.warn('[SubtitleRenderer] Failed to parse subtitle:', err instanceof Error ? err.message : String(err));
+      reporter.error(err);
       return null;
     }
   }, [text, fileName]);

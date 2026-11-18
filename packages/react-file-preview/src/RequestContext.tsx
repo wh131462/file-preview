@@ -23,6 +23,8 @@ export interface RequestProviderProps {
   requestInit?: RequestInitFactory;
   requestHandler?: RequestHandler;
   shouldFetchAsBlob?: ShouldFetchAsBlob;
+  /** 请求阶段失败回调：handler / requestInit 抛出时触发，用于上报宿主 */
+  onRequestError?: (url: string, error: unknown) => void;
   children: React.ReactNode;
 }
 
@@ -30,14 +32,15 @@ export const RequestProvider: React.FC<RequestProviderProps> = ({
   requestInit,
   requestHandler,
   shouldFetchAsBlob,
+  onRequestError,
   children,
 }) => {
   const value = useMemo<RequestContextValue>(
     () => ({
-      fetcher: createFetcher({ requestInit, requestHandler }),
+      fetcher: createFetcher({ requestInit, requestHandler, onRequestError }),
       shouldFetchAsBlob,
     }),
-    [requestInit, requestHandler, shouldFetchAsBlob],
+    [requestInit, requestHandler, shouldFetchAsBlob, onRequestError],
   );
   return (
     <RequestContext.Provider value={value}>{children}</RequestContext.Provider>
@@ -54,8 +57,12 @@ export function useFetcher(): Fetcher {
  * - 返回 true：用 fetcher 拉成 blob: URL，组件卸载或 file 变化时 revoke
  *
  * 期间返回空字符串（表示 "还没准备好"），调用方应避免空 URL 时挂载到 <img src> 等。
+ * onError 用于把 blob 预取失败上报给宿主（默认仍回退原 URL 继续尝试）。
  */
-export function useResolvedUrl(file: PreviewFile | undefined): string {
+export function useResolvedUrl(
+  file: PreviewFile | undefined,
+  onError?: (error: unknown) => void,
+): string {
   const { fetcher, shouldFetchAsBlob } = useContext(RequestContext);
   const needBlob = !!(file && shouldFetchAsBlob?.(file));
   // 仅在需要预取 blob 时才使用 state；其他场景下方法返回值由 file.url 派生，避免 state 跨文件切换时残留
@@ -89,13 +96,14 @@ export function useResolvedUrl(file: PreviewFile | undefined): string {
       .catch((err) => {
         if (!cancelled) {
           console.error('[file-preview] resolve blob url failed:', err);
+          onError?.(err);
           setBlobUrl(file.url);
         }
       });
     return () => {
       cancelled = true;
     };
-  }, [file?.id, file?.url, needBlob, fetcher]);
+  }, [file?.id, file?.url, needBlob, fetcher, onError]);
 
   // 卸载时 revoke 最后一次创建的 blob URL
   useEffect(() => {

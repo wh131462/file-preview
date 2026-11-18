@@ -8,6 +8,7 @@ import { Copy, Check, Eye, Code } from 'lucide-react';
 import { fetchTextUtf8 } from '@eternalheart/file-preview-core';
 import { useTranslator } from '../../i18n/LocaleContext';
 import { useFetcher } from '../../RequestContext';
+import { usePreviewEvents } from '../../PreviewEventsContext';
 import { useShikiHighlight } from '../../hooks/useShikiHighlight';
 import { RendererError } from '../RendererError';
 import type { RendererHandle } from '../base.types';
@@ -104,6 +105,7 @@ const ShikiCodeBlock = memo(({ code, lang }: { code: string; lang: string }) => 
 export const MarkdownRenderer = memo(forwardRef<RendererHandle, MarkdownRendererProps>(({ url }, ref) => {
   const t = useTranslator();
   const fetcher = useFetcher();
+  const reporter = usePreviewEvents();
 
   // 内部状态管理
   const [content, setContent] = useState<string>('');
@@ -119,6 +121,7 @@ export const MarkdownRenderer = memo(forwardRef<RendererHandle, MarkdownRenderer
   useEffect(() => {
     const controller = new AbortController();
     const loadMarkdown = async () => {
+      reporter.begin(url);
       try {
         setLoading(true);
         setError(null);
@@ -128,6 +131,7 @@ export const MarkdownRenderer = memo(forwardRef<RendererHandle, MarkdownRenderer
         if (err.name === 'AbortError') return;
         setError(t('markdown.load_failed'));
         console.error(err);
+        reporter.error(err);
       } finally {
         setLoading(false);
       }

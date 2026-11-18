@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback, useImperativeHandle, forwardRef } from 'react';
 import { useTranslator } from '../../i18n/LocaleContext';
+import { usePreviewEvents } from '../../PreviewEventsContext';
 import { RendererError } from '../RendererError';
 import { X, ZoomIn, ZoomOut, ChevronLeft, ChevronRight, Menu, RefreshCw } from 'lucide-react';
 import type { RendererHandle } from '../base.types';
@@ -96,6 +97,7 @@ export const PdfRenderer = forwardRef<PdfRendererHandle, PdfRendererProps>(({
   url,
 }, ref) => {
   const t = useTranslator();
+  const reporter = usePreviewEvents();
 
   // 内部状态管理
   const [zoom, setZoom] = useState(1);
@@ -190,6 +192,7 @@ export const PdfRenderer = forwardRef<PdfRendererHandle, PdfRendererProps>(({
     } catch (err: any) {
       if (err?.name !== 'RenderingCancelledException') {
         console.error(t('pdf.page_render_failed', { page: pageNumber }) + ':', err);
+        reporter.error(err, 'render');
       }
     } finally {
       state.rendering = false;
@@ -314,6 +317,7 @@ export const PdfRenderer = forwardRef<PdfRendererHandle, PdfRendererProps>(({
 
   // 加载 PDF 文档
   const loadPdf = useCallback(async () => {
+    reporter.begin(url);
     const loadGeneration = loadGenerationRef.current + 1;
     loadGenerationRef.current = loadGeneration;
     const isCurrentLoad = () => loadGeneration === loadGenerationRef.current;
@@ -387,6 +391,7 @@ export const PdfRenderer = forwardRef<PdfRendererHandle, PdfRendererProps>(({
       console.error(t('pdf.load_failed') + ':', err);
       setError(t('pdf.load_failed'));
       setIsLoading(false);
+      reporter.error(err);
     }
   }, [url, t]);
 

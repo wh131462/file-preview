@@ -4,6 +4,7 @@ import { parse as parseJsonc } from 'jsonc-parser';
 import { fetchTextUtf8, isEmptyContent, resolveEmptyHint, type EmptyHintMode } from '@eternalheart/file-preview-core';
 import { useTranslator } from '../../i18n/LocaleContext';
 import { useFetcher } from '../../RequestContext';
+import { usePreviewEvents } from '../../PreviewEventsContext';
 import { useResolvedTheme, type ResolvedTheme } from '../../ThemeContext';
 import { RendererError } from '../RendererError';
 import { EmptyState } from '../EmptyState';
@@ -169,6 +170,7 @@ function pickColors(theme: ResolvedTheme): JsonColors {
 export const JsonRenderer = forwardRef<RendererHandle, JsonRendererProps>(({ url, emptyHint }, ref) => {
   const t = useTranslator();
   const fetcher = useFetcher();
+  const reporter = usePreviewEvents();
   const resolvedTheme = useResolvedTheme();
   const colors = useMemo(() => pickColors(resolvedTheme), [resolvedTheme]);
   const [data, setData] = useState<unknown>(null);
@@ -179,6 +181,7 @@ export const JsonRenderer = forwardRef<RendererHandle, JsonRendererProps>(({ url
   useEffect(() => {
     const controller = new AbortController();
     const loadJson = async () => {
+      reporter.begin(url);
       try {
         setLoading(true);
         setError(null);
@@ -191,6 +194,7 @@ export const JsonRenderer = forwardRef<RendererHandle, JsonRendererProps>(({ url
         if (err.name === 'AbortError') return;
         setError(t('json.load_failed'));
         console.error(err);
+        reporter.error(err);
       } finally {
         setLoading(false);
       }

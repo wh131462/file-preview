@@ -5,6 +5,7 @@ import type { FieldsData } from '@kenjiuno/msgreader';
 import { User, Users, Paperclip, Calendar, Mail, Tag, Clock, Hash } from 'lucide-react';
 import { useTranslator } from '../../i18n/LocaleContext';
 import { useFetcher } from '../../RequestContext';
+import { usePreviewEvents } from '../../PreviewEventsContext';
 import { RendererError } from '../RendererError';
 import type { RendererHandle } from '../base.types';
 
@@ -113,6 +114,7 @@ const valueStyle: React.CSSProperties = {
 export const MsgRenderer = forwardRef<RendererHandle, MsgRendererProps>(({ url }, ref) => {
   const t = useTranslator();
   const fetcher = useFetcher();
+  const reporter = usePreviewEvents();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [fields, setFields] = useState<FieldsData | null>(null);
@@ -122,6 +124,7 @@ export const MsgRenderer = forwardRef<RendererHandle, MsgRendererProps>(({ url }
     if (!url) return;
 
     const loadMsg = async () => {
+      reporter.begin(url);
       setLoading(true);
       setError(null);
       setFields(null);
@@ -139,6 +142,7 @@ export const MsgRenderer = forwardRef<RendererHandle, MsgRendererProps>(({ url }
       } catch (err) {
         console.error(t('msg.parse_failed') + ':', err);
         setError(t('msg.parse_failed'));
+        reporter.error(err);
       } finally {
         setLoading(false);
       }

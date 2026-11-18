@@ -3,6 +3,7 @@ import ePub from '@likecoin/epub-ts';
 import { X, ChevronLeft, ChevronRight, Maximize2, Minimize2, List } from 'lucide-react';
 import { useTranslator } from '../../i18n/LocaleContext';
 import { useFetcher } from '../../RequestContext';
+import { usePreviewEvents } from '../../PreviewEventsContext';
 import { RendererError } from '../RendererError';
 import type { RendererHandle } from '../base.types';
 import type { ToolbarGroup } from '../toolbar.types';
@@ -72,6 +73,7 @@ export const EpubRenderer = forwardRef<EpubRendererHandle, EpubRendererProps>(
   ({ url }, ref) => {
     const t = useTranslator();
     const fetcher = useFetcher();
+    const reporter = usePreviewEvents();
     const viewerRef = useRef<HTMLDivElement>(null);
     const bookRef = useRef<BookLike | null>(null);
     const renditionRef = useRef<RenditionLike | null>(null);
@@ -245,6 +247,7 @@ export const EpubRenderer = forwardRef<EpubRendererHandle, EpubRendererProps>(
       }, 0);
 
       const load = async () => {
+        reporter.begin(url);
         try {
           let bookInput: string | ArrayBuffer = url;
           if (url.startsWith('blob:')) {
@@ -358,6 +361,7 @@ export const EpubRenderer = forwardRef<EpubRendererHandle, EpubRendererProps>(
           if (!cancelled) {
             setError(t('epub.load_failed'));
             setLoading(false);
+            reporter.error(err);
           }
         }
       };

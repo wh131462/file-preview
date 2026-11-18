@@ -2,6 +2,7 @@ import { useState, useEffect, Fragment, forwardRef, useCallback, useImperativeHa
 import { fetchTextUtf8, getLanguageFromFileName, isEmptyContent, resolveEmptyHint, type EmptyHintMode } from '@eternalheart/file-preview-core';
 import { useTranslator } from '../../i18n/LocaleContext';
 import { useFetcher } from '../../RequestContext';
+import { usePreviewEvents } from '../../PreviewEventsContext';
 import { useShikiHighlight } from '../../hooks/useShikiHighlight';
 import { RendererError } from '../RendererError';
 import { EmptyState } from '../EmptyState';
@@ -23,6 +24,7 @@ export const TextRenderer = forwardRef<RendererHandle, TextRendererProps>(({
 }, ref) => {
   const t = useTranslator();
   const fetcher = useFetcher();
+  const reporter = usePreviewEvents();
 
   // 内部状态管理
   const [content, setContent] = useState<string>('');
@@ -40,6 +42,7 @@ export const TextRenderer = forwardRef<RendererHandle, TextRendererProps>(({
   useEffect(() => {
     const controller = new AbortController();
     const loadText = async () => {
+      reporter.begin(url);
       try {
         setLoading(true);
         setError(null);
@@ -49,6 +52,7 @@ export const TextRenderer = forwardRef<RendererHandle, TextRendererProps>(({
         if (err.name === 'AbortError') return;
         setError(t('text.load_failed'));
         console.error(err);
+        reporter.error(err);
       } finally {
         setLoading(false);
       }

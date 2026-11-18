@@ -1,7 +1,7 @@
 import { PreviewFileInput, CustomRenderer } from './types';
 import { FilePreviewContent } from './FilePreviewContent';
 import { useThemeMode } from './hooks';
-import type { EmptyHintMode, Locale, Messages, Theme, CustomRendererEventPayload, PreviewFile, RequestHandler, RequestInitFactory, ShouldFetchAsBlob } from '@eternalheart/file-preview-core';
+import type { EmptyHintMode, Locale, Messages, Theme, CustomRendererEventPayload, PreviewFile, RequestHandler, RequestInitFactory, ShouldFetchAsBlob, PreviewErrorPayload } from '@eternalheart/file-preview-core';
 
 interface FilePreviewEmbedProps {
   files: PreviewFileInput[];
@@ -44,6 +44,8 @@ interface FilePreviewEmbedProps {
   loopNavigation?: boolean;
   /** 空内容提示策略，默认 'auto'（文本类空白、结构化类型提示） */
   emptyHint?: EmptyHintMode;
+  /** 加载/渲染失败回调：每次加载最多触发一次，payload 已补全 file/index/stage */
+  onError?: (payload: PreviewErrorPayload) => void;
 }
 
 export const FilePreviewEmbed: React.FC<FilePreviewEmbedProps> = ({
@@ -70,6 +72,7 @@ export const FilePreviewEmbed: React.FC<FilePreviewEmbedProps> = ({
   showNavigation,
   loopNavigation,
   emptyHint,
+  onError,
 }) => {
   const resolvedTheme = useThemeMode(theme);
 
@@ -95,6 +98,7 @@ export const FilePreviewEmbed: React.FC<FilePreviewEmbedProps> = ({
           requestHandler={requestHandler}
           shouldFetchAsBlob={shouldFetchAsBlob}
           onDownload={onDownload}
+          onError={onError}
           onClose={onClose}
           showClose={showClose}
           showDownload={showDownload}

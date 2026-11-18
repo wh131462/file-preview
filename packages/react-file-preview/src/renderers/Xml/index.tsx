@@ -2,6 +2,7 @@ import { useState, useEffect, Fragment, forwardRef, useImperativeHandle } from '
 import { fetchTextUtf8 } from '@eternalheart/file-preview-core';
 import { useTranslator } from '../../i18n/LocaleContext';
 import { useFetcher } from '../../RequestContext';
+import { usePreviewEvents } from '../../PreviewEventsContext';
 import { useShikiHighlight } from '../../hooks/useShikiHighlight';
 import { RendererError } from '../RendererError';
 import type { RendererHandle } from '../base.types';
@@ -55,6 +56,7 @@ const indentXml = (xml: string): string => {
 export const XmlRenderer = forwardRef<RendererHandle, XmlRendererProps>(({ url }, ref) => {
   const t = useTranslator();
   const fetcher = useFetcher();
+  const reporter = usePreviewEvents();
   const [content, setContent] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -63,6 +65,7 @@ export const XmlRenderer = forwardRef<RendererHandle, XmlRendererProps>(({ url }
   useEffect(() => {
     const controller = new AbortController();
     const load = async () => {
+      reporter.begin(url);
       try {
         setLoading(true);
         setError(null);
@@ -72,6 +75,7 @@ export const XmlRenderer = forwardRef<RendererHandle, XmlRendererProps>(({ url }
         if (err.name === 'AbortError') return;
         console.error(err);
         setError(t('xml.load_failed'));
+        reporter.error(err);
       } finally {
         setLoading(false);
       }

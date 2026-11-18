@@ -6,6 +6,7 @@ import { ref, watch } from 'vue';
 import { renderLegacyDocHtml } from '@eternalheart/file-preview-core';
 import { useTranslator } from '../../composables/useTranslator';
 import { useFetcher } from '../../composables/useRequest';
+import { usePreviewEvents } from '../../composables/usePreviewEvents';
 import RendererError from '../RendererError.vue';
 
 const props = defineProps<{
@@ -14,12 +15,14 @@ const props = defineProps<{
 
 const { t } = useTranslator();
 const fetcher = useFetcher();
+const reporter = usePreviewEvents();
 
 const html = ref('');
 const loading = ref(true);
 const error = ref<string | null>(null);
 
 const loadDoc = async () => {
+  reporter.begin(props.url);
   loading.value = true;
   error.value = null;
   html.value = '';
@@ -31,6 +34,7 @@ const loadDoc = async () => {
   } catch (err) {
     console.error(t.value('doc.parse_failed') + ':', err);
     error.value = t.value('doc.parse_failed');
+    reporter.error(err);
   } finally {
     loading.value = false;
   }

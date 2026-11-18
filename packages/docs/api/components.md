@@ -270,6 +270,27 @@ const customRenderers: CustomRenderer[] = [
 />
 ```
 
+#### onError
+
+- **类型**: `(payload: PreviewErrorPayload) => void`
+- **必需**: 否
+- **描述**: 文件加载或渲染失败时触发，每次加载最多触发一次。`payload` 形状为 `{ file, index, error, stage }`，`stage` 取 `'request' | 'parse' | 'render'`，可用于区分「文件服务不可达」与「文件解析失败」。内置错误页仍会正常显示，该回调仅作为对外信号。
+- **注意**: 仅在 `getFileType` 命中渲染器且实际发生失败时触发；切换文件或更换 URL 后视为新一次加载，可再次触发。
+
+```tsx
+<FilePreviewModal
+  files={files}
+  onError={({ index, stage, error }) => {
+    if (stage !== 'request') return
+    // 混合内容 / 跨域失败时，换用后端代理重新取文件
+    setFiles(prev => prev.map((f, i) =>
+      i === index ? { ...f, url: `/api/download-by-url?u=${encodeURIComponent(f.url)}` } : f
+    ))
+  }}
+  ...
+/>
+```
+
 #### requestInit
 
 - **类型**: `RequestInit | (url: string) => RequestInit | Promise<RequestInit>`
@@ -432,6 +453,7 @@ function Panel() {
 | `loopNavigation` | `boolean` | ❌ | `false` | 是否循环导航文件 |
 | `emptyHint` | `'auto' \| 'always' \| 'never'` | ❌ | `'auto'` | 空内容提示策略：文本类默认空白，结构化类型默认提示 |
 | `onCustomEvent` | `(e: CustomRendererEventPayload) => void` | ❌ | - | 自定义渲染器事件出口,载荷 `{ name, payload, file }` |
+| `onError` | `(payload: PreviewErrorPayload) => void` | ❌ | - | 加载/渲染失败回调，载荷 `{ file, index, error, stage }` |
 | `requestInit` | `RequestInit \| (url) => RequestInit \| Promise<RequestInit>` | ❌ | - | 自定义 RequestInit，注入鉴权头等 |
 | `requestHandler` | `(url, init?) => Promise<Response>` | ❌ | - | 完全接管库内 fetch |
 | `shouldFetchAsBlob` | `(file: PreviewFile) => boolean` | ❌ | - | 返回 true 时 src 类 renderer 也走 fetch→blob URL |
@@ -525,6 +547,7 @@ function DetailPanel() {
 | `locale` | `Locale` | ❌ | `'en-US'` | 界面语言 |
 | `messages` | `Partial<Record<Locale, Partial<Messages>>>` | ❌ | - | 自定义翻译字典 |
 | `onCustomEvent` | `(e: CustomRendererEventPayload) => void` | ❌ | - | 自定义渲染器事件出口 |
+| `onError` | `(payload: PreviewErrorPayload) => void` | ❌ | - | 加载/渲染失败回调，载荷 `{ file, index, error, stage }` |
 | `requestInit` | `RequestInit \| (url) => RequestInit \| Promise<RequestInit>` | ❌ | - | 自定义 RequestInit |
 | `requestHandler` | `(url, init?) => Promise<Response>` | ❌ | - | 完全接管库内 fetch |
 | `shouldFetchAsBlob` | `(file: PreviewFile) => boolean` | ❌ | - | src 类 renderer 走 fetch→blob URL |

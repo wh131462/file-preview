@@ -290,10 +290,11 @@ type Fetcher = (url: string, init?: RequestInit) => Promise<Response>
 interface RequestOptions {
   requestInit?: RequestInitFactory
   requestHandler?: RequestHandler
+  onRequestError?: (url: string, error: unknown) => void
 }
 ```
 
-传给 `createFetcher(options)` 的入参类型。
+传给 `createFetcher(options)` 的入参类型。`onRequestError` 在 handler / requestInit 抛出时同步回调原始异常，随后 fetcher 仍会抛出 `PreviewRequestError`；主动取消（`AbortError`）不算失败，不会回调，也不会被包装。
 
 ### ShouldFetchAsBlob
 
@@ -302,6 +303,45 @@ type ShouldFetchAsBlob = (file: PreviewFile) => boolean
 ```
 
 返回 `true` 时，该文件会先经 fetcher 拉成 `blob:` URL 再喂给 image / video / audio / pdf renderer。命中后 blob URL 生命周期由库内自动管理。
+
+## 预览事件
+
+### PreviewErrorStage
+
+```typescript
+type PreviewErrorStage = 'request' | 'parse' | 'render'
+```
+
+失败阶段：
+
+- `request`：取数失败（网络不可达、混合内容、HTTP 非 2xx、blob 预取失败）
+- `parse`：拿到内容后解析失败（mammoth / SheetJS / pdf.js 解析等）
+- `render`：解析完成后的渲染失败（画布、worker、懒加载渲染器加载失败）
+
+### PreviewErrorPayload
+
+```typescript
+interface PreviewErrorPayload {
+  file: PreviewFile
+  index: number
+  error: unknown
+  stage: PreviewErrorStage
+  cause?: unknown
+}
+```
+
+`onError`（React） / `@error`（Vue） / `(error)`（Angular）的载荷。`error` 保留原始异常，不会被打包丢弃；`cause` 仅 React 侧填充 `ErrorInfo`。
+
+### PreviewReporter
+
+```typescript
+interface PreviewReporter {
+  begin(url: string): void
+  error(error: unknown, stage?: PreviewErrorStage): void
+}
+```
+
+渲染器侧的最小上报口，由框架层通过注入提供（Vue `usePreviewEvents` / React `usePreviewEvents` / Angular `inject(PreviewEventsService).reporter`）。内置渲染器通过它上报失败；`stage` 缺省时按异常类型自动推断。宿主通常无需直接使用。
 
 ## PdfConfigOptions
 

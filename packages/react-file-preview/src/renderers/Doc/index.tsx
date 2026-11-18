@@ -3,6 +3,7 @@ import { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { renderLegacyDocHtml } from '@eternalheart/file-preview-core';
 import { useTranslator } from '../../i18n/LocaleContext';
 import { useFetcher } from '../../RequestContext';
+import { usePreviewEvents } from '../../PreviewEventsContext';
 import { RendererError } from '../RendererError';
 import type { RendererHandle } from '../base.types';
 
@@ -13,6 +14,7 @@ interface DocRendererProps {
 export const DocRenderer = forwardRef<RendererHandle, DocRendererProps>(({ url }, ref) => {
   const t = useTranslator();
   const fetcher = useFetcher();
+  const reporter = usePreviewEvents();
   const [html, setHtml] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -21,6 +23,7 @@ export const DocRenderer = forwardRef<RendererHandle, DocRendererProps>(({ url }
     if (!url) return;
 
     const load = async () => {
+      reporter.begin(url);
       setLoading(true);
       setError(null);
       setHtml('');
@@ -32,6 +35,7 @@ export const DocRenderer = forwardRef<RendererHandle, DocRendererProps>(({ url }
       } catch (err) {
         console.error(t('doc.parse_failed') + ':', err);
         setError(t('doc.parse_failed'));
+        reporter.error(err);
       } finally {
         setLoading(false);
       }

@@ -5,6 +5,7 @@ import { X, ChevronLeft, ChevronRight, List, Maximize2, Minimize2 } from 'lucide
 import 'foliate-js/view.js';
 import { useTranslator } from '../../composables/useTranslator';
 import { useFetcher } from '../../composables/useRequest';
+import { usePreviewEvents } from '../../composables/usePreviewEvents';
 import RendererError from '../RendererError.vue';
 import { ToolbarEventEmitter } from '../base.types';
 import type { RendererHandle } from '../base.types';
@@ -91,6 +92,7 @@ const emitter = new ToolbarEventEmitter();
 
 const { t } = useTranslator();
 const fetcher = useFetcher();
+const reporter = usePreviewEvents();
 
 const hostRef = ref<HTMLDivElement | null>(null);
 let viewInstance: FoliateView | null = null;
@@ -205,6 +207,7 @@ onMounted(() => window.addEventListener('error', paginatorErrorHandler));
 onBeforeUnmount(() => window.removeEventListener('error', paginatorErrorHandler));
 
 const load = async () => {
+  reporter.begin(props.url);
   const host = hostRef.value;
   if (!host) return;
   loading.value = true;
@@ -359,6 +362,7 @@ const load = async () => {
     console.error(t.value('mobi.load_failed') + ':', err);
     error.value = t.value('mobi.load_failed');
     loading.value = false;
+    reporter.error(err);
   }
 };
 

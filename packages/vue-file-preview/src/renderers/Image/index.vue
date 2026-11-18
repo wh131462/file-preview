@@ -11,6 +11,8 @@ import {
 } from '@eternalheart/file-preview-core';
 import type { PreviewFile } from '@eternalheart/file-preview-core';
 import { useTranslator } from '../../composables/useTranslator';
+import { useFetcher } from '../../composables/useRequest';
+import { usePreviewEvents } from '../../composables/usePreviewEvents';
 import RendererError from '../RendererError.vue';
 import { ToolbarEventEmitter } from '../base.types';
 import type { RendererHandle } from '../base.types';
@@ -25,6 +27,8 @@ const props = defineProps<{
 const emitter = new ToolbarEventEmitter();
 
 const { t } = useTranslator();
+const fetcher = useFetcher();
+const reporter = usePreviewEvents();
 
 // 内部状态管理
 const zoom = ref(1);
@@ -179,6 +183,7 @@ let lastTapTime = 0;
 watch(
   () => [props.url, props.file] as const,
   async () => {
+    reporter.begin(props.url);
     // 重置状态：清空 src 以避免上一张图片的 onLoad/onError 误触发到新文件
     imageSrc.value = '';
     loaded.value = false;
@@ -230,7 +235,7 @@ watch(
       } else if (props.file.file instanceof Blob) {
         fileBlob = props.file.file;
       } else {
-        const response = await fetch(props.url);
+        const response = await fetcher.value(props.url);
         if (!response.ok) throw new PreviewError('file.load_failed');
         fileBlob = await response.blob();
       }
@@ -294,6 +299,7 @@ watch(
     } catch (err: any) {
       decodeError.value = translateError(t.value, err) || t.value('image.decode_failed');
       decoding.value = false;
+      reporter.error(err);
     }
   },
   { immediate: true }
@@ -337,6 +343,7 @@ const handlePageChange = async (page: number) => {
   } catch (err: any) {
     decodeError.value = translateError(t.value, err) || t.value('image.page_decode_failed');
     decoding.value = false;
+    reporter.error(err, 'render');
   }
 };
 
@@ -401,6 +408,7 @@ const handleLoad = (e: Event) => {
 const handleError = () => {
   error.value = t.value('image.load_failed');
   loaded.value = true;
+  reporter.error(new PreviewError('image.load_failed'), 'request');
 };
 
 const handleDoubleClick = () => {

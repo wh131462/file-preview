@@ -14,6 +14,7 @@ import ResizableSplit from '../../components/ResizableSplit.vue';
 import TreeItem from './TreeItem.vue';
 import { useTranslator } from '../../composables/useTranslator';
 import { useFetcher } from '../../composables/useRequest';
+import { usePreviewEvents } from '../../composables/usePreviewEvents';
 import RendererError from '../RendererError.vue';
 import { ToolbarEventEmitter } from '../base.types';
 import type { RendererHandle } from '../base.types';
@@ -42,6 +43,7 @@ const emitter = new ToolbarEventEmitter();
 
 const { t } = useTranslator();
 const fetcher = useFetcher();
+const reporter = usePreviewEvents();
 
 interface SelectedPreview {
   path: string;
@@ -73,6 +75,7 @@ const revokeCurrent = () => {
 };
 
 const load = async () => {
+  reporter.begin(props.url);
   revokeCurrent();
   selected.value = null;
   loading.value = true;
@@ -92,6 +95,7 @@ const load = async () => {
   } catch (err) {
     console.error(err);
     error.value = t.value('zip.load_failed');
+    reporter.error(err);
   } finally {
     loading.value = false;
   }

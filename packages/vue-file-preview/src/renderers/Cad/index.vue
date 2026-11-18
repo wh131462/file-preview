@@ -9,6 +9,7 @@ import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { useTranslator } from '../../composables/useTranslator';
 import { useFetcher } from '../../composables/useRequest';
+import { usePreviewEvents } from '../../composables/usePreviewEvents';
 import RendererError from '../RendererError.vue';
 import { ToolbarEventEmitter } from '../base.types';
 import type { RendererHandle } from '../base.types';
@@ -71,6 +72,7 @@ interface Props {
 const props = defineProps<Props>();
 const { t } = useTranslator();
 const fetcher = useFetcher();
+const reporter = usePreviewEvents();
 
 const containerRef = ref<HTMLDivElement | null>(null);
 const loading = ref(true);
@@ -326,6 +328,7 @@ const initScene = () => {
 
 // 加载模型
 const loadModel = () => {
+  reporter.begin(props.url);
   if (!scene || !camera || !controls || isCleanedUp) return;
 
   const ext = getExtension(props.url, props.fileName, props.file);
@@ -421,6 +424,7 @@ const loadModel = () => {
     }
     error.value = t.value('cad.load_failed');
     loading.value = false;
+    reporter.error(err);
   };
 
   // 如果有 File 对象，直接读取；否则使用 fetcher

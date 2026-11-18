@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { toRef } from 'vue';
 import type { CSSProperties } from 'vue';
-import type { PreviewFile, PreviewFileInput, EmptyHintMode, Locale, Messages, Theme, CustomRendererEventPayload, RequestHandler, RequestInitFactory, ShouldFetchAsBlob } from '@eternalheart/file-preview-core';
+import type { PreviewFile, PreviewFileInput, EmptyHintMode, Locale, Messages, Theme, CustomRendererEventPayload, RequestHandler, RequestInitFactory, ShouldFetchAsBlob, PreviewErrorPayload } from '@eternalheart/file-preview-core';
 import type { CustomRenderer } from './types';
 import FilePreviewContent from './FilePreviewContent.vue';
 import { useThemeMode } from './composables/useThemeMode';
@@ -32,6 +32,8 @@ interface Props {
   onDownload?: (file: PreviewFile) => void | Promise<void>;
   /** 关闭回调 */
   onClose?: () => void;
+  /** 加载/渲染失败回调（与 `@error` 等价） */
+  onError?: (payload: PreviewErrorPayload) => void;
   /** 是否显示关闭按钮，默认根据 mode 决定（embed: false） */
   showClose?: boolean;
   /** 是否显示下载按钮，默认 true */
@@ -58,6 +60,7 @@ const props = withDefaults(defineProps<Props>(), {
   shouldFetchAsBlob: undefined,
   onDownload: undefined,
   onClose: undefined,
+  onError: undefined,
   showClose: undefined,
   showDownload: true,
   showNavigation: true,
@@ -69,6 +72,7 @@ const emit = defineEmits<{
   (e: 'navigate', index: number): void;
   (e: 'custom-event', payload: CustomRendererEventPayload): void;
   (e: 'close'): void;
+  (e: 'error', payload: PreviewErrorPayload): void;
 }>();
 
 const resolvedTheme = useThemeMode(toRef(props, 'theme'));
@@ -103,6 +107,7 @@ const wrapperStyle: CSSProperties = {
         :empty-hint="emptyHint"
         @navigate="(i) => emit('navigate', i)"
         @custom-event="(p) => emit('custom-event', p)"
+        @error="(p) => emit('error', p)"
         @close="() => emit('close')"
       />
     </div>

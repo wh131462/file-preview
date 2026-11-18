@@ -12,6 +12,7 @@ import {
 } from '@eternalheart/file-preview-core';
 import { useTranslator } from '../../composables/useTranslator';
 import { useFetcher } from '../../composables/useRequest';
+import { usePreviewEvents } from '../../composables/usePreviewEvents';
 import RendererError from '../RendererError.vue';
 
 const props = defineProps<{
@@ -21,6 +22,7 @@ const props = defineProps<{
 
 const { t } = useTranslator();
 const fetcher = useFetcher();
+const reporter = usePreviewEvents();
 
 const loading = ref(true);
 const error = ref<string | null>(null);
@@ -72,6 +74,7 @@ const mountSpreadsheet = () => {
 };
 
 const loadCsv = async () => {
+  reporter.begin(props.url);
   if (!containerRef.value) return;
 
   loading.value = true;
@@ -89,6 +92,7 @@ const loadCsv = async () => {
     console.error(t.value('csv.parse_failed') + ':', err);
     error.value = t.value('csv.load_failed');
     loading.value = false;
+    reporter.error(err);
   }
 };
 

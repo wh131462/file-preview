@@ -4,6 +4,7 @@ import { WrapText, Code, Eye } from 'lucide-vue-next';
 import { getLanguageFromFileName, fetchTextUtf8, isEmptyContent, resolveEmptyHint, type EmptyHintMode } from '@eternalheart/file-preview-core';
 import { useTranslator } from '../../composables/useTranslator';
 import { useFetcher } from '../../composables/useRequest';
+import { usePreviewEvents } from '../../composables/usePreviewEvents';
 import { useShikiHighlight } from '../../composables/useShikiHighlight';
 import RendererError from '../RendererError.vue';
 import EmptyState from '../EmptyState.vue';
@@ -22,6 +23,7 @@ const emitter = new ToolbarEventEmitter();
 
 const { t } = useTranslator();
 const fetcher = useFetcher();
+const reporter = usePreviewEvents();
 
 // 内部状态
 const wordWrap = ref(true);
@@ -48,6 +50,7 @@ watch([wordWrap, htmlPreview, loading, isHtml], () => {
 });
 
 const loadText = async () => {
+  reporter.begin(props.url);
   loading.value = true;
   error.value = null;
   try {
@@ -56,6 +59,7 @@ const loadText = async () => {
   } catch (err) {
     console.error(err);
     error.value = t.value('text.load_failed');
+    reporter.error(err);
   } finally {
     loading.value = false;
   }

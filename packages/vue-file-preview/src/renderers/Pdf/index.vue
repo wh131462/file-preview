@@ -10,6 +10,7 @@ import {
 // 参考: https://github.com/mozilla/pdf.js/issues/16214
 import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
 import { useTranslator } from '../../composables/useTranslator';
+import { usePreviewEvents } from '../../composables/usePreviewEvents';
 import RendererError from '../RendererError.vue';
 import { X, ZoomIn, ZoomOut, ChevronLeft, ChevronRight, Menu, RefreshCw } from 'lucide-vue-next';
 import { ToolbarEventEmitter } from '../base.types';
@@ -89,6 +90,7 @@ const props = defineProps<{
 const emitter = new ToolbarEventEmitter();
 
 const { t } = useTranslator();
+const reporter = usePreviewEvents();
 
 // 内部状态管理
 const zoom = ref(1);
@@ -394,6 +396,7 @@ const renderPage = async (pageNumber: number, scale: number) => {
   } catch (err: any) {
     if (err?.name !== 'RenderingCancelledException') {
       console.error(t.value('pdf.page_render_failed', { page: pageNumber }) + ':', err);
+      reporter.error(err, 'render');
     }
   } finally {
     state.rendering = false;
@@ -452,6 +455,7 @@ const initPagePlaceholders = () => {
 };
 
 const loadPdf = async () => {
+  reporter.begin(props.url);
   error.value = null;
   isLoading.value = true;
   isInitialPageReady.value = false;
@@ -499,6 +503,7 @@ const loadPdf = async () => {
     console.error(t.value('pdf.load_failed') + ':', err);
     error.value = t.value('pdf.load_failed');
     isLoading.value = false;
+    reporter.error(err);
   }
 };
 

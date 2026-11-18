@@ -6,6 +6,7 @@ import { ref, computed, watch } from 'vue';
 import { fetchTextUtf8 } from '@eternalheart/file-preview-core';
 import { useTranslator } from '../../composables/useTranslator';
 import { useFetcher } from '../../composables/useRequest';
+import { usePreviewEvents } from '../../composables/usePreviewEvents';
 import { useShikiHighlight } from '../../composables/useShikiHighlight';
 import RendererError from '../RendererError.vue';
 
@@ -16,6 +17,7 @@ const props = defineProps<{
 
 const { t } = useTranslator();
 const fetcher = useFetcher();
+const reporter = usePreviewEvents();
 
 const content = ref<string>('');
 const loading = ref(true);
@@ -59,6 +61,7 @@ const prettyPrintXml = (xml: string): string => {
 };
 
 const load = async () => {
+  reporter.begin(props.url);
   loading.value = true;
   error.value = null;
   try {
@@ -67,6 +70,7 @@ const load = async () => {
   } catch (err) {
     console.error(err);
     error.value = t.value('xml.load_failed');
+    reporter.error(err);
   } finally {
     loading.value = false;
   }

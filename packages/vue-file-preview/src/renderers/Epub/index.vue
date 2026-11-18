@@ -4,6 +4,7 @@ import ePub from '@likecoin/epub-ts';
 import { X, ChevronLeft, ChevronRight, List, Maximize2, Minimize2 } from 'lucide-vue-next';
 import { useTranslator } from '../../composables/useTranslator';
 import { useFetcher } from '../../composables/useRequest';
+import { usePreviewEvents } from '../../composables/usePreviewEvents';
 import RendererError from '../RendererError.vue';
 import { ToolbarEventEmitter } from '../base.types';
 import type { RendererHandle } from '../base.types';
@@ -50,6 +51,7 @@ const emitter = new ToolbarEventEmitter();
 
 const { t } = useTranslator();
 const fetcher = useFetcher();
+const reporter = usePreviewEvents();
 
 // 内部状态
 const currentChapter = ref(1);
@@ -163,6 +165,7 @@ defineExpose<RendererHandle>({
 });
 
 const loadEpub = async () => {
+  reporter.begin(props.url);
   if (!viewerRef.value) return;
 
   loading.value = true;
@@ -273,6 +276,7 @@ const loadEpub = async () => {
     console.error(t.value('epub.load_failed') + ':', err);
     error.value = t.value('epub.load_failed');
     loading.value = false;
+    reporter.error(err);
   }
 };
 

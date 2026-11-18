@@ -9,6 +9,7 @@ import type { FieldsData } from '@kenjiuno/msgreader';
 import { User, Users, Paperclip, Calendar, Mail, Tag, Clock, Hash } from 'lucide-vue-next';
 import { useTranslator } from '../../composables/useTranslator';
 import { useFetcher } from '../../composables/useRequest';
+import { usePreviewEvents } from '../../composables/usePreviewEvents';
 import RendererError from '../RendererError.vue';
 
 const props = defineProps<{
@@ -17,6 +18,7 @@ const props = defineProps<{
 
 const { t } = useTranslator();
 const fetcher = useFetcher();
+const reporter = usePreviewEvents();
 
 const loading = ref(true);
 const error = ref<string | null>(null);
@@ -83,6 +85,7 @@ function formatMessageClass(messageClass: string | undefined): string {
 }
 
 const loadMsg = async () => {
+  reporter.begin(props.url);
   loading.value = true;
   error.value = null;
   fields.value = null;
@@ -96,6 +99,7 @@ const loadMsg = async () => {
   } catch (err) {
     console.error(t.value('msg.parse_failed') + ':', err);
     error.value = t.value('msg.parse_failed');
+    reporter.error(err);
   } finally {
     loading.value = false;
   }

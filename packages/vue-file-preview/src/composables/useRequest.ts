@@ -20,10 +20,12 @@ export function provideRequestContext(
     requestInit?: RequestInitFactory;
     requestHandler?: RequestHandler;
     shouldFetchAsBlob?: ShouldFetchAsBlob;
+    onRequestError?: (url: string, error: unknown) => void;
   } | (() => {
     requestInit?: RequestInitFactory;
     requestHandler?: RequestHandler;
     shouldFetchAsBlob?: ShouldFetchAsBlob;
+    onRequestError?: (url: string, error: unknown) => void;
   }),
 ) {
   const value = computed<RequestContextValue>(() => {
@@ -32,6 +34,7 @@ export function provideRequestContext(
       fetcher: createFetcher({
         requestInit: opts.requestInit,
         requestHandler: opts.requestHandler,
+        onRequestError: opts.onRequestError,
       }),
       shouldFetchAsBlob: opts.shouldFetchAsBlob,
     };
@@ -59,8 +62,13 @@ export function useFetcher(): ComputedRef<Fetcher> {
  * 解析 file 的可消费 URL：
  * - 未配置 shouldFetchAsBlob 或返回 false：直接派生自 file.url（不入 ref，避免切换文件时残留旧值）
  * - 返回 true：用 fetcher 拉成 blob: URL，组件卸载或 file 变化时 revoke
+ *
+ * onError 用于把 blob 预取失败上报给宿主（默认仍回退原 URL 继续尝试）。
  */
-export function useResolvedUrl(file: Ref<PreviewFile | undefined>): ComputedRef<string> {
+export function useResolvedUrl(
+  file: Ref<PreviewFile | undefined>,
+  onError?: (error: unknown) => void,
+): ComputedRef<string> {
   const ctx = useRequestContext();
   const blobUrlRef = ref<string>('');
   let createdBlobUrl: string | null = null;
@@ -101,6 +109,7 @@ export function useResolvedUrl(file: Ref<PreviewFile | undefined>): ComputedRef<
       } catch (err) {
         if (!cancelled) {
           console.error('[file-preview] resolve blob url failed:', err);
+          onError?.(err);
           blobUrlRef.value = f.url;
         }
       }

@@ -118,6 +118,7 @@ import { parse } from 'opentype.js';
 import type { Font as OpentypeFont } from 'opentype.js';
 import { useTranslator } from '../../composables/useTranslator';
 import { useFetcher } from '../../composables/useRequest';
+import { usePreviewEvents } from '../../composables/usePreviewEvents';
 import { useResolvedTheme } from '../../composables/useResolvedTheme';
 import FontPreviewLine from './FontPreviewLine.vue';
 import RendererError from '../RendererError.vue';
@@ -161,6 +162,7 @@ const props = defineProps<{
 
 const { t } = useTranslator();
 const fetcher = useFetcher();
+const reporter = usePreviewEvents();
 const resolvedTheme = useResolvedTheme();
 
 const font = ref<OpentypeFont | null>(null);
@@ -259,6 +261,7 @@ const loadMetadata = async (arrayBuffer: ArrayBuffer, magic: DetectedFormat): Pr
 };
 
 onMounted(async () => {
+  reporter.begin(props.url);
   if (!props.url) return;
 
   try {
@@ -308,6 +311,7 @@ onMounted(async () => {
     error.value = t.value('font.load_failed');
     loading.value = false;
     metadataStatus.value = 'unavailable';
+    reporter.error(err);
   }
 });
 

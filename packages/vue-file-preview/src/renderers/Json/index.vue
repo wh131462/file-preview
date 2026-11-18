@@ -7,6 +7,7 @@ import { parse as parseJsonc } from 'jsonc-parser';
 import { fetchTextUtf8, isEmptyContent, resolveEmptyHint, type EmptyHintMode } from '@eternalheart/file-preview-core';
 import { useTranslator } from '../../composables/useTranslator';
 import { useFetcher } from '../../composables/useRequest';
+import { usePreviewEvents } from '../../composables/usePreviewEvents';
 import RendererError from '../RendererError.vue';
 import EmptyState from '../EmptyState.vue';
 
@@ -19,6 +20,7 @@ const props = defineProps<{
 
 const { t } = useTranslator();
 const fetcher = useFetcher();
+const reporter = usePreviewEvents();
 
 const data = ref<unknown>(null);
 const empty = ref(false);
@@ -29,6 +31,7 @@ const error = ref<string | null>(null);
 const showEmptyHint = () => resolveEmptyHint(props.emptyHint, 'textual');
 
 const loadJson = async () => {
+  reporter.begin(props.url);
   loading.value = true;
   error.value = null;
   try {
@@ -39,6 +42,7 @@ const loadJson = async () => {
   } catch (err) {
     console.error(err);
     error.value = t.value('json.load_failed');
+    reporter.error(err);
   } finally {
     loading.value = false;
   }

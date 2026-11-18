@@ -8,6 +8,7 @@ import { init } from 'pptx-preview';
 import { readPptxSlideSize } from '@eternalheart/file-preview-core';
 import { useTranslator } from '../../composables/useTranslator';
 import { useFetcher } from '../../composables/useRequest';
+import { usePreviewEvents } from '../../composables/usePreviewEvents';
 import RendererError from '../RendererError.vue';
 import EmptyState from '../EmptyState.vue';
 
@@ -23,6 +24,7 @@ const props = withDefaults(
 
 const { t } = useTranslator();
 const fetcher = useFetcher();
+const reporter = usePreviewEvents();
 
 const loading = ref(true);
 const error = ref<string | null>(null);
@@ -73,6 +75,7 @@ const reinitializePreviewer = async () => {
 };
 
 const loadPptx = async () => {
+  reporter.begin(props.url);
   if (!containerRef.value) return;
 
   loading.value = true;
@@ -166,6 +169,7 @@ const loadPptx = async () => {
     else if (typeof err === 'string') errorMsg = err;
     error.value = errorMsg;
     loading.value = false;
+    reporter.error(err);
   }
 };
 

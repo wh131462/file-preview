@@ -6,6 +6,7 @@ import { ref, watch } from 'vue';
 import { renderLegacyPptHtml } from '@eternalheart/file-preview-core';
 import { useTranslator } from '../../composables/useTranslator';
 import { useFetcher } from '../../composables/useRequest';
+import { usePreviewEvents } from '../../composables/usePreviewEvents';
 import RendererError from '../RendererError.vue';
 
 const props = defineProps<{
@@ -14,12 +15,14 @@ const props = defineProps<{
 
 const { t } = useTranslator();
 const fetcher = useFetcher();
+const reporter = usePreviewEvents();
 
 const html = ref('');
 const loading = ref(true);
 const error = ref<string | null>(null);
 
 const loadPpt = async () => {
+  reporter.begin(props.url);
   loading.value = true;
   error.value = null;
   html.value = '';
@@ -31,6 +34,7 @@ const loadPpt = async () => {
   } catch (err) {
     console.error(t.value('ppt.parse_failed') + ':', err);
     error.value = t.value('ppt.parse_failed');
+    reporter.error(err);
   } finally {
     loading.value = false;
   }

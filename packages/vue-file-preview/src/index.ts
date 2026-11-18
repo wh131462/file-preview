@@ -41,6 +41,13 @@ export {
 
 export type { PdfWorkerOptions } from '@eternalheart/file-preview-core';
 
+// 导出预览事件类型
+export type {
+  PreviewErrorStage,
+  PreviewErrorPayload,
+  PreviewReporter,
+} from '@eternalheart/file-preview-core';
+
 // 导出 i18n 相关
 export { useTranslator, provideLocale } from './composables/useTranslator';
 export { LOCALE_KEY } from './i18n/localeKey';

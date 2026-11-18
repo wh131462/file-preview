@@ -7,6 +7,7 @@ import { Eye, Code } from 'lucide-vue-next';
 import { fetchTextUtf8 } from '@eternalheart/file-preview-core';
 import { useTranslator } from '../../composables/useTranslator';
 import { useFetcher } from '../../composables/useRequest';
+import { usePreviewEvents } from '../../composables/usePreviewEvents';
 import { useResolvedTheme } from '../../composables/useResolvedTheme';
 import RendererError from '../RendererError.vue';
 import { ToolbarEventEmitter } from '../base.types';
@@ -22,6 +23,7 @@ const emitter = new ToolbarEventEmitter();
 
 const { t } = useTranslator();
 const fetcher = useFetcher();
+const reporter = usePreviewEvents();
 const resolvedTheme = useResolvedTheme();
 const shikiTheme = computed(() => (resolvedTheme.value === 'light' ? 'github-light' : 'github-dark'));
 
@@ -116,6 +118,7 @@ md.renderer.rules.table_close = (tokens, idx, options, env, self) => {
 };
 
 const loadMarkdown = async () => {
+  reporter.begin(props.url);
   loading.value = true;
   error.value = null;
   try {
@@ -133,6 +136,7 @@ const loadMarkdown = async () => {
     console.error(err);
     error.value = t.value('markdown.load_failed');
     loading.value = false;
+    reporter.error(err);
   }
 };
 

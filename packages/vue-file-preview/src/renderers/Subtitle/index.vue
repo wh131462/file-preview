@@ -12,6 +12,7 @@ import {
 } from '@eternalheart/file-preview-core';
 import { useTranslator } from '../../composables/useTranslator';
 import { useFetcher } from '../../composables/useRequest';
+import { usePreviewEvents } from '../../composables/usePreviewEvents';
 import RendererError from '../RendererError.vue';
 
 const props = defineProps<{
@@ -21,6 +22,7 @@ const props = defineProps<{
 
 const { t } = useTranslator();
 const fetcher = useFetcher();
+const reporter = usePreviewEvents();
 
 const text = ref<string>('');
 const loading = ref(true);
@@ -43,6 +45,7 @@ const getFormat = (fileName: string): SubtitleFormat | undefined => {
 };
 
 const load = async () => {
+  reporter.begin(props.url);
   loading.value = true;
   error.value = null;
   try {
@@ -50,6 +53,7 @@ const load = async () => {
   } catch (err) {
     console.error(err);
     error.value = t.value('subtitle.load_failed');
+    reporter.error(err);
   } finally {
     loading.value = false;
   }
@@ -63,6 +67,7 @@ const parsed = computed<SubtitleParseResult | null>(() => {
     return parseSubtitle(text.value, getFormat(props.fileName));
   } catch (err) {
     console.error(err);
+    reporter.error(err);
     return null;
   }
 });

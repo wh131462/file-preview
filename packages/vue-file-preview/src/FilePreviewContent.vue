@@ -16,11 +16,13 @@ import {
   type RequestInitFactory,
   type ShouldFetchAsBlob,
   type EmptyHintMode,
+  type PreviewErrorPayload,
 } from '@eternalheart/file-preview-core';
 import type { CustomRenderer, CustomRendererContext } from './types';
 import { provideLocale } from './composables/useTranslator';
 import { provideResolvedTheme } from './composables/useResolvedTheme';
 import { provideRequestContext, useResolvedUrl, useFetcher } from './composables/useRequest';
+import { providePreviewEvents } from './composables/usePreviewEvents';
 import { useThemeMode } from './composables/useThemeMode';
 import type { ToolbarGroup, ToolbarButtonItem, ToolbarTextItem } from './renderers/toolbar.types';
 import type { RendererHandle } from './renderers/base.types';
@@ -57,6 +59,11 @@ interface Props {
   onDownload?: (file: PreviewFile) => void | Promise<void>;
   /** 关闭回调 */
   onClose?: () => void;
+  /**
+   * 加载/渲染失败回调（与 `@error` 等价）。
+   * 每次加载最多触发一次，payload 已由顶层补全 file/index/stage。
+   */
+  onError?: (payload: PreviewErrorPayload) => void;
   /** 是否显示关闭按钮，默认根据 mode 决定（modal: true, embed: false） */
   showClose?: boolean;
   /** 是否显示下载按钮，默认 true */
@@ -87,6 +94,7 @@ const props = withDefaults(defineProps<Props>(), {
   shouldFetchAsBlob: undefined,
   onDownload: undefined,
   onClose: undefined,
+  onError: undefined,
   showClose: undefined,
   showDownload: true,
   showNavigation: true,
@@ -94,15 +102,22 @@ const props = withDefaults(defineProps<Props>(), {
   emptyHint: 'auto',
 });
 
+// 请求阶段失败出口：先占位，等事件通道创建后接管，避免 provide 顺序耦合
+const requestErrorSink: { report: (url: string, error: unknown) => void } = {
+  report: () => {},
+};
+
 provideRequestContext(() => ({
   requestInit: props.requestInit,
   requestHandler: props.requestHandler,
   shouldFetchAsBlob: props.shouldFetchAsBlob,
+  onRequestError: (url, error) => requestErrorSink.report(url, error),
 }));
 
 const emit = defineEmits<{
   (e: 'navigate', index: number): void;
   (e: 'close'): void;
+  (e: 'error', payload: PreviewErrorPayload): void;
   (e: 'custom-event', payload: CustomRendererEventPayload): void;
 }>();
 
@@ -153,8 +168,31 @@ const normalizedFiles = computed(() => normalizeFiles(props.files));
 
 const currentFile = computed(() => normalizedFiles.value[props.currentIndex]);
 
+// blob 预取失败出口：延迟绑定，避免与事件通道形成声明顺序依赖
+let reportBlobError: (error: unknown) => void = () => {};
+
 // 命中 shouldFetchAsBlob 时，把 file.url 转成 blob: URL 喂给 src 类 renderer
-const resolvedUrl = useResolvedUrl(currentFile);
+const resolvedUrl = useResolvedUrl(currentFile, (error) => reportBlobError(error));
+
+// 事件通道：渲染器上报口 + 顶层聚合（补 file/index、代次校验、去重）
+const previewEvents = providePreviewEvents(
+  () => ({
+    file: currentFile.value,
+    index: props.currentIndex,
+    urls: [currentFile.value?.url ?? '', resolvedUrl.value].filter(Boolean),
+  }),
+  (payload) => emit('error', payload),
+);
+
+reportBlobError = (error) => previewEvents.report(error, 'request');
+requestErrorSink.report = (url, error) => {
+  // blob 预取场景下 fetcher 收到的是原始 URL，按原 URL 校验代次
+  if (!currentFile.value || url !== currentFile.value.url) return;
+  previewEvents.report(error, 'request');
+};
+
+// 切换文件或换 URL 即进入新代次，允许再次上报
+watch(currentFile, () => previewEvents.reset());
 
 // 自定义渲染器匹配
 const customRenderer = computed(() => {

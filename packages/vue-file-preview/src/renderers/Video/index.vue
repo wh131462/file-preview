@@ -7,6 +7,7 @@ import videojs from 'video.js';
 import 'video.js/dist/video-js.css';
 import { getVideoMimeType } from '@eternalheart/file-preview-core';
 import { useTranslator } from '../../composables/useTranslator';
+import { usePreviewEvents } from '../../composables/usePreviewEvents';
 import RendererError from '../RendererError.vue';
 
 type VideoJsPlayer = ReturnType<typeof videojs>;
@@ -18,6 +19,7 @@ const props = defineProps<{
 }>();
 
 const { t } = useTranslator();
+const reporter = usePreviewEvents();
 
 interface ErrorState {
   title: string;
@@ -38,6 +40,7 @@ const getVideoExt = (url: string, fileName?: string): string => {
 };
 
 const initPlayer = () => {
+  reporter.begin(props.url);
   if (!videoContainerRef.value || player) return;
 
   const videoExt = getVideoExt(props.url, props.fileName);
@@ -126,6 +129,7 @@ const initPlayer = () => {
         title: t.value('video.load_failed'),
         detail: err?.message || t.value('common.unknown_error'),
       };
+      reporter.error(err);
     }
     isLoading.value = false;
   });
@@ -136,6 +140,7 @@ onMounted(initPlayer);
 watch(
   [() => props.url, () => props.mimeType],
   () => {
+    reporter.begin(props.url);
     if (player && !player.isDisposed()) {
       player.src({ src: props.url, type: getVideoMimeType(props.url, props.mimeType) });
     }

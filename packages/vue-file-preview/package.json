@@ -59,7 +59,7 @@
   "scripts": {
     "build:esm": "vite build --mode esm",
     "build:cjs": "vite build --mode cjs",
-    "build": "pnpm --filter @eternalheart/file-preview-core build && pnpm build:esm && pnpm build:cjs && vue-tsc --project tsconfig.json --emitDeclarationOnly",
+    "build": "pnpm --filter @eternalheart/file-preview-core build && pnpm build:esm && pnpm build:cjs && vue-tsc --project tsconfig.json --emitDeclarationOnly && node ../../scripts/patch-lib-types.mjs vue-file-preview",
     "dev": "vite build --mode esm --watch --emptyOutDir false",
     "prepublishOnly": "pnpm build",
     "version:patch": "npm version patch",

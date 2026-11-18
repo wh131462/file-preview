@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
 import { FilePreviewModal, FilePreviewEmbed, VERSION, SUPPORTED_FILE_TYPES } from '@eternalheart/react-file-preview';
-import type { PreviewFile, PreviewFileInput, Theme, CustomRenderer, CustomRendererEventPayload } from '@eternalheart/react-file-preview';
+import type { PreviewFile, PreviewFileInput, Theme, CustomRenderer, CustomRendererEventPayload, PreviewErrorPayload } from '@eternalheart/react-file-preview';
 import type { Locale } from '@eternalheart/react-file-preview';
 import '@eternalheart/react-file-preview/style.css';
 import { FileText, Image, FileSpreadsheet, Video, Music, Upload, X, Package, BookOpen, Code, Settings, Sparkles, Link as LinkIcon } from 'lucide-react';
@@ -43,6 +43,11 @@ const demoCustomRenderers: CustomRenderer[] = [
 
 const handleCustomEvent = (e: CustomRendererEventPayload) => {
   console.log('[FilePreview custom-event]', e);
+};
+
+/** 加载/渲染失败事件：打印完整载荷便于验证 file/index/stage/error */
+const handleError = (payload: PreviewErrorPayload) => {
+  console.log('[FilePreview error]', payload);
 };
 
 // 环境检测：开发环境和生产环境的 URL
@@ -574,13 +579,20 @@ function App() {
               <FilePreviewEmbed
                 files={allFiles}
                 currentIndex={embedIndex}
-                onNavigate={setEmbedIndex}
+                onNavigate={(index) => {
+                  console.log('[FilePreview navigate]', { scope: 'embed', index });
+                  setEmbedIndex(index);
+                }}
+                onClose={() => {
+                  console.log('[FilePreview close]', { scope: 'embed' });
+                }}
                 theme={theme}
                 headless={headless}
                 locale={locale}
                 showDownload={showDownload}
                 customRenderers={demoCustomRenderers}
                 onCustomEvent={handleCustomEvent}
+                onError={handleError}
               />
             </div>
           </div>
@@ -732,14 +744,21 @@ function App() {
         files={allFiles}
         currentIndex={currentFileIndex}
         isOpen={isPreviewOpen}
-        onClose={() => setIsPreviewOpen(false)}
-        onNavigate={setCurrentFileIndex}
+        onClose={() => {
+          console.log('[FilePreview close]', { scope: 'modal' });
+          setIsPreviewOpen(false);
+        }}
+        onNavigate={(index) => {
+          console.log('[FilePreview navigate]', { scope: 'modal', index });
+          setCurrentFileIndex(index);
+        }}
         theme={theme}
         headless={headless}
         locale={locale}
         showDownload={showDownload}
         customRenderers={demoCustomRenderers}
         onCustomEvent={handleCustomEvent}
+        onError={handleError}
       />
     </div>
   );

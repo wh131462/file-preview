@@ -19,6 +19,7 @@ import {
   type CustomRenderer,
   type CustomRendererContext,
   type CustomRendererEventPayload,
+  type PreviewErrorPayload,
 } from '@eternalheart/angular-file-preview';
 import {
   FileText,
@@ -364,8 +365,10 @@ export class DemoRenderer {
                 [locale]="locale()"
                 [showDownload]="showDownload()"
                 [customRenderers]="demoCustomRenderers"
-                (navigate)="embedIndex.set($event)"
+                (navigate)="handleNavigate($event, 'embed')"
+                (close)="handleClose('embed')"
                 (customEvent)="handleCustomEvent($event)"
+                (error)="handleError($event)"
               />
             </div>
           </div>
@@ -548,9 +551,10 @@ export class DemoRenderer {
         [locale]="locale()"
         [showDownload]="showDownload()"
         [customRenderers]="demoCustomRenderers"
-        (close)="isPreviewOpen.set(false)"
-        (navigate)="currentFileIndex.set($event)"
+        (close)="handleClose('modal')"
+        (navigate)="handleNavigate($event, 'modal')"
         (customEvent)="handleCustomEvent($event)"
+        (error)="handleError($event)"
       />
     </div>
   `,
@@ -634,6 +638,27 @@ export class AppComponent {
   handleCustomEvent(e: CustomRendererEventPayload): void {
     // eslint-disable-next-line no-console
     console.log('[FilePreview custom-event]', e);
+  }
+
+  /** 加载/渲染失败事件：打印完整载荷便于验证 file/index/stage/error */
+  handleError(payload: PreviewErrorPayload): void {
+    // eslint-disable-next-line no-console
+    console.log('[FilePreview error]', payload);
+  }
+
+  /** 导航事件：打印来源与索引，再更新对应 signal */
+  handleNavigate(index: number, scope: 'modal' | 'embed'): void {
+    // eslint-disable-next-line no-console
+    console.log('[FilePreview navigate]', { scope, index });
+    if (scope === 'modal') this.currentFileIndex.set(index);
+    else this.embedIndex.set(index);
+  }
+
+  /** 关闭事件：Modal 需要同时收起弹窗，Embed 仅打印 */
+  handleClose(scope: 'modal' | 'embed'): void {
+    // eslint-disable-next-line no-console
+    console.log('[FilePreview close]', { scope });
+    if (scope === 'modal') this.isPreviewOpen.set(false);
   }
 
   getPanelStyle(): Record<string, string> {

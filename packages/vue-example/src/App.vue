@@ -12,6 +12,7 @@ import {
   type CustomRenderer,
   type CustomRendererContext,
   type CustomRendererEventPayload,
+  type PreviewErrorPayload,
 } from '@eternalheart/vue-file-preview';
 import '@eternalheart/vue-file-preview/style.css';
 import {
@@ -100,6 +101,27 @@ const demoCustomRenderers: CustomRenderer[] = [
 const handleCustomEvent = (e: CustomRendererEventPayload) => {
   // eslint-disable-next-line no-console
   console.log('[FilePreview custom-event]', e);
+};
+
+/** 加载/渲染失败事件：打印完整载荷便于验证 file/index/stage/error */
+const handleError = (payload: PreviewErrorPayload) => {
+  // eslint-disable-next-line no-console
+  console.log('[FilePreview error]', payload);
+};
+
+/** 导航事件：打印来源与索引，再更新对应状态 */
+const handleNavigate = (index: number, scope: 'modal' | 'embed') => {
+  // eslint-disable-next-line no-console
+  console.log('[FilePreview navigate]', { scope, index });
+  if (scope === 'modal') currentFileIndex.value = index;
+  else embedIndex.value = index;
+};
+
+/** 关闭事件：Modal 需要同时收起弹窗，Embed 仅打印 */
+const handleClose = (scope: 'modal' | 'embed') => {
+  // eslint-disable-next-line no-console
+  console.log('[FilePreview close]', { scope });
+  if (scope === 'modal') isPreviewOpen.value = false;
 };
 const uploadedFiles = ref<PreviewFile[]>([]);
 const allFiles = ref<PreviewFileInput[]>([]);
@@ -593,8 +615,10 @@ onUnmounted(() => {
             :locale="locale"
             :show-download="showDownload"
             :custom-renderers="demoCustomRenderers"
-            @navigate="(i: number) => (embedIndex = i)"
+            @navigate="handleNavigate($event, 'embed')"
+            @close="handleClose('embed')"
             @custom-event="handleCustomEvent"
+            @error="handleError"
           />
         </div>
       </div>
@@ -745,9 +769,10 @@ onUnmounted(() => {
       :locale="locale"
       :show-download="showDownload"
       :custom-renderers="demoCustomRenderers"
-      @close="isPreviewOpen = false"
-      @navigate="(i: number) => (currentFileIndex = i)"
+      @close="handleClose('modal')"
+      @navigate="handleNavigate($event, 'modal')"
       @custom-event="handleCustomEvent"
+      @error="handleError"
     />
   </div>
 </template>

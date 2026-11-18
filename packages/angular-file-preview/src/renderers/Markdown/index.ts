@@ -20,6 +20,7 @@ import { Eye, Code } from 'lucide-angular';
 import { fetchTextUtf8 } from '../../fp-core';
 import { LocaleService, getFallbackTranslator } from '../../di/locale.service';
 import { RequestService } from '../../di/request.service';
+import { PreviewEventsService } from '../../di/preview-events.service';
 import { ThemeService } from '../../di/theme.service';
 import { RendererError } from '../RendererError';
 import { ToolbarEventEmitter } from '../base.types';
@@ -137,6 +138,7 @@ export class MarkdownRenderer implements RendererHandle {
   private readonly emitter = new ToolbarEventEmitter();
   private readonly locale = inject(LocaleService, { optional: true });
   private readonly request = inject(RequestService, { optional: true });
+  private readonly events = inject(PreviewEventsService, { optional: true });
   private readonly themeService = inject(ThemeService, { optional: true });
   private readonly sanitizer = inject(DomSanitizer);
   private readonly injector = inject(Injector);
@@ -262,6 +264,7 @@ export class MarkdownRenderer implements RendererHandle {
   }
 
   private async loadMarkdown(): Promise<void> {
+    this.events?.reporter.begin(this.url());
     this.loading.set(true);
     this.error.set(null);
     try {
@@ -281,6 +284,7 @@ export class MarkdownRenderer implements RendererHandle {
       console.error(err);
       this.error.set(this.t('markdown.load_failed'));
       this.loading.set(false);
+      this.events?.reporter.error(err);
     }
   }
 

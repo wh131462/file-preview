@@ -25,6 +25,7 @@ import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
 import { X, ZoomIn, ZoomOut, ChevronLeft, ChevronRight, Menu, RefreshCw } from 'lucide-angular';
 import { LucideAngularModule } from 'lucide-angular';
 import { LocaleService, getFallbackTranslator } from '../../di/locale.service';
+import { PreviewEventsService } from '../../di/preview-events.service';
 import { RendererError } from '../RendererError';
 import { ToolbarEventEmitter } from '../base.types';
 import type { RendererHandle } from '../base.types';
@@ -167,6 +168,7 @@ export class PdfRenderer implements RendererHandle {
 
   private readonly emitter = new ToolbarEventEmitter();
   private readonly locale = inject(LocaleService, { optional: true });
+  private readonly events = inject(PreviewEventsService, { optional: true });
   private readonly sanitizer = inject(DomSanitizer);
   private readonly destroyRef = inject(DestroyRef);
   protected readonly t = this.locale?.translate ?? getFallbackTranslator();
@@ -617,6 +619,7 @@ export class PdfRenderer implements RendererHandle {
     } catch (err: unknown) {
       if ((err as { name?: string })?.name !== 'RenderingCancelledException') {
         console.error(this.t('pdf.page_render_failed', { page: pageNumber }) + ':', err);
+        this.events?.reporter.error(err, 'render');
       }
     } finally {
       state.rendering = false;
@@ -675,6 +678,7 @@ export class PdfRenderer implements RendererHandle {
   }
 
   private async loadPdf(): Promise<void> {
+    this.events?.reporter.begin(this.url());
     this.error.set(null);
     this.loading.set(true);
     this.initialPageReady.set(false);
@@ -719,6 +723,7 @@ export class PdfRenderer implements RendererHandle {
       console.error(this.t('pdf.load_failed') + ':', err);
       this.error.set(this.t('pdf.load_failed'));
       this.loading.set(false);
+      this.events?.reporter.error(err);
     }
   }
 

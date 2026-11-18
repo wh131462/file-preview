@@ -14,6 +14,7 @@ import { parse } from 'opentype.js';
 import type { Font as OpentypeFont } from 'opentype.js';
 import { LocaleService, getFallbackTranslator } from '../../di/locale.service';
 import { RequestService } from '../../di/request.service';
+import { PreviewEventsService } from '../../di/preview-events.service';
 import { ThemeService } from '../../di/theme.service';
 import { RendererError } from '../RendererError';
 import type { RendererHandle } from '../base.types';
@@ -175,6 +176,7 @@ export class FontRenderer implements RendererHandle {
 
   private readonly locale = inject(LocaleService, { optional: true });
   private readonly request = inject(RequestService, { optional: true });
+  private readonly events = inject(PreviewEventsService, { optional: true });
   private readonly theme = inject(ThemeService, { optional: true });
   protected readonly t = this.locale?.translate ?? getFallbackTranslator();
 
@@ -297,6 +299,7 @@ export class FontRenderer implements RendererHandle {
   }
 
   private async loadFont(): Promise<void> {
+    this.events?.reporter.begin(this.url());
     this.releaseFontFace();
     this.font.set(null);
 
@@ -348,6 +351,7 @@ export class FontRenderer implements RendererHandle {
       this.error.set(this.t('font.load_failed'));
       this.loading.set(false);
       this.metadataStatus.set('unavailable');
+      this.events?.reporter.error(err);
     }
   }
 }

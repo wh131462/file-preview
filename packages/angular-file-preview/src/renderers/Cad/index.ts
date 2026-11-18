@@ -22,6 +22,7 @@ import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { LocaleService, getFallbackTranslator } from '../../di/locale.service';
 import { RequestService } from '../../di/request.service';
+import { PreviewEventsService } from '../../di/preview-events.service';
 import { RendererError } from '../RendererError';
 import { ToolbarEventEmitter } from '../base.types';
 import type { RendererHandle } from '../base.types';
@@ -106,6 +107,7 @@ export class CadRenderer implements RendererHandle {
 
   private readonly locale = inject(LocaleService, { optional: true });
   private readonly request = inject(RequestService, { optional: true });
+  private readonly events = inject(PreviewEventsService, { optional: true });
   protected readonly t = this.locale?.translate ?? getFallbackTranslator();
   private readonly container = viewChild<ElementRef<HTMLDivElement>>('containerRef');
   private readonly toolbarEmitter = new ToolbarEventEmitter();
@@ -362,6 +364,7 @@ export class CadRenderer implements RendererHandle {
   }
 
   private loadModel(): void {
+    this.events?.reporter.begin(this.url());
     if (!this.scene || !this.camera || !this.controls || this.isCleanedUp) return;
 
     const ext = this.getExtension(this.url(), this.fileName(), this.file());
@@ -448,6 +451,7 @@ export class CadRenderer implements RendererHandle {
       }
       this.error.set(this.t('cad.load_failed'));
       this.loading.set(false);
+      this.events?.reporter.error(err);
     };
 
     const file = this.file();

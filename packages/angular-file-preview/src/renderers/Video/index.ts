@@ -14,6 +14,7 @@ import videojs from 'video.js';
 import 'video.js/dist/video-js.css';
 import { getVideoMimeType } from '../../fp-core';
 import { LocaleService, getFallbackTranslator } from '../../di/locale.service';
+import { PreviewEventsService } from '../../di/preview-events.service';
 import { RendererError } from '../RendererError';
 import { ToolbarEventEmitter } from '../base.types';
 import type { RendererHandle } from '../base.types';
@@ -66,6 +67,7 @@ export class VideoRenderer implements RendererHandle {
 
   private readonly emitter = new ToolbarEventEmitter();
   private readonly locale = inject(LocaleService, { optional: true });
+  private readonly events = inject(PreviewEventsService, { optional: true });
   private readonly destroyRef = inject(DestroyRef);
   protected readonly t = this.locale?.translate ?? getFallbackTranslator();
 
@@ -86,6 +88,7 @@ export class VideoRenderer implements RendererHandle {
       const url = this.url();
       const mimeType = this.mimeType();
       untracked(() => {
+        this.events?.reporter.begin(this.url());
         if (this.player && !this.player.isDisposed()) {
           this.player.src({ src: url, type: getVideoMimeType(url, mimeType) });
         }
@@ -109,6 +112,7 @@ export class VideoRenderer implements RendererHandle {
   }
 
   private initPlayer(container: HTMLDivElement): void {
+    this.events?.reporter.begin(this.url());
     if (this.player) return;
 
     const videoExt = this.getVideoExt(this.url(), this.fileName());
@@ -194,6 +198,7 @@ export class VideoRenderer implements RendererHandle {
         });
       }
       this.isLoading.set(false);
+      this.events?.reporter.error(err);
     });
 
     this.player = player;

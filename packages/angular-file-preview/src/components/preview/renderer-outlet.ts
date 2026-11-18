@@ -13,6 +13,7 @@ import {
   ViewChild,
   ViewContainerRef,
 } from '@angular/core';
+import { PreviewEventsService } from '../../di/preview-events.service';
 import { RendererLoading } from '../../renderers/RendererLoading';
 import type { RendererHandle } from '../../renderers/base.types';
 import type { RendererLoader } from '../../renderers/lazy';
@@ -48,6 +49,7 @@ export class RendererOutlet {
   private loadedKey = '';
   private seq = 0;
   private readonly destroyRef = inject(DestroyRef);
+  private readonly events = inject(PreviewEventsService, { optional: true });
 
   constructor() {
     this.destroyRef.onDestroy(() => this.clear());
@@ -90,6 +92,7 @@ export class RendererOutlet {
       } catch (err) {
         console.error('[file-preview] renderer load failed:', err);
         if (current !== this.seq) return;
+        this.events?.reporter.error(err, 'render');
         this.loading.set(false);
         this.handleChange.emit(null);
       }

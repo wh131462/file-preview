@@ -23,6 +23,7 @@ import {
 } from '../../fp-core';
 import { LocaleService, getFallbackTranslator } from '../../di/locale.service';
 import { RequestService } from '../../di/request.service';
+import { PreviewEventsService } from '../../di/preview-events.service';
 import { FilePreviewContent } from '../../file-preview-content';
 import { ResizableSplit } from '../../components/resizable-split';
 import { RendererError } from '../RendererError';
@@ -157,6 +158,7 @@ export class ZipRenderer implements RendererHandle {
   private readonly emitter = new ToolbarEventEmitter();
   private readonly locale = inject(LocaleService, { optional: true });
   private readonly request = inject(RequestService, { optional: true });
+  private readonly events = inject(PreviewEventsService, { optional: true });
   protected readonly t = this.locale?.translate ?? getFallbackTranslator();
   private readonly splitRef = viewChild(ResizableSplit);
 
@@ -288,6 +290,7 @@ export class ZipRenderer implements RendererHandle {
   }
 
   private async load(): Promise<void> {
+    this.events?.reporter.begin(this.url());
     this.revokeCurrent();
     this.selected.set(null);
     this.loading.set(true);
@@ -308,6 +311,7 @@ export class ZipRenderer implements RendererHandle {
     } catch (err) {
       console.error(err);
       this.error.set(this.t('zip.load_failed'));
+      this.events?.reporter.error(err);
     } finally {
       this.loading.set(false);
     }

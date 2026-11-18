@@ -26,6 +26,7 @@ import {
   type Theme,
   type CustomRendererEventPayload,
   type EmptyHintMode,
+  type PreviewErrorPayload,
 } from './fp-core';
 import type { CustomRenderer, CustomRendererContext } from './types';
 import type { RendererHandle } from './renderers/base.types';
@@ -33,6 +34,7 @@ import type { ToolbarGroup } from './renderers/toolbar.types';
 import { LocaleService } from './di/locale.service';
 import { ThemeService } from './di/theme.service';
 import { RequestService, needsBlobUrl } from './di/request.service';
+import { PreviewEventsService } from './di/preview-events.service';
 import { createSystemDarkSignal, resolveTheme } from './di/theme-mode';
 import { BUILTIN_RENDERERS } from './renderers/registry';
 import type { RendererLoader } from './renderers/lazy';
@@ -47,7 +49,7 @@ const MAX_ZIP_NESTING_DEPTH = 3;
   selector: 'FilePreviewContent, afp-file-preview-content',
   standalone: true,
   imports: [FilePreviewToolbar, NavArrows, RendererOutlet, UnsupportedRenderer],
-  providers: [LocaleService, ThemeService, RequestService],
+  providers: [LocaleService, ThemeService, RequestService, PreviewEventsService],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'afp-block afp-w-full afp-h-full' },
   template: `
@@ -147,12 +149,15 @@ export class FilePreviewContent {
   navigate = output<number>();
   close = output<void>();
   customEvent = output<CustomRendererEventPayload>();
+  /** 加载/渲染失败事件：每次加载最多触发一次，payload 已补全 file/index/stage */
+  error = output<PreviewErrorPayload>();
 
   protected readonly maxZipDepth = MAX_ZIP_NESTING_DEPTH;
 
   private readonly localeService = inject(LocaleService);
   private readonly themeService = inject(ThemeService);
   private readonly requestService = inject(RequestService);
+  private readonly events = inject(PreviewEventsService);
   private readonly destroyRef = inject(DestroyRef);
 
   private readonly root = viewChild<ElementRef<HTMLDivElement>>('rootRef');
@@ -237,6 +242,24 @@ export class FilePreviewContent {
   });
 
   constructor() {
+    // 事件通道：先注册派发出口与上下文（effect 异步调度，需早于请求/渲染失败路径）
+    this.events.setListener((payload) => this.error.emit(payload));
+
+    effect(() => {
+      const file = this.currentFile();
+      this.events.configure({
+        file,
+        index: this.currentIndex(),
+        urls: [file?.url ?? '', this.resolvedUrl()].filter(Boolean),
+      });
+    });
+    effect(() => {
+      // 切换文件或换 URL 即进入新代次，允许再次上报
+      // 注意只依赖 currentFile：resolvedUrl 由 '' 变为 blob URL 属于同一次加载，不应重置去重
+      void this.currentFile();
+      this.events.reset();
+    });
+
     effect(() => {
       this.localeService.configure(this.locale(), this.messages());
     });
@@ -262,6 +285,7 @@ export class FilePreviewContent {
     this.destroyRef.onDestroy(() => {
       this.cleanupSubscription();
       this.revokeBlob();
+      this.events.setListener(null);
     });
 
     effect((onCleanup) => {
@@ -380,6 +404,7 @@ export class FilePreviewContent {
       this.resolvedUrl.set(blobUrl);
     } catch (err) {
       console.error('[file-preview] resolve blob url failed:', err);
+      this.events.report(err, 'request');
       this.resolvedUrl.set(file.url);
     }
   }

@@ -30,8 +30,18 @@ export {
 } from './fp-core';
 
 export type { PdfWorkerOptions } from './fp-core';
-export type { EmptyHintMode, Locale, Messages, Translator, Theme } from './fp-core';
+export type {
+  EmptyHintMode,
+  Locale,
+  Messages,
+  Translator,
+  Theme,
+  PreviewErrorStage,
+  PreviewErrorPayload,
+  PreviewReporter,
+} from './fp-core';
 
 export { LocaleService } from './di/locale.service';
 export { ThemeService } from './di/theme.service';
 export { RequestService } from './di/request.service';
+export { PreviewEventsService } from './di/preview-events.service';

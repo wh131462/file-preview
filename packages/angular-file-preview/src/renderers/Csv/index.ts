@@ -19,6 +19,7 @@ import {
 } from '../../fp-core';
 import { LocaleService, getFallbackTranslator } from '../../di/locale.service';
 import { RequestService } from '../../di/request.service';
+import { PreviewEventsService } from '../../di/preview-events.service';
 import { RendererError } from '../RendererError';
 import type { RendererHandle } from '../base.types';
 import type { ToolbarGroup } from '../toolbar.types';
@@ -65,6 +66,7 @@ export class CsvRenderer implements RendererHandle {
 
   private readonly locale = inject(LocaleService, { optional: true });
   private readonly request = inject(RequestService, { optional: true });
+  private readonly events = inject(PreviewEventsService, { optional: true });
   private readonly destroyRef = inject(DestroyRef);
   protected readonly t = this.locale?.translate ?? getFallbackTranslator();
 
@@ -179,6 +181,7 @@ export class CsvRenderer implements RendererHandle {
   }
 
   private async loadCsv(): Promise<void> {
+    this.events?.reporter.begin(this.url());
     if (!this.container()?.nativeElement) return;
 
     this.loading.set(true);
@@ -197,6 +200,7 @@ export class CsvRenderer implements RendererHandle {
       console.error(this.t('csv.parse_failed') + ':', err);
       this.error.set(this.t('csv.load_failed'));
       this.loading.set(false);
+      this.events?.reporter.error(err);
     }
   }
 }

@@ -18,6 +18,7 @@ import { LucideAngularModule } from 'lucide-angular';
 import 'foliate-js/view.js';
 import { LocaleService, getFallbackTranslator } from '../../di/locale.service';
 import { RequestService } from '../../di/request.service';
+import { PreviewEventsService } from '../../di/preview-events.service';
 import { RendererError } from '../RendererError';
 import { ToolbarEventEmitter } from '../base.types';
 import type { RendererHandle } from '../base.types';
@@ -225,6 +226,7 @@ export class MobiRenderer implements RendererHandle {
   private readonly emitter = new ToolbarEventEmitter();
   private readonly locale = inject(LocaleService, { optional: true });
   private readonly request = inject(RequestService, { optional: true });
+  private readonly events = inject(PreviewEventsService, { optional: true });
   protected readonly t = this.locale?.translate ?? getFallbackTranslator();
   private readonly host = viewChild<ElementRef<HTMLDivElement>>('hostRef');
 
@@ -364,6 +366,7 @@ export class MobiRenderer implements RendererHandle {
   }
 
   private async load(): Promise<void> {
+    this.events?.reporter.begin(this.url());
     const host = this.host()?.nativeElement;
     if (!host) return;
     this.loading.set(true);
@@ -500,6 +503,7 @@ export class MobiRenderer implements RendererHandle {
       console.error(this.t('mobi.load_failed') + ':', err);
       this.error.set(this.t('mobi.load_failed'));
       this.loading.set(false);
+      this.events?.reporter.error(err);
     }
   }
 }

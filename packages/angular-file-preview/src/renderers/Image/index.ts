@@ -24,6 +24,7 @@ import {
 import type { ImageDecoder, PreviewFile } from '../../fp-core';
 import { LocaleService, getFallbackTranslator } from '../../di/locale.service';
 import { RequestService } from '../../di/request.service';
+import { PreviewEventsService } from '../../di/preview-events.service';
 import { RendererError } from '../RendererError';
 import { ToolbarEventEmitter } from '../base.types';
 import type { RendererHandle } from '../base.types';
@@ -135,6 +136,7 @@ export class ImageRenderer implements RendererHandle {
   private readonly emitter = new ToolbarEventEmitter();
   private readonly locale = inject(LocaleService, { optional: true });
   private readonly request = inject(RequestService, { optional: true });
+  private readonly events = inject(PreviewEventsService, { optional: true });
   private readonly destroyRef = inject(DestroyRef);
   protected readonly t = this.locale?.translate ?? getFallbackTranslator();
   protected readonly Math = Math;
@@ -314,6 +316,7 @@ export class ImageRenderer implements RendererHandle {
   }
 
   private async load(): Promise<void> {
+    this.events?.reporter.begin(this.url());
     this.imageSrc.set('');
     this.loaded.set(false);
     this.error.set(null);
@@ -405,6 +408,7 @@ export class ImageRenderer implements RendererHandle {
       const message = translateError(this.t, err) || this.t('image.decode_failed');
       this.decodeError.set(message || this.t('image.decode_failed'));
       this.decoding.set(false);
+      this.events?.reporter.error(err);
     }
   }
 
@@ -443,6 +447,7 @@ export class ImageRenderer implements RendererHandle {
       const message = translateError(this.t, err) || this.t('image.decode_failed');
       this.decodeError.set(message || this.t('image.decode_failed'));
       this.decoding.set(false);
+      this.events?.reporter.error(err, 'render');
     }
   }
 
@@ -485,6 +490,7 @@ export class ImageRenderer implements RendererHandle {
   protected handleError(): void {
     this.error.set(this.t('image.load_failed'));
     this.loaded.set(true);
+    this.events?.reporter.error(new PreviewError('image.load_failed'), 'request');
   }
 
   protected handleDoubleClick(): void {

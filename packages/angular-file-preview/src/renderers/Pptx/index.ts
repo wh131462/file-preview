@@ -17,6 +17,7 @@ import { init } from 'pptx-preview';
 import { readPptxSlideSize } from '../../fp-core';
 import { LocaleService, getFallbackTranslator } from '../../di/locale.service';
 import { RequestService } from '../../di/request.service';
+import { PreviewEventsService } from '../../di/preview-events.service';
 import { RendererError } from '../RendererError';
 import { EmptyState } from '../EmptyState';
 import type { RendererHandle } from '../base.types';
@@ -74,6 +75,7 @@ export class PptxRenderer implements RendererHandle {
 
   private readonly locale = inject(LocaleService, { optional: true });
   private readonly request = inject(RequestService, { optional: true });
+  private readonly events = inject(PreviewEventsService, { optional: true });
   private readonly destroyRef = inject(DestroyRef);
   protected readonly t = this.locale?.translate ?? getFallbackTranslator();
 
@@ -198,6 +200,7 @@ export class PptxRenderer implements RendererHandle {
   }
 
   private async loadPptx(): Promise<void> {
+    this.events?.reporter.begin(this.url());
     if (!this.containerRef()?.nativeElement) return;
 
     this.loading.set(true);
@@ -293,6 +296,7 @@ export class PptxRenderer implements RendererHandle {
       else if (typeof err === 'string') errorMsg = err;
       this.error.set(errorMsg);
       this.loading.set(false);
+      this.events?.reporter.error(err);
     }
   }
 }

@@ -14,6 +14,7 @@ import { parse as parseJsonc } from 'jsonc-parser';
 import { fetchTextUtf8, isEmptyContent, resolveEmptyHint, type EmptyHintMode } from '../../fp-core';
 import { LocaleService, getFallbackTranslator } from '../../di/locale.service';
 import { RequestService } from '../../di/request.service';
+import { PreviewEventsService } from '../../di/preview-events.service';
 import { ThemeService, type ResolvedTheme } from '../../di/theme.service';
 import { RendererError } from '../RendererError';
 import { EmptyState } from '../EmptyState';
@@ -288,6 +289,7 @@ export class JsonRenderer implements RendererHandle {
 
   private readonly locale = inject(LocaleService, { optional: true });
   private readonly request = inject(RequestService, { optional: true });
+  private readonly events = inject(PreviewEventsService, { optional: true });
   protected readonly t = this.locale?.translate ?? getFallbackTranslator();
 
   readonly data = signal<unknown>(null);
@@ -308,6 +310,7 @@ export class JsonRenderer implements RendererHandle {
   getToolbarGroups = (): ToolbarGroup[] => [];
 
   private async loadJson(): Promise<void> {
+    this.events?.reporter.begin(this.url());
     this.loading.set(true);
     this.error.set(null);
     this.empty.set(false);
@@ -321,6 +324,7 @@ export class JsonRenderer implements RendererHandle {
     } catch (err) {
       console.error(err);
       this.error.set(this.t('json.load_failed'));
+      this.events?.reporter.error(err);
     } finally {
       this.loading.set(false);
     }

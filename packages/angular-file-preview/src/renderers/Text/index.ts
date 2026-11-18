@@ -12,6 +12,7 @@ import { WrapText, Code, Eye } from 'lucide-angular';
 import { getLanguageFromFileName, fetchTextUtf8, isEmptyContent, resolveEmptyHint, type EmptyHintMode } from '../../fp-core';
 import { LocaleService, getFallbackTranslator } from '../../di/locale.service';
 import { RequestService } from '../../di/request.service';
+import { PreviewEventsService } from '../../di/preview-events.service';
 import { RendererError } from '../RendererError';
 import { EmptyState } from '../EmptyState';
 import { ToolbarEventEmitter } from '../base.types';
@@ -82,6 +83,7 @@ export class TextRenderer implements RendererHandle {
   private readonly emitter = new ToolbarEventEmitter();
   private readonly locale = inject(LocaleService, { optional: true });
   private readonly request = inject(RequestService, { optional: true });
+  private readonly events = inject(PreviewEventsService, { optional: true });
   private readonly sanitizer = inject(DomSanitizer);
   protected readonly t = this.locale?.translate ?? getFallbackTranslator();
 
@@ -162,6 +164,7 @@ export class TextRenderer implements RendererHandle {
   }
 
   private async loadText(): Promise<void> {
+    this.events?.reporter.begin(this.url());
     this.loading.set(true);
     this.error.set(null);
     try {
@@ -171,6 +174,7 @@ export class TextRenderer implements RendererHandle {
     } catch (err) {
       console.error(err);
       this.error.set(this.t('text.load_failed'));
+      this.events?.reporter.error(err);
     } finally {
       this.loading.set(false);
     }

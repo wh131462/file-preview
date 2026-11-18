@@ -17,6 +17,7 @@ import { X, ChevronLeft, ChevronRight, List, Maximize2, Minimize2 } from 'lucide
 import { LucideAngularModule } from 'lucide-angular';
 import { LocaleService, getFallbackTranslator } from '../../di/locale.service';
 import { RequestService } from '../../di/request.service';
+import { PreviewEventsService } from '../../di/preview-events.service';
 import { RendererError } from '../RendererError';
 import { ToolbarEventEmitter } from '../base.types';
 import type { RendererHandle } from '../base.types';
@@ -175,6 +176,7 @@ export class EpubRenderer implements RendererHandle {
   private readonly emitter = new ToolbarEventEmitter();
   private readonly locale = inject(LocaleService, { optional: true });
   private readonly request = inject(RequestService, { optional: true });
+  private readonly events = inject(PreviewEventsService, { optional: true });
   protected readonly t = this.locale?.translate ?? getFallbackTranslator();
   private readonly viewer = viewChild<ElementRef<HTMLDivElement>>('viewerRef');
 
@@ -362,6 +364,7 @@ export class EpubRenderer implements RendererHandle {
   }
 
   private async loadEpub(): Promise<void> {
+    this.events?.reporter.begin(this.url());
     const el = this.viewer()?.nativeElement;
     if (!el) return;
 
@@ -475,6 +478,7 @@ export class EpubRenderer implements RendererHandle {
       console.error(this.t('epub.load_failed') + ':', err);
       this.error.set(this.t('epub.load_failed'));
       this.loading.set(false);
+      this.events?.reporter.error(err);
     }
   }
 

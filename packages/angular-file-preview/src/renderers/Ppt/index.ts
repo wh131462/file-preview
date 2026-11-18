@@ -12,6 +12,7 @@ import { DomSanitizer } from '@angular/platform-browser';
 import { renderLegacyPptHtml } from '../../fp-core';
 import { LocaleService, getFallbackTranslator } from '../../di/locale.service';
 import { RequestService } from '../../di/request.service';
+import { PreviewEventsService } from '../../di/preview-events.service';
 import { RendererError } from '../RendererError';
 import type { RendererHandle } from '../base.types';
 import type { ToolbarGroup } from '../toolbar.types';
@@ -44,6 +45,7 @@ export class PptRenderer implements RendererHandle {
 
   private readonly locale = inject(LocaleService, { optional: true });
   private readonly request = inject(RequestService, { optional: true });
+  private readonly events = inject(PreviewEventsService, { optional: true });
   private readonly sanitizer = inject(DomSanitizer);
   protected readonly t = this.locale?.translate ?? getFallbackTranslator();
 
@@ -69,6 +71,7 @@ export class PptRenderer implements RendererHandle {
   }
 
   private async loadPpt(): Promise<void> {
+    this.events?.reporter.begin(this.url());
     this.loading.set(true);
     this.error.set(null);
     this.html.set('');
@@ -82,6 +85,7 @@ export class PptRenderer implements RendererHandle {
     } catch (err) {
       console.error(this.t('ppt.parse_failed') + ':', err);
       this.error.set(this.t('ppt.parse_failed'));
+      this.events?.reporter.error(err);
     } finally {
       this.loading.set(false);
     }

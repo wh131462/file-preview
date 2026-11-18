@@ -16,6 +16,7 @@ import {
 } from '../../fp-core';
 import { LocaleService, getFallbackTranslator } from '../../di/locale.service';
 import { RequestService } from '../../di/request.service';
+import { PreviewEventsService } from '../../di/preview-events.service';
 import { RendererError } from '../RendererError';
 import type { RendererHandle } from '../base.types';
 import type { ToolbarGroup } from '../toolbar.types';
@@ -254,6 +255,7 @@ export class SubtitleRenderer implements RendererHandle {
 
   private readonly locale = inject(LocaleService, { optional: true });
   private readonly request = inject(RequestService, { optional: true });
+  private readonly events = inject(PreviewEventsService, { optional: true });
   protected readonly t = this.locale?.translate ?? getFallbackTranslator();
 
   readonly text = signal('');
@@ -266,6 +268,7 @@ export class SubtitleRenderer implements RendererHandle {
       return parseSubtitle(this.text(), SubtitleRenderer.getFormat(this.fileName()));
     } catch (err) {
       console.error(err);
+      this.events?.reporter.error(err);
       return null;
     }
   });
@@ -294,6 +297,7 @@ export class SubtitleRenderer implements RendererHandle {
   }
 
   private async load(): Promise<void> {
+    this.events?.reporter.begin(this.url());
     this.loading.set(true);
     this.error.set(null);
     try {
@@ -302,6 +306,7 @@ export class SubtitleRenderer implements RendererHandle {
     } catch (err) {
       console.error(err);
       this.error.set(this.t('subtitle.load_failed'));
+      this.events?.reporter.error(err);
     } finally {
       this.loading.set(false);
     }

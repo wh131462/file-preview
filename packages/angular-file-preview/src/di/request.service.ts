@@ -1,4 +1,4 @@
-import { Injectable, computed, signal } from '@angular/core';
+import { Injectable, computed, inject, signal } from '@angular/core';
 import {
   createFetcher,
   fetchAsBlobUrl,
@@ -8,6 +8,7 @@ import {
   type RequestInitFactory,
   type ShouldFetchAsBlob,
 } from '../fp-core';
+import { PreviewEventsService } from './preview-events.service';
 
 export interface RequestContextOptions {
   requestInit?: RequestInitFactory;
@@ -18,12 +19,15 @@ export interface RequestContextOptions {
 @Injectable()
 export class RequestService {
   private readonly optionsSig = signal<RequestContextOptions>({});
+  /** 事件通道可选：单独使用 RequestService 时不影响既有行为 */
+  private readonly events = inject(PreviewEventsService, { optional: true });
 
   readonly fetcher = computed<Fetcher>(() => {
     const opts = this.optionsSig();
     return createFetcher({
       requestInit: opts.requestInit,
       requestHandler: opts.requestHandler,
+      onRequestError: (url, error) => this.events?.reportRequestError(url, error),
     });
   });
 

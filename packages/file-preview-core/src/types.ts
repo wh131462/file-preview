@@ -115,6 +115,13 @@ export type RequestInitFactory =
 export interface RequestOptions {
   requestInit?: RequestInitFactory;
   requestHandler?: RequestHandler;
+  /**
+   * 请求阶段失败钩子：handler / requestInit 抛出时同步回调（原始异常），
+   * 之后 fetcher 仍会抛出 PreviewRequestError。
+   * 主动取消（AbortError）不算失败，不会触发该回调。
+   * 用于把取数失败上报给宿主。
+   */
+  onRequestError?: (url: string, error: unknown) => void;
 }
 
 /**

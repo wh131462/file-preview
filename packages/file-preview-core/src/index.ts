@@ -53,6 +53,18 @@ export type { FetchTextOptions } from './utils/textDecoder';
 // 导出请求/鉴权工具
 export { createFetcher, fetchAsBlobUrl, downloadFileWithFetcher } from './utils/request';
 
+// 导出预览事件（加载/渲染失败上报）
+export {
+  PreviewRequestError,
+  resolveErrorStage,
+  noopReporter,
+} from './events';
+export type {
+  PreviewErrorStage,
+  PreviewErrorPayload,
+  PreviewReporter,
+} from './events';
+
 // 导出字幕 / 歌词解析
 export { parseSubtitle, formatSubtitleTime } from './utils/subtitleParser';
 export type {

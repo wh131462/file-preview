@@ -1,4 +1,5 @@
 import { PreviewError } from '../i18n';
+import { PreviewRequestError } from '../events';
 import type {
   Fetcher,
   RequestHandler,
@@ -44,9 +45,24 @@ function mergeInit(
 }
 
 /**
+ * 判断异常是否来自主动取消（AbortController / AbortSignal）。
+ *
+ * 取消不是取数失败：既不能回调 onRequestError，也不能包装成
+ * PreviewRequestError，否则会丢掉 `name === 'AbortError'`，让渲染器
+ * 无法走取消分支（StrictMode 双调用、切换文件都会触发 abort）。
+ */
+function isAbortError(err: unknown): boolean {
+  if (typeof err !== 'object' || err === null) return false;
+  const { name, code } = err as { name?: unknown; code?: unknown };
+  return name === 'AbortError' || code === 'ABORT_ERR';
+}
+
+/**
  * 构造一个统一的 fetcher：
  * - 调用方 init 与外部 RequestInitFactory 合并（外部为底，调用方为优先级更高的覆盖层）
  * - 提供 requestHandler 时由 handler 接管，否则走原生 fetch
+ * - 失败统一包装成 PreviewRequestError，并回调 options.onRequestError
+ * - 主动取消（AbortError）原样抛出，不视为失败
  *
  * 不传 options 时，等价于直接返回原生 fetch。
  */
@@ -54,11 +70,19 @@ export function createFetcher(options?: RequestOptions): Fetcher {
   const handler: RequestHandler =
     options?.requestHandler ?? ((url, init) => fetch(url, init));
   const factory = options?.requestInit;
+  const onRequestError = options?.onRequestError;
 
   return async (url, callerInit) => {
-    const factoryInit = await resolveInitFactory(factory, url);
-    const merged = mergeInit(factoryInit, callerInit);
-    return handler(url, merged);
+    try {
+      const factoryInit = await resolveInitFactory(factory, url);
+      const merged = mergeInit(factoryInit, callerInit);
+      return await handler(url, merged);
+    } catch (err) {
+      if (err instanceof PreviewRequestError) throw err;
+      if (isAbortError(err)) throw err;
+      onRequestError?.(url, err);
+      throw new PreviewRequestError(err);
+    }
   };
 }
 
@@ -72,7 +96,9 @@ export async function fetchAsBlobUrl(
   init?: RequestInit,
 ): Promise<string> {
   const res = await fetcher(url, init);
-  if (!res.ok) throw new PreviewError('request.failed', { status: res.status });
+  if (!res.ok) {
+    throw new PreviewRequestError(new PreviewError('request.failed', { status: res.status }));
+  }
   const blob = await res.blob();
   return URL.createObjectURL(blob);
 }
@@ -91,7 +117,9 @@ export async function downloadFileWithFetcher(
   init?: RequestInit,
 ): Promise<void> {
   const res = await fetcher(url, init);
-  if (!res.ok) throw new PreviewError('request.failed', { status: res.status });
+  if (!res.ok) {
+    throw new PreviewRequestError(new PreviewError('request.failed', { status: res.status }));
+  }
   const blob = await res.blob();
   const blobUrl = URL.createObjectURL(blob);
   try {

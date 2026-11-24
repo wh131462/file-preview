@@ -391,6 +391,7 @@ Differences from `FilePreviewModal`:
 | `close` | - | Emitted when the modal should close |
 | `navigate` | `number` | Emitted when navigating to a different file index |
 | `error` | `PreviewErrorPayload` | Emitted when loading or rendering fails (at most once per load) |
+| `rendered` | `PreviewRenderedPayload` | Emitted when the first screen is ready (at most once per load) |
 
 ### FilePreviewEmbed Props
 
@@ -417,6 +418,7 @@ Differences from `FilePreviewModal`:
 |-------|---------|-------------|
 | `navigate` | `number` | Emitted when navigating to a different file index |
 | `error` | `PreviewErrorPayload` | Emitted when loading or rendering fails (at most once per load) |
+| `rendered` | `PreviewRenderedPayload` | Emitted when the first screen is ready (at most once per load) |
 
 ### FilePreviewContent (advanced)
 

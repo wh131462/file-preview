@@ -391,6 +391,7 @@ const files = [
 | `close` | - | 关闭预览时触发 |
 | `navigate` | `number` | 导航到其他文件时触发 |
 | `error` | `PreviewErrorPayload` | 加载或渲染失败时触发（每次加载最多一次） |
+| `rendered` | `PreviewRenderedPayload` | 首屏内容就绪时触发（每次加载最多一次） |
 
 ### FilePreviewEmbed Props
 
@@ -417,6 +418,7 @@ const files = [
 |------|------|------|
 | `navigate` | `number` | 导航到其他文件时触发 |
 | `error` | `PreviewErrorPayload` | 加载或渲染失败时触发（每次加载最多一次） |
+| `rendered` | `PreviewRenderedPayload` | 首屏内容就绪时触发（每次加载最多一次） |
 
 ### FilePreviewContent（高级用法）
 

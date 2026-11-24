@@ -504,6 +504,7 @@ export const CadRenderer = forwardRef<RendererHandle, CadRendererProps>(({ url, 
 
       setLoading(false);
       notifyToolbarChange();
+      reporter.ready();
     };
 
     // 处理加载错误

@@ -127,6 +127,7 @@ export const MarkdownRenderer = memo(forwardRef<RendererHandle, MarkdownRenderer
         setError(null);
         const text = await fetchTextUtf8(url, { fetcher, signal: controller.signal });
         setContent(text);
+        reporter.ready();
       } catch (err: any) {
         if (err.name === 'AbortError') return;
         setError(t('markdown.load_failed'));

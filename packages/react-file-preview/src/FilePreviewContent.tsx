@@ -3,7 +3,7 @@ import { getFileType, createFetcher, createTranslator, resolveShowClose, resolve
 import { LocaleProvider, useLocale, useTranslator } from './i18n/LocaleContext';
 import { ThemeProvider } from './ThemeContext';
 import type { PreviewFileInput, CustomRenderer, CustomRendererContext } from './types';
-import type { CustomRendererEventPayload, PreviewFile, RequestHandler, RequestInitFactory, ShouldFetchAsBlob, PreviewErrorPayload } from '@eternalheart/file-preview-core';
+import type { CustomRendererEventPayload, PreviewFile, RequestHandler, RequestInitFactory, ShouldFetchAsBlob, PreviewErrorPayload, PreviewRenderedPayload } from '@eternalheart/file-preview-core';
 import { normalizeFiles } from './utils/fileNormalizer';
 import { RequestProvider, useResolvedUrl } from './RequestContext';
 import { usePreviewEventsChannel, PreviewEventsProvider } from './PreviewEventsContext';
@@ -74,6 +74,11 @@ export interface FilePreviewContentProps {
    * 兼容旧版 `(error, errorInfo)` 渲染错误签名（仅渲染阶段触发且需两个形参）。
    */
   onError?: PreviewErrorHandler;
+  /**
+   * 首屏内容可交互回调（每次加载最多触发一次）。
+   * payload 含 file/index/fileType 与 begin → ready 的耗时。
+   */
+  onRendered?: (payload: PreviewRenderedPayload) => void;
   /** 是否显示关闭按钮，默认根据 mode 决定（modal: true, embed: false） */
   showClose?: boolean;
   showDownload?: boolean;
@@ -135,6 +140,7 @@ const FilePreviewContentInner: React.FC<FilePreviewContentInnerProps> = ({
   onCustomEvent,
   onDownload,
   onError,
+  onRendered,
   requestErrorRef,
   showClose,
   showDownload = true,
@@ -194,6 +200,7 @@ const FilePreviewContentInner: React.FC<FilePreviewContentInnerProps> = ({
       urls: [currentFile?.url ?? '', resolvedUrl].filter(Boolean),
     }),
     notifyHost,
+    onRendered,
   );
 
   useEffect(() => {

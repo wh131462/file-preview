@@ -139,6 +139,7 @@ export const MsgRenderer = forwardRef<RendererHandle, MsgRendererProps>(({ url }
         const msgReader = new MsgReader(arrayBuffer);
         const fileData = msgReader.getFileData();
         setFields(fileData);
+        reporter.ready();
       } catch (err) {
         console.error(t('msg.parse_failed') + ':', err);
         setError(t('msg.parse_failed'));

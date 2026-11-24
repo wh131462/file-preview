@@ -190,6 +190,7 @@ export const JsonRenderer = forwardRef<RendererHandle, JsonRendererProps>(({ url
         const isEmpty = isEmptyContent(text);
         setEmpty(isEmpty);
         setData(isEmpty ? null : parseJsonc(text));
+        reporter.ready();
       } catch (err: any) {
         if (err.name === 'AbortError') return;
         setError(t('json.load_failed'));

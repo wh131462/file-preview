@@ -289,6 +289,7 @@ export const ImageRenderer = forwardRef<ImageRendererHandle, ImageRendererProps>
     const img = e.currentTarget;
     const newNaturalSize = { width: img.naturalWidth, height: img.naturalHeight };
     setNaturalSize(newNaturalSize);
+    reporter.ready();
 
     // 图片加载完成后，自动适应窗口大小
     if (containerRef.current && newNaturalSize.width > 0 && newNaturalSize.height > 0) {

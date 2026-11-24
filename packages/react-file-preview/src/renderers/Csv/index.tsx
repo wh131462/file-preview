@@ -142,6 +142,7 @@ export const CsvRenderer = forwardRef<RendererHandle, CsvRendererProps>(({ url, 
         sheetDataRef.current = sheetData as unknown as Record<string, unknown>[];
         mountSpreadsheet();
         setLoading(false);
+        reporter.ready();
       } catch (err: any) {
         if (err.name === 'AbortError') return;
         if (isMounted) {

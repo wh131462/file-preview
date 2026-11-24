@@ -1,11 +1,13 @@
 import React, { createContext, useCallback, useContext, useMemo, useRef } from 'react';
 import {
   PreviewRequestError,
+  getFileType,
   noopReporter,
   resolveErrorStage,
   type PreviewErrorPayload,
   type PreviewErrorStage,
   type PreviewFile,
+  type PreviewRenderedPayload,
   type PreviewReporter,
 } from '@eternalheart/file-preview-core';
 
@@ -47,14 +49,18 @@ function originalError(error: unknown): unknown {
 export function usePreviewEventsChannel(
   getContext: () => PreviewEventsHostContext,
   onError?: (payload: PreviewErrorPayload) => void,
+  onRendered?: (payload: PreviewRenderedPayload) => void,
 ): PreviewEventsValue {
   const reportedKeys = useRef<Set<string>>(new Set());
+  const renderedKeys = useRef<Set<string>>(new Set());
   /** 当前渲染器声明的加载代次；reset 不清空，用于丢弃旧文件的迟到回调 */
-  const begun = useRef<{ url: string; index: number } | null>(null);
+  const begun = useRef<{ url: string; index: number; startedAt: number } | null>(null);
   const getContextRef = useRef(getContext);
   getContextRef.current = getContext;
   const onErrorRef = useRef(onError);
   onErrorRef.current = onError;
+  const onRenderedRef = useRef(onRendered);
+  onRenderedRef.current = onRendered;
 
   const emit = useCallback(
     (error: unknown, stage?: PreviewErrorStage, cause?: unknown, url?: string) => {
@@ -96,12 +102,19 @@ export function usePreviewEventsChannel(
     for (const key of reportedKeys.current) {
       if (key !== currentKey) reportedKeys.current.delete(key);
     }
+    for (const key of renderedKeys.current) {
+      if (key !== currentKey) renderedKeys.current.delete(key);
+    }
   }, []);
 
   return useMemo<PreviewEventsValue>(() => ({
     reporter: {
       begin(url) {
-        begun.current = { url, index: getContextRef.current().index };
+        begun.current = {
+          url,
+          index: getContextRef.current().index,
+          startedAt: Date.now(),
+        };
       },
       error(error, stage) {
         const ctx = getContextRef.current();
@@ -109,6 +122,28 @@ export function usePreviewEventsChannel(
         // 渲染器实例所属代次已切换：迟到的错误不能算在当前文件头上
         if (current && current.index !== ctx.index) return;
         emit(error, stage, undefined, current?.url || ctx.file?.url);
+      },
+      ready() {
+        const ctx = getContextRef.current();
+        if (!ctx.file) return;
+        const current = begun.current;
+        if (current && current.index !== ctx.index) return;
+        const url = current?.url || ctx.file.url;
+        if (url && ctx.urls.length > 0 && !ctx.urls.includes(url)) return;
+
+        const key = fileKey(ctx);
+        if (renderedKeys.current.has(key)) return;
+        renderedKeys.current.add(key);
+
+        const payload: PreviewRenderedPayload = {
+          file: ctx.file,
+          index: ctx.index,
+          fileType: getFileType(ctx.file),
+        };
+        if (current && current.index === ctx.index) {
+          payload.durationMs = Date.now() - current.startedAt;
+        }
+        onRenderedRef.current?.(payload);
       },
     },
     report,

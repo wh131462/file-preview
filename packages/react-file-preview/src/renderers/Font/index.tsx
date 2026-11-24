@@ -176,6 +176,7 @@ export const FontRenderer = forwardRef<RendererHandle, FontRendererProps>(({ url
 
         const [faceResult, metadataResult] = await Promise.allSettled([facePromise, metadataPromise]);
         if (!mounted) return;
+        if (faceResult.status === 'fulfilled') reporter.ready();
         setLoading(false);
 
         if (metadataResult.status === 'rejected') {

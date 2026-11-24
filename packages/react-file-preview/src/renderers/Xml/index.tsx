@@ -71,6 +71,7 @@ export const XmlRenderer = forwardRef<RendererHandle, XmlRendererProps>(({ url }
         setError(null);
         const raw = await fetchTextUtf8(url, { fetcher, signal: controller.signal });
         setContent(prettyPrintXml(raw));
+        reporter.ready();
       } catch (err: any) {
         if (err.name === 'AbortError') return;
         console.error(err);

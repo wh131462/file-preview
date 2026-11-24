@@ -4,7 +4,7 @@ import { PreviewFileInput, CustomRenderer } from './types';
 import { FilePreviewContent } from './FilePreviewContent';
 import type { PreviewErrorHandler } from './FilePreviewContent';
 import { useThemeMode } from './hooks';
-import type { EmptyHintMode, Locale, Messages, Theme, CustomRendererEventPayload, PreviewFile, RequestHandler, RequestInitFactory, ShouldFetchAsBlob, FileLoader } from '@eternalheart/file-preview-core';
+import type { EmptyHintMode, Locale, Messages, Theme, CustomRendererEventPayload, PreviewFile, RequestHandler, RequestInitFactory, ShouldFetchAsBlob, FileLoader, PreviewRenderedPayload } from '@eternalheart/file-preview-core';
 
 interface FilePreviewModalProps {
   files: PreviewFileInput[];
@@ -45,6 +45,8 @@ interface FilePreviewModalProps {
   emptyHint?: EmptyHintMode;
   /** 加载/渲染失败回调：每次加载最多触发一次，payload 已补全 file/index/stage（兼容旧版渲染错误签名） */
   onError?: PreviewErrorHandler;
+  /** 首屏内容可交互回调：每次加载最多触发一次，payload 含 file/index/fileType/耗时 */
+  onRendered?: (payload: PreviewRenderedPayload) => void;
 }
 
 export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
@@ -70,6 +72,7 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
   loopNavigation,
   emptyHint,
   onError,
+  onRendered,
 }) => {
   const resolvedTheme = useThemeMode(theme);
 
@@ -124,6 +127,7 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
             shouldFetchAsBlob={shouldFetchAsBlob}
             onDownload={onDownload}
             onError={onError}
+          onRendered={onRendered}
             showClose={showClose}
             showDownload={showDownload}
             showNavigation={showNavigation}

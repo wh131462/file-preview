@@ -20,7 +20,12 @@ const PAGE_CONTENT_HEIGHT = PAGE_HEIGHT - PAGE_PADDING_Y * 2;
 const PAGE_GAP = 24;
 
 function themeToContentStyle(theme: DocxTheme): React.CSSProperties {
-  return docxThemeToCssVars(theme) as React.CSSProperties;
+  // core 返回 kebab-case 键名（Vue/Angular 可直接使用），React 的内联 style 需要 camelCase
+  const style: Record<string, string> = {};
+  for (const [key, value] of Object.entries(docxThemeToCssVars(theme))) {
+    style[key.startsWith('--') ? key : key.replace(/-([a-z])/g, (_m, ch: string) => ch.toUpperCase())] = value;
+  }
+  return style as React.CSSProperties;
 }
 
 export const DocxRenderer = forwardRef<RendererHandle, DocxRendererProps>(({ url }, ref) => {
@@ -59,6 +64,7 @@ export const DocxRenderer = forwardRef<RendererHandle, DocxRendererProps>(({ url
         ]);
         setTheme(nextTheme);
         setHtml(converted.value);
+        reporter.ready();
       } catch (err) {
         console.error(t('docx.parse_failed') + ':', err);
         setError(t('docx.parse_failed'));

@@ -197,6 +197,7 @@ export const XlsxRenderer = forwardRef<RendererHandle, XlsxRendererProps>(({ url
         mountSpreadsheet();
 
         setLoading(false);
+        reporter.ready();
       } catch (err) {
         if (isMounted) {
           console.error(t('xlsx.parse_failed') + ':', err);

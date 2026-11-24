@@ -327,6 +327,7 @@ export const EpubRenderer = forwardRef<EpubRendererHandle, EpubRendererProps>(
           setTotalChapters(totalLocationsRef.current || 1);
 
           setLoading(false);
+          reporter.ready();
 
           rendition.on('relocated', (location: unknown) => {
             const loc = location as { start?: { cfi?: string; location?: number; href?: string } };

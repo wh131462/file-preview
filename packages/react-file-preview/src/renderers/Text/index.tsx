@@ -48,6 +48,7 @@ export const TextRenderer = forwardRef<RendererHandle, TextRendererProps>(({
         setError(null);
         const text = await fetchTextUtf8(url, { fetcher, signal: controller.signal });
         setContent(text);
+        reporter.ready();
       } catch (err: any) {
         if (err.name === 'AbortError') return;
         setError(t('text.load_failed'));

@@ -192,6 +192,7 @@ export const PptxRenderer = forwardRef<RendererHandle, PptxRendererProps>(({ url
           if (!isMounted) return;
           setEmpty(true);
           setLoading(false);
+          reporter.ready();
           return;
         }
 
@@ -259,6 +260,7 @@ export const PptxRenderer = forwardRef<RendererHandle, PptxRendererProps>(({ url
 
           if (isMounted) {
             setLoading(false);
+            reporter.ready();
           }
         } finally {
           // 移除隐藏容器

@@ -188,6 +188,7 @@ export const PdfRenderer = forwardRef<PdfRendererHandle, PdfRendererProps>(({
       state.rendered = true;
       if (pageNumber === 1) {
         setIsInitialPageReady(true);
+        reporter.ready();
       }
     } catch (err: any) {
       if (err?.name !== 'RenderingCancelledException') {

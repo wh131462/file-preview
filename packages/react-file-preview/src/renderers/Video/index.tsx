@@ -133,6 +133,7 @@ export const VideoRenderer = forwardRef<RendererHandle, VideoRendererProps>(({ u
       // 监听加载完成
       player.on('loadeddata', () => {
         setIsLoading(false);
+        reporter.ready();
       });
 
       player.on('error', () => {

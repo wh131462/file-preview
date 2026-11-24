@@ -217,6 +217,7 @@ export const ZipRenderer = forwardRef<RendererHandle, ZipRendererProps>(({ url, 
           for (const c of root.children) if (c.isDir) init.add(c.path);
         }
         setExpanded(init);
+        reporter.ready();
       } catch (err) {
         console.error(err);
         if (!cancelled) {

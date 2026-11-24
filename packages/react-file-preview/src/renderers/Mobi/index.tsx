@@ -383,6 +383,7 @@ export const MobiRenderer = forwardRef<MobiRendererHandle, MobiRendererProps>(
 
           setToc(view.book?.toc ?? []);
           setLoading(false);
+          reporter.ready();
           // 只在 relocate 事件从未报告 progress 时使用 sections.length 作为 fallback，
           // 避免覆盖 SectionProgress 报告的更准确的 total（通常在首页 render 时通过 relocate 已报告）
           if (!progressReported) {

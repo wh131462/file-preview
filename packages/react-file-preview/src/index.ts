@@ -49,6 +49,7 @@ export type { PdfConfigOptions } from './utils/pdfConfig';
 export type {
   PreviewErrorStage,
   PreviewErrorPayload,
+  PreviewRenderedPayload,
   PreviewReporter,
 } from '@eternalheart/file-preview-core';
 

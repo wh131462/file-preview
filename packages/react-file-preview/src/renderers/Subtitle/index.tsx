@@ -76,6 +76,7 @@ export const SubtitleRenderer = forwardRef<RendererHandle, SubtitleRendererProps
   // 上报放到 effect：避免在渲染期同步回调宿主（宿主可能 setState）
   useEffect(() => {
     if (parseResult.error) reporter.error(parseResult.error);
+    else if (parseResult.value) reporter.ready();
   }, [parseResult, reporter]);
 
   const parsed = parseResult.value;

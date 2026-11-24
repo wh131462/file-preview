@@ -32,6 +32,7 @@ export const PptRenderer = forwardRef<RendererHandle, PptRendererProps>(({ url }
         if (!response.ok) throw new PreviewError('file.load_failed');
         const buffer = await response.arrayBuffer();
         setHtml(await renderLegacyPptHtml(buffer));
+        reporter.ready();
       } catch (err) {
         console.error(t('ppt.parse_failed') + ':', err);
         setError(t('ppt.parse_failed'));

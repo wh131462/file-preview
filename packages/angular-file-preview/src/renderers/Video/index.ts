@@ -178,6 +178,7 @@ export class VideoRenderer implements RendererHandle {
 
     player.on('loadeddata', () => {
       this.isLoading.set(false);
+      this.events?.reporter.ready();
     });
 
     player.on('error', () => {

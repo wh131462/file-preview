@@ -234,6 +234,7 @@ export class PptxRenderer implements RendererHandle {
         timeoutId = null;
         this.empty.set(true);
         this.loading.set(false);
+        this.events?.reporter.ready();
         return;
       }
 
@@ -284,6 +285,7 @@ export class PptxRenderer implements RendererHandle {
         }
 
         this.loading.set(false);
+        this.events?.reporter.ready();
       } finally {
         if (document.body.contains(hiddenContainer)) {
           document.body.removeChild(hiddenContainer);

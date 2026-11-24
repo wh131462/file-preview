@@ -6,6 +6,7 @@ import type {
   Locale,
   Messages,
   PreviewErrorPayload,
+  PreviewRenderedPayload,
   PreviewFile,
   PreviewFileInput,
   RequestHandler,
@@ -54,6 +55,7 @@ import { createSystemDarkSignal, resolveTheme } from './di/theme-mode';
           (navigate)="navigate.emit($event)"
           (customEvent)="customEvent.emit($event)"
           (error)="error.emit($event)"
+          (rendered)="rendered.emit($event)"
         />
       </div>
     </div>
@@ -90,6 +92,8 @@ export class FilePreviewEmbed {
   close = output<void>();
   /** 加载/渲染失败事件：每次加载最多触发一次，payload 已补全 file/index/stage */
   error = output<PreviewErrorPayload>();
+  /** 首屏内容可交互事件：每次加载最多触发一次 */
+  rendered = output<PreviewRenderedPayload>();
 
   private readonly system = createSystemDarkSignal();
   readonly resolvedTheme = computed(() => resolveTheme(this.theme(), this.system.systemDark()));

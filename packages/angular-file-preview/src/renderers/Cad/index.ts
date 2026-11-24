@@ -442,6 +442,7 @@ export class CadRenderer implements RendererHandle {
 
       this.loading.set(false);
       this.toolbarEmitter.notify();
+      this.events?.reporter.ready();
     };
 
     const handleLoadError = (err: any) => {

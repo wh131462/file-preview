@@ -42,6 +42,7 @@ export type {
   Theme,
   PreviewErrorStage,
   PreviewErrorPayload,
+  PreviewRenderedPayload,
   PreviewReporter,
 } from './fp-core';
 

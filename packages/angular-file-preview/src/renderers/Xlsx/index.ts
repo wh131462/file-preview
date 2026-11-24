@@ -245,6 +245,7 @@ export class XlsxRenderer implements RendererHandle {
       this.rowLen = getSpreadsheetRowCount(data);
       this.mountSpreadsheet();
       this.loading.set(false);
+      this.events?.reporter.ready();
     } catch (err) {
       console.error(this.t('xlsx.parse_failed') + ':', err);
       let errorMsg = this.t('xlsx.parse_failed');

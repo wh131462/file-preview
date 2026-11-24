@@ -1,7 +1,7 @@
 import { signal } from '@angular/core';
 import { formatTime } from '../fp-core';
 
-export function createAudioPlayer(reportError?: () => void) {
+export function createAudioPlayer(reportError?: () => void, reportReady?: () => void) {
   const isPlaying = signal(false);
   const isLoading = signal(true);
   const currentTime = signal(0);
@@ -31,6 +31,7 @@ export function createAudioPlayer(reportError?: () => void) {
     const onCanPlay = () => {
       isLoading.set(false);
       onDurationChange();
+      reportReady?.();
     };
     const onWaiting = () => isLoading.set(true);
     const onPlaying = () => {
@@ -60,6 +61,7 @@ export function createAudioPlayer(reportError?: () => void) {
     if (el.readyState >= 3) {
       isLoading.set(false);
       onDurationChange();
+      reportReady?.();
     }
 
     unbind = () => {

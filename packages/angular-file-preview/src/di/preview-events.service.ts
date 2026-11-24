@@ -1,11 +1,13 @@
 import { Injectable } from '@angular/core';
 import {
   PreviewRequestError,
+  getFileType,
   noopReporter,
   resolveErrorStage,
   type PreviewErrorPayload,
   type PreviewErrorStage,
   type PreviewFile,
+  type PreviewRenderedPayload,
   type PreviewReporter,
 } from '../fp-core';
 
@@ -30,7 +32,7 @@ export class PreviewEventsService {
   /** 供渲染器上报的最小通道 */
   readonly reporter: PreviewReporter = {
     begin: (url: string) => {
-      this.begun = { url, index: this.context.index };
+      this.begun = { url, index: this.context.index, startedAt: Date.now() };
     },
     error: (error: unknown, stage?: PreviewErrorStage) => {
       const current = this.begun;
@@ -38,19 +40,28 @@ export class PreviewEventsService {
       if (current && current.index !== this.context.index) return;
       this.emit(error, stage, undefined, current?.url || this.context.file?.url);
     },
+    ready: () => {
+      this.emitRendered();
+    },
   };
 
   /** 未接入时的安全默认值，便于渲染器 optional inject */
   static readonly noop = noopReporter;
 
   private listener: ((payload: PreviewErrorPayload) => void) | null = null;
+  private renderedListener: ((payload: PreviewRenderedPayload) => void) | null = null;
   private readonly reportedKeys = new Set<string>();
+  private readonly renderedKeys = new Set<string>();
   /** 当前渲染器声明的加载代次；reset 不清空，用于丢弃旧文件的迟到回调 */
-  private begun: { url: string; index: number } | null = null;
+  private begun: { url: string; index: number; startedAt: number } | null = null;
   private context: PreviewEventsContext = { index: 0, urls: [] };
 
   setListener(listener: ((payload: PreviewErrorPayload) => void) | null): void {
     this.listener = listener;
+  }
+
+  setRenderedListener(listener: ((payload: PreviewRenderedPayload) => void) | null): void {
+    this.renderedListener = listener;
   }
 
   configure(context: PreviewEventsContext): void {
@@ -62,6 +73,9 @@ export class PreviewEventsService {
     const currentKey = `${this.context.index}:${this.context.file?.url ?? ''}`;
     for (const key of this.reportedKeys) {
       if (key !== currentKey) this.reportedKeys.delete(key);
+    }
+    for (const key of this.renderedKeys) {
+      if (key !== currentKey) this.renderedKeys.delete(key);
     }
   }
 
@@ -106,5 +120,29 @@ export class PreviewEventsService {
     if (cause !== undefined) payload.cause = cause;
 
     this.listener?.(payload);
+  }
+
+  private emitRendered(): void {
+    const ctx = this.context;
+    if (!ctx.file) return;
+
+    const current = this.begun;
+    if (current && current.index !== ctx.index) return;
+    const url = current?.url || ctx.file.url;
+    if (url && ctx.urls.length > 0 && !ctx.urls.includes(url)) return;
+
+    const key = `${ctx.index}:${ctx.file.url}`;
+    if (this.renderedKeys.has(key)) return;
+    this.renderedKeys.add(key);
+
+    const payload: PreviewRenderedPayload = {
+      file: ctx.file,
+      index: ctx.index,
+      fileType: getFileType(ctx.file),
+    };
+    if (current && current.index === ctx.index) {
+      payload.durationMs = Date.now() - current.startedAt;
+    }
+    this.renderedListener?.(payload);
   }
 }

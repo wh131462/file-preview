@@ -29,6 +29,7 @@ import {
   type EmptyHintMode,
   type FileLoader,
   type PreviewErrorPayload,
+  type PreviewRenderedPayload,
 } from './fp-core';
 import type { CustomRenderer, CustomRendererContext } from './types';
 import type { RendererHandle } from './renderers/base.types';
@@ -179,6 +180,8 @@ export class FilePreviewContent {
   customEvent = output<CustomRendererEventPayload>();
   /** 加载/渲染失败事件：每次加载最多触发一次，payload 已补全 file/index/stage */
   error = output<PreviewErrorPayload>();
+  /** 首屏内容可交互事件：每次加载最多触发一次，payload 含 file/index/fileType/耗时 */
+  rendered = output<PreviewRenderedPayload>();
 
   protected readonly maxZipDepth = MAX_ZIP_NESTING_DEPTH;
 
@@ -281,6 +284,7 @@ export class FilePreviewContent {
   constructor() {
     // 事件通道：先注册派发出口与上下文（effect 异步调度，需早于请求/渲染失败路径）
     this.events.setListener((payload) => this.error.emit(payload));
+    this.events.setRenderedListener((payload) => this.rendered.emit(payload));
 
     effect(() => {
       const file = this.currentFile();
@@ -332,6 +336,7 @@ export class FilePreviewContent {
       this.resolveController = null;
       this.revokeBlob();
       this.events.setListener(null);
+      this.events.setRenderedListener(null);
     });
 
     effect((onCleanup) => {

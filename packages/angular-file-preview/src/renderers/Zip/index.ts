@@ -315,6 +315,7 @@ export class ZipRenderer implements RendererHandle {
       const init = new Set<string>(['']);
       if (root.children) for (const c of root.children) if (c.isDir) init.add(c.path);
       this.expanded.set(init);
+      this.events?.reporter.ready();
     } catch (err) {
       console.error(err);
       this.error.set(this.t('zip.load_failed'));

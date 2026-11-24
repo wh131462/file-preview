@@ -138,6 +138,7 @@ export class XmlRenderer implements RendererHandle {
       const fetcher = this.request?.fetcher() ?? ((u: string, init?: RequestInit) => fetch(u, init));
       const raw = await fetchTextUtf8(this.url(), { fetcher });
       this.content.set(this.prettyPrintXml(raw));
+      this.events?.reporter.ready();
     } catch (err) {
       console.error(err);
       this.error.set(this.t('xml.load_failed'));

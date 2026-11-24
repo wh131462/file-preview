@@ -171,6 +171,7 @@ export class TextRenderer implements RendererHandle {
       const fetcher = this.request?.fetcher() ?? ((u: string, init?: RequestInit) => fetch(u, init));
       const text = await fetchTextUtf8(this.url(), { fetcher });
       this.content.set(text);
+      this.events?.reporter.ready();
     } catch (err) {
       console.error(err);
       this.error.set(this.t('text.load_failed'));

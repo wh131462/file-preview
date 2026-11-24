@@ -284,8 +284,9 @@ export class SubtitleRenderer implements RendererHandle {
     });
     // 上报放到 effect：避免在 computed 求值期间同步 emit（宿主写 signal 会被 NG0600 拦截）
     effect(() => {
-      const err = this.parseState().error;
-      if (err) this.events?.reporter.error(err);
+      const state = this.parseState();
+      if (state.error) this.events?.reporter.error(state.error);
+      else if (state.value) this.events?.reporter.ready();
     });
   }
 

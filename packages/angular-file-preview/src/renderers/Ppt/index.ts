@@ -82,6 +82,7 @@ export class PptRenderer implements RendererHandle {
       if (!response.ok) throw new PreviewError('file.load_failed');
       const buffer = await response.arrayBuffer();
       this.html.set(await renderLegacyPptHtml(buffer));
+      this.events?.reporter.ready();
     } catch (err) {
       console.error(this.t('ppt.parse_failed') + ':', err);
       this.error.set(this.t('ppt.parse_failed'));

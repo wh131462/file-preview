@@ -496,6 +496,7 @@ export class MobiRenderer implements RendererHandle {
 
       this.toc.set((view.book?.toc ?? []) as TocItem[]);
       this.loading.set(false);
+      this.events?.reporter.ready();
       if (!progressReported) {
         this.reportProgress(0, view.book?.sections.length ?? 1);
       }

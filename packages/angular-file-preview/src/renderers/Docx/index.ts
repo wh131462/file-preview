@@ -148,6 +148,7 @@ export class DocxRenderer implements RendererHandle {
       ]);
       this.theme.set(theme);
       this.html.set(converted.value);
+      this.events?.reporter.ready();
     } catch (err) {
       console.error(this.t('docx.parse_failed') + ':', err);
       this.error.set(this.t('docx.parse_failed'));

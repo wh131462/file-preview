@@ -229,9 +229,14 @@ export class AudioRenderer implements RendererHandle {
   protected readonly skipForwardIcon = SkipForward;
   protected readonly repeatIcon = Repeat;
 
-  private readonly player = createAudioPlayer(() => {
-    this.events?.reporter.error(new PreviewError('audio.load_failed'), 'request');
-  });
+  private readonly player = createAudioPlayer(
+    () => {
+      this.events?.reporter.error(new PreviewError('audio.load_failed'), 'request');
+    },
+    () => {
+      this.events?.reporter.ready();
+    },
+  );
   protected readonly isPlaying = this.player.isPlaying;
   protected readonly isLoop = this.player.isLoop;
   protected readonly currentTime = this.player.currentTime;

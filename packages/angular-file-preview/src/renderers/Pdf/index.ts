@@ -615,6 +615,7 @@ export class PdfRenderer implements RendererHandle {
       state.rendered = true;
       if (pageNumber === 1) {
         this.initialPageReady.set(true);
+        this.events?.reporter.ready();
       }
     } catch (err: unknown) {
       if ((err as { name?: string })?.name !== 'RenderingCancelledException') {

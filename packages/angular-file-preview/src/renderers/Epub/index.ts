@@ -448,6 +448,7 @@ export class EpubRenderer implements RendererHandle {
       await Promise.race([this.rendition.display(), openFailed]);
 
       this.loading.set(false);
+      this.events?.reporter.ready();
       this.currentChapter.set(1);
       this.totalChapters.set(this.totalLocations || 1);
 

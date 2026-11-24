@@ -433,6 +433,7 @@ export class MsgRenderer implements RendererHandle {
       const arrayBuffer = await response.arrayBuffer();
       const msgReader = new MsgReader(arrayBuffer);
       this.fields.set(msgReader.getFileData());
+      this.events?.reporter.ready();
     } catch (err) {
       console.error(this.t('msg.parse_failed') + ':', err);
       this.error.set(this.t('msg.parse_failed'));

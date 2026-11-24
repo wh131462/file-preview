@@ -322,6 +322,7 @@ export class FontRenderer implements RendererHandle {
       const metadataPromise = this.loadMetadata(arrayBuffer, magic);
 
       const [faceResult, metadataResult] = await Promise.allSettled([facePromise, metadataPromise]);
+      if (faceResult.status === 'fulfilled') this.events?.reporter.ready();
       this.loading.set(false);
 
       if (metadataResult.status === 'rejected') {

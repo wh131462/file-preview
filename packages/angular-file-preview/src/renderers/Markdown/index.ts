@@ -272,6 +272,7 @@ export class MarkdownRenderer implements RendererHandle {
       const text = await fetchTextUtf8(this.url(), { fetcher });
       this.content.set(text);
       this.html.set(this.md.render(text));
+      this.events?.reporter.ready();
       this.loading.set(false);
       try {
         this.highlightedSource.set(

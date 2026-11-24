@@ -475,6 +475,7 @@ export class ImageRenderer implements RendererHandle {
     this.loaded.set(true);
     const img = e.currentTarget as HTMLImageElement;
     this.naturalSize.set({ width: img.naturalWidth, height: img.naturalHeight });
+    this.events?.reporter.ready();
 
     const container = this.containerRef()?.nativeElement;
     const size = this.naturalSize();

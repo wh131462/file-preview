@@ -321,6 +321,7 @@ export class JsonRenderer implements RendererHandle {
       const isEmpty = isEmptyContent(text);
       this.empty.set(isEmpty);
       this.data.set(isEmpty ? null : parseJsonc(text));
+      this.events?.reporter.ready();
     } catch (err) {
       console.error(err);
       this.error.set(this.t('json.load_failed'));

@@ -196,6 +196,7 @@ export class CsvRenderer implements RendererHandle {
       this.sheetData = data as unknown as Record<string, unknown>[];
       this.mountSpreadsheet();
       this.loading.set(false);
+      this.events?.reporter.ready();
     } catch (err) {
       console.error(this.t('csv.parse_failed') + ':', err);
       this.error.set(this.t('csv.load_failed'));

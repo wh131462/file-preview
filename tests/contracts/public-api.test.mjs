@@ -12,11 +12,16 @@ const requiredCoreExports = [
   'decodeText',
   'detectImageFormat',
   'getFileType',
+  'isInlineResourceUrl',
+  'resolveConsumableUrl',
+  'withHeaders',
   'getLanguageFromFileName',
   'normalizeFile',
   'parseCsv',
   'parseSubtitle',
   'resolveShowClose',
+  'PreviewRequestError',
+  'resolveErrorStage',
 ];
 
 const requiredFrameworkTypes = [
@@ -24,6 +29,8 @@ const requiredFrameworkTypes = [
   'CustomRendererContext',
   'CustomRendererEventPayload',
   'Fetcher',
+  'FileContent',
+  'FileLoader',
   'FileType',
   'PreviewErrorPayload',
   'PreviewErrorStage',
@@ -35,6 +42,8 @@ const requiredFrameworkTypes = [
   'RequestOptions',
   'ShouldFetchAsBlob',
 ];
+
+const requiredFrameworkRuntime = ['PreviewRequestError', 'withHeaders'];
 
 function collectNamedExports(source, fileName) {
   const sourceFile = ts.createSourceFile(fileName, source, ts.ScriptTarget.Latest, true);
@@ -71,6 +80,9 @@ test('all framework entries expose the shared public type contract', async () =>
     const exports = collectNamedExports(source, entry);
     for (const typeName of requiredFrameworkTypes) {
       assert.ok(exports.has(typeName), `${entry} missing type export ${typeName}`);
+    }
+    for (const runtimeName of requiredFrameworkRuntime) {
+      assert.ok(exports.has(runtimeName), `${entry} missing runtime export ${runtimeName}`);
     }
   }
 });

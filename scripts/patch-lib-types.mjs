@@ -3,6 +3,7 @@ import {
   existsSync,
   readFileSync,
   readdirSync,
+  rmSync,
   statSync,
   writeFileSync,
 } from 'node:fs';
@@ -49,6 +50,15 @@ function listFiles(dir) {
 const RELATIVE_SPECIFIER =
   /(\bfrom\s*|\bimport\s*\(\s*|\bimport\s*)(['"])(\.{1,2}\/[^'"]+)(\2)/g;
 const EXPLICIT_EXTENSION = /\.(?:d\.ts|js|mjs|cjs|json|css)$/;
+// 注释行里的示例 import 不参与重写 / 校验
+const COMMENT_LINE = /^\s*(?:\/\/|\/\*|\*)/;
+
+function transformCodeLines(source, transform) {
+  return source
+    .split('\n')
+    .map((line) => (COMMENT_LINE.test(line) ? line : transform(line)))
+    .join('\n');
+}
 
 function toEsmSpecifier(specifier, fromDir) {
   if (EXPLICIT_EXTENSION.test(specifier)) return specifier;
@@ -62,6 +72,8 @@ function toEsmSpecifier(specifier, fromDir) {
   );
 }
 
+// 先清空再复制，避免核心删除 / 改名后残留旧声明
+rmSync(bundledCoreDir, { recursive: true, force: true });
 cpSync(coreLibDir, bundledCoreDir, {
   recursive: true,
   filter: (source) => statSync(source).isDirectory() || source.endsWith('.d.ts'),
@@ -77,12 +89,14 @@ for (const file of listFiles(libDir)) {
   const relativeImport = importPath.startsWith('.') ? importPath : `./${importPath}`;
 
   const source = readFileSync(file, 'utf8');
-  const updated = source
-    .replaceAll('@eternalheart/file-preview-core', relativeImport)
-    .replace(RELATIVE_SPECIFIER, (match, prefix, quote, specifier) => {
-      const rewritten = toEsmSpecifier(specifier, dirname(file));
-      return `${prefix}${quote}${rewritten}${quote}`;
-    });
+  const updated = transformCodeLines(source, (line) =>
+    line
+      .replaceAll('@eternalheart/file-preview-core', relativeImport)
+      .replace(RELATIVE_SPECIFIER, (match, prefix, quote, specifier) => {
+        const rewritten = toEsmSpecifier(specifier, dirname(file));
+        return `${prefix}${quote}${rewritten}${quote}`;
+      }),
+  );
 
   if (updated !== source) writeFileSync(file, updated);
 }
@@ -91,22 +105,24 @@ if (packageName === 'angular-file-preview' && existsSync(fpCoreDts)) {
   writeFileSync(fpCoreDts, `export * from './core/index.js';\n`);
 }
 
-RELATIVE_SPECIFIER.lastIndex = 0;
 for (const file of listFiles(libDir)) {
   if (!file.endsWith('.d.ts')) continue;
 
   const source = readFileSync(file, 'utf8');
-  if (source.includes('@eternalheart/file-preview-core')) {
-    throw new Error(
-      `Declaration still references file-preview-core: ${file}`,
-    );
-  }
 
-  for (const match of source.matchAll(RELATIVE_SPECIFIER)) {
-    if (!EXPLICIT_EXTENSION.test(match[3])) {
+  for (const line of source.split('\n')) {
+    if (COMMENT_LINE.test(line)) continue;
+    if (line.includes('@eternalheart/file-preview-core')) {
       throw new Error(
-        `Declaration import lacks an explicit extension: '${match[3]}' in ${file}`,
+        `Declaration still references file-preview-core: ${file}`,
       );
+    }
+    for (const match of line.matchAll(RELATIVE_SPECIFIER)) {
+      if (!EXPLICIT_EXTENSION.test(match[3])) {
+        throw new Error(
+          `Declaration import lacks an explicit extension: '${match[3]}' in ${file}`,
+        );
+      }
     }
   }
 }

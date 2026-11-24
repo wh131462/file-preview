@@ -11,6 +11,8 @@ export type {
   RequestOptions,
   Fetcher,
   ShouldFetchAsBlob,
+  FileContent,
+  FileLoader,
 } from '@eternalheart/file-preview-core';
 
 import type {

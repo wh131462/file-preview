@@ -61,16 +61,25 @@ const load = async () => {
 
 watch(() => props.url, load, { immediate: true });
 
-const parsed = computed<SubtitleParseResult | null>(() => {
-  if (!text.value) return null;
+const parseState = computed<{ value: SubtitleParseResult | null; error: unknown }>(() => {
+  if (!text.value) return { value: null, error: null };
   try {
-    return parseSubtitle(text.value, getFormat(props.fileName));
+    return { value: parseSubtitle(text.value, getFormat(props.fileName)), error: null };
   } catch (err) {
     console.error(err);
-    reporter.error(err);
-    return null;
+    return { value: null, error: err };
   }
 });
+
+// 上报放到 watch：避免在 computed 求值期间同步回调宿主（宿主可能改状态）
+watch(
+  () => parseState.value.error,
+  (err) => {
+    if (err) reporter.error(err);
+  },
+);
+
+const parsed = computed<SubtitleParseResult | null>(() => parseState.value.value);
 
 const isLyric = computed(() => parsed.value?.format === 'lrc' || parsed.value?.format === 'elrc');
 

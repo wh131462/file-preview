@@ -129,9 +129,10 @@ const initPlayer = () => {
         title: t.value('video.load_failed'),
         detail: err?.message || t.value('common.unknown_error'),
       };
-      reporter.error(err);
     }
     isLoading.value = false;
+    // code=2 为网络错误，其余（解码 / 格式不支持）归入解析阶段
+    reporter.error(err ?? new Error('video load failed'), err?.code === 2 ? 'request' : 'parse');
   });
 };
 

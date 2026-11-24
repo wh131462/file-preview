@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { watch, toRef } from 'vue';
-import type { PreviewFile, PreviewFileInput, EmptyHintMode, Locale, Messages, Theme, CustomRendererEventPayload, RequestHandler, RequestInitFactory, ShouldFetchAsBlob, PreviewErrorPayload } from '@eternalheart/file-preview-core';
+import type { PreviewFile, PreviewFileInput, EmptyHintMode, Locale, Messages, Theme, CustomRendererEventPayload, RequestHandler, RequestInitFactory, ShouldFetchAsBlob, FileLoader, PreviewErrorPayload } from '@eternalheart/file-preview-core';
 import type { CustomRenderer } from './types';
 import FilePreviewContent from './FilePreviewContent.vue';
 import { useScrollLock } from './composables/useScrollLock';
@@ -19,11 +19,13 @@ interface Props {
   headless?: boolean;
   /** 主题模式，默认 'dark' */
   theme?: Theme;
-  /** 自定义 RequestInit（或工厂函数）：注入 Authorization 等鉴权头 */
+  /** 统一取数入口：鉴权 / 签名场景下由宿主决定文件怎么取 */
+  loadFile?: FileLoader;
+  /** @deprecated 将在 1.8.0 移除；请改用 `loadFile` */
   requestInit?: RequestInitFactory;
-  /** 自定义请求处理器：完全接管库内 fetch */
+  /** @deprecated 将在 1.8.0 移除；请改用 `loadFile` */
   requestHandler?: RequestHandler;
-  /** 返回 true 时，对应文件先 fetcher→blob URL 后喂给 image/video/audio/pdf 等 renderer */
+  /** @deprecated 将在 1.8.0 移除；请改用 `loadFile` */
   shouldFetchAsBlob?: ShouldFetchAsBlob;
   /** 自定义下载回调；不传时库内默认通过 fetcher 拉 Blob 触发下载 */
   onDownload?: (file: PreviewFile) => void | Promise<void>;
@@ -47,6 +49,7 @@ const props = withDefaults(defineProps<Props>(), {
   messages: undefined,
   headless: false,
   theme: 'dark',
+  loadFile: undefined,
   requestInit: undefined,
   requestHandler: undefined,
   shouldFetchAsBlob: undefined,
@@ -101,6 +104,7 @@ const handleWheel = (e: WheelEvent) => e.stopPropagation();
               :messages="messages"
               :headless="headless"
               :theme="theme"
+              :load-file="loadFile"
               :request-init="requestInit"
               :request-handler="requestHandler"
               :should-fetch-as-blob="shouldFetchAsBlob"

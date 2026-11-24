@@ -1,15 +1,23 @@
 import { inject, provide, computed, ref, watch, onBeforeUnmount, type ComputedRef, type Ref } from 'vue';
 import type {
   Fetcher,
+  FileLoader,
   PreviewFile,
   RequestHandler,
   RequestInitFactory,
   ShouldFetchAsBlob,
 } from '@eternalheart/file-preview-core';
-import { createFetcher, fetchAsBlobUrl } from '@eternalheart/file-preview-core';
+import {
+  createFetcher,
+  fetchAsBlobUrl,
+  getFileType,
+  isInlineResourceUrl,
+  resolveConsumableUrl,
+} from '@eternalheart/file-preview-core';
 
 export interface RequestContextValue {
   fetcher: Fetcher;
+  loadFile?: FileLoader;
   shouldFetchAsBlob?: ShouldFetchAsBlob;
 }
 
@@ -17,11 +25,13 @@ const REQUEST_KEY = Symbol('file-preview:request');
 
 export function provideRequestContext(
   options: {
+    loadFile?: FileLoader;
     requestInit?: RequestInitFactory;
     requestHandler?: RequestHandler;
     shouldFetchAsBlob?: ShouldFetchAsBlob;
     onRequestError?: (url: string, error: unknown) => void;
   } | (() => {
+    loadFile?: FileLoader;
     requestInit?: RequestInitFactory;
     requestHandler?: RequestHandler;
     shouldFetchAsBlob?: ShouldFetchAsBlob;
@@ -36,6 +46,7 @@ export function provideRequestContext(
         requestHandler: opts.requestHandler,
         onRequestError: opts.onRequestError,
       }),
+      loadFile: opts.loadFile,
       shouldFetchAsBlob: opts.shouldFetchAsBlob,
     };
   });
@@ -58,12 +69,29 @@ export function useFetcher(): ComputedRef<Fetcher> {
   return computed(() => ctx.value.fetcher);
 }
 
+const DEPRECATED_REQUEST_PROPS = ['requestInit', 'requestHandler', 'shouldFetchAsBlob'] as const;
+let deprecatedRequestWarningShown = false;
+
+/** 过渡期提示：旧鉴权参数已废弃，1.8.0 移除。 */
+export function warnDeprecatedRequestProps(
+  used: Partial<Record<(typeof DEPRECATED_REQUEST_PROPS)[number], unknown>>,
+): void {
+  if (deprecatedRequestWarningShown) return;
+  const names = DEPRECATED_REQUEST_PROPS.filter((name) => used[name] !== undefined);
+  if (names.length === 0) return;
+  deprecatedRequestWarningShown = true;
+  console.warn(
+    `[file-preview] ${names.map((name) => `\`${name}\``).join('、')} 已废弃，将在 1.8.0 移除；请改用 \`loadFile\`（简单场景可用 \`withHeaders\`）。`,
+  );
+}
+
 /**
  * 解析 file 的可消费 URL：
- * - 未配置 shouldFetchAsBlob 或返回 false：直接派生自 file.url（不入 ref，避免切换文件时残留旧值）
- * - 返回 true：用 fetcher 拉成 blob: URL，组件卸载或 file 变化时 revoke
+ * - 配置了 loadFile 且是远程可预览文件：由宿主取数，Blob 转 blob: URL，`{ url }` 直接使用；
+ * - 未配置 loadFile、shouldFetchAsBlob 返回 true：用 fetcher 拉成 blob: URL；
+ * - 其余：直接派生自 file.url（不入 ref，避免切换文件时残留旧值）
  *
- * onError 用于把 blob 预取失败上报给宿主（默认仍回退原 URL 继续尝试）。
+ * onError 用于把取数失败上报给宿主（默认仍回退原 URL 继续尝试）。
  */
 export function useResolvedUrl(
   file: Ref<PreviewFile | undefined>,
@@ -80,35 +108,55 @@ export function useResolvedUrl(
     }
   };
 
+  // 只把「是否配置了 loadFile」作为依赖；函数引用每次父级渲染都可能变化，
+  // 不能仅因引用变化就重新取数。
+  const hasLoader = computed(() => !!ctx.value.loadFile);
+  const needBlob = computed(() => !!file.value && !!ctx.value.shouldFetchAsBlob?.(file.value));
+
   watch(
-    () => {
+    [() => file.value?.id ?? '', () => file.value?.url ?? '', hasLoader, needBlob],
+    async ([, , loaderOn, needBlobNow], _old, onCleanup) => {
+      // 回调内读取 ctx 属于非追踪读取，拿到最新实现
       const f = file.value;
-      const need = !!(f && ctx.value.shouldFetchAsBlob?.(f));
-      return { f, need, fetcher: ctx.value.fetcher };
-    },
-    async ({ f, need, fetcher }, _old, onCleanup) => {
-      if (!f || !need) {
+      const { fetcher, loadFile } = ctx.value;
+      const useLoader = !!(
+        loaderOn &&
+        f &&
+        !f.file &&
+        !isInlineResourceUrl(f.url) &&
+        getFileType(f) !== 'unsupported'
+      );
+      if (!f || (!useLoader && !needBlobNow)) {
         cleanup();
         blobUrlRef.value = '';
         return;
       }
       let cancelled = false;
+      const controller = useLoader ? new AbortController() : null;
       onCleanup(() => {
         cancelled = true;
+        controller?.abort();
       });
       blobUrlRef.value = '';
       try {
-        const blobUrl = await fetchAsBlobUrl(f.url, fetcher);
+        const resolved = useLoader && loadFile
+          ? await loadFile(f, { signal: controller!.signal }).then(resolveConsumableUrl)
+          : await fetchAsBlobUrl(f.url, fetcher).then((url) => ({
+              url,
+              revoke: () => URL.revokeObjectURL(url),
+            }));
         if (cancelled) {
-          URL.revokeObjectURL(blobUrl);
+          resolved.revoke?.();
           return;
         }
         cleanup();
-        createdBlobUrl = blobUrl;
-        blobUrlRef.value = blobUrl;
+        if (resolved.revoke) {
+          createdBlobUrl = resolved.url;
+        }
+        blobUrlRef.value = resolved.url;
       } catch (err) {
         if (!cancelled) {
-          console.error('[file-preview] resolve blob url failed:', err);
+          console.error('[file-preview] resolve file source failed:', err);
           onError?.(err);
           blobUrlRef.value = f.url;
         }
@@ -119,12 +167,17 @@ export function useResolvedUrl(
 
   onBeforeUnmount(cleanup);
 
-  // 同步派生：非 blob 模式始终直接返回 file.url，确保切换文件时不会残留上一帧的 URL
+  // 同步派生：非取数模式始终直接返回 file.url，确保切换文件时不会残留上一帧的 URL
   return computed(() => {
     const f = file.value;
     if (!f) return '';
-    const need = !!ctx.value.shouldFetchAsBlob?.(f);
-    if (!need) return f.url;
+    const useLoader = !!(
+      hasLoader.value &&
+      !f.file &&
+      !isInlineResourceUrl(f.url) &&
+      getFileType(f) !== 'unsupported'
+    );
+    if (!useLoader && !needBlob.value) return f.url;
     return blobUrlRef.value;
   });
 }

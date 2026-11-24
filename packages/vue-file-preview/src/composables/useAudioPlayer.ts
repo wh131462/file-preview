@@ -1,5 +1,6 @@
 import { ref, watch, onUnmounted, type Ref } from 'vue';
-import { formatTime } from '@eternalheart/file-preview-core';
+import { PreviewError, formatTime } from '@eternalheart/file-preview-core';
+import { usePreviewEvents } from './usePreviewEvents';
 
 /**
  * Vue 3 版本的音频播放器 composable
@@ -15,12 +16,16 @@ export function useAudioPlayer(url: Ref<string>) {
   const isMuted = ref(false);
   const isLoop = ref(false);
   const error = ref<string | null>(null);
+  const reporter = usePreviewEvents();
 
   let cleanup: (() => void) | null = null;
 
   const bindEvents = () => {
     const audio = audioRef.value;
     if (!audio) return;
+
+    // 标记本次加载的 URL，供事件通道校验代次
+    reporter.begin(url.value);
 
     isLoading.value = true;
     error.value = null;
@@ -63,6 +68,7 @@ export function useAudioPlayer(url: Ref<string>) {
     const onError = () => {
       error.value = 'audio.load_failed';
       isLoading.value = false;
+      reporter.error(new PreviewError('audio.load_failed'), 'request');
     };
 
     audio.addEventListener('timeupdate', onTimeUpdate);

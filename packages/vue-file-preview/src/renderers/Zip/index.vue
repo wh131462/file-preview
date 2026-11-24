@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { PreviewError } from '@eternalheart/file-preview-core';
+import type { PreviewErrorPayload } from '@eternalheart/file-preview-core';
 import { ref, computed, watch, onBeforeUnmount, defineAsyncComponent } from 'vue';
 import type JSZip from 'jszip';
 import {
@@ -44,6 +45,11 @@ const emitter = new ToolbarEventEmitter();
 const { t } = useTranslator();
 const fetcher = useFetcher();
 const reporter = usePreviewEvents();
+
+/** 内嵌预览失败时向容器文件上报 */
+const onNestedError = (payload: PreviewErrorPayload) => {
+  reporter.error(payload.error, payload.stage);
+};
 
 interface SelectedPreview {
   path: string;
@@ -233,6 +239,7 @@ const previewFiles = computed(() => {
                 :files="previewFiles"
                 :current-index="0"
                 :zip-nesting-depth="nestingDepth + 1"
+                @error="onNestedError"
               />
             </div>
           </template>

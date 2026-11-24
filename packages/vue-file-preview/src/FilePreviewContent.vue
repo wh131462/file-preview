@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onBeforeUnmount, toRef, provide } from 'vue';
+import { ref, computed, watch, onMounted, onBeforeUnmount, toRef, provide, onErrorCaptured } from 'vue';
 import { X, Download } from 'lucide-vue-next';
 import {
   normalizeFiles,
   getFileType,
+  createFetcher,
   downloadFileWithFetcher,
   resolveShowClose,
   type PreviewFile,
@@ -15,13 +16,15 @@ import {
   type RequestHandler,
   type RequestInitFactory,
   type ShouldFetchAsBlob,
+  type FileLoader,
+  resolveConsumableUrl,
   type EmptyHintMode,
   type PreviewErrorPayload,
 } from '@eternalheart/file-preview-core';
 import type { CustomRenderer, CustomRendererContext } from './types';
 import { provideLocale } from './composables/useTranslator';
 import { provideResolvedTheme } from './composables/useResolvedTheme';
-import { provideRequestContext, useResolvedUrl, useFetcher } from './composables/useRequest';
+import { provideRequestContext, useResolvedUrl, warnDeprecatedRequestProps } from './composables/useRequest';
 import { providePreviewEvents } from './composables/usePreviewEvents';
 import { useThemeMode } from './composables/useThemeMode';
 import type { ToolbarGroup, ToolbarButtonItem, ToolbarTextItem } from './renderers/toolbar.types';
@@ -29,6 +32,7 @@ import type { RendererHandle } from './renderers/base.types';
 import { BUILTIN_RENDERERS } from './renderers/registry';
 // Unsupported 体量极小且每次回退都用，直接静态打包到主入口
 import UnsupportedRenderer from './renderers/Unsupported/index.vue';
+import RendererLoading from './renderers/RendererLoading.vue';
 import NavArrows from './components/NavArrows.vue';
 
 const MAX_ZIP_NESTING_DEPTH = 3;
@@ -49,11 +53,13 @@ interface Props {
   headless?: boolean;
   /** 主题模式，默认 'dark' */
   theme?: Theme;
-  /** 自定义 RequestInit（或工厂函数）：注入 Authorization 等鉴权头 */
+  /** 统一取数入口：鉴权 / 签名场景下由宿主决定文件怎么取 */
+  loadFile?: FileLoader;
+  /** @deprecated 将在 1.8.0 移除；请改用 `loadFile` */
   requestInit?: RequestInitFactory;
-  /** 自定义请求处理器：完全接管库内 fetch */
+  /** @deprecated 将在 1.8.0 移除；请改用 `loadFile` */
   requestHandler?: RequestHandler;
-  /** 返回 true 时，对应文件先 fetcher→blob URL 后喂给 image/video/audio/pdf 等 renderer */
+  /** @deprecated 将在 1.8.0 移除；请改用 `loadFile` */
   shouldFetchAsBlob?: ShouldFetchAsBlob;
   /** 自定义下载回调；不传时库内默认通过 fetcher 拉 Blob 触发下载 */
   onDownload?: (file: PreviewFile) => void | Promise<void>;
@@ -89,6 +95,7 @@ const props = withDefaults(defineProps<Props>(), {
   messages: undefined,
   headless: false,
   theme: 'dark',
+  loadFile: undefined,
   requestInit: undefined,
   requestHandler: undefined,
   shouldFetchAsBlob: undefined,
@@ -108,6 +115,7 @@ const requestErrorSink: { report: (url: string, error: unknown) => void } = {
 };
 
 provideRequestContext(() => ({
+  loadFile: props.loadFile,
   requestInit: props.requestInit,
   requestHandler: props.requestHandler,
   shouldFetchAsBlob: props.shouldFetchAsBlob,
@@ -191,8 +199,17 @@ requestErrorSink.report = (url, error) => {
   previewEvents.report(error, 'request');
 };
 
-// 切换文件或换 URL 即进入新代次，允许再次上报
-watch(currentFile, () => previewEvents.reset());
+// 切换文件或换 URL 即进入新代次，允许再次上报（按稳定字段而非对象身份）
+watch(
+  () => `${props.currentIndex}|${currentFile.value?.url ?? ''}`,
+  () => previewEvents.reset(),
+);
+
+// 渲染期未捕获异常（自定义渲染器 / 内置渲染器 render 抛错）统一上报
+onErrorCaptured((err) => {
+  previewEvents.report(err, 'render');
+  return true;
+});
 
 // 自定义渲染器匹配
 const customRenderer = computed(() => {
@@ -289,6 +306,11 @@ const handleKeyDown = (e: KeyboardEvent) => {
 };
 
 onMounted(() => {
+  warnDeprecatedRequestProps({
+    requestInit: props.requestInit,
+    requestHandler: props.requestHandler,
+    shouldFetchAsBlob: props.shouldFetchAsBlob,
+  });
   if (props.mode === 'modal') {
     window.addEventListener('keydown', handleKeyDown);
   } else if (rootRef.value) {
@@ -305,17 +327,31 @@ onBeforeUnmount(() => {
 });
 
 
-const fetcher = useFetcher();
+const fetcher = computed(() =>
+  createFetcher({ requestInit: props.requestInit, requestHandler: props.requestHandler }),
+);
 const handleDownload = async () => {
   if (!currentFile.value) return;
   if (props.onDownload) {
     await props.onDownload(currentFile.value);
     return;
   }
+  let tempRevoke: (() => void) | null = null;
   try {
-    await downloadFileWithFetcher(currentFile.value.url, currentFile.value.name, fetcher.value);
+    // loadFile 场景复用已解析 URL；尚未解析（如预览类型不支持）时按需取一次
+    let downloadUrl = props.loadFile ? resolvedUrl.value : currentFile.value.url;
+    if (props.loadFile && !downloadUrl) {
+      const resolved = resolveConsumableUrl(
+        await props.loadFile(currentFile.value, { signal: new AbortController().signal }),
+      );
+      downloadUrl = resolved.url;
+      tempRevoke = resolved.revoke;
+    }
+    await downloadFileWithFetcher(downloadUrl || currentFile.value.url, currentFile.value.name, fetcher.value);
   } catch (err) {
     console.error('[file-preview] download failed:', err);
+  } finally {
+    tempRevoke?.();
   }
 };
 
@@ -491,6 +527,8 @@ const hasToolGroups = computed(() => toolGroups.value.length > 0);
             :file-type="currentFile.type"
             @download="handleDownload"
           />
+          <!-- 取数尚未就绪（loadFile 托管 / blob 预取）：先展示加载态 -->
+          <RendererLoading v-else-if="builtinRenderer && !resolvedUrl" />
           <!-- 从注册表查找匹配的渲染器 -->
           <component
             v-else-if="builtinRenderer"

@@ -1,5 +1,6 @@
 import { inject, provide } from 'vue';
 import {
+  PreviewRequestError,
   noopReporter,
   resolveErrorStage,
   type PreviewErrorPayload,
@@ -25,8 +26,20 @@ export interface PreviewEventsHost {
   reporter: PreviewReporter;
   /** 顶层自用：补上下文 + 代次校验 + 去重后派发 */
   report: (error: unknown, stage?: PreviewErrorStage, cause?: unknown) => void;
-  /** 切换文件时重置代次与去重状态 */
+  /** 切换文件时重置去重状态 */
   reset: () => void;
+}
+
+/** 一次加载的去重键：同一 index + 同一原始 URL 视为同一次加载。 */
+function fileKey(ctx: PreviewEventsHostContext): string {
+  return `${ctx.index}:${ctx.file?.url ?? ''}`;
+}
+
+/** 对外保留原始异常，PreviewRequestError 只作为阶段标记。 */
+function originalError(error: unknown): unknown {
+  return error instanceof PreviewRequestError && error.cause !== undefined
+    ? error.cause
+    : error;
 }
 
 /**
@@ -39,24 +52,31 @@ export function providePreviewEvents(
   getContext: () => PreviewEventsHostContext,
   dispatch: (payload: PreviewErrorPayload) => void,
 ): PreviewEventsHost {
-  const reportedUrls = new Set<string>();
-  let begunUrl = '';
+  const reportedKeys = new Set<string>();
+  /** 当前渲染器声明的加载代次；reset 不清空，用于丢弃旧文件的迟到回调 */
+  let begun: { url: string; index: number } | null = null;
 
-  const report: PreviewEventsHost['report'] = (error, stage, cause) => {
+  const emit = (
+    error: unknown,
+    stage?: PreviewErrorStage,
+    cause?: unknown,
+    url?: string,
+  ) => {
     const ctx = getContext();
     if (!ctx.file) return;
 
-    const url = begunUrl || ctx.file.url;
-    // 代次校验：切换文件/换 URL 后，旧实例的迟到回调直接丢弃
-    if (ctx.urls.length > 0 && !ctx.urls.includes(url)) return;
-    // 同代次同 URL 只派发一次
-    if (reportedUrls.has(url)) return;
-    reportedUrls.add(url);
+    // 代次校验：URL 不属于当前文件（blob 已换代 / 旧文件迟到回调）直接丢弃
+    if (url && ctx.urls.length > 0 && !ctx.urls.includes(url)) return;
+
+    // 同一次加载只派发一次
+    const key = fileKey(ctx);
+    if (reportedKeys.has(key)) return;
+    reportedKeys.add(key);
 
     const payload: PreviewErrorPayload = {
       file: ctx.file,
       index: ctx.index,
-      error,
+      error: originalError(error),
       stage: resolveErrorStage(error, stage),
     };
     if (cause !== undefined) payload.cause = cause;
@@ -64,12 +84,20 @@ export function providePreviewEvents(
     dispatch(payload);
   };
 
+  const report: PreviewEventsHost['report'] = (error, stage, cause) => {
+    emit(error, stage, cause);
+  };
+
   const reporter: PreviewReporter = {
     begin(url) {
-      begunUrl = url;
+      begun = { url, index: getContext().index };
     },
     error(error, stage) {
-      report(error, stage);
+      const ctx = getContext();
+      const current = begun;
+      // 渲染器实例所属代次已切换：迟到的错误不能算在当前文件头上
+      if (current && current.index !== ctx.index) return;
+      emit(error, stage, undefined, current?.url || ctx.file?.url);
     },
   };
 
@@ -79,8 +107,11 @@ export function providePreviewEvents(
     reporter,
     report,
     reset() {
-      begunUrl = '';
-      reportedUrls.clear();
+      // 只清其它文件的去重状态：保留当前键，避免重复派发；begun 保留用于代次校验
+      const currentKey = fileKey(getContext());
+      for (const key of reportedKeys) {
+        if (key !== currentKey) reportedKeys.delete(key);
+      }
     },
   };
 }

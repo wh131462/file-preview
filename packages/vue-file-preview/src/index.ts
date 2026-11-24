@@ -28,6 +28,8 @@ export type {
   RequestOptions,
   Fetcher,
   ShouldFetchAsBlob,
+  FileContent,
+  FileLoader,
 } from './types';
 
 // 导出工具函数和常量
@@ -37,6 +39,8 @@ export {
   getFileType,
   configurePdfWorker,
   SUPPORTED_FILE_TYPES,
+  PreviewRequestError,
+  withHeaders,
 } from '@eternalheart/file-preview-core';
 
 export type { PdfWorkerOptions } from '@eternalheart/file-preview-core';
@@ -47,6 +51,9 @@ export type {
   PreviewErrorPayload,
   PreviewReporter,
 } from '@eternalheart/file-preview-core';
+
+// 导出事件通道 composable（自定义渲染器可复用内置上报能力）
+export { usePreviewEvents } from './composables/usePreviewEvents';
 
 // 导出 i18n 相关
 export { useTranslator, provideLocale } from './composables/useTranslator';

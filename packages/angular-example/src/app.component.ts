@@ -20,6 +20,7 @@ import {
   type CustomRendererContext,
   type CustomRendererEventPayload,
   type PreviewErrorPayload,
+  type PreviewRenderedPayload,
 } from '@eternalheart/angular-file-preview';
 import {
   FileText,
@@ -369,6 +370,7 @@ export class DemoRenderer {
                 (close)="handleClose('embed')"
                 (customEvent)="handleCustomEvent($event)"
                 (error)="handleError($event)"
+                (rendered)="handleRendered($event)"
               />
             </div>
           </div>
@@ -555,6 +557,7 @@ export class DemoRenderer {
         (navigate)="handleNavigate($event, 'modal')"
         (customEvent)="handleCustomEvent($event)"
         (error)="handleError($event)"
+        (rendered)="handleRendered($event)"
       />
     </div>
   `,
@@ -644,6 +647,12 @@ export class AppComponent {
   handleError(payload: PreviewErrorPayload): void {
     // eslint-disable-next-line no-console
     console.log('[FilePreview error]', payload);
+  }
+
+  /** 首屏内容就绪事件：打印 file/index/fileType/durationMs 便于验证 */
+  handleRendered(payload: PreviewRenderedPayload): void {
+    // eslint-disable-next-line no-console
+    console.log('[FilePreview rendered]', payload);
   }
 
   /** 导航事件：打印来源与索引，再更新对应 signal */

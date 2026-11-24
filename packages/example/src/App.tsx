@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
 import { FilePreviewModal, FilePreviewEmbed, VERSION, SUPPORTED_FILE_TYPES } from '@eternalheart/react-file-preview';
-import type { PreviewFile, PreviewFileInput, Theme, CustomRenderer, CustomRendererEventPayload, PreviewErrorPayload } from '@eternalheart/react-file-preview';
+import type { PreviewFile, PreviewFileInput, Theme, CustomRenderer, CustomRendererEventPayload, PreviewErrorPayload, PreviewRenderedPayload } from '@eternalheart/react-file-preview';
 import type { Locale } from '@eternalheart/react-file-preview';
 import '@eternalheart/react-file-preview/style.css';
 import { FileText, Image, FileSpreadsheet, Video, Music, Upload, X, Package, BookOpen, Code, Settings, Sparkles, Link as LinkIcon } from 'lucide-react';
@@ -48,6 +48,11 @@ const handleCustomEvent = (e: CustomRendererEventPayload) => {
 /** 加载/渲染失败事件：打印完整载荷便于验证 file/index/stage/error */
 const handleError = (payload: PreviewErrorPayload) => {
   console.log('[FilePreview error]', payload);
+};
+
+/** 首屏内容就绪事件：打印 file/index/fileType/durationMs 便于验证 */
+const handleRendered = (payload: PreviewRenderedPayload) => {
+  console.log('[FilePreview rendered]', payload);
 };
 
 // 环境检测：开发环境和生产环境的 URL
@@ -593,6 +598,7 @@ function App() {
                 customRenderers={demoCustomRenderers}
                 onCustomEvent={handleCustomEvent}
                 onError={handleError}
+                onRendered={handleRendered}
               />
             </div>
           </div>
@@ -759,6 +765,7 @@ function App() {
         customRenderers={demoCustomRenderers}
         onCustomEvent={handleCustomEvent}
         onError={handleError}
+        onRendered={handleRendered}
       />
     </div>
   );

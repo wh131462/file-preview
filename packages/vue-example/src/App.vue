@@ -13,6 +13,7 @@ import {
   type CustomRendererContext,
   type CustomRendererEventPayload,
   type PreviewErrorPayload,
+  type PreviewRenderedPayload,
 } from '@eternalheart/vue-file-preview';
 import '@eternalheart/vue-file-preview/style.css';
 import {
@@ -107,6 +108,12 @@ const handleCustomEvent = (e: CustomRendererEventPayload) => {
 const handleError = (payload: PreviewErrorPayload) => {
   // eslint-disable-next-line no-console
   console.log('[FilePreview error]', payload);
+};
+
+/** 首屏内容就绪事件：打印 file/index/fileType/durationMs 便于验证 */
+const handleRendered = (payload: PreviewRenderedPayload) => {
+  // eslint-disable-next-line no-console
+  console.log('[FilePreview rendered]', payload);
 };
 
 /** 导航事件：打印来源与索引，再更新对应状态 */
@@ -619,6 +626,7 @@ onUnmounted(() => {
             @close="handleClose('embed')"
             @custom-event="handleCustomEvent"
             @error="handleError"
+            @rendered="handleRendered"
           />
         </div>
       </div>
@@ -773,6 +781,7 @@ onUnmounted(() => {
       @navigate="handleNavigate($event, 'modal')"
       @custom-event="handleCustomEvent"
       @error="handleError"
+      @rendered="handleRendered"
     />
   </div>
 </template>

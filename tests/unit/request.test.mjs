@@ -290,3 +290,8 @@ test('infers request stage from third-party response and network errors', () => 
   assert.equal(core.resolveErrorStage(new Error('Unexpected end of JSON input')), 'parse');
   assert.equal(core.resolveErrorStage(responseError, 'parse'), 'parse');
 });
+
+test('noop reporter exposes the rendered ready hook', () => {
+  assert.equal(typeof core.noopReporter.ready, 'function');
+  assert.doesNotThrow(() => core.noopReporter.ready());
+});

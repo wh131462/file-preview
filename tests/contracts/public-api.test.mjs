@@ -21,6 +21,7 @@ const requiredCoreExports = [
   'parseSubtitle',
   'resolveShowClose',
   'PreviewRequestError',
+  'noopReporter',
   'resolveErrorStage',
 ];
 
@@ -34,6 +35,7 @@ const requiredFrameworkTypes = [
   'FileType',
   'PreviewErrorPayload',
   'PreviewErrorStage',
+  'PreviewRenderedPayload',
   'PreviewFile',
   'PreviewFileInput',
   'PreviewReporter',

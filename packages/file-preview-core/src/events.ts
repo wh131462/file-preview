@@ -1,5 +1,5 @@
 import { PreviewError } from './i18n';
-import type { PreviewFile } from './types';
+import type { FileType, PreviewFile } from './types';
 
 /** 失败发生的阶段：取数 / 解析 / 渲染。 */
 export type PreviewErrorStage = 'request' | 'parse' | 'render';
@@ -19,6 +19,21 @@ export interface PreviewErrorPayload {
   stage: PreviewErrorStage;
   /** 框架侧补充的诊断信息（如 React ErrorInfo），其他端可能为空。 */
   cause?: unknown;
+}
+
+/**
+ * 渲染成功（首屏内容就绪）时对外派发的载荷。
+ * 与 error 一样按一次加载去重，`fileType` 为 getFileType(file) 的结果。
+ */
+export interface PreviewRenderedPayload {
+  /** 渲染成功的文件 */
+  file: PreviewFile;
+  /** 文件索引 */
+  index: number;
+  /** 文件类型（getFileType 结果），便于按类型统计 */
+  fileType: FileType;
+  /** 从 begin 到 ready 的耗时（毫秒）；未调用 begin 时省略 */
+  durationMs?: number;
 }
 
 /**
@@ -109,6 +124,8 @@ export function resolveErrorStage(
 export interface PreviewReporter {
   begin(url: string): void;
   error(error: unknown, stage?: PreviewErrorStage): void;
+  /** 本次加载首次产出可交互内容时调用；重复调用会被忽略 */
+  ready(): void;
 }
 
 /** 未接入事件通道时的占位实现，保证渲染器可无条件调用。 */
@@ -117,6 +134,9 @@ export const noopReporter: PreviewReporter = {
     // no-op
   },
   error() {
+    // no-op
+  },
+  ready() {
     // no-op
   },
 };

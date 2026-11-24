@@ -71,6 +71,7 @@ export {
 export type {
   PreviewErrorStage,
   PreviewErrorPayload,
+  PreviewRenderedPayload,
   PreviewReporter,
 } from './events';
 

@@ -49,6 +49,7 @@ export type { PdfWorkerOptions } from '@eternalheart/file-preview-core';
 export type {
   PreviewErrorStage,
   PreviewErrorPayload,
+  PreviewRenderedPayload,
   PreviewReporter,
 } from '@eternalheart/file-preview-core';
 

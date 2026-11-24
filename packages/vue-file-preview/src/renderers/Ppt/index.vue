@@ -31,6 +31,7 @@ const loadPpt = async () => {
     if (!response.ok) throw new PreviewError('file.load_failed');
     const buffer = await response.arrayBuffer();
     html.value = await renderLegacyPptHtml(buffer);
+    reporter.ready();
   } catch (err) {
     console.error(t.value('ppt.parse_failed') + ':', err);
     error.value = t.value('ppt.parse_failed');

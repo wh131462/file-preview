@@ -107,6 +107,7 @@ const loadPptx = async () => {
       if (timeoutId !== null) clearTimeout(timeoutId);
       empty.value = true;
       loading.value = false;
+      reporter.ready();
       return;
     }
 
@@ -157,6 +158,7 @@ const loadPptx = async () => {
       }
 
       loading.value = false;
+      reporter.ready();
     } finally {
       if (document.body.contains(hiddenContainer)) {
         document.body.removeChild(hiddenContainer);

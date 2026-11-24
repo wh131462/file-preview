@@ -21,6 +21,7 @@ import {
   isInlineResourceUrl,
   type EmptyHintMode,
   type PreviewErrorPayload,
+  type PreviewRenderedPayload,
 } from '@eternalheart/file-preview-core';
 import type { CustomRenderer, CustomRendererContext } from './types';
 import { provideLocale } from './composables/useTranslator';
@@ -71,6 +72,11 @@ interface Props {
    * 每次加载最多触发一次，payload 已由顶层补全 file/index/stage。
    */
   onError?: (payload: PreviewErrorPayload) => void;
+  /**
+   * 首屏内容可交互回调（与 `@rendered` 等价）。
+   * 每次加载最多触发一次，payload 含 file/index/fileType/耗时。
+   */
+  onRendered?: (payload: PreviewRenderedPayload) => void;
   /** 是否显示关闭按钮，默认根据 mode 决定（modal: true, embed: false） */
   showClose?: boolean;
   /** 是否显示下载按钮，默认 true */
@@ -103,6 +109,7 @@ const props = withDefaults(defineProps<Props>(), {
   onDownload: undefined,
   onClose: undefined,
   onError: undefined,
+  onRendered: undefined,
   showClose: undefined,
   showDownload: true,
   showNavigation: true,
@@ -127,6 +134,7 @@ const emit = defineEmits<{
   (e: 'navigate', index: number): void;
   (e: 'close'): void;
   (e: 'error', payload: PreviewErrorPayload): void;
+  (e: 'rendered', payload: PreviewRenderedPayload): void;
   (e: 'custom-event', payload: CustomRendererEventPayload): void;
 }>();
 
@@ -191,6 +199,7 @@ const previewEvents = providePreviewEvents(
     urls: [currentFile.value?.url ?? '', resolvedUrl.value].filter(Boolean),
   }),
   (payload) => emit('error', payload),
+  (payload) => emit('rendered', payload),
 );
 
 reportBlobError = (error) => previewEvents.report(error, 'request');

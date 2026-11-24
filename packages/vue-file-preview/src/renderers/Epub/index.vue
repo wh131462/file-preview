@@ -246,6 +246,7 @@ const loadEpub = async () => {
     await Promise.race([rendition.display(), openFailed]);
 
     loading.value = false;
+    reporter.ready();
     currentChapter.value = 1; totalChapters.value = totalLocations || 1;
 
     rendition.on('relocated', (location: unknown) => {

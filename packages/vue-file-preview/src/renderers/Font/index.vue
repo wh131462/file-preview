@@ -282,6 +282,7 @@ onMounted(async () => {
     const metadataPromise = loadMetadata(arrayBuffer, magic);
 
     const [faceResult, metadataResult] = await Promise.allSettled([facePromise, metadataPromise]);
+    if (faceResult.status === 'fulfilled') reporter.ready();
     loading.value = false;
 
     if (metadataResult.status === 'rejected') {

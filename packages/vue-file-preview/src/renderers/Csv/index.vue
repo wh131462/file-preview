@@ -88,6 +88,7 @@ const loadCsv = async () => {
     sheetData = data as unknown as Record<string, unknown>[];
     mountSpreadsheet();
     loading.value = false;
+    reporter.ready();
   } catch (err) {
     console.error(t.value('csv.parse_failed') + ':', err);
     error.value = t.value('csv.load_failed');

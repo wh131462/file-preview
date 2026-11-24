@@ -132,6 +132,7 @@ const loadExcel = async () => {
     rowLen = getSpreadsheetRowCount(data);
     mountSpreadsheet();
     loading.value = false;
+    reporter.ready();
   } catch (err) {
     console.error(t.value('xlsx.parse_failed') + ':', err);
     let errorMsg = t.value('xlsx.parse_failed');

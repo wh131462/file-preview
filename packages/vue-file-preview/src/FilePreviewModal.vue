@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { watch, toRef } from 'vue';
-import type { PreviewFile, PreviewFileInput, EmptyHintMode, Locale, Messages, Theme, CustomRendererEventPayload, RequestHandler, RequestInitFactory, ShouldFetchAsBlob, FileLoader, PreviewErrorPayload } from '@eternalheart/file-preview-core';
+import type { PreviewFile, PreviewFileInput, EmptyHintMode, Locale, Messages, Theme, CustomRendererEventPayload, RequestHandler, RequestInitFactory, ShouldFetchAsBlob, FileLoader, PreviewErrorPayload, PreviewRenderedPayload } from '@eternalheart/file-preview-core';
 import type { CustomRenderer } from './types';
 import FilePreviewContent from './FilePreviewContent.vue';
 import { useScrollLock } from './composables/useScrollLock';
@@ -41,6 +41,8 @@ interface Props {
   emptyHint?: EmptyHintMode;
   /** 加载/渲染失败回调（与 `@error` 等价） */
   onError?: (payload: PreviewErrorPayload) => void;
+  /** 首屏内容可交互回调（与 `@rendered` 等价） */
+  onRendered?: (payload: PreviewRenderedPayload) => void;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -60,6 +62,7 @@ const props = withDefaults(defineProps<Props>(), {
   loopNavigation: false,
   emptyHint: 'auto',
   onError: undefined,
+  onRendered: undefined,
 });
 
 const emit = defineEmits<{
@@ -67,6 +70,7 @@ const emit = defineEmits<{
   (e: 'navigate', index: number): void;
   (e: 'custom-event', payload: CustomRendererEventPayload): void;
   (e: 'error', payload: PreviewErrorPayload): void;
+  (e: 'rendered', payload: PreviewRenderedPayload): void;
 }>();
 
 const { lock, unlock } = useScrollLock(() => props.isOpen);
@@ -119,6 +123,7 @@ const handleWheel = (e: WheelEvent) => e.stopPropagation();
               @navigate="(i) => emit('navigate', i)"
               @custom-event="(p) => emit('custom-event', p)"
               @error="(p) => emit('error', p)"
+        @rendered="(p) => emit('rendered', p)"
             />
           </div>
         </div>

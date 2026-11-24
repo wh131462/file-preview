@@ -72,12 +72,10 @@ const parseState = computed<{ value: SubtitleParseResult | null; error: unknown 
 });
 
 // 上报放到 watch：避免在 computed 求值期间同步回调宿主（宿主可能改状态）
-watch(
-  () => parseState.value.error,
-  (err) => {
-    if (err) reporter.error(err);
-  },
-);
+watch(parseState, (state) => {
+  if (state.error) reporter.error(state.error);
+  else if (state.value) reporter.ready();
+});
 
 const parsed = computed<SubtitleParseResult | null>(() => parseState.value.value);
 

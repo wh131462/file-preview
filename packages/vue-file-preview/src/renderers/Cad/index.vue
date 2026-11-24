@@ -414,6 +414,7 @@ const loadModel = () => {
 
     loading.value = false;
     toolbarEmitter.notify();
+    reporter.ready();
   };
 
   // 处理加载错误

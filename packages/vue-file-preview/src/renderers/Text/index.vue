@@ -56,6 +56,7 @@ const loadText = async () => {
   try {
     const text = await fetchTextUtf8(props.url, { fetcher: fetcher.value });
     content.value = text;
+    reporter.ready();
   } catch (err) {
     console.error(err);
     error.value = t.value('text.load_failed');

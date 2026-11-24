@@ -50,6 +50,7 @@ const loadDocx = async () => {
     ]);
     theme.value = nextTheme;
     html.value = converted.value;
+    reporter.ready();
   } catch (err) {
     console.error(t.value('docx.parse_failed') + ':', err);
     error.value = t.value('docx.parse_failed');

@@ -96,6 +96,7 @@ const loadMsg = async () => {
     const arrayBuffer = await response.arrayBuffer();
     const msgReader = new MsgReader(arrayBuffer);
     fields.value = msgReader.getFileData();
+    reporter.ready();
   } catch (err) {
     console.error(t.value('msg.parse_failed') + ':', err);
     error.value = t.value('msg.parse_failed');

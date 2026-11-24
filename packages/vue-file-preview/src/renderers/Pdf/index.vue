@@ -392,6 +392,7 @@ const renderPage = async (pageNumber: number, scale: number) => {
     state.rendered = true;
     if (pageNumber === 1) {
       isInitialPageReady.value = true;
+      reporter.ready();
     }
   } catch (err: any) {
     if (err?.name !== 'RenderingCancelledException') {

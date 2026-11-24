@@ -392,6 +392,7 @@ const handleLoad = (e: Event) => {
   loaded.value = true;
   const img = e.currentTarget as HTMLImageElement;
   naturalSize.value = { width: img.naturalWidth, height: img.naturalHeight };
+  reporter.ready();
 
   // 自动适应窗口
   if (containerRef.value && naturalSize.value.width > 0 && naturalSize.value.height > 0) {

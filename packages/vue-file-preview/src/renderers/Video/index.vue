@@ -110,6 +110,7 @@ const initPlayer = () => {
 
   player.on('loadeddata', () => {
     isLoading.value = false;
+    reporter.ready();
   });
 
   player.on('error', () => {

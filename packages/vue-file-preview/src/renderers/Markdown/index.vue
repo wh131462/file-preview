@@ -126,6 +126,7 @@ const loadMarkdown = async () => {
     content.value = text;
     html.value = md.render(text);
     loading.value = false;
+    reporter.ready();
     // 异步生成源码高亮（不阻塞预览渲染）
     try {
       highlightedSource.value = await codeToHtml(text, { lang: 'markdown', theme: shikiTheme.value });

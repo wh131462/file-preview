@@ -39,6 +39,7 @@ const loadJson = async () => {
     // 空文档（含仅空白字符）没有可解析的值，保持空态而不是渲染 undefined
     empty.value = isEmptyContent(text);
     data.value = empty.value ? null : parseJsonc(text);
+    reporter.ready();
   } catch (err) {
     console.error(err);
     error.value = t.value('json.load_failed');

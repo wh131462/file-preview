@@ -98,6 +98,7 @@ const load = async () => {
     const init = new Set<string>(['']);
     if (root.children) for (const c of root.children) if (c.isDir) init.add(c.path);
     expanded.value = init;
+    reporter.ready();
   } catch (err) {
     console.error(err);
     error.value = t.value('zip.load_failed');

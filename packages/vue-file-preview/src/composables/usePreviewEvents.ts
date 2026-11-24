@@ -1,11 +1,13 @@
 import { inject, provide } from 'vue';
 import {
   PreviewRequestError,
+  getFileType,
   noopReporter,
   resolveErrorStage,
   type PreviewErrorPayload,
   type PreviewErrorStage,
   type PreviewFile,
+  type PreviewRenderedPayload,
   type PreviewReporter,
 } from '@eternalheart/file-preview-core';
 
@@ -51,10 +53,12 @@ function originalError(error: unknown): unknown {
 export function providePreviewEvents(
   getContext: () => PreviewEventsHostContext,
   dispatch: (payload: PreviewErrorPayload) => void,
+  dispatchRendered?: (payload: PreviewRenderedPayload) => void,
 ): PreviewEventsHost {
   const reportedKeys = new Set<string>();
+  const renderedKeys = new Set<string>();
   /** 当前渲染器声明的加载代次；reset 不清空，用于丢弃旧文件的迟到回调 */
-  let begun: { url: string; index: number } | null = null;
+  let begun: { url: string; index: number; startedAt: number } | null = null;
 
   const emit = (
     error: unknown,
@@ -90,7 +94,7 @@ export function providePreviewEvents(
 
   const reporter: PreviewReporter = {
     begin(url) {
-      begun = { url, index: getContext().index };
+      begun = { url, index: getContext().index, startedAt: Date.now() };
     },
     error(error, stage) {
       const ctx = getContext();
@@ -98,6 +102,28 @@ export function providePreviewEvents(
       // 渲染器实例所属代次已切换：迟到的错误不能算在当前文件头上
       if (current && current.index !== ctx.index) return;
       emit(error, stage, undefined, current?.url || ctx.file?.url);
+    },
+    ready() {
+      const ctx = getContext();
+      if (!ctx.file) return;
+      const current = begun;
+      if (current && current.index !== ctx.index) return;
+      const url = current?.url || ctx.file.url;
+      if (url && ctx.urls.length > 0 && !ctx.urls.includes(url)) return;
+
+      const key = fileKey(ctx);
+      if (renderedKeys.has(key)) return;
+      renderedKeys.add(key);
+
+      const payload: PreviewRenderedPayload = {
+        file: ctx.file,
+        index: ctx.index,
+        fileType: getFileType(ctx.file),
+      };
+      if (current && current.index === ctx.index) {
+        payload.durationMs = Date.now() - current.startedAt;
+      }
+      dispatchRendered?.(payload);
     },
   };
 
@@ -111,6 +137,9 @@ export function providePreviewEvents(
       const currentKey = fileKey(getContext());
       for (const key of reportedKeys) {
         if (key !== currentKey) reportedKeys.delete(key);
+      }
+      for (const key of renderedKeys) {
+        if (key !== currentKey) renderedKeys.delete(key);
       }
     },
   };

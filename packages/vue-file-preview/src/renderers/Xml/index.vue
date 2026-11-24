@@ -67,6 +67,7 @@ const load = async () => {
   try {
     const raw = await fetchTextUtf8(props.url, { fetcher: fetcher.value });
     content.value = prettyPrintXml(raw);
+    reporter.ready();
   } catch (err) {
     console.error(err);
     error.value = t.value('xml.load_failed');

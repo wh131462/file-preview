@@ -45,6 +45,7 @@ export function useAudioPlayer(url: Ref<string>) {
     const onCanPlay = () => {
       isLoading.value = false;
       onDurationChange();
+      reporter.ready();
     };
 
     const onWaiting = () => {
@@ -85,6 +86,7 @@ export function useAudioPlayer(url: Ref<string>) {
     if (audio.readyState >= 3) {
       isLoading.value = false;
       onDurationChange();
+      reporter.ready();
     } else if (audio.readyState >= 1) {
       onDurationChange();
     }

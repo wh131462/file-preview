@@ -86,6 +86,7 @@ export class DocRenderer implements RendererHandle {
       if (!response.ok) throw new PreviewError('file.load_failed');
       const buffer = await response.arrayBuffer();
       this.html.set(await renderLegacyDocHtml(buffer));
+      this.events?.reporter.ready();
     } catch (err) {
       console.error(this.t('doc.parse_failed') + ':', err);
       this.error.set(this.t('doc.parse_failed'));

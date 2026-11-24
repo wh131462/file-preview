@@ -31,6 +31,7 @@ const loadDoc = async () => {
     if (!response.ok) throw new PreviewError('file.load_failed');
     const buffer = await response.arrayBuffer();
     html.value = await renderLegacyDocHtml(buffer);
+    reporter.ready();
   } catch (err) {
     console.error(t.value('doc.parse_failed') + ':', err);
     error.value = t.value('doc.parse_failed');

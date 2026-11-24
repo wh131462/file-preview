@@ -32,6 +32,7 @@ export const DocRenderer = forwardRef<RendererHandle, DocRendererProps>(({ url }
         if (!response.ok) throw new PreviewError('file.load_failed');
         const buffer = await response.arrayBuffer();
         setHtml(await renderLegacyDocHtml(buffer));
+        reporter.ready();
       } catch (err) {
         console.error(t('doc.parse_failed') + ':', err);
         setError(t('doc.parse_failed'));

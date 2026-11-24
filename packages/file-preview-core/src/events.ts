@@ -54,10 +54,37 @@ const REQUEST_ERROR_KEYS: ReadonlySet<string> = new Set([
 ]);
 
 /**
+ * 浏览器网络层 TypeError（CORS / 混合内容 / 断网时 fetch 的典型拒绝形态）。
+ * 限制消息形态，避免把渲染器里的普通 TypeError 误判为取数失败。
+ */
+function isNetworkTypeError(error: unknown): boolean {
+  if (!(error instanceof TypeError)) return false;
+  return /failed to fetch|load failed|networkerror|network error|network request failed|请求失败|网络/i.test(
+    error.message,
+  );
+}
+
+/**
+ * 第三方库（pdf.js 等）把 HTTP 状态挂在异常上，未经过 createFetcher 包装。
+ * pdf.js 的 ResponseException 同时带 `status` 和 `name`。
+ */
+function isResponseShapeError(error: unknown): boolean {
+  if (typeof error !== 'object' || error === null) return false;
+  const { status, name } = error as { status?: unknown; name?: unknown };
+  if (typeof status === 'number' && status >= 100 && status <= 599) return true;
+  return (
+    name === 'ResponseException' ||
+    name === 'MissingPDFException' ||
+    name === 'UnexpectedResponseException'
+  );
+}
+
+/**
  * 推断失败阶段：
  * - 显式传入 stage 时优先采用；
  * - 请求包装异常推断为 'request'；
  * - 响应状态类 key（HTTP 非 2xx）推断为 'request'；
+ * - 第三方库响应异常 / 网络 TypeError 推断为 'request'；
  * - 其余一律视为 'parse'。
  */
 export function resolveErrorStage(
@@ -69,6 +96,7 @@ export function resolveErrorStage(
   if (error instanceof PreviewError && REQUEST_ERROR_KEYS.has(error.key)) {
     return 'request';
   }
+  if (isResponseShapeError(error) || isNetworkTypeError(error)) return 'request';
   return 'parse';
 }
 

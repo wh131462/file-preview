@@ -24,8 +24,9 @@ import {
   Volume2,
   VolumeX,
 } from 'lucide-angular';
-import { formatTime } from '../../fp-core';
+import { PreviewError, formatTime } from '../../fp-core';
 import { LocaleService, getFallbackTranslator } from '../../di/locale.service';
+import { PreviewEventsService } from '../../di/preview-events.service';
 import { createAudioPlayer } from '../../utils/audio-player';
 import { RendererError } from '../RendererError';
 import { ToolbarEventEmitter } from '../base.types';
@@ -215,6 +216,7 @@ export class AudioRenderer implements RendererHandle {
 
   private readonly emitter = new ToolbarEventEmitter();
   private readonly locale = inject(LocaleService, { optional: true });
+  private readonly events = inject(PreviewEventsService, { optional: true });
   private readonly destroyRef = inject(DestroyRef);
   protected readonly t = this.locale?.translate ?? getFallbackTranslator();
   protected readonly formatTime = formatTime;
@@ -227,7 +229,9 @@ export class AudioRenderer implements RendererHandle {
   protected readonly skipForwardIcon = SkipForward;
   protected readonly repeatIcon = Repeat;
 
-  private readonly player = createAudioPlayer();
+  private readonly player = createAudioPlayer(() => {
+    this.events?.reporter.error(new PreviewError('audio.load_failed'), 'request');
+  });
   protected readonly isPlaying = this.player.isPlaying;
   protected readonly isLoop = this.player.isLoop;
   protected readonly currentTime = this.player.currentTime;
@@ -264,6 +268,7 @@ export class AudioRenderer implements RendererHandle {
   constructor() {
     effect(() => {
       this.url();
+      this.events?.reporter.begin(this.url());
       const el = this.audioEl()?.nativeElement ?? null;
       untracked(() => {
         cancelAnimationFrame(this.bindRaf);

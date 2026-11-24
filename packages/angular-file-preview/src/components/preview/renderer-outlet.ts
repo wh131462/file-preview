@@ -92,7 +92,8 @@ export class RendererOutlet {
       } catch (err) {
         console.error('[file-preview] renderer load failed:', err);
         if (current !== this.seq) return;
-        this.events?.reporter.error(err, 'render');
+        // 顶层上报：懒加载失败归属当前文件，不依赖渲染器 begin 代次
+        this.events?.report(err, 'render');
         this.loading.set(false);
         this.handleChange.emit(null);
       }

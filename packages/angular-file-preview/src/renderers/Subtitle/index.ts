@@ -262,16 +262,17 @@ export class SubtitleRenderer implements RendererHandle {
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
 
-  readonly parsed = computed<SubtitleParseResult | null>(() => {
-    if (!this.text()) return null;
+  readonly parseState = computed<{ value: SubtitleParseResult | null; error: unknown }>(() => {
+    if (!this.text()) return { value: null, error: null };
     try {
-      return parseSubtitle(this.text(), SubtitleRenderer.getFormat(this.fileName()));
+      return { value: parseSubtitle(this.text(), SubtitleRenderer.getFormat(this.fileName())), error: null };
     } catch (err) {
       console.error(err);
-      this.events?.reporter.error(err);
-      return null;
+      return { value: null, error: err };
     }
   });
+
+  readonly parsed = computed<SubtitleParseResult | null>(() => this.parseState().value);
 
   readonly isLyric = computed(() => this.parsed()?.format === 'lrc' || this.parsed()?.format === 'elrc');
   readonly meta = computed<Record<string, string>>(() => this.parsed()?.metadata ?? {});
@@ -280,6 +281,11 @@ export class SubtitleRenderer implements RendererHandle {
     effect(() => {
       this.url();
       void this.load();
+    });
+    // 上报放到 effect：避免在 computed 求值期间同步 emit（宿主写 signal 会被 NG0600 拦截）
+    effect(() => {
+      const err = this.parseState().error;
+      if (err) this.events?.reporter.error(err);
     });
   }
 

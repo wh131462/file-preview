@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, effect, input, output } f
 import type {
   CustomRendererEventPayload,
   EmptyHintMode,
+  FileLoader,
   Locale,
   Messages,
   PreviewErrorPayload,
@@ -39,6 +40,7 @@ import { createSystemDarkSignal, resolveTheme } from './di/theme-mode';
           [messages]="messages()"
           [headless]="headless()"
           [theme]="theme()"
+          [loadFile]="loadFile()"
           [requestInit]="requestInit()"
           [requestHandler]="requestHandler()"
           [shouldFetchAsBlob]="shouldFetchAsBlob()"
@@ -67,8 +69,13 @@ export class FilePreviewEmbed {
   messages = input<Partial<Record<Locale, Partial<Messages>>> | undefined>(undefined);
   headless = input(false);
   theme = input<Theme>('dark');
+  /** 统一取数入口：鉴权 / 签名场景下由宿主决定文件怎么取 */
+  loadFile = input<FileLoader | undefined>(undefined);
+  /** @deprecated 将在 1.8.0 移除；请改用 `loadFile` */
   requestInit = input<RequestInitFactory | undefined>(undefined);
+  /** @deprecated 将在 1.8.0 移除；请改用 `loadFile` */
   requestHandler = input<RequestHandler | undefined>(undefined);
+  /** @deprecated 将在 1.8.0 移除；请改用 `loadFile` */
   shouldFetchAsBlob = input<ShouldFetchAsBlob | undefined>(undefined);
   onDownload = input<((file: PreviewFile) => void | Promise<void>) | undefined>(undefined);
   showClose = input<boolean | undefined>(undefined);

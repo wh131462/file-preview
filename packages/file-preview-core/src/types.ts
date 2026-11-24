@@ -132,5 +132,26 @@ export type Fetcher = (url: string, init?: RequestInit) => Promise<Response>;
 /**
  * 是否对该文件先 fetch 成 Blob 再生成 blob: URL 喂给底层渲染器。
  * 命中后所有 src 类（image/video/audio/pdf）都走 fetcher，能复用鉴权头。
+ *
+ * @deprecated 将在 1.8.0 移除；请改用 `FileLoader`（`loadFile` prop）。
  */
 export type ShouldFetchAsBlob = (file: PreviewFile) => boolean;
+
+/**
+ * `FileLoader` 的返回值：
+ * - `Blob`：库内转成 `blob:` URL 并负责释放；
+ * - `{ url }`：已是可直接消费的 URL（预签名直链、后端代理等），生命周期由调用方管理。
+ */
+export type FileContent = Blob | { url: string };
+
+/**
+ * 统一取数入口：由宿主决定文件内容怎么拿。
+ *
+ * 传入后库内不再对原始 URL 发起任何请求，也不注入 / 合并任何 RequestInit；
+ * 文档类读取 Blob 内容解析，src 类使用返回的 `blob:` 或直链 URL。
+ * `signal` 在切换文件或卸载时 abort，调用方应透传给自己的 HTTP 客户端。
+ */
+export type FileLoader = (
+  file: PreviewFile,
+  ctx: { signal: AbortSignal },
+) => Promise<FileContent>;

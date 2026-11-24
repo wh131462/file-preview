@@ -12,6 +12,8 @@ export type {
   RequestOptions,
   Fetcher,
   ShouldFetchAsBlob,
+  FileContent,
+  FileLoader,
 } from './types';
 
 // 导出常量
@@ -51,7 +53,14 @@ export { decodeText, decodeUtf8, fetchTextUtf8 } from './utils/textDecoder';
 export type { FetchTextOptions } from './utils/textDecoder';
 
 // 导出请求/鉴权工具
-export { createFetcher, fetchAsBlobUrl, downloadFileWithFetcher } from './utils/request';
+export {
+  createFetcher,
+  fetchAsBlobUrl,
+  downloadFileWithFetcher,
+  isInlineResourceUrl,
+  resolveConsumableUrl,
+  withHeaders,
+} from './utils/request';
 
 // 导出预览事件（加载/渲染失败上报）
 export {

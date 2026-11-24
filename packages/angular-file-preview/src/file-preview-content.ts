@@ -14,6 +14,7 @@ import {
 import {
   downloadFileWithFetcher,
   getFileType,
+  isInlineResourceUrl,
   normalizeFiles,
   resolveShowClose,
   type Locale,
@@ -26,6 +27,7 @@ import {
   type Theme,
   type CustomRendererEventPayload,
   type EmptyHintMode,
+  type FileLoader,
   type PreviewErrorPayload,
 } from './fp-core';
 import type { CustomRenderer, CustomRendererContext } from './types';
@@ -42,13 +44,30 @@ import { FilePreviewToolbar } from './components/preview/file-preview-toolbar';
 import { NavArrows } from './components/preview/nav-arrows';
 import { RendererOutlet } from './components/preview/renderer-outlet';
 import { UnsupportedRenderer } from './renderers/Unsupported/index';
+import { RendererLoading } from './renderers/RendererLoading';
 
 const MAX_ZIP_NESTING_DEPTH = 3;
+
+const DEPRECATED_REQUEST_PROPS = ['requestInit', 'requestHandler', 'shouldFetchAsBlob'] as const;
+let deprecatedRequestWarningShown = false;
+
+/** 过渡期提示：旧鉴权参数已废弃，1.8.0 移除。 */
+function warnDeprecatedRequestProps(
+  used: Partial<Record<(typeof DEPRECATED_REQUEST_PROPS)[number], unknown>>,
+): void {
+  if (deprecatedRequestWarningShown) return;
+  const names = DEPRECATED_REQUEST_PROPS.filter((name) => used[name] !== undefined);
+  if (names.length === 0) return;
+  deprecatedRequestWarningShown = true;
+  console.warn(
+    `[file-preview] ${names.map((name) => `\`${name}\``).join('、')} 已废弃，将在 1.8.0 移除；请改用 \`loadFile\`（简单场景可用 \`withHeaders\`）。`,
+  );
+}
 
 @Component({
   selector: 'FilePreviewContent, afp-file-preview-content',
   standalone: true,
-  imports: [FilePreviewToolbar, NavArrows, RendererOutlet, UnsupportedRenderer],
+  imports: [FilePreviewToolbar, NavArrows, RendererOutlet, UnsupportedRenderer, RendererLoading],
   providers: [LocaleService, ThemeService, RequestService, PreviewEventsService],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'afp-block afp-w-full afp-h-full' },
@@ -91,11 +110,15 @@ const MAX_ZIP_NESTING_DEPTH = 3;
               (download)="handleDownload()"
             />
           } @else if (builtinLoader()) {
-            <afp-renderer-outlet
-              [loader]="builtinLoader()"
-              [inputs]="builtinInputs()"
-              (handleChange)="onRendererHandle($event)"
-            />
+            @if (resolvedUrl()) {
+              <afp-renderer-outlet
+                [loader]="builtinLoader()"
+                [inputs]="builtinInputs()"
+                (handleChange)="onRendererHandle($event)"
+              />
+            } @else {
+              <afp-renderer-loading />
+            }
           } @else {
             <afp-unsupported-renderer
               [fileName]="file.name"
@@ -130,8 +153,13 @@ export class FilePreviewContent {
   messages = input<Partial<Record<Locale, Partial<Messages>>> | undefined>(undefined);
   headless = input(false);
   theme = input<Theme>('dark');
+  /** 统一取数入口：鉴权 / 签名场景下由宿主决定文件怎么取 */
+  loadFile = input<FileLoader | undefined>(undefined);
+  /** @deprecated 将在 1.8.0 移除；请改用 `loadFile` */
   requestInit = input<RequestInitFactory | undefined>(undefined);
+  /** @deprecated 将在 1.8.0 移除；请改用 `loadFile` */
   requestHandler = input<RequestHandler | undefined>(undefined);
+  /** @deprecated 将在 1.8.0 移除；请改用 `loadFile` */
   shouldFetchAsBlob = input<ShouldFetchAsBlob | undefined>(undefined);
   onDownload = input<((file: PreviewFile) => void | Promise<void>) | undefined>(undefined);
   showClose = input<boolean | undefined>(undefined);
@@ -165,12 +193,21 @@ export class FilePreviewContent {
 
   private readonly system = createSystemDarkSignal();
   readonly resolvedUrl = signal('');
-  private createdBlobUrl: string | null = null;
+  /** 取数得到 object URL 时的释放钩子；`{ url }` 直链场景为 null */
+  private createdRevoke: (() => void) | null = null;
+  /** loadFile 取数取消句柄：切换文件 / 卸载时中断 */
+  private resolveController: AbortController | null = null;
+  /** 取数代次：切换文件后旧请求的结果 / 错误必须丢弃 */
+  private resolvedUrlToken = 0;
   private unsubscribeToolbar: (() => void) | null = null;
   readonly rendererToolbarGroups = signal<ToolbarGroup[]>([]);
 
   readonly normalizedFiles = computed(() => normalizeFiles(this.files()));
   readonly currentFile = computed(() => this.normalizedFiles()[this.currentIndex()] as PreviewFile | undefined);
+  /** 一次加载的稳定标识：index + 原始 URL（避免 files 数组身份变化导致去重被反复重置） */
+  private readonly loadKey = computed(
+    () => `${this.currentIndex()}|${this.currentFile()?.url ?? ''}`,
+  );
   readonly fileType = computed(() => {
     const file = this.currentFile();
     return file ? getFileType(file) : 'unsupported';
@@ -254,9 +291,9 @@ export class FilePreviewContent {
       });
     });
     effect(() => {
-      // 切换文件或换 URL 即进入新代次，允许再次上报
-      // 注意只依赖 currentFile：resolvedUrl 由 '' 变为 blob URL 属于同一次加载，不应重置去重
-      void this.currentFile();
+      // 切换文件或换 URL 即进入新代次；按稳定字段监听，避免父级重建数组时反复重置
+      // 注意不监听 resolvedUrl：'' → blob URL 属于同一次加载，不应重置去重
+      void this.loadKey();
       this.events.reset();
     });
 
@@ -271,6 +308,12 @@ export class FilePreviewContent {
     });
     effect(() => {
       this.requestService.configure({
+        loadFile: this.loadFile(),
+        requestInit: this.requestInit(),
+        requestHandler: this.requestHandler(),
+        shouldFetchAsBlob: this.shouldFetchAsBlob(),
+      });
+      warnDeprecatedRequestProps({
         requestInit: this.requestInit(),
         requestHandler: this.requestHandler(),
         shouldFetchAsBlob: this.shouldFetchAsBlob(),
@@ -278,12 +321,15 @@ export class FilePreviewContent {
     });
     effect(() => {
       const file = this.currentFile();
-      const need = needsBlobUrl(file, this.requestService.shouldFetchAsBlob());
-      void this.refreshResolvedUrl(file, need);
+      const useLoader = this.useLoader();
+      const need = useLoader || needsBlobUrl(file, this.requestService.shouldFetchAsBlob());
+      void this.refreshResolvedUrl(file, need, useLoader);
     });
 
     this.destroyRef.onDestroy(() => {
       this.cleanupSubscription();
+      this.resolveController?.abort();
+      this.resolveController = null;
       this.revokeBlob();
       this.events.setListener(null);
     });
@@ -324,10 +370,27 @@ export class FilePreviewContent {
       await custom(file);
       return;
     }
+    let tempRevoke: (() => void) | null = null;
     try {
-      await downloadFileWithFetcher(file.url, file.name, this.requestService.fetcher());
+      // loadFile 场景复用已解析 URL；尚未解析（如预览类型不支持）时按需取一次
+      let downloadUrl = this.loadFile() ? this.resolvedUrl() : file.url;
+      if (this.loadFile() && !downloadUrl) {
+        const resolved = await this.requestService.resolveWithLoader(
+          file,
+          new AbortController().signal,
+        );
+        downloadUrl = resolved.url;
+        tempRevoke = resolved.revoke;
+      }
+      await downloadFileWithFetcher(
+        downloadUrl || file.url,
+        file.name,
+        this.requestService.downloadFetcher(),
+      );
     } catch (err) {
       console.error('[file-preview] download failed:', err);
+    } finally {
+      tempRevoke?.();
     }
   }
 
@@ -378,14 +441,33 @@ export class FilePreviewContent {
     this.unsubscribeToolbar = null;
   }
 
+  /** 是否走 loadFile：本地文件 / 已解析 URL / 不支持的预览类型不触发取数 */
+  private readonly useLoader = computed(() => {
+    const file = this.currentFile();
+    return !!(
+      this.loadFile() &&
+      file &&
+      !file.file &&
+      !isInlineResourceUrl(file.url) &&
+      this.fileType() !== 'unsupported'
+    );
+  });
+
   private revokeBlob(): void {
-    if (this.createdBlobUrl) {
-      URL.revokeObjectURL(this.createdBlobUrl);
-      this.createdBlobUrl = null;
+    if (this.createdRevoke) {
+      this.createdRevoke();
+      this.createdRevoke = null;
     }
   }
 
-  private async refreshResolvedUrl(file: PreviewFile | undefined, need: boolean): Promise<void> {
+  private async refreshResolvedUrl(
+    file: PreviewFile | undefined,
+    need: boolean,
+    useLoader = false,
+  ): Promise<void> {
+    const token = ++this.resolvedUrlToken;
+    this.resolveController?.abort();
+    this.resolveController = null;
     if (!file) {
       this.revokeBlob();
       this.resolvedUrl.set('');
@@ -396,14 +478,28 @@ export class FilePreviewContent {
       this.resolvedUrl.set(file.url);
       return;
     }
+    const controller = new AbortController();
+    this.resolveController = controller;
     this.resolvedUrl.set('');
     try {
-      const blobUrl = await this.requestService.resolveBlobUrl(file.url);
+      const resolved = useLoader
+        ? await this.requestService.resolveWithLoader(file, controller.signal)
+        : await this.requestService.resolveBlobUrl(file.url).then((url) => ({
+            url,
+            revoke: () => URL.revokeObjectURL(url),
+          }));
+      // 迟到结果：文件已切换，直接释放，不能覆盖当前文件
+      if (token !== this.resolvedUrlToken) {
+        resolved.revoke?.();
+        return;
+      }
       this.revokeBlob();
-      this.createdBlobUrl = blobUrl;
-      this.resolvedUrl.set(blobUrl);
+      this.createdRevoke = resolved.revoke;
+      this.resolvedUrl.set(resolved.url);
     } catch (err) {
-      console.error('[file-preview] resolve blob url failed:', err);
+      // 迟到 / 已取消：不能归到当前文件头上
+      if (token !== this.resolvedUrlToken || controller.signal.aborted) return;
+      console.error('[file-preview] resolve file source failed:', err);
       this.events.report(err, 'request');
       this.resolvedUrl.set(file.url);
     }

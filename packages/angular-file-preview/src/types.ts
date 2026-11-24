@@ -10,6 +10,8 @@ import type {
   RequestOptions,
   Fetcher,
   ShouldFetchAsBlob,
+  FileContent,
+  FileLoader,
   Locale,
   Translator,
 } from './fp-core';
@@ -29,6 +31,8 @@ export type {
   RequestOptions,
   Fetcher,
   ShouldFetchAsBlob,
+  FileContent,
+  FileLoader,
 };
 
 export interface ToolbarAction {

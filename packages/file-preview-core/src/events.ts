@@ -41,9 +41,23 @@ export class PreviewRequestError extends PreviewError {
 }
 
 /**
+ * 请求阶段错误的词典 key。
+ *
+ * 历史实现中渲染器拿到响应后自行判断 `!res.ok` 并抛出普通 `PreviewError`，
+ * 这类异常不经过 createFetcher 包装，只能按 key 归入取数阶段。
+ */
+const REQUEST_ERROR_KEYS: ReadonlySet<string> = new Set([
+  'request.failed',
+  'file.load_failed',
+  'file.load_failed_status',
+  'common.load_failed',
+]);
+
+/**
  * 推断失败阶段：
  * - 显式传入 stage 时优先采用；
  * - 请求包装异常推断为 'request'；
+ * - 响应状态类 key（HTTP 非 2xx）推断为 'request'；
  * - 其余一律视为 'parse'。
  */
 export function resolveErrorStage(
@@ -51,7 +65,11 @@ export function resolveErrorStage(
   explicit?: PreviewErrorStage,
 ): PreviewErrorStage {
   if (explicit) return explicit;
-  return error instanceof PreviewRequestError ? 'request' : 'parse';
+  if (error instanceof PreviewRequestError) return 'request';
+  if (error instanceof PreviewError && REQUEST_ERROR_KEYS.has(error.key)) {
+    return 'request';
+  }
+  return 'parse';
 }
 
 /**

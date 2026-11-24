@@ -19,6 +19,8 @@ export type {
   RequestOptions,
   Fetcher,
   ShouldFetchAsBlob,
+  FileContent,
+  FileLoader,
 } from './types';
 
 export {
@@ -27,6 +29,8 @@ export {
   getFileType,
   configurePdfWorker,
   SUPPORTED_FILE_TYPES,
+  PreviewRequestError,
+  withHeaders,
 } from './fp-core';
 
 export type { PdfWorkerOptions } from './fp-core';

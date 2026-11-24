@@ -20,6 +20,7 @@ import {
   inferMimeType,
   type ZipTreeNode,
   type PreviewFileInput,
+  type PreviewErrorPayload,
 } from '../../fp-core';
 import { LocaleService, getFallbackTranslator } from '../../di/locale.service';
 import { RequestService } from '../../di/request.service';
@@ -143,6 +144,7 @@ function ensureZipTipStyles(): void {
                 [files]="previewFiles()"
                 [currentIndex]="0"
                 [zipNestingDepth]="nestingDepth() + 1"
+                (error)="onNestedError($event)"
               />
             </div>
           }
@@ -221,6 +223,11 @@ export class ZipRenderer implements RendererHandle {
   getToolbarGroups = (): ToolbarGroup[] => [];
 
   onToolbarChange = (listener: () => void) => this.emitter.subscribe(listener);
+
+  /** 内嵌预览失败时向容器文件上报（归属当前 ZIP 文件） */
+  protected onNestedError(payload: PreviewErrorPayload): void {
+    this.events?.reporter.error(payload.error, payload.stage);
+  }
 
   handleToggle(path: string): void {
     const next = new Set(this.expanded());

@@ -1,7 +1,7 @@
 import { signal } from '@angular/core';
 import { formatTime } from '../fp-core';
 
-export function createAudioPlayer() {
+export function createAudioPlayer(reportError?: () => void) {
   const isPlaying = signal(false);
   const isLoading = signal(true);
   const currentTime = signal(0);
@@ -43,6 +43,7 @@ export function createAudioPlayer() {
     const onError = () => {
       error.set('audio.load_failed');
       isLoading.set(false);
+      reportError?.();
     };
 
     el.addEventListener('timeupdate', onTimeUpdate);

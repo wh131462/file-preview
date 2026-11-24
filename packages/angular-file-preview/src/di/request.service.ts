@@ -2,7 +2,9 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import {
   createFetcher,
   fetchAsBlobUrl,
+  resolveConsumableUrl,
   type Fetcher,
+  type FileLoader,
   type PreviewFile,
   type RequestHandler,
   type RequestInitFactory,
@@ -11,8 +13,12 @@ import {
 import { PreviewEventsService } from './preview-events.service';
 
 export interface RequestContextOptions {
+  loadFile?: FileLoader;
+  /** @deprecated 将在 1.8.0 移除；请改用 `loadFile` */
   requestInit?: RequestInitFactory;
+  /** @deprecated 将在 1.8.0 移除；请改用 `loadFile` */
   requestHandler?: RequestHandler;
+  /** @deprecated 将在 1.8.0 移除；请改用 `loadFile` */
   shouldFetchAsBlob?: ShouldFetchAsBlob;
 }
 
@@ -31,7 +37,18 @@ export class RequestService {
     });
   });
 
+  /** 下载专用 fetcher：不绑定错误上报，下载失败不应触发预览 onError */
+  readonly downloadFetcher = computed<Fetcher>(() => {
+    const opts = this.optionsSig();
+    return createFetcher({
+      requestInit: opts.requestInit,
+      requestHandler: opts.requestHandler,
+    });
+  });
+
   readonly shouldFetchAsBlob = computed(() => this.optionsSig().shouldFetchAsBlob);
+
+  readonly loadFile = computed(() => this.optionsSig().loadFile);
 
   configure(options: RequestContextOptions): void {
     this.optionsSig.set(options);
@@ -42,6 +59,19 @@ export class RequestService {
    */
   async resolveBlobUrl(url: string): Promise<string> {
     return fetchAsBlobUrl(url, this.fetcher());
+  }
+
+  /**
+   * 通过 loadFile 取数并转成可消费 URL。调用方需在不再使用时调用 revoke。
+   * 未配置 loadFile 时抛出，调用方应先判断 `loadFile()`。
+   */
+  async resolveWithLoader(
+    file: PreviewFile,
+    signal: AbortSignal,
+  ): Promise<{ url: string; revoke: (() => void) | null }> {
+    const loader = this.optionsSig().loadFile;
+    if (!loader) throw new Error('[file-preview] loadFile is not configured');
+    return resolveConsumableUrl(await loader(file, { signal }));
   }
 }
 

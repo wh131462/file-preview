@@ -2,10 +2,69 @@ import { PreviewError } from '../i18n';
 import { PreviewRequestError } from '../events';
 import type {
   Fetcher,
+  FileContent,
+  FileLoader,
   RequestHandler,
   RequestInitFactory,
   RequestOptions,
 } from '../types';
+
+/**
+ * 判断 URL 是否为库内已解析的本地资源（object URL / data URL）。
+ * 这类 URL 不需要也不能再经过用户的 requestInit / requestHandler。
+ */
+export function isInlineResourceUrl(url: string): boolean {
+  return url.startsWith('blob:') || url.startsWith('data:');
+}
+
+/**
+ * 构造一个只负责注入 headers / RequestInit 的 FileLoader。
+ *
+ * 适合「只想补一个 Authorization / Cookie」的迁移场景：
+ * ```ts
+ * loadFile={withHeaders({ Authorization: `Bearer ${token}` })}
+ * ```
+ * 复杂逻辑（签名刷新、加解密、大文件直链）请直接写 `loadFile`。
+ * `init.signal` 会被组件传入的取消信号覆盖。
+ */
+export function withHeaders(
+  headers: HeadersInit,
+  init?: RequestInit,
+): FileLoader {
+  return async (file, ctx) => {
+    const mergedHeaders = new Headers(init?.headers ?? undefined);
+    new Headers(headers).forEach((value, key) => {
+      mergedHeaders.set(key, value);
+    });
+    const response = await fetch(file.url, {
+      ...init,
+      headers: mergedHeaders,
+      signal: ctx.signal,
+    });
+    if (!response.ok) {
+      throw new PreviewRequestError(
+        new PreviewError('request.failed', { status: response.status }),
+      );
+    }
+    return response.blob();
+  };
+}
+
+/**
+ * 把 FileLoader 的返回值转成可直接消费的 URL。
+ * - Blob：创建 `blob:` URL，并通过 `revoke` 交还释放责任；
+ * - `{ url }`：原样返回，`revoke` 为 null（生命周期由调用方管理）。
+ */
+export function resolveConsumableUrl(content: FileContent): {
+  url: string;
+  revoke: (() => void) | null;
+} {
+  if (typeof Blob !== 'undefined' && content instanceof Blob) {
+    const url = URL.createObjectURL(content);
+    return { url, revoke: () => URL.revokeObjectURL(url) };
+  }
+  return { url: (content as { url: string }).url, revoke: null };
+}
 
 /**
  * 解析 RequestInitFactory 为 RequestInit。
@@ -74,13 +133,23 @@ export function createFetcher(options?: RequestOptions): Fetcher {
 
   return async (url, callerInit) => {
     try {
+      // blob:/data: 是库内或宿主已解析的本地资源，直接原生取用，
+      // 避免请求注入（如 axios 拼 baseURL）污染假 URL，也避免重复鉴权。
+      if (isInlineResourceUrl(url)) {
+        return await fetch(url, callerInit);
+      }
       const factoryInit = await resolveInitFactory(factory, url);
       const merged = mergeInit(factoryInit, callerInit);
       return await handler(url, merged);
     } catch (err) {
       if (err instanceof PreviewRequestError) throw err;
       if (isAbortError(err)) throw err;
-      onRequestError?.(url, err);
+      try {
+        onRequestError?.(url, err);
+      } catch (callbackError) {
+        // 宿主回调异常不能替换原始取数异常，也不能中断请求链路
+        console.error('[file-preview] onRequestError handler failed:', callbackError);
+      }
       throw new PreviewRequestError(err);
     }
   };

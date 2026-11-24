@@ -198,7 +198,11 @@ export class VideoRenderer implements RendererHandle {
         });
       }
       this.isLoading.set(false);
-      this.events?.reporter.error(err);
+      // code=2 为网络错误，其余（解码 / 格式不支持）归入解析阶段
+      this.events?.reporter.error(
+        err ?? new Error('video load failed'),
+        err?.code === 2 ? 'request' : 'parse',
+      );
     });
 
     this.player = player;

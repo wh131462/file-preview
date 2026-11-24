@@ -325,7 +325,7 @@ console.log(pdfjs.version)
 
 ## createFetcher
 
-构造一个统一的 `fetcher`，库内 / 用户代码均可用它替代裸 `fetch` 以复用鉴权配置。组件层通常无需直接调用——`FilePreviewModal` / `Embed` / `Content` 的 `requestInit` / `requestHandler` props 会在内部调它。仅在你自己实现 `customRenderer` 且需要拉取远程资源时才需要它。
+构造一个统一的 `fetcher`，库内 / 用户代码均可用它替代裸 `fetch` 以复用鉴权配置。组件层通常无需直接调用——旧参数 `requestInit` / `requestHandler` 会在内部调它（两者已废弃，1.8.0 移除；组件层请改用 `loadFile`）。仅在你自己实现 `customRenderer` 且需要拉取远程资源时才需要它。
 
 ### 签名
 
@@ -344,7 +344,8 @@ interface RequestOptions {
 
 - 调用方 init 与 `requestInit`（或工厂函数返回值）合并，调用方 init 优先；`headers` 走 `Headers` 合并语义
 - 提供 `requestHandler` 时由它接管最终请求；否则走原生 `fetch`
-- 不传 `options` 时，返回值等价于原生 `fetch`
+- `blob:` / `data:` URL 直接走原生 `fetch`，不执行 `requestInit` 工厂、不经过 `requestHandler`
+- 请求失败统一包装为 `PreviewRequestError`（`AbortError` 原样抛出）；因此“不传 options”并不严格等价于原生 `fetch`
 
 ### 示例
 
@@ -427,6 +428,45 @@ const fetcher = createFetcher({
 })
 
 const text = await fetchTextUtf8('/api/file/log.txt', { fetcher })
+```
+
+## withHeaders
+
+构造一个只负责注入 headers / RequestInit 的 `FileLoader`，用于最简单的鉴权迁移场景。随三个组件包一起导出。
+
+```typescript
+function withHeaders(headers: HeadersInit, init?: RequestInit): FileLoader
+```
+
+```tsx
+import { withHeaders } from '@eternalheart/react-file-preview'
+
+<FilePreviewModal
+  loadFile={withHeaders({ Authorization: `Bearer ${token}` }, { credentials: 'include' })}
+/>
+```
+
+- 非 2xx 抛 `PreviewRequestError`（`request.failed`，带 `status`）
+- 始终返回 `Blob`；视频 / 大文件建议直接写 `loadFile` 返回 `{ url }`
+- `init.signal` 会被组件传入的取消信号覆盖
+
+## resolveConsumableUrl
+
+把 `loadFile` 的返回值转成可直接消费的 URL：`Blob` → `blob:` URL（返回 `revoke`），`{ url }` → 原样返回（`revoke` 为 `null`）。
+
+```typescript
+function resolveConsumableUrl(content: Blob | { url: string }): {
+  url: string
+  revoke: (() => void) | null
+}
+```
+
+## isInlineResourceUrl
+
+判断 URL 是否为库内已解析的本地资源（`blob:` / `data:`）。这类 URL 不会经过请求注入。
+
+```typescript
+function isInlineResourceUrl(url: string): boolean
 ```
 
 ## 下一步

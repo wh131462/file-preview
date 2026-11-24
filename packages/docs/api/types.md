@@ -252,6 +252,31 @@ function onCustomEvent(e: CustomRendererEventPayload) {
 
 以下类型用于配置库内请求行为，详见 [鉴权与自定义请求](/guide/authentication)。
 
+组件层推荐使用 `FileLoader`（`loadFile` prop）；`RequestInitFactory` / `RequestHandler` / `ShouldFetchAsBlob` 已废弃，将在 1.8.0 移除，仅 `createFetcher` 等工具函数继续使用。
+
+### FileContent
+
+```typescript
+type FileContent = Blob | { url: string }
+```
+
+- `Blob`：库内转 `blob:` URL 并负责释放
+- `{ url }`：直接作为可消费 URL（预签名直链、后端代理等），生命周期由调用方管理
+
+### FileLoader
+
+```typescript
+type FileLoader = (
+  file: PreviewFile,
+  ctx: { signal: AbortSignal },
+) => Promise<FileContent>
+```
+
+- 组件唯一推荐取数入口（`loadFile` prop），传入后库内不再请求原始 URL
+- `signal` 在切换文件 / 卸载时 abort，应透传给自己的 HTTP 客户端
+- 只想注入 header 时可直接用 `withHeaders({ Authorization: ... })`
+- 详细用法见 [鉴权与自定义请求](/guide/authentication)
+
 ### RequestInitFactory
 
 ```typescript
@@ -298,6 +323,10 @@ interface RequestOptions {
 
 ### ShouldFetchAsBlob
 
+::: warning 已废弃
+将在 1.8.0 移除，请改用 `FileLoader`（`loadFile` prop）。
+:::
+
 ```typescript
 type ShouldFetchAsBlob = (file: PreviewFile) => boolean
 ```
@@ -318,6 +347,8 @@ type PreviewErrorStage = 'request' | 'parse' | 'render'
 - `parse`：拿到内容后解析失败（mammoth / SheetJS / pdf.js 解析等）
 - `render`：解析完成后的渲染失败（画布、worker、懒加载渲染器加载失败）
 
+渲染器在拿到响应后自行判断的 HTTP 状态错误（`request.failed` / `file.load_failed` / `file.load_failed_status` / `common.load_failed`）也会归入 `request`，无需宿主自行转换。
+
 ### PreviewErrorPayload
 
 ```typescript
@@ -330,7 +361,7 @@ interface PreviewErrorPayload {
 }
 ```
 
-`onError`（React） / `@error`（Vue） / `(error)`（Angular）的载荷。`error` 保留原始异常，不会被打包丢弃；`cause` 仅 React 侧填充 `ErrorInfo`。
+`onError`（React） / `@error`（Vue） / `(error)`（Angular）的载荷。`error` 为解包后的原始异常（内部 `PreviewRequestError` 会取其 `cause`），不会被打包丢弃；`cause` 仅 React 侧填充 `ErrorInfo`。ZIP 内嵌预览的失败会归属到容器 ZIP 文件。
 
 ### PreviewReporter
 
@@ -342,6 +373,16 @@ interface PreviewReporter {
 ```
 
 渲染器侧的最小上报口，由框架层通过注入提供（Vue `usePreviewEvents` / React `usePreviewEvents` / Angular `inject(PreviewEventsService).reporter`）。内置渲染器通过它上报失败；`stage` 缺省时按异常类型自动推断。宿主通常无需直接使用。
+
+### PreviewRequestError
+
+```typescript
+class PreviewRequestError extends PreviewError {
+  cause: unknown
+}
+```
+
+`createFetcher` 在 `requestHandler` / `requestInit` 抛出时用它包装原始异常（保留 `key` / `params`，`cause` 为原始异常）。`onRequestError` 回调收到的是未包装的原始异常；三个框架包都从根入口导出该类，便于 `error instanceof PreviewRequestError` 判断。
 
 ## PdfConfigOptions
 

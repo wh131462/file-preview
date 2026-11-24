@@ -272,10 +272,14 @@ const customRenderers: CustomRenderer[] = [
 
 #### onError
 
-- **类型**: `(payload: PreviewErrorPayload) => void`
+- **类型**: `(payload: PreviewErrorPayload) => void`（兼容旧版 `(error, errorInfo) => void`）
 - **必需**: 否
 - **描述**: 文件加载或渲染失败时触发，每次加载最多触发一次。`payload` 形状为 `{ file, index, error, stage }`，`stage` 取 `'request' | 'parse' | 'render'`，可用于区分「文件服务不可达」与「文件解析失败」。内置错误页仍会正常显示，该回调仅作为对外信号。
-- **注意**: 仅在 `getFileType` 命中渲染器且实际发生失败时触发；切换文件或更换 URL 后视为新一次加载，可再次触发。
+- **注意**:
+  - 仅在 `getFileType` 命中渲染器且实际发生失败时触发；切换文件或更换 URL 后视为新一次加载，可再次触发。
+  - `payload.error` 为解包后的原始异常；取数失败被内部包装时，原始异常从 `PreviewRequestError.cause` 取出。
+  - ZIP 内嵌预览失败会归属到容器 ZIP 文件（`payload.file` 为 ZIP 文件）。
+  - 旧版两参数回调仅在渲染阶段错误时按 `(error, errorInfo)` 调用，升级后不会立刻崩溃。
 
 ```tsx
 <FilePreviewModal
@@ -291,8 +295,34 @@ const customRenderers: CustomRenderer[] = [
 />
 ```
 
+#### loadFile
+
+- **类型**: `(file: PreviewFile, ctx: { signal: AbortSignal }) => Promise<Blob | { url: string }>`
+- **必需**: 否
+- **描述**: 统一取数入口（1.7.0+）。鉴权 / 签名 / 自定义客户端场景下，由宿主决定文件内容怎么拿；库内不再对原始 URL 发起请求，也不注入 `requestInit`。
+  - 返回 `Blob`：库内转 `blob:` URL 并负责释放，适合文档类、图片、小体积音视频；
+  - 返回 `{ url }`：直接使用该 URL，生命周期由调用方管理，适合预签名直链、大视频流式播放；
+  - 切换文件或卸载时 `ctx.signal` 会 abort；
+  - 只想注入 header 时可用同包导出的 `withHeaders`：`loadFile={withHeaders({ Authorization: ... })}`。
+
+```tsx
+<FilePreviewModal
+  files={files}
+  loadFile={async (file, { signal }) => {
+    const res = await fetch(file.url, {
+      headers: { Authorization: `Bearer ${token}` },
+      signal,
+    })
+    if (!res.ok) throw new Error(`Request failed: ${res.status}`)
+    return res.blob()
+  }}
+  ...
+/>
+```
+
 #### requestInit
 
+- **状态**: **已废弃**，将在 1.8.0 移除；请改用 [`loadFile`](#loadfile)
 - **类型**: `RequestInit | (url: string) => RequestInit | Promise<RequestInit>`
 - **必需**: 否
 - **描述**: 自定义 `RequestInit`（或工厂函数）。库内所有 `fetch` 调用都会带上它，用于注入 `Authorization` / `credentials` 等鉴权信息。详见 [鉴权与自定义请求](/guide/authentication)。
@@ -309,6 +339,7 @@ const customRenderers: CustomRenderer[] = [
 
 #### requestHandler
 
+- **状态**: **已废弃**，将在 1.8.0 移除；请改用 [`loadFile`](#loadfile)
 - **类型**: `(url: string, init?: RequestInit) => Promise<Response>`
 - **必需**: 否
 - **描述**: 完全接管库内 fetch。可用于把请求改走 axios / 你自己的 HTTP 客户端。与 `requestInit` 同时存在时，handler 接收已合并好的 init。
@@ -322,6 +353,7 @@ const customRenderers: CustomRenderer[] = [
 
 #### shouldFetchAsBlob
 
+- **状态**: **已废弃**，将在 1.8.0 移除；请改用 [`loadFile`](#loadfile)
 - **类型**: `(file: PreviewFile) => boolean`
 - **必需**: 否
 - **描述**: 返回 `true` 时，对应文件先用 `requestInit` / `requestHandler` 请求转为 `blob:` URL，再喂给 image / video / audio / pdf 等 src 类 renderer。这是让 `<img src>` / `<video src>` 等也复用鉴权头的唯一方式。库内自动管理 blob URL 生命周期。
@@ -345,7 +377,7 @@ const customRenderers: CustomRenderer[] = [
 - **类型**: `(file: PreviewFile) => void | Promise<void>`
 - **必需**: 否
 - **描述**: 自定义下载回调。
-  - **不传**：库内默认通过 `fetcher` 拉成 Blob 触发 `<a download>`，**自动复用 `requestInit` / `requestHandler` 中的鉴权头**——这是鉴权 URL 场景下能正确下载的关键，避免直接 `<a href={url} download>` 带不上 header 的问题。
+  - **不传**：库内默认复用已解析结果（`loadFile` 返回的 Blob / 直链）触发 `<a download>`；未配置 `loadFile` 时回退到 `requestInit` / `requestHandler` + fetcher。
   - **传入**：完全接管下载行为，库内不再做任何 fetch / `<a>` 操作。可用于走自家下载中心、上报埋点等。
 
 ```tsx
@@ -454,9 +486,10 @@ function Panel() {
 | `emptyHint` | `'auto' \| 'always' \| 'never'` | ❌ | `'auto'` | 空内容提示策略：文本类默认空白，结构化类型默认提示 |
 | `onCustomEvent` | `(e: CustomRendererEventPayload) => void` | ❌ | - | 自定义渲染器事件出口,载荷 `{ name, payload, file }` |
 | `onError` | `(payload: PreviewErrorPayload) => void` | ❌ | - | 加载/渲染失败回调，载荷 `{ file, index, error, stage }` |
-| `requestInit` | `RequestInit \| (url) => RequestInit \| Promise<RequestInit>` | ❌ | - | 自定义 RequestInit，注入鉴权头等 |
-| `requestHandler` | `(url, init?) => Promise<Response>` | ❌ | - | 完全接管库内 fetch |
-| `shouldFetchAsBlob` | `(file: PreviewFile) => boolean` | ❌ | - | 返回 true 时 src 类 renderer 也走 fetch→blob URL |
+| `loadFile` | `(file, ctx) => Promise<Blob \| { url: string }>` | ❌ | - | 统一取数入口；鉴权 / 签名 / 流媒体推荐使用 |
+| `requestInit` | `RequestInit \| (url) => RequestInit \| Promise<RequestInit>` | ❌ | - | **已废弃**，1.8.0 移除；改用 `loadFile` |
+| `requestHandler` | `(url, init?) => Promise<Response>` | ❌ | - | **已废弃**，1.8.0 移除；改用 `loadFile` |
+| `shouldFetchAsBlob` | `(file: PreviewFile) => boolean` | ❌ | - | **已废弃**，1.8.0 移除；改用 `loadFile` |
 | `onDownload` | `(file: PreviewFile) => void \| Promise<void>` | ❌ | - | 自定义下载回调；不传时默认走 fetcher 拉 Blob 下载 |
 
 ::: tip 尺寸说明
@@ -548,9 +581,10 @@ function DetailPanel() {
 | `messages` | `Partial<Record<Locale, Partial<Messages>>>` | ❌ | - | 自定义翻译字典 |
 | `onCustomEvent` | `(e: CustomRendererEventPayload) => void` | ❌ | - | 自定义渲染器事件出口 |
 | `onError` | `(payload: PreviewErrorPayload) => void` | ❌ | - | 加载/渲染失败回调，载荷 `{ file, index, error, stage }` |
-| `requestInit` | `RequestInit \| (url) => RequestInit \| Promise<RequestInit>` | ❌ | - | 自定义 RequestInit |
-| `requestHandler` | `(url, init?) => Promise<Response>` | ❌ | - | 完全接管库内 fetch |
-| `shouldFetchAsBlob` | `(file: PreviewFile) => boolean` | ❌ | - | src 类 renderer 走 fetch→blob URL |
+| `loadFile` | `(file, ctx) => Promise<Blob \| { url: string }>` | ❌ | - | 统一取数入口；鉴权 / 签名 / 流媒体推荐使用 |
+| `requestInit` | `RequestInit \| (url) => RequestInit \| Promise<RequestInit>` | ❌ | - | **已废弃**，1.8.0 移除；改用 `loadFile` |
+| `requestHandler` | `(url, init?) => Promise<Response>` | ❌ | - | **已废弃**，1.8.0 移除；改用 `loadFile` |
+| `shouldFetchAsBlob` | `(file: PreviewFile) => boolean` | ❌ | - | **已废弃**，1.8.0 移除；改用 `loadFile` |
 | `onDownload` | `(file: PreviewFile) => void \| Promise<void>` | ❌ | - | 自定义下载回调 |
 
 **mode 差异:**

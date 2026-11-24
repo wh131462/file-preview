@@ -18,6 +18,7 @@ import {
   type ShouldFetchAsBlob,
   type FileLoader,
   resolveConsumableUrl,
+  isInlineResourceUrl,
   type EmptyHintMode,
   type PreviewErrorPayload,
 } from '@eternalheart/file-preview-core';
@@ -331,23 +332,33 @@ const fetcher = computed(() =>
   createFetcher({ requestInit: props.requestInit, requestHandler: props.requestHandler }),
 );
 const handleDownload = async () => {
-  if (!currentFile.value) return;
+  const file = currentFile.value;
+  if (!file) return;
   if (props.onDownload) {
-    await props.onDownload(currentFile.value);
+    await props.onDownload(file);
     return;
   }
+  // 与 useResolvedUrl 保持一致：本地文件 / inline URL / 不支持类型不走 loadFile
+  const canUseLoader = !!props.loadFile
+    && !file.file
+    && !isInlineResourceUrl(file.url)
+    && getFileType(file) !== 'unsupported';
+  // resolvedUrl 回退成原始 URL 说明上次解析失败，此时不能直接下载原始 URL（混合内容 / 跨域）
+  const reusableUrl = canUseLoader && resolvedUrl.value && resolvedUrl.value !== file.url
+    ? resolvedUrl.value
+    : '';
   let tempRevoke: (() => void) | null = null;
   try {
-    // loadFile 场景复用已解析 URL；尚未解析（如预览类型不支持）时按需取一次
-    let downloadUrl = props.loadFile ? resolvedUrl.value : currentFile.value.url;
-    if (props.loadFile && !downloadUrl) {
+    let downloadUrl = reusableUrl;
+    if (!downloadUrl && canUseLoader && props.loadFile) {
+      // 未解析或上次解析失败：重新走 loadFile（宿主代理 / 鉴权逻辑）
       const resolved = resolveConsumableUrl(
-        await props.loadFile(currentFile.value, { signal: new AbortController().signal }),
+        await props.loadFile(file, { signal: new AbortController().signal }),
       );
       downloadUrl = resolved.url;
       tempRevoke = resolved.revoke;
     }
-    await downloadFileWithFetcher(downloadUrl || currentFile.value.url, currentFile.value.name, fetcher.value);
+    await downloadFileWithFetcher(downloadUrl || resolvedUrl.value || file.url, file.name, fetcher.value);
   } catch (err) {
     console.error('[file-preview] download failed:', err);
   } finally {

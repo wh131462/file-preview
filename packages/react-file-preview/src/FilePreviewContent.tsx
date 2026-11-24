@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useRef, useState, useEffect } from 'react';
-import { getFileType, createFetcher, createTranslator, resolveShowClose, resolveConsumableUrl, type EmptyHintMode, type Locale, type Messages, type Translator, type Theme, downloadFileWithFetcher, type FileLoader } from '@eternalheart/file-preview-core';
+import { getFileType, createFetcher, createTranslator, resolveShowClose, resolveConsumableUrl, isInlineResourceUrl, type EmptyHintMode, type Locale, type Messages, type Translator, type Theme, downloadFileWithFetcher, type FileLoader } from '@eternalheart/file-preview-core';
 import { LocaleProvider, useLocale, useTranslator } from './i18n/LocaleContext';
 import { ThemeProvider } from './ThemeContext';
 import type { PreviewFileInput, CustomRenderer, CustomRendererContext } from './types';
@@ -338,18 +338,31 @@ const FilePreviewContentInner: React.FC<FilePreviewContentInnerProps> = ({
       await onDownload(currentFile);
       return;
     }
+    // 与 useResolvedUrl 保持一致：本地文件 / inline URL / 不支持类型不走 loadFile
+    const canUseLoader = !!loadFile
+      && !currentFile.file
+      && !isInlineResourceUrl(currentFile.url)
+      && getFileType(currentFile) !== 'unsupported';
+    // resolvedUrl 回退成原始 URL 说明上次解析失败，此时不能直接下载原始 URL（混合内容 / 跨域）
+    const reusableUrl = canUseLoader && resolvedUrl && resolvedUrl !== currentFile.url
+      ? resolvedUrl
+      : '';
     let tempRevoke: (() => void) | null = null;
     try {
-      // loadFile 场景复用已解析 URL；尚未解析（如预览类型不支持）时按需取一次
-      let downloadUrl = loadFile ? resolvedUrl : currentFile.url;
-      if (loadFile && !downloadUrl) {
+      let downloadUrl = reusableUrl;
+      if (!downloadUrl && canUseLoader && loadFile) {
+        // 未解析或上次解析失败：重新走 loadFile（宿主代理 / 鉴权逻辑）
         const resolved = resolveConsumableUrl(
           await loadFile(currentFile, { signal: new AbortController().signal }),
         );
         downloadUrl = resolved.url;
         tempRevoke = resolved.revoke;
       }
-      await downloadFileWithFetcher(downloadUrl || currentFile.url, currentFile.name, downloadFetcher);
+      await downloadFileWithFetcher(
+        downloadUrl || resolvedUrl || currentFile.url,
+        currentFile.name,
+        downloadFetcher,
+      );
     } catch (err) {
       console.error('[file-preview] download failed:', err);
     } finally {

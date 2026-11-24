@@ -370,11 +370,20 @@ export class FilePreviewContent {
       await custom(file);
       return;
     }
+    // 与 useLoader 保持一致：本地文件 / inline URL / 不支持类型不走 loadFile
+    const canUseLoader = !!this.loadFile()
+      && !file.file
+      && !isInlineResourceUrl(file.url)
+      && this.fileType() !== 'unsupported';
+    // resolvedUrl 回退成原始 URL 说明上次解析失败，此时不能直接下载原始 URL（混合内容 / 跨域）
+    const reusableUrl = canUseLoader && this.resolvedUrl() && this.resolvedUrl() !== file.url
+      ? this.resolvedUrl()
+      : '';
     let tempRevoke: (() => void) | null = null;
     try {
-      // loadFile 场景复用已解析 URL；尚未解析（如预览类型不支持）时按需取一次
-      let downloadUrl = this.loadFile() ? this.resolvedUrl() : file.url;
-      if (this.loadFile() && !downloadUrl) {
+      let downloadUrl = reusableUrl;
+      if (!downloadUrl && canUseLoader) {
+        // 未解析或上次解析失败：重新走 loadFile（宿主代理 / 鉴权逻辑）
         const resolved = await this.requestService.resolveWithLoader(
           file,
           new AbortController().signal,
@@ -383,7 +392,7 @@ export class FilePreviewContent {
         tempRevoke = resolved.revoke;
       }
       await downloadFileWithFetcher(
-        downloadUrl || file.url,
+        downloadUrl || this.resolvedUrl() || file.url,
         file.name,
         this.requestService.downloadFetcher(),
       );

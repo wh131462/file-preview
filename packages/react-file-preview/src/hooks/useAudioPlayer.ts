@@ -1,4 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { PreviewError } from '@eternalheart/file-preview-core';
+import { usePreviewEvents } from '../PreviewEventsContext';
 
 interface UseAudioPlayerOptions {
   url: string;
@@ -27,6 +29,7 @@ interface UseAudioPlayerReturn {
 export function useAudioPlayer({
   url,
 }: UseAudioPlayerOptions): UseAudioPlayerReturn {
+  const reporter = usePreviewEvents();
   const audioRef = useRef<HTMLAudioElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -40,6 +43,9 @@ export function useAudioPlayer({
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
+
+    // 标记本次加载的 URL，供事件通道校验代次
+    reporter.begin(url);
 
     // 重置加载状态
     setIsLoading(true);
@@ -76,6 +82,7 @@ export function useAudioPlayer({
     const onError = () => {
       setError('audio.load_failed');
       setIsLoading(false);
+      reporter.error(new PreviewError('audio.load_failed'), 'request');
     };
 
     audio.addEventListener('timeupdate', onTimeUpdate);
@@ -109,7 +116,7 @@ export function useAudioPlayer({
       audio.removeEventListener('ended', onEnded);
       audio.removeEventListener('error', onError);
     };
-  }, [url]);
+  }, [url, reporter]);
 
   const togglePlay = useCallback(() => {
     const audio = audioRef.current;

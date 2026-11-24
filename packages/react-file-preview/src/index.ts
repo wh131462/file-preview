@@ -11,6 +11,11 @@ export const VERSION = packageJson.version;
 export { FilePreviewModal } from './FilePreviewModal';
 export { FilePreviewEmbed } from './FilePreviewEmbed';
 export { FilePreviewContent } from './FilePreviewContent';
+export type {
+  PreviewErrorHandler,
+  PreviewErrorPayloadHandler,
+  PreviewLegacyErrorHandler,
+} from './FilePreviewContent';
 
 // 导出类型定义
 export type {
@@ -28,11 +33,13 @@ export type {
   RequestOptions,
   Fetcher,
   ShouldFetchAsBlob,
+  FileContent,
+  FileLoader,
 } from './types';
 
 // 导出工具函数和常量
 export { normalizeFile, normalizeFiles } from './utils/fileNormalizer';
-export { SUPPORTED_FILE_TYPES } from '@eternalheart/file-preview-core';
+export { SUPPORTED_FILE_TYPES, PreviewRequestError, withHeaders } from '@eternalheart/file-preview-core';
 
 // 导出 PDF.js 配置函数和类型
 export { configurePdfjs, pdfjs } from './utils/pdfConfig';
@@ -44,6 +51,9 @@ export type {
   PreviewErrorPayload,
   PreviewReporter,
 } from '@eternalheart/file-preview-core';
+
+// 导出事件通道钩子（自定义渲染器可复用内置上报能力）
+export { usePreviewEvents } from './PreviewEventsContext';
 
 // 导出 i18n 国际化
 export { LocaleProvider, useTranslator, useLocale } from './i18n/LocaleContext';

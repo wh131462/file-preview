@@ -1,15 +1,16 @@
 import React, { useCallback, useMemo, useRef, useState, useEffect } from 'react';
-import { getFileType, createTranslator, resolveShowClose, type EmptyHintMode, type Locale, type Messages, type Translator, type Theme, downloadFileWithFetcher } from '@eternalheart/file-preview-core';
+import { getFileType, createFetcher, createTranslator, resolveShowClose, resolveConsumableUrl, type EmptyHintMode, type Locale, type Messages, type Translator, type Theme, downloadFileWithFetcher, type FileLoader } from '@eternalheart/file-preview-core';
 import { LocaleProvider, useLocale, useTranslator } from './i18n/LocaleContext';
 import { ThemeProvider } from './ThemeContext';
 import type { PreviewFileInput, CustomRenderer, CustomRendererContext } from './types';
 import type { CustomRendererEventPayload, PreviewFile, RequestHandler, RequestInitFactory, ShouldFetchAsBlob, PreviewErrorPayload } from '@eternalheart/file-preview-core';
 import { normalizeFiles } from './utils/fileNormalizer';
-import { RequestProvider, useResolvedUrl, useFetcher } from './RequestContext';
+import { RequestProvider, useResolvedUrl } from './RequestContext';
 import { usePreviewEventsChannel, PreviewEventsProvider } from './PreviewEventsContext';
 import type { RendererHandle } from './renderers/base.types';
 import type { ToolbarGroup } from './renderers/toolbar.types';
 import { UnsupportedRenderer } from './renderers/Unsupported';
+import { RendererLoading } from './renderers/RendererLoading';
 import {
   useKeyboardNavigation,
   useThemeMode,
@@ -18,6 +19,32 @@ import { FilePreviewToolbar, FilePreviewRenderer, NavArrows } from './components
 import { BUILTIN_RENDERERS } from './renderers/registry';
 
 const MAX_ZIP_NESTING_DEPTH = 3;
+
+/** 加载/渲染失败回调载荷。 */
+export type PreviewErrorPayloadHandler = (payload: PreviewErrorPayload) => void;
+
+/**
+ * 1.6.13 及之前的渲染错误回调签名。
+ * @deprecated 请使用 `(payload: PreviewErrorPayload) => void`；
+ * 仅在渲染错误且回调声明了两个参数时兼容调用。
+ */
+export type PreviewLegacyErrorHandler = (error: Error, errorInfo: React.ErrorInfo) => void;
+
+export type PreviewErrorHandler = PreviewErrorPayloadHandler | PreviewLegacyErrorHandler;
+
+const DEPRECATED_REQUEST_PROPS = ['requestInit', 'requestHandler', 'shouldFetchAsBlob'] as const;
+let deprecatedRequestWarningShown = false;
+
+/** 过渡期提示：旧鉴权参数已废弃，1.8.0 移除。 */
+function warnDeprecatedRequestProps(used: Partial<Record<(typeof DEPRECATED_REQUEST_PROPS)[number], unknown>>): void {
+  if (deprecatedRequestWarningShown) return;
+  const names = DEPRECATED_REQUEST_PROPS.filter((name) => used[name] !== undefined);
+  if (names.length === 0) return;
+  deprecatedRequestWarningShown = true;
+  console.warn(
+    `[file-preview] ${names.map((name) => `\`${name}\``).join('、')} 已废弃，将在 1.8.0 移除；请改用 \`loadFile\`（简单场景可用 \`withHeaders\`）。`,
+  );
+}
 
 export interface FilePreviewContentProps {
   files: PreviewFileInput[];
@@ -32,16 +59,21 @@ export interface FilePreviewContentProps {
   headless?: boolean;
   theme?: Theme;
   onCustomEvent?: (event: CustomRendererEventPayload) => void;
+  /** 统一取数入口：鉴权 / 签名场景下由宿主决定文件怎么取 */
+  loadFile?: FileLoader;
+  /** @deprecated 将在 1.8.0 移除；请改用 `loadFile` */
   requestInit?: RequestInitFactory;
+  /** @deprecated 将在 1.8.0 移除；请改用 `loadFile` */
   requestHandler?: RequestHandler;
+  /** @deprecated 将在 1.8.0 移除；请改用 `loadFile` */
   shouldFetchAsBlob?: ShouldFetchAsBlob;
   onDownload?: (file: PreviewFile) => void;
   /**
    * 加载/渲染失败回调。
-   * 每次加载最多触发一次，payload 已由顶层补全 file/index/stage；
-   * 早于 1.6.x 的 `(error, errorInfo)` 签名已废弃。
+   * 每次加载最多触发一次，payload 已由顶层补全 file/index/stage。
+   * 兼容旧版 `(error, errorInfo)` 渲染错误签名（仅渲染阶段触发且需两个形参）。
    */
-  onError?: (payload: PreviewErrorPayload) => void;
+  onError?: PreviewErrorHandler;
   /** 是否显示关闭按钮，默认根据 mode 决定（modal: true, embed: false） */
   showClose?: boolean;
   showDownload?: boolean;
@@ -59,15 +91,20 @@ export interface FilePreviewContentProps {
 }
 
 export const FilePreviewContent: React.FC<FilePreviewContentProps> = (props) => {
-  const { requestInit, requestHandler, shouldFetchAsBlob } = props;
+  const { loadFile, requestInit, requestHandler, shouldFetchAsBlob } = props;
   // 请求层错误出口：RequestProvider 在上层创建 fetcher，Inner 负责绑定事件通道
   const requestErrorRef = useRef<((url: string, error: unknown) => void) | null>(null);
   const handleRequestError = useCallback((url: string, error: unknown) => {
     requestErrorRef.current?.(url, error);
   }, []);
 
+  useEffect(() => {
+    warnDeprecatedRequestProps({ requestInit, requestHandler, shouldFetchAsBlob });
+  }, [requestInit, requestHandler, shouldFetchAsBlob]);
+
   return (
     <RequestProvider
+      loadFile={loadFile}
       requestInit={requestInit}
       requestHandler={requestHandler}
       shouldFetchAsBlob={shouldFetchAsBlob}
@@ -104,8 +141,9 @@ const FilePreviewContentInner: React.FC<FilePreviewContentInnerProps> = ({
   showNavigation = true,
   loopNavigation = false,
   emptyHint,
-  requestInit: _requestInit,
-  requestHandler: _requestHandler,
+  requestInit,
+  requestHandler,
+  loadFile,
   shouldFetchAsBlob: _shouldFetchAsBlob,
 }) => {
   const parentLocale = useLocale();
@@ -126,7 +164,27 @@ const FilePreviewContentInner: React.FC<FilePreviewContentInnerProps> = ({
     reportBlobErrorRef.current?.(error);
   }, []);
   const resolvedUrl = useResolvedUrl(currentFile, handleBlobError);
-  const fetcher = useFetcher();
+  // 下载走独立 fetcher：下载失败不属于预览加载失败，不能触发 onError
+  const downloadFetcher = useMemo(
+    () => createFetcher({ requestInit, requestHandler }),
+    [requestInit, requestHandler],
+  );
+
+  // 宿主回调适配：兼容旧版 (error, errorInfo) 签名，只用于渲染阶段错误
+  const notifyHost = useCallback((payload: PreviewErrorPayload) => {
+    const handler = onError;
+    if (!handler) return;
+    if (handler.length >= 2) {
+      if (payload.stage === 'render' && payload.cause !== undefined) {
+        (handler as PreviewLegacyErrorHandler)(
+          payload.error as Error,
+          payload.cause as React.ErrorInfo,
+        );
+      }
+      return;
+    }
+    (handler as PreviewErrorPayloadHandler)(payload);
+  }, [onError]);
 
   // 事件通道：渲染器上报口 + 顶层聚合（补 file/index、代次校验、去重）
   const events = usePreviewEventsChannel(
@@ -135,7 +193,7 @@ const FilePreviewContentInner: React.FC<FilePreviewContentInnerProps> = ({
       index: currentIndex,
       urls: [currentFile?.url ?? '', resolvedUrl].filter(Boolean),
     }),
-    onError,
+    notifyHost,
   );
 
   useEffect(() => {
@@ -154,10 +212,10 @@ const FilePreviewContentInner: React.FC<FilePreviewContentInnerProps> = ({
     };
   }, [events, requestErrorRef, currentFile]);
 
-  // 切换文件或换 URL 即进入新代次，允许再次上报
+  // 切换文件或换 URL 即进入新代次，允许再次上报（按稳定字段而非对象身份）
   useEffect(() => {
     events.reset();
-  }, [events, currentFile]);
+  }, [events, currentIndex, currentFile?.url]);
 
   const customRenderer = useMemo(() => {
     if (!currentFile) return null;
@@ -280,12 +338,24 @@ const FilePreviewContentInner: React.FC<FilePreviewContentInnerProps> = ({
       await onDownload(currentFile);
       return;
     }
+    let tempRevoke: (() => void) | null = null;
     try {
-      await downloadFileWithFetcher(currentFile.url, currentFile.name, fetcher);
+      // loadFile 场景复用已解析 URL；尚未解析（如预览类型不支持）时按需取一次
+      let downloadUrl = loadFile ? resolvedUrl : currentFile.url;
+      if (loadFile && !downloadUrl) {
+        const resolved = resolveConsumableUrl(
+          await loadFile(currentFile, { signal: new AbortController().signal }),
+        );
+        downloadUrl = resolved.url;
+        tempRevoke = resolved.revoke;
+      }
+      await downloadFileWithFetcher(downloadUrl || currentFile.url, currentFile.name, downloadFetcher);
     } catch (err) {
       console.error('[file-preview] download failed:', err);
+    } finally {
+      tempRevoke?.();
     }
-  }, [currentFile, onDownload, fetcher]);
+  }, [currentFile, onDownload, loadFile, resolvedUrl, downloadFetcher]);
 
   // 错误边界捕获（渲染器抛出的未捕获异常）统一走事件通道
   const handleRendererError = useCallback(
@@ -334,6 +404,9 @@ const FilePreviewContentInner: React.FC<FilePreviewContentInnerProps> = ({
                 onError={handleRendererError}
               >
               {(() => {
+                // 取数尚未就绪（loadFile 托管 / blob 预取）：先展示加载态，
+                // 避免 video / audio / pdf 等以空 URL 初始化。
+                if (!resolvedUrl) return <RendererLoading />;
                 // ZIP 嵌套深度超限：fallback 到 Unsupported
                 if (fileType === 'zip' && zipNestingDepth >= MAX_ZIP_NESTING_DEPTH) {
                   return (

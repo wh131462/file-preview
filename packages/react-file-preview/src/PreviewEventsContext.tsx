@@ -1,5 +1,6 @@
 import React, { createContext, useCallback, useContext, useMemo, useRef } from 'react';
 import {
+  PreviewRequestError,
   noopReporter,
   resolveErrorStage,
   type PreviewErrorPayload,
@@ -27,15 +28,17 @@ export interface PreviewEventsValue {
 
 const PreviewEventsContext = createContext<PreviewEventsValue | null>(null);
 
-const fallbackValue: PreviewEventsValue = {
-  reporter: noopReporter,
-  report: () => {
-    // no-op
-  },
-  reset: () => {
-    // no-op
-  },
-};
+/** 一次加载的去重键：同一 index + 同一原始 URL 视为同一次加载。 */
+function fileKey(ctx: PreviewEventsHostContext): string {
+  return `${ctx.index}:${ctx.file?.url ?? ''}`;
+}
+
+/** 对外保留原始异常，PreviewRequestError 只作为阶段标记。 */
+function originalError(error: unknown): unknown {
+  return error instanceof PreviewRequestError && error.cause !== undefined
+    ? error.cause
+    : error;
+}
 
 /**
  * 创建顶层事件通道（供 FilePreviewContent 自己持有，再通过 PreviewEventsProvider 下发给渲染器）。
@@ -45,52 +48,72 @@ export function usePreviewEventsChannel(
   getContext: () => PreviewEventsHostContext,
   onError?: (payload: PreviewErrorPayload) => void,
 ): PreviewEventsValue {
-  const reportedUrls = useRef<Set<string>>(new Set());
-  const begunUrl = useRef('');
+  const reportedKeys = useRef<Set<string>>(new Set());
+  /** 当前渲染器声明的加载代次；reset 不清空，用于丢弃旧文件的迟到回调 */
+  const begun = useRef<{ url: string; index: number } | null>(null);
   const getContextRef = useRef(getContext);
   getContextRef.current = getContext;
   const onErrorRef = useRef(onError);
   onErrorRef.current = onError;
 
+  const emit = useCallback(
+    (error: unknown, stage?: PreviewErrorStage, cause?: unknown, url?: string) => {
+      const ctx = getContextRef.current();
+      if (!ctx.file) return;
+
+      // 代次校验：URL 不属于当前文件（blob 已换代 / 旧文件迟到回调）直接丢弃
+      if (url && ctx.urls.length > 0 && !ctx.urls.includes(url)) return;
+
+      // 同一次加载只派发一次
+      const key = fileKey(ctx);
+      if (reportedKeys.current.has(key)) return;
+      reportedKeys.current.add(key);
+
+      const payload: PreviewErrorPayload = {
+        file: ctx.file,
+        index: ctx.index,
+        error: originalError(error),
+        stage: resolveErrorStage(error, stage),
+      };
+      if (cause !== undefined) payload.cause = cause;
+
+      onErrorRef.current?.(payload);
+    },
+    [],
+  );
+
+  const report = useCallback(
+    (error: unknown, stage?: PreviewErrorStage, cause?: unknown) => {
+      emit(error, stage, cause);
+    },
+    [emit],
+  );
+
   const reset = useCallback(() => {
-    begunUrl.current = '';
-    reportedUrls.current.clear();
-  }, []);
-
-  const report = useCallback((error: unknown, stage?: PreviewErrorStage, cause?: unknown) => {
-    const ctx = getContextRef.current();
-    if (!ctx.file) return;
-
-    const url = begunUrl.current || ctx.file.url;
-    // 代次校验：切换文件/换 URL 后，旧实例的迟到回调直接丢弃
-    if (ctx.urls.length > 0 && !ctx.urls.includes(url)) return;
-    // 同代次同 URL 只派发一次
-    if (reportedUrls.current.has(url)) return;
-    reportedUrls.current.add(url);
-
-    const payload: PreviewErrorPayload = {
-      file: ctx.file,
-      index: ctx.index,
-      error,
-      stage: resolveErrorStage(error, stage),
-    };
-    if (cause !== undefined) payload.cause = cause;
-
-    onErrorRef.current?.(payload);
+    // 只清其它文件的去重状态：保留当前键，避免渲染期先上报、effect 后清理导致重复派发
+    // begun 不清空，用于丢弃旧渲染器的迟到回调
+    const currentKey = fileKey(getContextRef.current());
+    for (const key of reportedKeys.current) {
+      if (key !== currentKey) reportedKeys.current.delete(key);
+    }
   }, []);
 
   return useMemo<PreviewEventsValue>(() => ({
     reporter: {
       begin(url) {
-        begunUrl.current = url;
+        begun.current = { url, index: getContextRef.current().index };
       },
       error(error, stage) {
-        report(error, stage);
+        const ctx = getContextRef.current();
+        const current = begun.current;
+        // 渲染器实例所属代次已切换：迟到的错误不能算在当前文件头上
+        if (current && current.index !== ctx.index) return;
+        emit(error, stage, undefined, current?.url || ctx.file?.url);
       },
     },
     report,
     reset,
-  }), [report, reset]);
+  }), [emit, report, reset]);
 }
 
 /** 把事件通道下发给渲染器子树。 */
@@ -104,9 +127,4 @@ export const PreviewEventsProvider: React.FC<{
 /** 渲染器侧使用；未接入事件通道时返回 noop。 */
 export function usePreviewEvents(): PreviewReporter {
   return useContext(PreviewEventsContext)?.reporter ?? noopReporter;
-}
-
-/** 顶层内部使用：拿完整通道能力。 */
-export function usePreviewEventsValue(): PreviewEventsValue {
-  return useContext(PreviewEventsContext) ?? fallbackValue;
 }

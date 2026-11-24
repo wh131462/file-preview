@@ -2,8 +2,9 @@ import { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { PreviewFileInput, CustomRenderer } from './types';
 import { FilePreviewContent } from './FilePreviewContent';
+import type { PreviewErrorHandler } from './FilePreviewContent';
 import { useThemeMode } from './hooks';
-import type { EmptyHintMode, Locale, Messages, Theme, CustomRendererEventPayload, PreviewFile, RequestHandler, RequestInitFactory, ShouldFetchAsBlob, PreviewErrorPayload } from '@eternalheart/file-preview-core';
+import type { EmptyHintMode, Locale, Messages, Theme, CustomRendererEventPayload, PreviewFile, RequestHandler, RequestInitFactory, ShouldFetchAsBlob, FileLoader } from '@eternalheart/file-preview-core';
 
 interface FilePreviewModalProps {
   files: PreviewFileInput[];
@@ -22,11 +23,13 @@ interface FilePreviewModalProps {
   theme?: Theme;
   /** 自定义渲染器派发的事件出口 */
   onCustomEvent?: (event: CustomRendererEventPayload) => void;
-  /** 自定义 RequestInit（或工厂函数）：注入 Authorization 等鉴权头 */
+  /** 统一取数入口：鉴权 / 签名场景下由宿主决定文件怎么取 */
+  loadFile?: FileLoader;
+  /** @deprecated 将在 1.8.0 移除；请改用 `loadFile` */
   requestInit?: RequestInitFactory;
-  /** 自定义请求处理器：完全接管库内 fetch */
+  /** @deprecated 将在 1.8.0 移除；请改用 `loadFile` */
   requestHandler?: RequestHandler;
-  /** 返回 true 时，对应文件先 fetcher→blob URL 后喂给 image/video/audio/pdf 等 renderer */
+  /** @deprecated 将在 1.8.0 移除；请改用 `loadFile` */
   shouldFetchAsBlob?: ShouldFetchAsBlob;
   /** 自定义下载回调；不传时库内默认通过 fetcher 拉 Blob 触发下载 */
   onDownload?: (file: PreviewFile) => void | Promise<void>;
@@ -40,8 +43,8 @@ interface FilePreviewModalProps {
   loopNavigation?: boolean;
   /** 空内容提示策略，默认 'auto'（文本类空白、结构化类型提示） */
   emptyHint?: EmptyHintMode;
-  /** 加载/渲染失败回调：每次加载最多触发一次，payload 已补全 file/index/stage */
-  onError?: (payload: PreviewErrorPayload) => void;
+  /** 加载/渲染失败回调：每次加载最多触发一次，payload 已补全 file/index/stage（兼容旧版渲染错误签名） */
+  onError?: PreviewErrorHandler;
 }
 
 export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
@@ -56,6 +59,7 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
   headless,
   theme = 'dark',
   onCustomEvent,
+  loadFile,
   requestInit,
   requestHandler,
   shouldFetchAsBlob,
@@ -114,6 +118,7 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
             headless={headless}
             theme={theme}
             onCustomEvent={onCustomEvent}
+            loadFile={loadFile}
             requestInit={requestInit}
             requestHandler={requestHandler}
             shouldFetchAsBlob={shouldFetchAsBlob}

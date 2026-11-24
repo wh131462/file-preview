@@ -1,4 +1,5 @@
 import { PreviewError } from '@eternalheart/file-preview-core';
+import type { PreviewErrorPayload } from '@eternalheart/file-preview-core';
 import { useState, useEffect, useMemo, useCallback, useRef, lazy, Suspense, forwardRef, useImperativeHandle } from 'react';
 import React from 'react';
 import { createPortal } from 'react-dom';
@@ -416,6 +417,7 @@ export const ZipRenderer = forwardRef<RendererHandle, ZipRendererProps>(({ url, 
                 files={previewFiles}
                 currentIndex={0}
                 zipNestingDepth={nestingDepth + 1}
+                onError={(payload: PreviewErrorPayload) => reporter.error(payload.error, payload.stage)}
               />
             </Suspense>
           </div>

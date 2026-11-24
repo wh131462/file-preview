@@ -62,17 +62,23 @@ export const SubtitleRenderer = forwardRef<RendererHandle, SubtitleRendererProps
     return () => controller.abort();
   }, [url]);
 
-  const parsed: SubtitleParseResult | null = useMemo(() => {
-    if (!text) return null;
+  const parseResult = useMemo<{ value: SubtitleParseResult | null; error: unknown }>(() => {
+    if (!text) return { value: null, error: null };
     try {
-      return parseSubtitle(text, getFormat(fileName));
+      return { value: parseSubtitle(text, getFormat(fileName)), error: null };
     } catch (err) {
       // 字幕解析失败通常是格式不支持或文件损坏，用 warn 级别记录
       console.warn('[SubtitleRenderer] Failed to parse subtitle:', err instanceof Error ? err.message : String(err));
-      reporter.error(err);
-      return null;
+      return { value: null, error: err };
     }
   }, [text, fileName]);
+
+  // 上报放到 effect：避免在渲染期同步回调宿主（宿主可能 setState）
+  useEffect(() => {
+    if (parseResult.error) reporter.error(parseResult.error);
+  }, [parseResult, reporter]);
+
+  const parsed = parseResult.value;
 
   // 暴露接口给父组件
   useImperativeHandle(ref, () => ({

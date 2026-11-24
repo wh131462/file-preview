@@ -347,7 +347,7 @@ type PreviewErrorStage = 'request' | 'parse' | 'render'
 - `parse`：拿到内容后解析失败（mammoth / SheetJS / pdf.js 解析等）
 - `render`：解析完成后的渲染失败（画布、worker、懒加载渲染器加载失败）
 
-渲染器在拿到响应后自行判断的 HTTP 状态错误（`request.failed` / `file.load_failed` / `file.load_failed_status` / `common.load_failed`）也会归入 `request`，无需宿主自行转换。
+渲染器在拿到响应后自行判断的 HTTP 状态错误（`request.failed` / `file.load_failed` / `file.load_failed_status` / `common.load_failed`）也会归入 `request`；pdf.js 等第三方库抛出的响应异常（带 `status`）和浏览器网络层 `TypeError`（CORS / 混合内容 / 断网）同样归入 `request`，无需宿主自行转换。
 
 ### PreviewErrorPayload
 

@@ -238,7 +238,7 @@ function AuthedPreview({ token }: { token: string }) {
 
 工具栏右上角的「下载」按钮、`Unsupported` 渲染器的下载按钮，都会触发统一的下载逻辑：
 
-- **默认行为**：库内复用已解析结果（`loadFile` 返回的 Blob / 直链）触发 `<a download>` 下载；旧参数模式下回退到 `requestInit` / `requestHandler` + fetcher。
+- **默认行为**：库内复用已解析结果（`loadFile` 返回的 Blob / 直链）触发 `<a download>` 下载；如果上次 `loadFile` 解析失败（组件已回退到原始 URL），下载会**重新调用 `loadFile`** 取数，避免直接请求跨域 / 混合内容的原始地址；未配置 `loadFile` 时回退到 `requestInit` / `requestHandler` + fetcher。
 - **完全接管**：传 `onDownload`，库内只调用你的回调，不再做任何动作。
 
 ### 默认下载（推荐）

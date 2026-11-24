@@ -377,7 +377,7 @@ const customRenderers: CustomRenderer[] = [
 - **类型**: `(file: PreviewFile) => void | Promise<void>`
 - **必需**: 否
 - **描述**: 自定义下载回调。
-  - **不传**：库内默认复用已解析结果（`loadFile` 返回的 Blob / 直链）触发 `<a download>`；未配置 `loadFile` 时回退到 `requestInit` / `requestHandler` + fetcher。
+  - **不传**：库内默认复用已解析结果（`loadFile` 返回的 Blob / 直链）触发 `<a download>`；`loadFile` 上次解析失败时会重新调用一次 `loadFile` 再下载；未配置 `loadFile` 时回退到 `requestInit` / `requestHandler` + fetcher。
   - **传入**：完全接管下载行为，库内不再做任何 fetch / `<a>` 操作。可用于走自家下载中心、上报埋点等。
 
 ```tsx

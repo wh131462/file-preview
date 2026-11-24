@@ -363,16 +363,30 @@ interface PreviewErrorPayload {
 
 `onError`（React） / `@error`（Vue） / `(error)`（Angular）的载荷。`error` 为解包后的原始异常（内部 `PreviewRequestError` 会取其 `cause`），不会被打包丢弃；`cause` 仅 React 侧填充 `ErrorInfo`。ZIP 内嵌预览的失败会归属到容器 ZIP 文件。
 
+### PreviewRenderedPayload
+
+```typescript
+interface PreviewRenderedPayload {
+  file: PreviewFile
+  index: number
+  fileType: FileType
+  durationMs?: number
+}
+```
+
+`onRendered`（React） / `@rendered`（Vue） / `(rendered)`（Angular）的载荷。语义为「本次加载的首屏内容已就绪」：解析完成且渲染器已产出首屏内容，不保证像素级绘制完成。每次加载最多触发一次；能产出空态的渲染器对空内容也会触发就绪，无法解析的空文件走 error；`Unsupported` 不触发。`durationMs` 为 `begin → ready` 的耗时，未调用 `begin` 时省略。error 与 rendered 独立去重：同一次加载可能先 error 后 rendered（例如宿主兜底后成功加载），宿主应按业务自行决定二者优先级。
+
 ### PreviewReporter
 
 ```typescript
 interface PreviewReporter {
   begin(url: string): void
   error(error: unknown, stage?: PreviewErrorStage): void
+  ready(): void
 }
 ```
 
-渲染器侧的最小上报口，由框架层通过注入提供（Vue `usePreviewEvents` / React `usePreviewEvents` / Angular `inject(PreviewEventsService).reporter`）。内置渲染器通过它上报失败；`stage` 缺省时按异常类型自动推断。宿主通常无需直接使用。
+渲染器侧的最小上报口，由框架层通过注入提供（Vue `usePreviewEvents` / React `usePreviewEvents` / Angular `inject(PreviewEventsService).reporter`）。内置渲染器通过它上报失败与首屏就绪；`stage` 缺省时按异常类型自动推断。宿主通常无需直接使用；自定义渲染器可调用 `ready()` 参与同一套 rendered 事件。
 
 ### PreviewRequestError
 

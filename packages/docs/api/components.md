@@ -295,6 +295,23 @@ const customRenderers: CustomRenderer[] = [
 />
 ```
 
+#### onRendered
+
+- **类型**: `(payload: PreviewRenderedPayload) => void`
+- **必需**: 否
+- **描述**: 本次加载的首屏内容就绪时触发，每次加载最多一次（与 `onError` 独立，同一次加载可能先 error 后 rendered）。`payload` 为 `{ file, index, fileType, durationMs? }`；`durationMs` 为 `begin → ready` 的耗时。语义是「解析完成且渲染器已产出首屏内容」，不保证像素级绘制完成；能产出空态的渲染器对空内容也会触发，无法解析的空文件走 error，`Unsupported` 不会触发。
+- **注意**: 自定义渲染器需要自行调用 `usePreviewEvents().ready()`（React / Vue）或 `inject(PreviewEventsService).reporter.ready()`（Angular）才能参与该事件。
+
+```tsx
+<FilePreviewModal
+  files={files}
+  onRendered={({ file, fileType, durationMs }) => {
+    reportMetric('preview_ready', { type: fileType, name: file.name, ms: durationMs })
+  }}
+  ...
+/>
+```
+
 #### loadFile
 
 - **类型**: `(file: PreviewFile, ctx: { signal: AbortSignal }) => Promise<Blob | { url: string }>`
@@ -486,6 +503,7 @@ function Panel() {
 | `emptyHint` | `'auto' \| 'always' \| 'never'` | ❌ | `'auto'` | 空内容提示策略：文本类默认空白，结构化类型默认提示 |
 | `onCustomEvent` | `(e: CustomRendererEventPayload) => void` | ❌ | - | 自定义渲染器事件出口,载荷 `{ name, payload, file }` |
 | `onError` | `(payload: PreviewErrorPayload) => void` | ❌ | - | 加载/渲染失败回调，载荷 `{ file, index, error, stage }` |
+| `onRendered` | `(payload: PreviewRenderedPayload) => void` | ❌ | - | 首屏内容就绪回调，载荷 `{ file, index, fileType, durationMs? }` |
 | `loadFile` | `(file, ctx) => Promise<Blob \| { url: string }>` | ❌ | - | 统一取数入口；鉴权 / 签名 / 流媒体推荐使用 |
 | `requestInit` | `RequestInit \| (url) => RequestInit \| Promise<RequestInit>` | ❌ | - | **已废弃**，1.8.0 移除；改用 `loadFile` |
 | `requestHandler` | `(url, init?) => Promise<Response>` | ❌ | - | **已废弃**，1.8.0 移除；改用 `loadFile` |
@@ -581,6 +599,7 @@ function DetailPanel() {
 | `messages` | `Partial<Record<Locale, Partial<Messages>>>` | ❌ | - | 自定义翻译字典 |
 | `onCustomEvent` | `(e: CustomRendererEventPayload) => void` | ❌ | - | 自定义渲染器事件出口 |
 | `onError` | `(payload: PreviewErrorPayload) => void` | ❌ | - | 加载/渲染失败回调，载荷 `{ file, index, error, stage }` |
+| `onRendered` | `(payload: PreviewRenderedPayload) => void` | ❌ | - | 首屏内容就绪回调，载荷 `{ file, index, fileType, durationMs? }` |
 | `loadFile` | `(file, ctx) => Promise<Blob \| { url: string }>` | ❌ | - | 统一取数入口；鉴权 / 签名 / 流媒体推荐使用 |
 | `requestInit` | `RequestInit \| (url) => RequestInit \| Promise<RequestInit>` | ❌ | - | **已废弃**，1.8.0 移除；改用 `loadFile` |
 | `requestHandler` | `(url, init?) => Promise<Response>` | ❌ | - | **已废弃**，1.8.0 移除；改用 `loadFile` |

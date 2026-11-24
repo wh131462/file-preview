@@ -2,6 +2,7 @@
 import { ref, watch, onMounted, onBeforeUnmount } from 'vue';
 import ePub from '@likecoin/epub-ts';
 import { X, ChevronLeft, ChevronRight, List, Maximize2, Minimize2 } from 'lucide-vue-next';
+import { PreviewError, PreviewRequestError } from '@eternalheart/file-preview-core';
 import { useTranslator } from '../../composables/useTranslator';
 import { useFetcher } from '../../composables/useRequest';
 import { usePreviewEvents } from '../../composables/usePreviewEvents';
@@ -176,11 +177,15 @@ const loadEpub = async () => {
   cleanup();
 
   try {
-    let bookInput: string | ArrayBuffer = props.url;
-    if (props.url.startsWith('blob:')) {
-      const resp = await fetcher.value(props.url);
-      bookInput = await resp.arrayBuffer();
+    // 统一经库内 fetcher 取数：网络 / CORS / 混合内容失败会被包装成
+    // PreviewRequestError（request 阶段），同时兼容 requestHandler / loadFile
+    const resp = await fetcher.value(props.url);
+    if (!resp.ok) {
+      throw new PreviewRequestError(
+        new PreviewError('request.failed', { status: resp.status }),
+      );
     }
+    const bookInput = await resp.arrayBuffer();
 
     const loadedBook = ePub(bookInput) as unknown as BookLike;
     book = loadedBook;

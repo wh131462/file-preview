@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useCallback, useImperativeHandle, forwardRef } from 'react';
 import ePub from '@likecoin/epub-ts';
 import { X, ChevronLeft, ChevronRight, Maximize2, Minimize2, List } from 'lucide-react';
+import { PreviewError, PreviewRequestError } from '@eternalheart/file-preview-core';
 import { useTranslator } from '../../i18n/LocaleContext';
 import { useFetcher } from '../../RequestContext';
 import { usePreviewEvents } from '../../PreviewEventsContext';
@@ -249,11 +250,15 @@ export const EpubRenderer = forwardRef<EpubRendererHandle, EpubRendererProps>(
       const load = async () => {
         reporter.begin(url);
         try {
-          let bookInput: string | ArrayBuffer = url;
-          if (url.startsWith('blob:')) {
-            const resp = await fetcher(url);
-            bookInput = await resp.arrayBuffer();
+          // 统一经库内 fetcher 取数：网络 / CORS / 混合内容失败会被包装成
+          // PreviewRequestError（request 阶段），同时兼容 requestHandler / loadFile
+          const resp = await fetcher(url);
+          if (!resp.ok) {
+            throw new PreviewRequestError(
+              new PreviewError('request.failed', { status: resp.status }),
+            );
           }
+          const bookInput = await resp.arrayBuffer();
 
           const book = ePub(bookInput) as unknown as BookLike;
           bookRef.current = book;

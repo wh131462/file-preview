@@ -273,3 +273,20 @@ test('withHeaders builds a Blob loader, merges headers and wraps non-2xx respons
     globalThis.fetch = originalFetch;
   }
 });
+
+test('infers request stage from third-party response and network errors', () => {
+  const responseError = Object.assign(new Error('Unexpected server response (404)'), {
+    name: 'ResponseException',
+    status: 404,
+  });
+
+  assert.equal(core.resolveErrorStage(responseError), 'request');
+  assert.equal(core.resolveErrorStage(new TypeError('Failed to fetch')), 'request');
+  assert.equal(core.resolveErrorStage(new TypeError('Load failed')), 'request');
+  assert.equal(
+    core.resolveErrorStage(new TypeError("Cannot read properties of undefined (reading 'load')")),
+    'parse',
+  );
+  assert.equal(core.resolveErrorStage(new Error('Unexpected end of JSON input')), 'parse');
+  assert.equal(core.resolveErrorStage(responseError, 'parse'), 'parse');
+});
